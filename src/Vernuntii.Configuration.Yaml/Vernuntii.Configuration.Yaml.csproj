@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Vernuntii.Configuration</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NetEscapades.Configuration.Yaml" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vernuntii.Configuration.Shadowing\Vernuntii.Configuration.Shadowing.csproj" />
+    <ProjectReference Include="..\Vernuntii.Configuration.Abstractions\Vernuntii.Configuration.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

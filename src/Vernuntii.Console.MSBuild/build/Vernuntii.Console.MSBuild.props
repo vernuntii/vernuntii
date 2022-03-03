@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <VernuntiiPropsLoaded>true</VernuntiiPropsLoaded>
+    <DisableVernuntii Condition="'$(DisableVernuntii)' == ''">false</DisableVernuntii>
+    <VernuntiiAssemblyFile Condition="'$(VernuntiiAssemblyFile)' == ''">$(MSBuildThisFileDirectory)..\tools\msbuild\netstandard2.0\Vernuntii.Console.MSBuild.dll</VernuntiiAssemblyFile>
+    <VernuntiiConsoleExecutableFile Condition="'$(VernuntiiConsoleExecutableFile)' == ''">$(MSBuildThisFileDirectory)..\tools\console\net6.0\Vernuntii.Console.dll</VernuntiiConsoleExecutableFile>
+    <VernuntiiVerbose Condition="'$(VernuntiiVerbose)' == ''"></VernuntiiVerbose>
+    <VernuntiiConfigPath Condition="'$(VernuntiiConfigPath)' == ''">$(MSBuildProjectDirectory)</VernuntiiConfigPath>
+    <VernuntiiConfigPath Condition="'$(VernuntiiConfigPath)' == ''">$(SolutionDir)</VernuntiiConfigPath>
+    <VernuntiiCacheId Condition="'$(VernuntiiCacheId)' == ''"></VernuntiiCacheId>
+    <VernuntiiCacheCreationRetentionTime Condition="'$(VernuntiiCacheCreationRetentionTime)' == ''"></VernuntiiCacheCreationRetentionTime>
+    <VernuntiiCacheLastAccessRetentionTime Condition="'$(VernuntiiCacheLastAccessRetentionTime)' == ''"></VernuntiiCacheLastAccessRetentionTime>
+    <VernuntiiEmptyCaches Condition="'$(VernuntiiEmptyCaches)' == ''">false</VernuntiiEmptyCaches>
+    <ExecuteVernuntiiTaskDependsOn>$(ExecuteVernuntiiTaskDependsOn)</ExecuteVernuntiiTaskDependsOn>
+    <ExecuteVernuntiiTaskBeforeTargets>$(ExecuteVernuntiiTaskBeforeTargets)</ExecuteVernuntiiTaskBeforeTargets>
+    <UpdateVersionPropsFromVernuntiiTask Condition="'$(UpdateVersionPropsFromVernuntiiTask)' == ''">true</UpdateVersionPropsFromVernuntiiTask>
+  </PropertyGroup>
+
+</Project>

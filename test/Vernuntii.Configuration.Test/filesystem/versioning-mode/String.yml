@@ -1,0 +1,10 @@
+﻿VersioningMode: ""
+Branches:
+  - IfBranch: "ContinousDelivery"
+    VersioningMode: "ContinousDelivery"
+  - IfBranch: "ContinousDeployment"
+    VersioningMode: "ContinousDeployment"
+  - IfBranch: "Manual"
+    VersioningMode: "Manual"
+  - Ifbranch: "ConventionalCommitsDelivery"
+    VersioningMode: "ConventionalCommitsDelivery"

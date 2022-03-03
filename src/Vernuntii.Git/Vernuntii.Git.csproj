@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Vernuntii</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Experimental.Collections" Version="1.0.6-e190117-3" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageReference Include="Teronis.NetStandard.Collections.Synchronization" Version="0.1.8-alpha.223" />
+    <PackageReference Include="Teronis.NetStandard.Core" Version="0.1.8-alpha.223" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vernuntii.Calculator\Vernuntii.Calculator.csproj" />
+    <ProjectReference Include="..\Vernuntii.Git.Abstractions\Vernuntii.Git.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

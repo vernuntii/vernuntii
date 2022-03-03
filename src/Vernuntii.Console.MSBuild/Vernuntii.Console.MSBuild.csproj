@@ -1,0 +1,75 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Vernuntii.Console</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- We don't build an executable package.
+       We build an only-build-time package. -->
+  <PropertyGroup>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Single point of truth -->
+    <ConsoleTargetFramework>net6.0</ConsoleTargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.9.0" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="5.0.1" />
+    <PackageReference Include="Teronis.NetStandard.Core" Version="0.1.8-alpha.223" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vernuntii.Console\Vernuntii.Console.csproj">
+      <!-- Setting ReferenceOutputAssembly skips adding the outputs of the referenced project to an item -->
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <!-- Setting SkipGetTargetFrameworkProperties skips target framework cross-project validation in NuGet -->
+      <OutputItemType>None</OutputItemType>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <AdditionalProperties>TargetFramework=$(ConsoleTargetFramework)</AdditionalProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\Vernuntii.VersionPresentation.Abstractions\Vernuntii.VersionPresentation.Abstractions.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)build\**\*.props;$(MSBuildThisFileDirectory)build\**\*.targets">
+      <Pack>True</Pack>
+      <PackagePath>build</PackagePath>
+      <Link>build\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+
+    <None Include="$(MSBuildThisFileDirectory)build\**\*.props;$(MSBuildThisFileDirectory)build\**\*.targets">
+      <Pack>True</Pack>
+      <PackagePath>buildMultiTargeting</PackagePath>
+      <Link>buildMultiTargeting\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)bin\$(Configuration)\$(TargetFramework)\**\*">
+      <Pack>True</Pack>
+      <PackagePath>tools\msbuild\$(TargetFramework)</PackagePath>
+      <Visible>False</Visible>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console\bin\$(Configuration)\$(ConsoleTargetFramework)\**\*">
+      <Pack>True</Pack>
+      <PackagePath>tools\console\$(ConsoleTargetFramework)</PackagePath>
+      <Visible>False</Visible>
+    </None>
+  </ItemGroup>
+
+</Project>

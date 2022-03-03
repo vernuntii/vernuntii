@@ -1,0 +1,4 @@
+root = true
+
+[*.{props,targets,csproj}]
+indent_size = 2

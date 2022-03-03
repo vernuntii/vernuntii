@@ -1,0 +1,205 @@
+name: Build, then publish
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - "*"
+  workflow_dispatch:
+    inputs:
+      version:
+        required: false
+        default: ""
+        description: |
+          Manually specify the version. The following will happen:
+          1. A tag with specified version will be created at current tip of branch.
+          If version is empty then (pre-)release version will be calculated.
+      pre-release:
+        required: true
+        type: boolean
+        default: true
+        description: |
+          If pre-release is set to true the version is calculated as pre-release, otherwise as release.
+      dry-run:
+        required: false
+        type: boolean
+        default: false
+        description: |
+          If dry run is enabled tag won't be pushed and packages are not pushed either.
+
+env:
+  VERNUNTII_VERBOSITY: Verbose
+  MSBUILD_VERBOSITY: Normal
+  MSBUILD_CONFIGURATION: Release
+  CACHE_ID: GITHUB_VERSION_CACHE
+  DOTNET_VERSION: "6.0.x"
+  # DRY_RUN: ${{ github.event.inputs.dry-run == 'true' && 'true' || 'false' }}
+  DRY_RUN: "true"
+  VERNUNTII_ARTIFACT: vernuntii-console-tool
+
+jobs:
+  pre-build:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Produce Vernuntii artifact
+        uses: ./.github/actions/produce-vernuntii-artifact
+        with:
+          artifact-name: ${{ env.VERNUNTII_ARTIFACT }}
+          console-tool-project-name: Vernuntii.Console.GlobalTool
+          msbuild-verbosity: ${{ env.MSBUILD_VERBOSITY }}
+          msbuild-configuration: ${{ env.MSBUILD_CONFIGURATION }}
+
+  build:
+    runs-on: ubuntu-18.04
+    needs: pre-build
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.VERNUNTII_ARTIFACT }}
+          path: ~/artifacts
+
+      - uses: vernuntii/actions/install/dotnet-tool@main
+        with:
+          add-source: ~/artifacts
+
+      - name: Enable "Vernuntii" in subsequent MSBuild calls
+        uses: vernuntii/actions/install/msbuild-import@main
+        with:
+          verbose: ${{ env.VERNUNTII_VERBOSITY }}
+          cache-id: ${{ env.CACHE_ID }}
+
+      - name: Set semantic version from non-empty event input
+        if: >
+          github.event_name == 'workflow_dispatch'
+          && github.event.inputs.version != ''
+        run: |
+          echo "Vernuntii_SemanticVersion=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+
+      - name: Set pre-release version from console application
+        if: >
+          ( 
+          github.event_name == 'workflow_dispatch'
+          && github.event.inputs.version == ''
+          && github.event.inputs.pre-release == 'true'
+          ) 
+          || github.event_name != 'workflow_dispatch'
+        uses: vernuntii/actions/execute@main
+        with:
+          verbose: ${{ env.VERNUNTII_VERBOSITY }}
+          cache-id: ${{ env.CACHE_ID }}
+          duplicate-version-fails: true
+
+      - name: Set release version from console application
+        if: >
+          github.event_name == 'workflow_dispatch'
+          && github.event.inputs.version == ''
+          && github.event.inputs.pre-release == 'false'
+        uses: vernuntii/actions/execute@main
+        with:
+          cache-id: ${{ env.CACHE_ID }}
+          duplicate-version-fails: true
+          is-release: true
+
+      - name: Set version from environment as output parameter
+        id: semantic-version
+        run: >
+          echo "::set-output name=semantic-version::${{ env.Vernuntii_SemanticVersion }}"
+
+      - name: Restore projects
+        run: dotnet restore
+
+      - name: Build projects
+        run: >
+          dotnet build --verbosity $MSBUILD_VERBOSITY --configuration $MSBUILD_CONFIGURATION --no-restore
+
+      - name: Test projects
+        run: dotnet test --configuration $MSBUILD_CONFIGURATION --no-restore
+
+      - name: Pack projects
+        run: >
+          dotnet pack --verbosity $MSBUILD_VERBOSITY --configuration $MSBUILD_CONFIGURATION --no-restore
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: publishable-nuget-packages
+          path: |
+            src/**/*.nupkg
+            src/**/*.snupkg
+          if-no-files-found: error
+
+    outputs:
+      semantic-version: ${{ steps.semantic-version.outputs.semantic-version }}
+
+  # publish:
+  #   runs-on: windows-latest
+  #   needs: build
+  #   if: ${{ github.event_name == 'workflow_dispatch' }}
+  #   steps:
+  #     - name: Download package artifacts
+  #       id: download-artifacts
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: publishable-nuget-packages
+  #       continue-on-error: true
+  #     - name: Display structure of downloaded files
+  #       if: ${{ env.DRY_RUN }}
+  #       run: ls -R
+  #     - name: Push nupkg's
+  #       id: push-nupkg
+  #       if: ${{ steps.download-artifacts.outcome == 'success' && !env.DRY_RUN }}
+  #       run: echo "::set-output name=console::$(dotnet nuget push '**/*.nupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)"
+  #       continue-on-error: true
+  #     - name: Push nupkg's console output
+  #       if: steps.push-nupkg.outcome != 'skipped'
+  #       run: echo "${{ steps.push-nupkg.outputs.console }}"
+  #     - name: Push nupkg's suceeded
+  #       if: "${{ steps.push-nupkg.outcome == 'failure' && !contains(steps.push-nupkg.outputs.console, 'error: File does not exist') }}"
+  #       run: exit 1
+  #     - name: Push snupkg's
+  #       id: push-snupkg
+  #       if: ${{ steps.download-artifacts.outcome == 'success' && !env.DRY_RUN }}
+  #       run: echo "::set-output name=console::$(dotnet nuget push '**/*.snupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)"
+  #       continue-on-error: true
+  #     - name: Push snupkg's console output
+  #       if: steps.push-snupkg.outcome != 'skipped'
+  #       run: echo "${{ steps.push-snupkg.outputs.console }}"
+  #     - name: Push snupkg's suceeded
+  #       if: "${{ steps.push-snupkg.outcome == 'failure' && !contains(steps.push-snupkg.outputs.console, 'error: File does not exist') }}"
+  #       run: exit 1
+
+  # git-tag:
+  #   runs-on: windows-latest
+  #   needs: [build, publish]
+  #   if: ${{ github.event_name == 'workflow_dispatch' }}
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 1
+  #     - name: Create (pre-)release tag remotely
+  #       if: ${{ !env.DRY_RUN }}
+  #       run: |
+  #         git tag ${{ needs.build.outputs.semantic-version }}
+  #         git push --tags
+  #     - name: Create (pre-)release tag remotely (dry-run)
+  #       if: ${{ env.DRY_RUN }}
+  #       run: echo ${{ needs.build.outputs.semantic-version }}

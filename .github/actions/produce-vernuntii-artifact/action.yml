@@ -1,0 +1,60 @@
+name: Produce Vernuntii artifact
+description: Produces an artifact containing a .nupkg representing the dotnet cli tool for Vernuntii
+
+inputs:
+  artifact-name:
+    description: The name of produced artifact
+    required: true
+  console-tool-project-name:
+    description: The project name of console tool
+    required: true
+  msbuild-verbosity:
+    description: MSBuild verbosity
+    required: true
+  msbuild-configuration:
+    description: MSBuild configuration
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - id: echo
+      run: |
+        FILE=./src/${{ inputs.console-tool-project-name }}/${{ inputs.console-tool-project-name }}.csproj
+        echo "::set-output name=console-tool-project-file::$FILE"
+      shell: bash
+
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore projects
+      shell: bash
+      run: dotnet restore ${{ steps.echo.outputs.console-tool-project-file }}
+
+    - name: Build projects
+      shell: bash
+      run: >
+        dotnet build ${{ steps.echo.outputs.console-tool-project-file }}
+        --verbosity ${{ inputs.msbuild-verbosity }}
+        --configuration ${{ inputs.msbuild-configuration }}
+        --no-restore
+
+    - name: Pack projects
+      shell: bash
+      run: >
+        dotnet pack ${{ steps.echo.outputs.console-tool-project-file }}
+        --verbosity ${{ inputs.msbuild-verbosity }}
+        --configuration ${{ inputs.msbuild-configuration }}
+        --no-restore
+
+    - run: find . -name "${{ inputs.console-tool-project-name }}.*.nupkg" -exec mv {} ./ \; -exec echo 0 \; | grep .;
+      shell: bash
+
+    - name: Upload Vernuntii (artifacts)
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: |
+          **/${{ inputs.console-tool-project-name }}.*.nupkg
+        if-no-files-found: error

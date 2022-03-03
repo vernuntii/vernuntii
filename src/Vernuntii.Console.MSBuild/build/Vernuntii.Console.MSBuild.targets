@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).props" Condition="'$(VernuntiiPropsLoaded)' != 'true'" />
+
+  <UsingTask AssemblyFile="$(VernuntiiAssemblyFile)" TaskName="VernuntiiTask" Condition="'$(DisableVernuntii)' != 'true'" />
+
+  <PropertyGroup>
+    <!-- Possible canditates: -->
+    <!--CoreCompile;-->
+    <!--GetAssemblyVersion;
+    GenerateNuspec;
+    _GenerateRestoreProjectSpec;
+    _GetOutputItemsFromPack;-->
+    <!--EnsureWixToolsetInstalled-->
+    <!-- 
+      Sets version informations before the following targets are going
+        to be called:
+      - GetAssemblyVersion: This target sets AssemblyVersion, FileVersion and
+          InformationalVersion.
+      - _GetProjectVersion: Before nuspec can be built it has to collect the 
+          versions of project references the package depends on. 
+      - GenerateNuspec: When packing, this target creates nuspec file for package.
+    -->
+    <ExecuteVernuntiiTaskBeforeTargets>
+      $(ExecuteVernuntiiTaskBeforeTargets);
+      GetAssemblyVersion;
+      _GetProjectVersion;
+      GenerateNuspec;
+    </ExecuteVernuntiiTaskBeforeTargets>
+  </PropertyGroup>
+
+  <Target Name="ExecuteVernuntiiTask" DependsOnTargets="$(ExecuteVernuntiiTaskDependsOn)" BeforeTargets="$(ExecuteVernuntiiTaskBeforeTargets)" Condition="'$(DisableVernuntii)' != 'true'">
+
+    <PropertyGroup>
+      <_VernuntiiConsoleExecutableFile Condition="'$(_VernuntiiConsoleExecutableFile)' == ''">$(VernuntiiConsoleExecutableFile)</_VernuntiiConsoleExecutableFile>
+      <_VernuntiiVerbose Condition="'$(_VernuntiiVerbose)' == ''">$(VernuntiiVerbose)</_VernuntiiVerbose>
+      <_VernuntiiConfigPath Condition="'$(_VernuntiiConfigPath)' == ''">$(VernuntiiConfigPath)</_VernuntiiConfigPath>
+      <_VernuntiiCacheId Condition="'$(_VernuntiiCacheId)' == ''">$(VernuntiiCacheId)</_VernuntiiCacheId>
+      <_VernuntiiCacheCreationRetentionTime Condition="'$(_VernuntiiCacheCreationRetentionTime)' == ''">$(VernuntiiCacheCreationRetentionTime)</_VernuntiiCacheCreationRetentionTime>
+      <_VernuntiiCacheLastAccessRetentionTime Condition="'$(_VernuntiiCacheLastAccessRetentionTime)' == ''">$(VernuntiiCacheLastAccessRetentionTime)</_VernuntiiCacheLastAccessRetentionTime>
+      <_VernuntiiEmptyCaches Condition="'$(_VernuntiiEmptyCaches)' == ''">$(VernuntiiEmptyCaches)</_VernuntiiEmptyCaches>
+    </PropertyGroup>
+
+    <VernuntiiTask ConsoleExecutablePath="$(_VernuntiiConsoleExecutableFile)"
+                             Verbose="$(_VernuntiiVerbose)"
+                             ConfigPath="$(_VernuntiiConfigPath)"
+                             CacheId="$(_VernuntiiCacheId)"
+                             CacheCreationRetentionTime="$(_VernuntiiCacheCreationRetentionTime)"
+                             CacheLastAccessRetentionTime="$(_VernuntiiCacheLastAccessRetentionTime)"
+                             EmptyCaches="$(_VernuntiiEmptyCaches)">
+      <Output TaskParameter="Major" PropertyName="Vernuntii_Major" />
+      <Output TaskParameter="Minor" PropertyName="Vernuntii_Minor" />
+      <Output TaskParameter="Patch" PropertyName="Vernuntii_Patch" />
+      <Output TaskParameter="Version" PropertyName="Vernuntii_Version" />
+      <Output TaskParameter="PreRelease" PropertyName="Vernuntii_PreRelease" />
+      <Output TaskParameter="HyphenPreRelease" PropertyName="Vernuntii_HyphenPreRelease" />
+      <Output TaskParameter="Build" PropertyName="Vernuntii_Build" />
+      <Output TaskParameter="PlusBuild" PropertyName="Vernuntii_PlusBuild" />
+      <Output TaskParameter="SemanticVersion" PropertyName="Vernuntii_SemanticVersion" />
+      <Output TaskParameter="BranchName" PropertyName="Vernuntii_BranchName" />
+      <Output TaskParameter="CommitSha" PropertyName="Vernuntii_CommitSha" />
+    </VernuntiiTask>
+
+    <PropertyGroup Condition="'$(UpdateVersionPropsFromVernuntiiTask)' != 'false'">
+      <Version>$(Vernuntii_SemanticVersion)</Version>
+      <VersionPrefix>$(Vernuntii_Version)</VersionPrefix>
+      <VersionSuffix>$(Vernuntii_PreRelease)$(Vernuntii_PlusBuild)</VersionSuffix>
+      <PackageVersion>$(Vernuntii_SemanticVersion)</PackageVersion>
+      <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(Vernuntii_Version).0</AssemblyVersion>
+      <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(Vernuntii_Version)$(Vernuntii_HyphenPreRelease)+$(Vernuntii_BranchName)</InformationalVersion>
+      <FileVersion Condition="'$(FileVersion)' == ''">$(Vernuntii_Version).0</FileVersion>
+    </PropertyGroup>
+
+  </Target>
+
+</Project>

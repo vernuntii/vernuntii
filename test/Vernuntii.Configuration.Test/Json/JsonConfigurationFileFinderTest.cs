@@ -1,0 +1,33 @@
+﻿using System.Collections.Generic;
+using Xunit;
+
+namespace Vernuntii.Configuration.Json;
+
+public class JsonConfigurationFileFinderTest : IClassFixture<ConfigurationFixture>
+{
+    internal static AnyPath JsonDirectory = FileFinderDir / "json";
+    internal static AnyPath JsonEmptyDirectory = JsonDirectory / "empty";
+    internal static FilePath JsonConfigFile = JsonDirectory + JsonConfigurationFileDefaults.JsonFileName;
+
+    private readonly ConfigurationFixture _configurationFixture;
+
+    public JsonConfigurationFileFinderTest(ConfigurationFixture configurationFixture) =>
+        _configurationFixture = configurationFixture;
+
+    private static IEnumerable<object?[]> GenerateJsonConfigurationFileSearchData()
+    {
+        yield return new object?[] { JsonEmptyDirectory, default(string) };
+        yield return new object?[] { JsonEmptyDirectory, JsonConfigurationFileDefaults.JsonFileName };
+    }
+
+    [Theory]
+    [MemberData(nameof(GenerateJsonConfigurationFileSearchData))]
+    public void JsonFileFinderShouldFindFile(string directoryPath, string? fileName)
+    {
+        AnyPath assumedFile = _configurationFixture.JsonConfigurationFileFinder
+            .FindFile(directoryPath, fileName)
+            .GetUpwardFilePath();
+
+        Assert.Equal(JsonConfigFile, assumedFile);
+    }
+}
