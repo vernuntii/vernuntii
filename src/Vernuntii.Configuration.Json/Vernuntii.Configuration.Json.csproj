@@ -13,8 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Vernuntii.Configuration.Shadowing\Vernuntii.Configuration.Shadowing.csproj" />
-    <ProjectReference Include="..\Vernuntii.Configuration.Abstractions\Vernuntii.Configuration.Abstractions.csproj" />
+    <ProjectReference Include="..\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj" />
   </ItemGroup>
 
 </Project>

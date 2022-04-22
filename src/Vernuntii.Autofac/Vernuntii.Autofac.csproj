@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Vernuntii.Autofac.Abstractions\Vernuntii.Autofac.Abstractions.csproj" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
   </ItemGroup>
 
 </Project>

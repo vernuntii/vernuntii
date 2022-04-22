@@ -9,14 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-    <PackageReference Include="sharpconfig" Version="3.2.9.1" />
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.VersionFoundation\Vernuntii.VersionFoundation.csproj" />
-    <ProjectReference Include="..\Vernuntii.VersionPresentation.Abstractions\Vernuntii.VersionPresentation.Abstractions.csproj" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" />
-    <ProjectReference Include="..\Vernuntii.PluginSystem.Consumer\Vernuntii.PluginSystem.Consumer.csproj" />
+    <ProjectReference Include="..\Vernuntii.PluginSystem.Core\Vernuntii.PluginSystem.Core.csproj" />
     <ProjectReference Include="..\Vernuntii.SemVer\Vernuntii.SemVer.csproj" />
   </ItemGroup>
 

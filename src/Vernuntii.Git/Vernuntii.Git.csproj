@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Calculator\Vernuntii.Calculator.csproj" />
-    <ProjectReference Include="..\Vernuntii.Git.Abstractions\Vernuntii.Git.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

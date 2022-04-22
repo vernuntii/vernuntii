@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Vernuntii.Console\Vernuntii.Console.csproj">
       <!-- Setting ReferenceOutputAssembly skips adding the outputs of the referenced project to an item -->
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -37,7 +38,6 @@
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
       <AdditionalProperties>TargetFramework=$(ConsoleTargetFramework)</AdditionalProperties>
     </ProjectReference>
-    <ProjectReference Include="..\Vernuntii.VersionPresentation.Abstractions\Vernuntii.VersionPresentation.Abstractions.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

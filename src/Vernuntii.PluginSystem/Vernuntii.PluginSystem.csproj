@@ -12,7 +12,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\Vernuntii.PluginSystem.Consumer\Vernuntii.PluginSystem.Consumer.csproj" />
+    <ProjectReference Include="..\Vernuntii.PluginSystem.Core\Vernuntii.PluginSystem.Core.csproj" />
   </ItemGroup>
 
 </Project>

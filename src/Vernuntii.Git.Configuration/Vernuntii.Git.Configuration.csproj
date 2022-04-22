@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Vernuntii.Configuration\Vernuntii.Configuration.csproj" />
+    <ProjectReference Include="..\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj" />
     <ProjectReference Include="..\Vernuntii.Git\Vernuntii.Git.csproj" />
   </ItemGroup>
 

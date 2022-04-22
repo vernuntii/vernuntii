@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Vernuntii.Autofac\Vernuntii.Autofac.csproj" />
-    <ProjectReference Include="..\..\src\Vernuntii.Calculator.Configuration\Vernuntii.Calculator.Configuration.csproj" />
     <ProjectReference Include="..\..\src\Vernuntii.Git.Configuration\Vernuntii.Git.Configuration.csproj" />
     <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
   </ItemGroup>

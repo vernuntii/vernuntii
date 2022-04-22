@@ -22,11 +22,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Autofac\Vernuntii.Autofac.csproj" />
-    <ProjectReference Include="..\Vernuntii.Autofac.Abstractions\Vernuntii.Autofac.Abstractions.csproj" />
-    <ProjectReference Include="..\Vernuntii.Calculator.Configuration\Vernuntii.Calculator.Configuration.csproj" />
     <ProjectReference Include="..\Vernuntii.Configuration.Json\Vernuntii.Configuration.Json.csproj" />
     <ProjectReference Include="..\Vernuntii.Configuration.Yaml\Vernuntii.Configuration.Yaml.csproj" />
-    <ProjectReference Include="..\Vernuntii.Configuration\Vernuntii.Configuration.csproj" />
+    <ProjectReference Include="..\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj" />
     <ProjectReference Include="..\Vernuntii.Plugins\Vernuntii.Plugins.csproj" />
     <ProjectReference Include="..\Vernuntii.Git.Configuration\Vernuntii.Git.Configuration.csproj" />
     <ProjectReference Include="..\Vernuntii.Git\Vernuntii.Git.csproj" />
