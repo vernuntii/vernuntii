@@ -1,38 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Vernuntii</RootNamespace>
     <Nullable>enable</Nullable>
-    <RootNamespace>Vernuntii.Console</RootNamespace>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="6.3.0" />
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
     <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta3.22114.1" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Autofac\Vernuntii.Autofac.csproj" />
-    <ProjectReference Include="..\Vernuntii.Autofac.Abstractions\Vernuntii.Autofac.Abstractions.csproj" />
     <ProjectReference Include="..\Vernuntii.Calculator.Configuration\Vernuntii.Calculator.Configuration.csproj" />
+    <ProjectReference Include="..\Vernuntii.Configuration\Vernuntii.Configuration.csproj" />
     <ProjectReference Include="..\Vernuntii.Configuration.Json\Vernuntii.Configuration.Json.csproj" />
     <ProjectReference Include="..\Vernuntii.Configuration.Yaml\Vernuntii.Configuration.Yaml.csproj" />
-    <ProjectReference Include="..\Vernuntii.Configuration\Vernuntii.Configuration.csproj" />
-    <ProjectReference Include="..\Vernuntii.Plugins\Vernuntii.Plugins.csproj" />
-    <ProjectReference Include="..\Vernuntii.Git.Configuration\Vernuntii.Git.Configuration.csproj" />
+    <ProjectReference Include="..\Vernuntii.Console.Abstractions\Vernuntii.Console.Abstractions.csproj" />
     <ProjectReference Include="..\Vernuntii.Git\Vernuntii.Git.csproj" />
-    <ProjectReference Include="..\Vernuntii.Calculator\Vernuntii.Calculator.csproj" />
-    <ProjectReference Include="..\Vernuntii.PluginSystem\Vernuntii.PluginSystem.csproj" />
+    <ProjectReference Include="..\Vernuntii.Plugins.Abstractions\Vernuntii.Plugins.Abstractions.csproj" />
     <ProjectReference Include="..\Vernuntii.VersionFoundation\Vernuntii.VersionFoundation.csproj" />
     <ProjectReference Include="..\Vernuntii.VersionPresentation\Vernuntii.VersionPresentation.csproj" />
   </ItemGroup>
+
 </Project>

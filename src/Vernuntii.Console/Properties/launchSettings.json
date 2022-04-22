@@ -2,7 +2,7 @@
   "profiles": {
     "Vernuntii.Console": {
       "commandName": "Project",
-      "commandLineArgs": "--verbose Debug --config-path \"C:\\repos\\Teronis.DotNet\""
+      "commandLineArgs": "--help"
     }
   }
 }

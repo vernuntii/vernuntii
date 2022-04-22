@@ -1,6 +1,4 @@
-﻿using Vernuntii.MessageVersioning.MessageIndicators;
-
-namespace Vernuntii.MessageVersioning
+﻿namespace Vernuntii.MessageVersioning
 {
     /// <summary>
     /// The inbuilt presets.

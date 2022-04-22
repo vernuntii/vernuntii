@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.MessageVersioning;
 
-namespace Vernuntii.Extensions.BranchCases
+namespace Vernuntii.Extensions
 {
     /// <summary>
     /// Extension methods for <see cref="ISemanticVersionCalculation"/>.

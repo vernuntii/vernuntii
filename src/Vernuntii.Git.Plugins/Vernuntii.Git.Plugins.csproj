@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Vernuntii</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vernuntii.Calculator.Configuration\Vernuntii.Calculator.Configuration.csproj" />
+    <ProjectReference Include="..\Vernuntii.Git.Configuration\Vernuntii.Git.Configuration.csproj" />
+    <ProjectReference Include="..\Vernuntii.Configuration.Json\Vernuntii.Configuration.Json.csproj" />
+    <ProjectReference Include="..\Vernuntii.Configuration.Yaml\Vernuntii.Configuration.Yaml.csproj" />
+    <ProjectReference Include="..\Vernuntii.Plugins.Abstractions\Vernuntii.Plugins.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

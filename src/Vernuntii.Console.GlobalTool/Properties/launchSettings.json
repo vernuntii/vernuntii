@@ -2,7 +2,7 @@
   "profiles": {
     "Vernuntii.Console.GlobalTool": {
       "commandName": "Project",
-      "commandLineArgs": "--verbose Debug --config-path C:\\repos\\Teronis.DotNet --override-post-pre-release \"\" --override-versioning-mode ContinousDelivery"
+      "commandLineArgs": "location MSBuildTargets"
     }
   }
 }
