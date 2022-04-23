@@ -22,8 +22,8 @@ namespace Vernuntii.PluginSystem
             PluginRegistry.First<ICommandLinePlugin>().Registered += plugin => plugin.RootCommand.Add(_overrideVersioningModeOption);
 
         /// <inheritdoc/>
-        protected override void OnSetEventAggregator() =>
-            SubscribeEvent(CommandLineEvents.ParsedCommandLineArgsEvent.Discriminator, parseResult =>
+        protected override void OnEventAggregator() =>
+            SubscribeEvent(CommandLineEvents.ParsedCommandLineArgs.Discriminator, parseResult =>
                 OverrideVersioningMode = parseResult.GetValueForOption(_overrideVersioningModeOption));
     }
 }

@@ -19,5 +19,10 @@
         /// The registered plugin.
         /// </summary>
         IPlugin Plugin { get; }
+
+        /// <summary>
+        /// Indicates whether the registration was successful.
+        /// </summary>
+        bool Succeeded { get; }
     }
 }

@@ -5,6 +5,7 @@
         public int PluginId { get; }
         public Type ServiceType { get; }
         public IPlugin Plugin { get; }
+        public bool Succeeded => PluginId >= 0;
 
         public PluginRegistration(int pluginId, Type serviceType, IPlugin plugin)
         {

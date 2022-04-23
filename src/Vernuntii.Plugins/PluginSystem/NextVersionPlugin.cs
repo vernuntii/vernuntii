@@ -178,9 +178,9 @@ namespace Vernuntii.PluginSystem
         }
 
         /// <inheritdoc/>
-        protected override void OnSetEventAggregator()
+        protected override void OnEventAggregator()
         {
-            SubscribeEvent(CommandLineEvents.ParsedCommandLineArgsEvent.Discriminator, parseResult => {
+            SubscribeEvent(CommandLineEvents.ParsedCommandLineArgs.Discriminator, parseResult => {
                 _presentationKind = parseResult.GetValueForOption(_presentationKindOption);
                 _presentationParts = parseResult.GetValueForOption(_presentationPartsOption);
                 _presentationView = parseResult.GetValueForOption(_presentationViewOption);
@@ -191,7 +191,7 @@ namespace Vernuntii.PluginSystem
                 _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
             });
 
-            SubscribeEvent(LoggingEvents.EnabledLoggingInfrastructureEvent.Discriminator, plugin => _logger = plugin.CreateLogger<NextVersionPlugin>());
+            SubscribeEvent(LoggingEvents.EnabledLoggingInfrastructure.Discriminator, plugin => _logger = plugin.CreateLogger<NextVersionPlugin>());
         }
     }
 }

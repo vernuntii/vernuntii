@@ -11,7 +11,7 @@ namespace Vernuntii.Configuration
         private static IConfiguration FindConfigurationFile(IConventionalFileFinder fileFinder, string directoryPath, string fileName) =>
             new ConventionalConfigurationBuilder()
                 .AddConventionalFileFinder(fileFinder)
-                .AddFirstConventionalFile(directoryPath, new[] { fileName })
+                .AddFirstConventionalFile(directoryPath, new[] { fileName }, out _)
                 .Build();
 
         public IFileFinder FileFinder { get; }

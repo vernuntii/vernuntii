@@ -17,7 +17,8 @@ public interface IPlugin : IDisposable
     /// you the opportunity to prepare dependencies.
     /// </summary>
     /// <param name="pluginRegistry"></param>
-    void OnRegistration(IPluginRegistry pluginRegistry);
+    /// <returns><see langword="true"/> accepts the registration.</returns>
+    bool OnRegistration(IPluginRegistry pluginRegistry);
 
     /// <summary>
     /// Called when all plugins are registered and ordered.

@@ -11,6 +11,9 @@ namespace Vernuntii.PluginSystem
     /// </summary>
     public class LoggingPlugin : Plugin, ILoggingPlugin
     {
+        /// <inheritdoc/>
+        public override int? Order => -2000;
+
         private Serilog.Core.Logger _logger = null!;
         private ILoggerFactory _loggerFactory = null!;
         private Action<ILoggingBuilder> _loggerBinder = null!;
@@ -61,16 +64,16 @@ namespace Vernuntii.PluginSystem
 
             _loggerBinder = builder => builder.AddSerilog(_logger);
             _loggerFactory = LoggerFactory.Create(builder => _loggerBinder(builder));
-            EventAggregator.PublishEvent<LoggingEvents.EnabledLoggingInfrastructureEvent, ILoggingPlugin>(this);
+            EventAggregator.PublishEvent<LoggingEvents.EnabledLoggingInfrastructure, ILoggingPlugin>(this);
         }
 
         /// <inheritdoc/>
-        protected override void OnSetEventAggregator()
+        protected override void OnEventAggregator()
         {
-            SubscribeEvent(CommandLineEvents.ParsedCommandLineArgsEvent.Discriminator, parseResult =>
+            SubscribeEvent(CommandLineEvents.ParsedCommandLineArgs.Discriminator, parseResult =>
                 _verbosity = parseResult.GetValueForOption(VerboseOption));
 
-            SubscribeEvent<LoggingEvents.EnableLoggingInfrastructureEvent>(EnableLoggingInfrastructure);
+            SubscribeEvent<LoggingEvents.EnableLoggingInfrastructure>(EnableLoggingInfrastructure);
         }
 
         /// <inheritdoc/>

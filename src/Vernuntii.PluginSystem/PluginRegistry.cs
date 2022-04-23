@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using Microsoft.Collections.Extensions;
-
-namespace Vernuntii.PluginSystem
+﻿namespace Vernuntii.PluginSystem
 {
     /// <summary>
     /// The plugin registry.
@@ -9,14 +6,15 @@ namespace Vernuntii.PluginSystem
     public sealed class PluginRegistry : IPluginRegistry, IDisposable
     {
         /// <inheritdoc/>
-        public IReadOnlyList<IPluginRegistration> PluginRegistrations => _pluginRegistrations.Values;
+        public IReadOnlyCollection<IPluginRegistration> PluginRegistrations => _pluginRegistrations;
 
         private List<Action<IPluginRegistration>> _consumePluginRegistrationActionList =
             new List<Action<IPluginRegistration>>();
 
-        private OrderedDictionary<int, PluginRegistration> _pluginRegistrations = new OrderedDictionary<int, PluginRegistration>();
+        private SortedSet<PluginRegistration> _pluginRegistrations = new SortedSet<PluginRegistration>(PluginRegistrationComparer.Default);
 
         private int _pluginRegistrationCounter;
+        private bool _isSealed;
 
         /// <summary>
         /// Creates an instance of this type.
@@ -27,7 +25,7 @@ namespace Vernuntii.PluginSystem
 
         private void NotifyPluginRegistrationConsumer(Action<IPluginRegistration> consumePluginRegistrationAction)
         {
-            foreach (var pluginRegistration in _pluginRegistrations.Values) {
+            foreach (var pluginRegistration in _pluginRegistrations) {
                 consumePluginRegistrationAction(pluginRegistration);
             }
         }
@@ -48,13 +46,37 @@ namespace Vernuntii.PluginSystem
             }
         }
 
+        /// <summary>
+        /// Ensures that registry is not sealed.
+        /// </summary>
+        private void EnsureNotSealed()
+        {
+            if (_isSealed) {
+                throw new InvalidOperationException("The plugin registry is sealed and cannot be changed anymore");
+            }
+        }
+
         /// <inheritdoc/>
         private IPluginRegistration RegisterCore(Type serviceType, IPlugin plugin)
         {
-            plugin.OnRegistration(this);
-            var pluginRegistration = new PluginRegistration(_pluginRegistrationCounter++, serviceType, plugin);
-            _pluginRegistrations.Add(pluginRegistration.PluginId, pluginRegistration);
-            NotifyPluginRegistrationConsumers(pluginRegistration);
+            EnsureNotSealed();
+            var acceptRegistration = plugin.OnRegistration(this);
+
+            int pluginId;
+
+            if (acceptRegistration) {
+                pluginId = _pluginRegistrationCounter++;
+            } else {
+                pluginId = -1;
+            }
+
+            var pluginRegistration = new PluginRegistration(pluginId, serviceType, plugin);
+
+            if (acceptRegistration) {
+                _pluginRegistrations.Add(pluginRegistration);
+                NotifyPluginRegistrationConsumers(pluginRegistration);
+            }
+
             return pluginRegistration;
         }
 
@@ -64,11 +86,17 @@ namespace Vernuntii.PluginSystem
             var pluginType = plugin.GetType();
 
             if (!serviceType.IsAssignableFrom(plugin.GetType())) {
-                throw new ArgumentException($"Service type \"{serviceType}\" is not a subset of type \"{pluginType.GetType()}\"", nameof(serviceType));
+                throw new ArgumentException($"Service type \"{serviceType}\" is not a subset of plugin type \"{pluginType.GetType()}\"", nameof(serviceType));
             }
 
             return RegisterCore(serviceType, plugin);
         }
+
+        /// <summary>
+        /// Seals the registry.
+        /// </summary>
+        public void Seal() =>
+            _isSealed = true;
 
         /// <inheritdoc/>
         public ILazyPlugin<T> First<T>()

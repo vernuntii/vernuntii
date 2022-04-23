@@ -13,6 +13,9 @@ namespace Vernuntii.PluginSystem
     [Plugin<ICommandLinePlugin>]
     public class CommandLinePlugin : Plugin, ICommandLinePlugin
     {
+        /// <inheritdoc/>
+        public override int? Order => -3000;
+
         private static CommandLineBuilder CreateCommandLineBuilder(RootCommand rootCommand) =>
                new CommandLineBuilder(rootCommand)
                    // .UseVersionOption() // produces exception
@@ -43,7 +46,7 @@ namespace Vernuntii.PluginSystem
             RootCommand.Handler = CommandHandler.Create(action);
 
         /// <summary>
-        /// Called when <see cref="CommandLineEvents.ParseCommandLineArgsEvent"/> is happening.
+        /// Called when <see cref="CommandLineEvents.ParseCommandLineArgs"/> is happening.
         /// </summary>
         protected virtual void ParseCommandLineArgs()
         {
@@ -70,14 +73,14 @@ namespace Vernuntii.PluginSystem
 
             if (_parseResult == null) {
                 // This is also the case when the help text is displayed but that's okay.
-                EventAggregator.PublishEvent(CommandLineEvents.InvokedRootCommandEvent.Discriminator, exitCode);
+                EventAggregator.PublishEvent(CommandLineEvents.InvokedRootCommand.Discriminator, exitCode);
             } else {
-                EventAggregator.PublishEvent(CommandLineEvents.ParsedCommandLineArgsEvent.Discriminator, _parseResult);
+                EventAggregator.PublishEvent(CommandLineEvents.ParsedCommandLineArgs.Discriminator, _parseResult);
             }
         }
 
         /// <summary>
-        /// Called when <see cref="CommandLineEvents.InvokeRootCommandEvent"/> is happening.
+        /// Called when <see cref="CommandLineEvents.InvokeRootCommand"/> is happening.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
         protected virtual void InvokeRootCommand()
@@ -87,15 +90,15 @@ namespace Vernuntii.PluginSystem
             }
 
             var exitCode = _parseResult.Invoke();
-            EventAggregator.PublishEvent(CommandLineEvents.InvokedRootCommandEvent.Discriminator, exitCode);
+            EventAggregator.PublishEvent(CommandLineEvents.InvokedRootCommand.Discriminator, exitCode);
         }
 
         /// <inheritdoc/>
-        protected override void OnSetEventAggregator()
+        protected override void OnEventAggregator()
         {
-            SubscribeEvent(CommandLineEvents.SetCommandLineArgsEvent.Discriminator, args => CommandLineArgs = args);
-            SubscribeEvent<CommandLineEvents.ParseCommandLineArgsEvent>(ParseCommandLineArgs);
-            SubscribeEvent<CommandLineEvents.InvokeRootCommandEvent>(InvokeRootCommand);
+            SubscribeEvent(CommandLineEvents.SetCommandLineArgs.Discriminator, args => CommandLineArgs = args);
+            SubscribeEvent<CommandLineEvents.ParseCommandLineArgs>(ParseCommandLineArgs);
+            SubscribeEvent<CommandLineEvents.InvokeRootCommand>(InvokeRootCommand);
         }
     }
 }

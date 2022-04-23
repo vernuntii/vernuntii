@@ -20,7 +20,7 @@ namespace Vernuntii.PluginSystem
         /// Represents the plugin event aggregator.
         /// </summary>
         protected internal IPluginEventAggregator EventAggregator =>
-            _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnSetEventAggregator)} was not called yet");
+            _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnEventAggregator)} was not called yet");
 
         private IPluginRegistry? _pluginRegistry;
         private IPluginEventAggregator? _eventAggregator;
@@ -37,10 +37,23 @@ namespace Vernuntii.PluginSystem
         {
         }
 
-        void IPlugin.OnRegistration(IPluginRegistry pluginRegistry)
+        /// <summary>
+        /// Called when this plugin gets added. It gives
+        /// you the opportunity to prepare dependencies
+        /// and prevent the registration.
+        /// </summary>
+        /// <param name="registrationContext"></param>
+        protected virtual void OnRegistration(RegistrationContext registrationContext)
+        {
+        }
+
+        bool IPlugin.OnRegistration(IPluginRegistry pluginRegistry)
         {
             _pluginRegistry = pluginRegistry;
             OnRegistration();
+            var registrationContext = new RegistrationContext();
+            OnRegistration(registrationContext);
+            return registrationContext.AcceptRegistration;
         }
 
         /// <summary>
@@ -57,14 +70,14 @@ namespace Vernuntii.PluginSystem
         /// Called when this plugin gets notified about event aggregator.
         /// Called after <see cref="OnRegistration()"/>.
         /// </summary>
-        protected virtual void OnSetEventAggregator()
+        protected virtual void OnEventAggregator()
         {
         }
 
         void IPlugin.OnEventAggregation(IPluginEventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
-            OnSetEventAggregator();
+            OnEventAggregator();
         }
 
         /// <summary>
@@ -129,6 +142,19 @@ namespace Vernuntii.PluginSystem
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Describes the context of on-going registration.
+        /// </summary>
+        public class RegistrationContext
+        {
+            /// <summary>
+            /// <see langword="true"/> accepts registration,
+            /// <see langword="false"/> prevents registration.
+            /// Default is <see langword="true"/>.
+            /// </summary>
+            public bool AcceptRegistration { get; set; } = true;
         }
 
         ///// <summary>

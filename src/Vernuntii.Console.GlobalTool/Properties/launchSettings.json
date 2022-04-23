@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Vernuntii.Console.GlobalTool": {
-      "commandName": "Project",
-      "commandLineArgs": "location MSBuildTargets"
+      "commandName": "Project"
     }
   }
 }

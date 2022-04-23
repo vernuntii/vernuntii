@@ -7,7 +7,7 @@ namespace Vernuntii.PluginSystem
     /// </summary>
     public class PluginExecutor
     {
-        private IPluginRegistry _pluginRegistry;
+        private PluginRegistry _pluginRegistry;
         private readonly IPluginEventAggregator _eventAggregator;
 
         /// <summary>
@@ -15,7 +15,7 @@ namespace Vernuntii.PluginSystem
         /// </summary>
         /// <param name="pluginRegistry"></param>
         /// <param name="eventAggregator"></param>
-        public PluginExecutor(IPluginRegistry pluginRegistry, IPluginEventAggregator eventAggregator)
+        public PluginExecutor(PluginRegistry pluginRegistry, IPluginEventAggregator eventAggregator)
         {
             _pluginRegistry = pluginRegistry;
             _eventAggregator = eventAggregator;
@@ -26,6 +26,8 @@ namespace Vernuntii.PluginSystem
         /// </summary>
         public void Execute()
         {
+            _pluginRegistry.Seal();
+
             foreach (var registration in _pluginRegistry.PluginRegistrations) {
                 registration.Plugin.OnCompletedRegistration();
             }
@@ -38,7 +40,8 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Destroys the plugins one after the other.
         /// </summary>
-        public void Destroy() {
+        public void Destroy()
+        {
             foreach (var registration in _pluginRegistry.PluginRegistrations) {
                 registration.Plugin.OnDestroy();
             }

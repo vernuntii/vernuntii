@@ -29,7 +29,13 @@
             where TPlugin : IPlugin, new() =>
             new PluginDescriptor(typeof(IPlugin), new TPlugin());
 
+        /// <summary>
+        /// The type of plugin at registration time.
+        /// </summary>
         public Type PluginType { get; }
+        /// <summary>
+        /// The plugin.
+        /// </summary>
         public IPlugin Plugin { get; }
 
         /// <summary>

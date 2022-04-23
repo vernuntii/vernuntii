@@ -1,5 +1,4 @@
-﻿using System.CommandLine;
-using Vernuntii.PluginSystem;
+﻿using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Console;
@@ -21,6 +20,7 @@ public static class ConsoleProgram
 
         pluginRegistry.Register<ICommandLinePlugin, CommandLinePlugin>();
         pluginRegistry.Register<ILoggingPlugin, LoggingPlugin>();
+        pluginRegistry.Register<IConfigurationPlugin, ConfigurationPlugin>();
         pluginRegistry.Register<IGitPlugin, GitPlugin>();
         pluginRegistry.Register<INextVersionPlugin, NextVersionPlugin>();
         pluginRegistry.Register<VersionCalculationPerfomancePlugin>();
@@ -37,14 +37,15 @@ public static class ConsoleProgram
         pluginExecutor.Execute();
 
         int exitCode = (int)ExitCode.NotExecuted;
-        using var exitCodeSubscription = pluginEventAggregator.GetEvent<CommandLineEvents.InvokedRootCommandEvent>().Subscribe(i => exitCode = i);
+        using var exitCodeSubscription = pluginEventAggregator.GetEvent<CommandLineEvents.InvokedRootCommand>().Subscribe(i => exitCode = i);
 
-        pluginEventAggregator.PublishEvent(CommandLineEvents.SetCommandLineArgsEvent.Discriminator, args);
-        pluginEventAggregator.PublishEvent<CommandLineEvents.ParseCommandLineArgsEvent>();
+        pluginEventAggregator.PublishEvent(CommandLineEvents.SetCommandLineArgs.Discriminator, args);
+        pluginEventAggregator.PublishEvent<CommandLineEvents.ParseCommandLineArgs>();
 
         if (exitCode == (int)ExitCode.NotExecuted) {
-            pluginEventAggregator.PublishEvent<LoggingEvents.EnableLoggingInfrastructureEvent>();
-            pluginEventAggregator.PublishEvent<CommandLineEvents.InvokeRootCommandEvent>();
+            pluginEventAggregator.PublishEvent<LoggingEvents.EnableLoggingInfrastructure>();
+            pluginEventAggregator.PublishEvent<ConfigurationEvents.CreateConfiguration>();
+            pluginEventAggregator.PublishEvent<CommandLineEvents.InvokeRootCommand>();
         }
 
         pluginExecutor.Destroy();

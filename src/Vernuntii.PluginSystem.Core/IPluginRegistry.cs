@@ -6,9 +6,9 @@
     public interface IPluginRegistry : IPluginRegistrationProducer
     {
         /// <summary>
-        /// List consisting of plugin registrations.
+        /// Collection consisting of plugin registrations.
         /// </summary>
-        IReadOnlyList<IPluginRegistration> PluginRegistrations { get; }
+        IReadOnlyCollection<IPluginRegistration> PluginRegistrations { get; }
 
         /// <summary>
         /// Registers a plugin.

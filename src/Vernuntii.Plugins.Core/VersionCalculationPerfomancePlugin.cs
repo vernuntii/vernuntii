@@ -15,9 +15,9 @@ namespace Vernuntii
         private ILogger<VersionCalculationPerfomancePlugin> _logger = null!;
 
         /// <inheritdoc/>
-        protected override void OnSetEventAggregator()
+        protected override void OnEventAggregator()
         {
-            SubscribeEvent(LoggingEvents.EnabledLoggingInfrastructureEvent.Discriminator, plugin => _logger = plugin.CreateLogger<VersionCalculationPerfomancePlugin>());
+            SubscribeEvent(LoggingEvents.EnabledLoggingInfrastructure.Discriminator, plugin => _logger = plugin.CreateLogger<VersionCalculationPerfomancePlugin>());
 
             SubscribeEvent(NextVersionEvents.CalculatedNextVersion.Discriminator, version =>
                 _logger.LogInformation("Loaded version {Version} in {LoadTime}", version, $"{_stopwatch.Elapsed.ToString("s\\.f", CultureInfo.InvariantCulture)}s"));

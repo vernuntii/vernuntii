@@ -8,11 +8,14 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
 
 ### Key facts
 
-- Git plugin
+- Plugin system
+  - Write your own plugins
+  - Replace or mutate existing plugins
+- Git plugin (enabled by default)
   - Searches for latest commit version
   - Uses commit messages as message stream
   - Enables branch-based configuration
-- Requires configuration file
+- Optional configuration file
   - Either json or yaml
 - Wide range of versioning mode presets
   - E.g. Continous Delivery, Continous Deployment, Manual or
