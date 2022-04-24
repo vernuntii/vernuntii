@@ -1,8 +1,7 @@
 ![Vernuntii Logo](res/logo.svg)
 <!-- [![Nuget](https://img.shields.io/nuget/v/Vernuntii)][NuGet Package] -->
 
-[:running: Quick start guide](#quick-start-guide) &nbsp; 
-<!-- | &nbsp; [:package: NuGet Package][NuGet Package] -->
+[:running: Quick start guide](#quick-start-guide) &nbsp;
 
 Vernuntii (transl. versionable messages) is a tool for calculating the next semantic version. The tool has the capability to iterate a stream of (commit) messages and decide upon versioning mode to increment major, minor, patch or height. When using the git plugin the pre-release is derived from branch and highly customizable. The version prefix (e.g. v) is either inherited (default), (initially) set or explicitly removed depending on configuration. Each branch is separatly configurable. The most important fact is that this tool is single branch scoped like MinVer or Verlite, so simply said it reads all commits you see in git log.
 
@@ -18,7 +17,7 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
   - Searches for latest commit version
   - Uses commit messages as message stream
   - Enables branch-based configuration
-- Optional [configuration file][Configuration File] (but recommended)
+- Optional [configuration file][configuration-file] (but recommended)
   - Either json or yaml
 - Range of versioning mode presets
   - E.g. Continous Delivery (default), Continous Deployment or
@@ -66,9 +65,11 @@ Use [.NET CLI package](#net-cli-package) when
 
 # Vernuntii installers
 
-A Vernuntii installer is another term for getting the bare metal binaries to execute Vernuntii directly. For example the .NET CLI package is used in GitHub Actions integration.
+A Vernuntii installer is another term for getting the bare metal binaries to execute Vernuntii directly. For example the .NET CLI package is used in [GitHub Actions](#github-actions) integration.
 
 ## .NET CLI package
+
+[![Nuget][globaltool-nuget-package-badge]][globaltool-nuget-package]
 
 ```
 dotnet tool install --global Vernuntii.Console.GlobalTool --version 0.1.0
@@ -83,6 +84,8 @@ dotnet tool install --local Vernuntii.Console.GlobalTool --version 0.1.0
 A Vernuntii integration is a facility that uses Vernuntii internally and allows cool workflows.
 
 ## MSBuild package
+
+[![Nuget][msbuild-nuget-package-badge]][msbuild-nuget-package]
 
 The MSBuild package is called `Vernuntii.Console.MSBuild` and installable over NuGet store or by adding these lines to your project:
 
@@ -114,7 +117,7 @@ From the following set of **optional properties** you can choose to change the b
 - `<VernuntiiVerbose/>`
   - Allowed value: `Debug`, `Error`, `Fatal` (implicit default), `Information`, `Verbose`, `Warning`
 - `<VernuntiiConfigPath/>`
-  - Path to [configuration file][Configuration File]
+  - Path to [configuration file][configuration-file]
 - `<VernuntiiCacheId/>`
   - The cache id (default is `SHORT_LIVING_CACHE`)
 - `<VernuntiiCacheCreationRetentionTime/>`
@@ -132,7 +135,7 @@ From the following set of **optional properties** you can choose to change the b
 
 ## GitHub Actions
 
-The following [GitHub actions][GitHub Actions] are available.
+The following [GitHub actions][github-actions] are available.
 
 - `vernuntii/actions/install/dotnet-tool@main`
   - Using this GitHub action makes the global command "vernuntii" available
@@ -141,14 +144,11 @@ The following [GitHub actions][GitHub Actions] are available.
 - `vernuntii/actions/execute@main`
   - Executes the "vernuntii"-binary
 
-<!-- # Command-line interface
-
-Vernuntii provides a console application for outputting the next semantic version of a branch on basis of a message convention like Conventional Commits. -->
-
-<!-- [:package: Download .NET CLI][NuGet Package .NET CLI] &nbsp; | &nbsp; [:package: GitHub Actions][GitHub Actions] -->
-
-[NuGet Package]: https://www.nuget.org/packages/Vernuntii
-[NuGet Package .NET CLI]: https://www.nuget.org/packages/GitVersion.Tool/#dotnet-cli-local
-[GitHub Actions]: https://github.com/vernuntii/actions
-[Configuration File]: ./docs/configuration-file.md
-[GitHub Actions]: https://github.com/vernuntii/actions
+[msbuild-nuget-package]: https://www.nuget.org/packages/Vernuntii.Console.MSBuild
+[msbuild-nuget-package-badge]: https://img.shields.io/nuget/v/Vernuntii.Console.MSBuild
+[globaltool-nuget-package]: https://www.nuget.org/packages/Vernuntii.Console.GlobalTool
+[globaltool-nuget-package-badge]: https://img.shields.io/nuget/v/Vernuntii.Console.GlobalTool
+[github-actions]: https://github.com/vernuntii/actions
+[configuration-file]: ./docs/configuration-file.md
+[semver-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer
+[semver-parser-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer.Parser

@@ -8,7 +8,7 @@ The configuration file is the heart of Vernuntii. By defining properties you cha
     - [Branches](#branches)
       - [Usage](#usage)
       - [Explanations](#explanations)
-        - [Defaults](#defaults)
+      - [Defaults](#defaults)
     - [Versioning Mode](#versioning-mode)
       - [Usage](#usage-1)
       - [Structure](#structure)
@@ -94,7 +94,7 @@ Branches:
   - It must be a valid branch name (see `<if-branch>`), but
   - RegEx is NOT allowed (change my mind. :D)
 
-##### Defaults
+#### Defaults
 
 These defaults are automatically applied.
 
