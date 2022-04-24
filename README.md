@@ -46,6 +46,15 @@ Use [GitHub Actions](#github-actions) when
 - You need to coordinate the versioning "from above"
   - For example me (Vernuntii) needs myself for versioning my packages :smile:
 
+
+#### Scenario #3
+
+Use [.NET CLI package](#net-cli-package) when
+
+- You want have access to the "vernuntii"-binary
+- You need FULL control because of GREAT complexity
+- You want to take a look at --help :wink:
+
 <!-- omit in toc -->
 # Table of Contents
 

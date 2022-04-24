@@ -18,6 +18,9 @@ namespace Vernuntii.PluginSystem
     /// </summary>
     public class NextVersionPlugin : Plugin, INextVersionPlugin
     {
+        /// <inheritdoc/>
+        public int? ExitCodeOnSuccess { get; set; }
+
         private ILoggingPlugin _loggingPlugin = null!;
         private NextVersionOptionsPlugin _options = null!;
         private ILogger _logger = null!;
@@ -46,10 +49,6 @@ namespace Vernuntii.PluginSystem
         private Option<SemanticVersionPresentationView> _presentationViewOption = new Option<SemanticVersionPresentationView>(new[] { "--presentation-view" }, () =>
             SemanticVersionPresentationStringBuilder.DefaultPresentationSerializer) {
             Description = "The view of presentation."
-        };
-
-        private Option<bool> _duplicateVersionFailsOption = new Option<bool>(new string[] { "--duplicate-version-fails" }) {
-            Description = $"If the produced version exists as tag already then the exit code will be {(int)ExitCode.VersionDuplicate}."
         };
 
         private const string CacheIdOptionAlias = "--cache-id";
@@ -97,7 +96,6 @@ namespace Vernuntii.PluginSystem
         private SemanticVersionPresentationKind _presentationKind;
         private SemanticVersionPresentationPart _presentationParts;
         private SemanticVersionPresentationView _presentationView;
-        private bool _duplicateVersionFails;
         private string? _cacheId;
         private TimeSpan? _cacheCreationRetentionTime;
         private TimeSpan? _cacheLastAccessRetentionTime;
@@ -136,6 +134,8 @@ namespace Vernuntii.PluginSystem
                     EventAggregator.PublishEvent(NextVersionEvents.ConfiguredCalculationServices.Discriminator, services);
                 });
 
+                EventAggregator.PublishEvent<NextVersionEvents.CreatedCalculationServiceProvider, IServiceProvider>(calculationServiceProvider);
+
                 //var repository = globalServiceProvider.GetRequiredService<IRepository>();
                 var presentationFoundationProvider = calculationServiceProvider.GetRequiredService<SemanticVersionFoundationProvider>();
 
@@ -155,11 +155,7 @@ namespace Vernuntii.PluginSystem
 
                 System.Console.WriteLine(formattedVersion);
 
-                //if (_duplicateVersionFails && repository.HasCommitVersion(presentationFoundation.Version)) {
-                //    return (int)ExitCode.VersionDuplicate;
-                //}
-
-                return (int)ExitCode.Success;
+                return ExitCodeOnSuccess ?? (int)ExitCode.Success;
             } catch (Exception error) {
                 _logger.LogCritical(error, "A fatal exception happenend, so the version calculation has been canceled.");
                 return (int)ExitCode.Failure;
@@ -174,7 +170,6 @@ namespace Vernuntii.PluginSystem
                 plugin.RootCommand.Add(_presentationKindOption);
                 plugin.RootCommand.Add(_presentationPartsOption);
                 plugin.RootCommand.Add(_presentationViewOption);
-                plugin.RootCommand.Add(_duplicateVersionFailsOption);
                 plugin.RootCommand.Add(_cacheIdOption);
                 plugin.RootCommand.Add(_cacheCreationRetentionTimeOption);
                 plugin.RootCommand.Add(_cacheLastAccessRetentionTimeOption);
@@ -192,7 +187,6 @@ namespace Vernuntii.PluginSystem
                 _presentationKind = parseResult.GetValueForOption(_presentationKindOption);
                 _presentationParts = parseResult.GetValueForOption(_presentationPartsOption);
                 _presentationView = parseResult.GetValueForOption(_presentationViewOption);
-                _duplicateVersionFails = parseResult.GetValueForOption(_duplicateVersionFailsOption);
                 _cacheId = parseResult.GetValueForOption(_cacheIdOption);
                 _cacheCreationRetentionTime = parseResult.GetValueForOption(_cacheCreationRetentionTimeOption);
                 _cacheLastAccessRetentionTime = parseResult.GetValueForOption(_cacheLastAccessRetentionTimeOption);

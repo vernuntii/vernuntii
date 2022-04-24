@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Vernuntii.Extensions.BranchCases;
 using Vernuntii.SemVer;
 
 namespace Vernuntii.Git
@@ -8,6 +9,7 @@ namespace Vernuntii.Git
     /// </summary>
     public class CommitVersionFinder : ICommitVersionFinder
     {
+        private readonly CommitVersionFinderOptions _options;
         private readonly ICommitVersionsAccessor _commitVersionsAccessor;
         private readonly ICommitsAccessor _commitsAccessor;
         private readonly ILogger<CommitVersionFinder> _logger;
@@ -16,10 +18,12 @@ namespace Vernuntii.Git
         /// <summary>
         /// Creates instance of <see cref="CommitVersionFinder"/>.
         /// </summary>
+        /// <param name="options"></param>
         /// <param name="commitVersionsAccessor"></param>
         /// <param name="commitsAccessor"></param>
         /// <param name="logger"></param>
         public CommitVersionFinder(
+            CommitVersionFinderOptions options,
             ICommitVersionsAccessor commitVersionsAccessor,
             ICommitsAccessor commitsAccessor,
             ILogger<CommitVersionFinder> logger)
@@ -28,7 +32,7 @@ namespace Vernuntii.Git
                LogLevel.Information,
                new EventId(1, "InitialVersion"),
                "Search latest version (Branch = {BranchName}, Since-commit = {SinceCommit}, Search pre-release = {SearchPreRelease})");
-
+            _options = options;
             _commitVersionsAccessor = commitVersionsAccessor ?? throw new ArgumentNullException(nameof(commitVersionsAccessor));
             _commitsAccessor = commitsAccessor ?? throw new ArgumentNullException(nameof(commitsAccessor));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -78,8 +82,8 @@ namespace Vernuntii.Git
         {
             var branchName = findingOptions.BranchName;
             var sinceCommit = findingOptions.SinceCommit;
-            var preRelease = findingOptions.PreRelease;
-            LogLatestVersionSearch(branchName, sinceCommit, preRelease);
+            var preReleaseToFind = findingOptions.PreRelease;
+            LogLatestVersionSearch(branchName, sinceCommit, preReleaseToFind);
 
             var versionByCommitDictionary = GetVersionTags();
 
@@ -88,17 +92,27 @@ namespace Vernuntii.Git
                 sinceCommit: findingOptions.SinceCommit,
                 reverse: false)) {
                 if (versionByCommitDictionary.TryGetValue(commit.Sha, out var version)) {
-                    var isVersionReleaseEmpty = string.IsNullOrEmpty(version.PreRelease);
-
-                    if (!isVersionReleaseEmpty) {
-                        if (string.IsNullOrEmpty(preRelease)) {
-                            continue;
-                        }
-
-                        if (!string.IsNullOrEmpty(preRelease) && !string.Equals(preRelease, version.PreRelease, StringComparison.OrdinalIgnoreCase)) {
+                    if (_options.PreReleaseMatcher is null) {
+                        _logger.LogWarning("A pre-release matcher to find the latest commit version was not found, so fallback has matched the first appearing commit version: {Version}", version);
+                    } else {
+                        if (!_options.PreReleaseMatcher.IsMatch(
+                            preReleaseToFind: preReleaseToFind,
+                            preReleaseCandiate: version.PreRelease)) {
                             continue;
                         }
                     }
+
+                    //var isVersionReleaseEmpty = string.IsNullOrEmpty(version.PreRelease);
+
+                    //if (!isVersionReleaseEmpty) {
+                    //    if (string.IsNullOrEmpty(preReleaseToFind)) {
+                    //        continue;
+                    //    }
+
+                    //    if (!string.IsNullOrEmpty(preReleaseToFind) && !string.Equals(preReleaseToFind, version.PreRelease, StringComparison.OrdinalIgnoreCase)) {
+                    //        continue;
+                    //    }
+                    //}
 
                     return new CommitVersion(version, commit.Sha);
                 }
@@ -114,7 +128,7 @@ namespace Vernuntii.Git
         /// <returns>True if version core is already released.</returns>
         public bool IsVersionCoreReleased(SemanticVersion version)
         {
-            if (version.IsPreRelease || version.HasBuild) { 
+            if (version.IsPreRelease || version.HasBuild) {
                 version = version.With
                     .PreRelease(default(string))
                     .Build(default(string));

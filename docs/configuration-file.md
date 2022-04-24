@@ -8,6 +8,7 @@ The configuration file is the heart of Vernuntii. By defining properties you cha
     - [Branches](#branches)
       - [Usage](#usage)
       - [Explanations](#explanations)
+        - [Defaults](#defaults)
     - [Versioning Mode](#versioning-mode)
       - [Usage](#usage-1)
       - [Structure](#structure)
@@ -34,14 +35,12 @@ Branches allows you to define rules for one or more branches.
 
 #### Usage
 
-```
-## Default settings
-
-# The git directory to use instead of that one that is by default
-# the location where this configuration file has been found.
+```yaml
+# The git directory to use
 GitDirectory: <git-branch:string> (optional)
 
-## Root level is default for any branch that is not specified in "Branches"
+# Below properties are available in "Branches" too.
+# If no <if-branch>-branch matches the current branch then the properties of this root level is taken.
 
 # The branch reading the commits from.
 Branch: <branch-name:string> (optional)
@@ -52,28 +51,28 @@ SinceCommit: <since-commit:string> (optional)
 # The pre-release is used for pre-search or post-transformation.
 # Used only in pre-search if "SearchPreRelease" is
 # null.
-PreRelease: <pre-release:string> (optional)
+PreRelease: <pre-release:string> (optional, inheritable)
 
 # Pre-release escapes.
-PreReleaseEscapes: (optional)
-    - Pattern: <pattern:string> (optional)
-      Replacement: <replacement:string> (optional)
-    - ...
+PreReleaseEscapes: <pre-release-escapes:object> (optional, inheritable)
+  - Pattern: <pattern:string> (optional)
+    Replacement: <replacement:string> (optional)
+  - ...
 
 # The pre-release is used for pre-search.
 # If null or empty non-pre-release versions are included in
 # search.
 # If specified then all non-release AND version with this
 # pre-release are included in search.
-SearchPreRelease: <search-pre-release:string> (optional)
+SearchPreRelease: <search-pre-release:string> (optional, inheritable)
 
 # Search pre-release escapes.
-SearchPreReleaseEscapes: <search-pre-release-escapes:string> (same as "PreReleaseEscapes")
+SearchPreReleaseEscapes: <search-pre-release-escapes:object> (same as <pre-release-escapes>)
 
 Branches:
-    - IfBranch: <if-branch:string> (required)
-      ... (same as above)
-    - ...
+  - IfBranch: <if-branch:string> (required)
+    ... (same as above)
+  - ...
 ```
 
 #### Explanations
@@ -89,10 +88,31 @@ Branches:
   - Can be RegEx by surrounding the pattern with '/' and '/'
     - `/feature-.*/`: all branches starting with `feature-`
     - If multiple branches are selected an exception is thrown, so use this feature with caution
+  - You can specify `HEAD` when you want to match detached HEAD.
 - `<branch>`
   - If not specified the branch is the one evaluated from `IfBranch`
   - It must be a valid branch name (see `<if-branch>`), but
   - RegEx is NOT allowed (change my mind. :D)
+
+##### Defaults
+
+These defaults are automatically applied.
+
+```yaml
+GitDirectory: (the location where this configuration file has been found)
+SinceCommit: (latest version)
+
+PreRelease: (short name of current branch, e.g. main)
+
+PreReleaseEscapes:
+  - Pattern: /[A-Z]/
+    Replacement: (lower)
+  - Pattern: ///
+    Replaceent: '-'
+
+SearchPreRelease: (if not specified then it inherits <pre-release>)
+SearchPreReleaseEscapes: (if not specified then it inherits <pre-release-escapes>)
+```
 
 ### Versioning Mode
 
@@ -100,18 +120,19 @@ The versioning mode allows you to choose one of the many available version strat
 
 #### Usage
 
-```
+```yaml
 VersioningMode: <preset>
 # or more detailed
 VersioningMode:
-      Preset: <preset:string>
-      MessageConvention: <message-convention:string>
-      IncrementMode: <increment-mode:string>
+  Preset: <preset:string>
+  MessageConvention: <message-convention:string>
+  IncrementMode: <increment-mode:string>
 ```
-```
+
+```yaml
 Branches:
-    <identifier>:
-        VersioningMode: (same as above)
+  - IfBranch: <if-branch>
+    VersioningMode: (same as above)
 ```
 
 #### Structure

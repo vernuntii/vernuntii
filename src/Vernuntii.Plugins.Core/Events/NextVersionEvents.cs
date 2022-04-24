@@ -37,6 +37,13 @@ namespace Vernuntii.PluginSystem.Events
         }
 
         /// <summary>
+        /// Event when calculation service collection has been configured.
+        /// </summary>
+        public sealed class CreatedCalculationServiceProvider : PubSubEvent<CreatedCalculationServiceProvider, IServiceProvider>
+        {
+        }
+
+        /// <summary>
         /// Event when next version has been calculated.
         /// </summary>
         public sealed class CalculatedNextVersion : PubSubEvent<CalculatedNextVersion, SemanticVersion>

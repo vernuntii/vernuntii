@@ -39,8 +39,7 @@ env:
   MSBUILD_CONFIGURATION: Release
   CACHE_ID: GITHUB_VERSION_CACHE
   DOTNET_VERSION: "6.0.x"
-  # DRY_RUN: ${{ github.event.inputs.dry-run == 'true' && 'true' || 'false' }}
-  DRY_RUN: "true"
+  DRY_RUN: ${{ github.event.inputs.dry-run == 'true' && 'true' || 'false' }}
   VERNUNTII_ARTIFACT: vernuntii-console-tool
 
 jobs:
@@ -150,56 +149,56 @@ jobs:
     outputs:
       semantic-version: ${{ steps.semantic-version.outputs.semantic-version }}
 
-  # publish:
-  #   runs-on: windows-latest
-  #   needs: build
-  #   if: ${{ github.event_name == 'workflow_dispatch' }}
-  #   steps:
-  #     - name: Download package artifacts
-  #       id: download-artifacts
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: publishable-nuget-packages
-  #       continue-on-error: true
-  #     - name: Display structure of downloaded files
-  #       if: ${{ env.DRY_RUN }}
-  #       run: ls -R
-  #     - name: Push nupkg's
-  #       id: push-nupkg
-  #       if: ${{ steps.download-artifacts.outcome == 'success' && !env.DRY_RUN }}
-  #       run: echo "::set-output name=console::$(dotnet nuget push '**/*.nupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)"
-  #       continue-on-error: true
-  #     - name: Push nupkg's console output
-  #       if: steps.push-nupkg.outcome != 'skipped'
-  #       run: echo "${{ steps.push-nupkg.outputs.console }}"
-  #     - name: Push nupkg's suceeded
-  #       if: "${{ steps.push-nupkg.outcome == 'failure' && !contains(steps.push-nupkg.outputs.console, 'error: File does not exist') }}"
-  #       run: exit 1
-  #     - name: Push snupkg's
-  #       id: push-snupkg
-  #       if: ${{ steps.download-artifacts.outcome == 'success' && !env.DRY_RUN }}
-  #       run: echo "::set-output name=console::$(dotnet nuget push '**/*.snupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)"
-  #       continue-on-error: true
-  #     - name: Push snupkg's console output
-  #       if: steps.push-snupkg.outcome != 'skipped'
-  #       run: echo "${{ steps.push-snupkg.outputs.console }}"
-  #     - name: Push snupkg's suceeded
-  #       if: "${{ steps.push-snupkg.outcome == 'failure' && !contains(steps.push-snupkg.outputs.console, 'error: File does not exist') }}"
-  #       run: exit 1
+  publish:
+    runs-on: windows-latest
+    needs: build
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Download package artifacts
+        id: download-artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: publishable-nuget-packages
+        continue-on-error: true
+      - name: Display structure of downloaded files
+        if: ${{ env.DRY_RUN == 'true' }}
+        run: ls -R
+      - name: Push nupkg's
+        id: push-nupkg
+        if: ${{ steps.download-artifacts.outcome == 'success' && env.DRY_RUN == 'false' }}
+        run: echo "::set-output name=console::$(dotnet nuget push '**/*.nupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)"
+        continue-on-error: true
+      - name: Push nupkg's console output
+        if: steps.push-nupkg.outcome != 'skipped'
+        run: echo "${{ steps.push-nupkg.outputs.console }}"
+      - name: Push nupkg's suceeded
+        if: "${{ steps.push-nupkg.outcome == 'failure' && !contains(steps.push-nupkg.outputs.console, 'error: File does not exist') }}"
+        run: exit 1
+      - name: Push snupkg's
+        id: push-snupkg
+        if: ${{ steps.download-artifacts.outcome == 'success' && env.DRY_RUN == 'false' }}
+        run: echo "::set-output name=console::$(dotnet nuget push '**/*.snupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)"
+        continue-on-error: true
+      - name: Push snupkg's console output
+        if: steps.push-snupkg.outcome != 'skipped'
+        run: echo "${{ steps.push-snupkg.outputs.console }}"
+      - name: Push snupkg's suceeded
+        if: "${{ steps.push-snupkg.outcome == 'failure' && !contains(steps.push-snupkg.outputs.console, 'error: File does not exist') }}"
+        run: exit 1
 
-  # git-tag:
-  #   runs-on: windows-latest
-  #   needs: [build, publish]
-  #   if: ${{ github.event_name == 'workflow_dispatch' }}
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 1
-  #     - name: Create (pre-)release tag remotely
-  #       if: ${{ !env.DRY_RUN }}
-  #       run: |
-  #         git tag ${{ needs.build.outputs.semantic-version }}
-  #         git push --tags
-  #     - name: Create (pre-)release tag remotely (dry-run)
-  #       if: ${{ env.DRY_RUN }}
-  #       run: echo ${{ needs.build.outputs.semantic-version }}
+  git-tag:
+    runs-on: windows-latest
+    needs: [build, publish]
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Create (pre-)release tag remotely
+        if: ${{ env.DRY_RUN == 'false' }}
+        run: |
+          git tag ${{ needs.build.outputs.semantic-version }}
+          git push --tags
+      - name: Create (pre-)release tag remotely (dry-run)
+        if: ${{ env.DRY_RUN == 'true' }}
+        run: echo ${{ needs.build.outputs.semantic-version }}

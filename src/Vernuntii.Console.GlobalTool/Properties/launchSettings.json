@@ -1,7 +1,8 @@
 {
   "profiles": {
     "Vernuntii.Console.GlobalTool": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--verbose Debug --empty-caches --override-post-pre-release \"\""
     }
   }
 }

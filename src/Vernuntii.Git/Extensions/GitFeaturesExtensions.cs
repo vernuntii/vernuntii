@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Vernuntii.Extensions.BranchCases;
 using Vernuntii.Extensions.Configurers;
 using Vernuntii.Git;
 using Vernuntii.MessagesProviders;
+using Vernuntii.MessageVersioning;
 
 namespace Vernuntii.Extensions
 {
@@ -27,6 +29,9 @@ namespace Vernuntii.Extensions
 
             services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<RepositoryOptions>>().Value);
             services.TryAddSingleton<IRepository, Repository>();
+            services.TryAddSingleton<ICommitsAccessor>(sp => sp.GetRequiredService<IRepository>());
+            services.TryAddSingleton<ICommitTagsAccessor>(sp => sp.GetRequiredService<IRepository>());
+            services.TryAddSingleton<ICommitVersionsAccessor>(sp => sp.GetRequiredService<IRepository>());
             return options;
         }
 
@@ -134,10 +139,8 @@ namespace Vernuntii.Extensions
         {
             var services = options.Services;
 
-            services.TryAddSingleton<ICommitVersionFinder>(sp => {
-                var repository = sp.GetRequiredService<IRepository>();
-                return ActivatorUtilities.CreateInstance<CommitVersionFinder>(sp, repository, repository);
-            });
+            services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<CommitVersionFinderOptions>>().Value);
+            services.TryAddSingleton<ICommitVersionFinder, CommitVersionFinder>();
 
             services.TryAddSingleton(sp => {
                 var commitVersionFinder = sp.GetRequiredService<ICommitVersionFinder>();
