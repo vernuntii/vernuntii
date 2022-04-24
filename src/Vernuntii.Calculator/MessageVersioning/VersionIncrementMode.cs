@@ -6,7 +6,7 @@
     public enum VersionIncrementMode
     {
         /// <summary>
-        /// Does not increment version.
+        /// Does not increment anything.
         /// </summary>
         None,
         /// <summary>

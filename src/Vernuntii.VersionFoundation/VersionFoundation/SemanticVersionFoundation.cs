@@ -1,4 +1,5 @@
 ﻿using Vernuntii.Git;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionFoundation
 {

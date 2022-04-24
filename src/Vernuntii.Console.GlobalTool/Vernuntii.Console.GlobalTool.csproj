@@ -4,9 +4,9 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vernuntii</ToolCommandName>
+    <Description>Simple semantic versioning with git integration. Installing this package as dotnet tool makes the global command "vernuntii" available.</Description>
   </PropertyGroup>
 
   <ItemGroup>

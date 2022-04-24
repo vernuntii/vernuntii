@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.VersionTransformers
+﻿using Vernuntii.SemVer;
+
+namespace Vernuntii.VersionTransformers
 {
     /// <summary>
     /// Sets pre-release of version.
@@ -16,7 +18,24 @@
             ProspectivePreRelease = preRelease;
 
         /// <inheritdoc/>
-        public SemanticVersion TransformVersion(SemanticVersion version) =>
-            version.With.PreRelease(ProspectivePreRelease);
+        public SemanticVersion TransformVersion(SemanticVersion version)
+        {
+            if (string.IsNullOrEmpty(ProspectivePreRelease)) {
+                return version.With.PreRelease(default(string));
+            }
+
+            var currentIdentifiers = version.PreReleaseIdentifiers.ToArray();
+            var prospectiveIdentifiers = ProspectivePreRelease.Split('.').ToArray();
+
+            if (prospectiveIdentifiers.Length >= currentIdentifiers.Length) {
+                return version.With.PreRelease(prospectiveIdentifiers);
+            }
+
+            for (var i = 0; i < prospectiveIdentifiers.Length; i++) {
+                currentIdentifiers[i] = prospectiveIdentifiers[i];
+            }
+
+            return version.With.PreRelease(currentIdentifiers);
+        }
     }
 }

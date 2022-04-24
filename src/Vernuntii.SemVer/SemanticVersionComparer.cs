@@ -1,4 +1,4 @@
-﻿namespace Vernuntii
+﻿namespace Vernuntii.SemVer
 {
     /// <summary>
     /// A comparer for <see cref="SemanticVersion"/>.

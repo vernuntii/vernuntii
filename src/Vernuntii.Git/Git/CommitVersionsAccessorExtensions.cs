@@ -1,4 +1,7 @@
-﻿namespace Vernuntii.Git
+﻿using Vernuntii.SemVer;
+using Vernuntii.Extensions;
+
+namespace Vernuntii.Git
 {
     /// <summary>
     /// Extension methods for <see cref="IRepository"/>
@@ -11,6 +14,6 @@
         /// <param name="commitVersionAccessor"></param>
         /// <param name="version"></param>
         public static bool HasCommitVersion(this ICommitVersionsAccessor commitVersionAccessor, SemanticVersion version) =>
-            commitVersionAccessor.GetCommitVersions().Any(x => SemanticVersionComparer.VersionReleaseBuild.Equals(x, version));
+            commitVersionAccessor.GetCommitVersions().BinarySearch(version, SemanticVersionComparer.VersionReleaseBuild) != -1;
     }
 }

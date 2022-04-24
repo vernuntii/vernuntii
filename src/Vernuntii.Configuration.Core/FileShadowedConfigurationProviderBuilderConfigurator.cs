@@ -3,7 +3,7 @@ using Vernuntii.Configuration.Shadowing;
 
 namespace Vernuntii.Configuration
 {
-    internal class FileShadowedConfigurationProviderBuilderConfigurator : IFileShadowedConfigurationProviderBuilderConfigurator
+    internal class FileShadowedConfigurationProviderBuilderConfigurator : IFileShadowedConfigurationProviderBuilderConfigurer
     {
         /// <inheritdoc/>
         public IConfigurationProvider RootConfigurationProvider =>

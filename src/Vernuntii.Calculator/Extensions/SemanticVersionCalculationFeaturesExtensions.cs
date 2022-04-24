@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Vernuntii.MessagesProviders;
+using Vernuntii.SemVer;
+using Vernuntii.VersionTransformers;
 
 namespace Vernuntii.Extensions
 {
@@ -62,6 +65,40 @@ namespace Vernuntii.Extensions
 
             configureOptions(extensions.Services.AddOptions<SemanticVersionCalculationOptions>());
             return extensions;
+        }
+
+        /// <summary>
+        /// Overrides <see cref="SemanticVersionCalculationOptions.StartVersion"/>.
+        /// </summary>
+        /// <param name="features"></param>
+        /// <param name="startVersion"></param>
+        public static ISemanticVersionCalculationFeatures OverrideStartVersion(
+            this ISemanticVersionCalculationFeatures features,
+            SemanticVersion startVersion)
+        {
+            features.Services.AddOptions<SemanticVersionCalculationOptions>()
+                .Configure(options => options.StartVersion = startVersion);
+
+            return features;
+        }
+
+        /// <summary>
+        /// Overrides start version provided by <paramref name="configuration"/>.
+        /// It looks for the key <see cref="CalculatorConfigurationKeys.StartVersion"/>.
+        /// If the value is null or empty start version won't be set.
+        /// </summary>
+        /// <param name="features"></param>
+        /// <param name="configuration"></param>
+        /// <exception cref="ArgumentException"></exception>
+        public static ISemanticVersionCalculationFeatures TryOverrideStartVersion(this ISemanticVersionCalculationFeatures features, IConfiguration configuration)
+        {
+            var startVersionString = configuration.GetValue(CalculatorConfigurationKeys.StartVersion, string.Empty);
+
+            if (!string.IsNullOrEmpty(startVersionString)) {
+                features.OverrideStartVersion(SemanticVersion.Parse(startVersionString));
+            }
+
+            return features;
         }
     }
 }

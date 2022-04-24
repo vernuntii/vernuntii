@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Vernuntii.Console</RootNamespace>
-    <Nullable>enable</Nullable>
+    <Description>Simple semantic versioning with git integration. The primary goal of this package is to set the version of NuGet-package(s).</Description>
   </PropertyGroup>
 
   <!-- We don't build an executable package.

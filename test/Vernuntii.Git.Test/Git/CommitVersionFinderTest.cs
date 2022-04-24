@@ -1,4 +1,5 @@
 ﻿using GitTools.Testing;
+using Vernuntii.SemVer;
 using Xunit;
 
 namespace Vernuntii.Git

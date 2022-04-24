@@ -33,7 +33,7 @@ namespace Vernuntii.Extensions.BranchCases
                 extensionFactory = CreateFromString;
 
                 MessageVersioningModeExtensionOptions CreateFromString() => new MessageVersioningModeExtensionOptions {
-                    VersionTransformerOptions = VersionTransformerBuilderOptions.GetPreset(configuration.GetValue(VersioningModeKey, default(string)))
+                    VersionTransformerOptions = VersionIncrementBuilderOptions.GetPreset(configuration.GetValue(VersioningModeKey, default(string)))
                 };
             } else {
                 extensionFactory = CreateFromObject;

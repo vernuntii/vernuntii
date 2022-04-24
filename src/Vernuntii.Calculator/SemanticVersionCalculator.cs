@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Vernuntii.MessagesProviders;
 using Vernuntii.MessageVersioning;
+using Vernuntii.SemVer;
 
 namespace Vernuntii;
 
@@ -82,13 +83,6 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
             null);
     }
 
-    private void RenewMessageVersioningVersioningContext(ref MessageVersioningContext versioningContext, SemanticVersion nextVersion)
-    {
-        versioningContext = versioningContext with {
-            CurrentVersion = nextVersion
-        };
-    }
-
     /// <summary>
     /// <inheritdoc/>
     /// </summary>
@@ -98,7 +92,7 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
         var nextVersion = options.StartVersion;
         LogInitialVersion(nextVersion);
 
-        var versionCoreTransformerBuilder = new VersionTransformerBuilder(options.VersionCoreOptions);
+        var versionIncrementBuilder = new VersionIncrementBuilder(options.VersionIncrementOptions);
         var versioningContext = new MessageVersioningContext(options);
 
         var messages = options.MessagesProvider?.GetMessages();
@@ -108,22 +102,29 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
         if (messages is not null) {
             foreach (var message in messages) {
                 messageCounter++;
-                RenewMessageVersioningVersioningContext(ref versioningContext, nextVersion);
-                var versionTransformer = versionCoreTransformerBuilder.BuildTransformer(message, versioningContext);
 
-                if (versionTransformer is null || versionTransformer.DoesNotTransform) {
-                    continue;
+                var preflightVersion = nextVersion;
+
+                foreach (var versionTransformer in versionIncrementBuilder.BuildIncrement(message, versioningContext)) {
+                    if (versionTransformer is null || versionTransformer.DoesNotTransform) {
+                        continue;
+                    }
+
+                    preflightVersion = versionTransformer.TransformVersion(preflightVersion);
                 }
 
-                var preflightVersion = versionTransformer.TransformVersion(nextVersion);
-
-                if (preflightVersion.Equals(nextVersion)) {
+                if (ReferenceEquals(preflightVersion, nextVersion) || preflightVersion.Equals(nextVersion)) {
                     continue;
                 }
 
                 LogVersionTransformation(message, nextVersion, preflightVersion);
                 nextVersion = preflightVersion;
                 messageInvolvedIntoTransformationCounter++;
+
+                // Renew versioning context.
+                versioningContext = versioningContext with {
+                    CurrentVersion = nextVersion
+                };
             }
         }
 

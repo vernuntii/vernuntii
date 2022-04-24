@@ -24,7 +24,7 @@ namespace Vernuntii.Configuration
             string directoryPath,
             HashSet<string> fileNames,
             [NotNullWhen(true)] out string? addedFilePath,
-            Action<IFileShadowedConfigurationProviderBuilderConfigurator>? configureProviderBuilder = null)
+            Action<IFileShadowedConfigurationProviderBuilderConfigurer>? configureProviderBuilder = null)
         {
             if (builder.ConventionalFileFinders.Count == 0) {
                 throw new InvalidOperationException("No conventional file finder has been added");
@@ -90,7 +90,7 @@ namespace Vernuntii.Configuration
             string directoryPath,
             IEnumerable<string> fileNames,
             [NotNullWhen(true)] out string? addedFilePath,
-            Action<IFileShadowedConfigurationProviderBuilderConfigurator>? configureProviderBuilder = null) =>
+            Action<IFileShadowedConfigurationProviderBuilderConfigurer>? configureProviderBuilder = null) =>
             builder.TryAddFirstConventionalFileCore(directoryPath, EliminateDuplicate(fileNames), out addedFilePath, configureProviderBuilder);
 
         [DoesNotReturn]
@@ -111,7 +111,7 @@ namespace Vernuntii.Configuration
             string directoryPath,
             IEnumerable<string> fileNames,
             out string addedFilePath,
-            Action<IFileShadowedConfigurationProviderBuilderConfigurator>? configureProviderBuilder = null)
+            Action<IFileShadowedConfigurationProviderBuilderConfigurer>? configureProviderBuilder = null)
         {
             var uniqueFileNames = EliminateDuplicate(fileNames);
 
@@ -140,7 +140,7 @@ namespace Vernuntii.Configuration
             ref string fileOrDirectory,
             ref IEnumerable<string> alternativeFileNames,
             [NotNullWhen(true)] out string? addedFilePath,
-            Action<IFileShadowedConfigurationProviderBuilderConfigurator>? configureProviderBuilder = null)
+            Action<IFileShadowedConfigurationProviderBuilderConfigurer>? configureProviderBuilder = null)
         {
             string directory;
             IEnumerable<string> fileNames;
@@ -178,7 +178,7 @@ namespace Vernuntii.Configuration
             string fileOrDirectory,
             IEnumerable<string> alternativeFileNames,
             [NotNullWhen(true)] out string? addedFilePath,
-            Action<IFileShadowedConfigurationProviderBuilderConfigurator>? configureProviderBuilder = null) =>
+            Action<IFileShadowedConfigurationProviderBuilderConfigurer>? configureProviderBuilder = null) =>
             builder.TryAddFileOrFirstConventionalFileCore(
                 ref fileOrDirectory,
                 ref alternativeFileNames,
@@ -198,7 +198,7 @@ namespace Vernuntii.Configuration
             string fileOrDirectory,
             IEnumerable<string> alternativeFileNames,
             out string addedFilePath,
-            Action<IFileShadowedConfigurationProviderBuilderConfigurator>? configureProviderBuilder = null)
+            Action<IFileShadowedConfigurationProviderBuilderConfigurer>? configureProviderBuilder = null)
         {
             if (!TryAddFileOrFirstConventionalFileCore(builder, ref fileOrDirectory, ref alternativeFileNames, out var nullableAddedFilePath, configureProviderBuilder)) {
                 ThrowFileNotFound(fileOrDirectory, alternativeFileNames);

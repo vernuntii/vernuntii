@@ -1,4 +1,6 @@
-﻿namespace Vernuntii
+﻿using Vernuntii.SemVer;
+
+namespace Vernuntii
 {
     /// <summary>
     /// Represents a fixed calculation of the next version.

@@ -9,5 +9,10 @@
         /// The found commit version.
         /// </summary>
         public CommitVersion? CommitVersion { get; init; }
+        /// <summary>
+        /// True means that the version core of <see cref="CommitVersion"/>
+        /// has not been already used.
+        /// </summary>
+        public bool CommitVersionCoreAlreadyReleased { get; init; }
     }
 }

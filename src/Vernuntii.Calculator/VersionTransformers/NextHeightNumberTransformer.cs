@@ -1,56 +1,66 @@
-﻿using Vernuntii.MessageVersioning.HeightConventions;
-using Vernuntii.MessageVersioning.HeightConventions.Ruling;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Vernuntii.HeightVersioning;
+using Vernuntii.HeightVersioning.Transforming;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionTransformers
 {
     internal class NextHeightNumberTransformer : ISemanticVersionTransformer
     {
-        private static string HeightRuleHintSentence(int dots) =>
-            $"Either add a height rule for {dots} dots or change height position to none.";
-
-        private readonly IHeightConvention _heightConvention;
-        private readonly IHeightPlaceholderParser _heightPlaceholderParser = HeightPlaceholderParser.Default;
-
-        public NextHeightNumberTransformer(IHeightConvention heightConvention) =>
-            _heightConvention = heightConvention ?? throw new ArgumentNullException(nameof(heightConvention));
-
-        private void test(IReadOnlyList<string> versionIdentifiers, int dots, HeightRuleDictionary heightRules)
+        private static uint GetStartOrNextHeight(uint? height, uint startHeight)
         {
-            if (!heightRules.TryGetValue(dots, out var heightRule)) {
-                throw new InvalidOperationException($"A height rule for {dots} dots does not exist. {HeightRuleHintSentence(dots)}");
+            if (!height.HasValue) {
+                return startHeight;
             }
 
-            var heightTemplateIdentifiers = heightRule.Template.Split('.');
+            return height.Value + 1;
+        }
 
-            var placeholderParseResults = heightTemplateIdentifiers.Select(identifier => {
-                var content = _heightPlaceholderParser.ParsePlaceholder(identifier, out var placeholderType);
-                return new { Content = content, PlaceHolderType = placeholderType };
-            });
+        private static string StringifyVersionNumber(uint versionNumber) =>
+            versionNumber.ToString(CultureInfo.InvariantCulture);
+
+        private readonly HeightConventionTransformer? _transformer;
+        private HeightConventionTransformResult? _transformResult;
+        private uint? _parsedHeightNumber;
+
+        public NextHeightNumberTransformer(HeightConventionTransformer transformer) =>
+            _transformer = transformer ?? throw new ArgumentNullException(nameof(transformer));
+
+        internal NextHeightNumberTransformer(HeightConventionTransformResult transformResult, uint? parsedHeightNumber)
+        {
+            _transformResult = transformResult ?? throw new ArgumentNullException(nameof(transformResult));
+            _parsedHeightNumber = parsedHeightNumber;
+        }
+
+        [MemberNotNull(nameof(_transformResult))]
+        private void EnsureUsingTransformer(SemanticVersion version)
+        {
+            if (_transformResult is not null) {
+                return;
+            }
+
+            if (_transformer is null) {
+                throw new InvalidOperationException("Transformer is not defined");
+            }
+
+            _transformResult = _transformer.Transform(version);
+            _ = _transformResult.TryParseHeight(version.Parser.VersionNumberParser, out _parsedHeightNumber);
         }
 
         public SemanticVersion TransformVersion(SemanticVersion version)
         {
-            if (_heightConvention.Position == HeightPosition.None) {
-                goto exit;
+            EnsureUsingTransformer(version);
+            var identifiers = _transformResult.Identifiers;
+
+            identifiers[_transformResult.HeightIndex] = StringifyVersionNumber(
+                GetStartOrNextHeight(_parsedHeightNumber, _transformResult.Convention.StartHeight));
+
+            if (_transformResult.Convention.Position == HeightIdentifierPosition.PreRelease) {
+                return version.With.PreRelease(identifiers);
+            } else {
+                return version.With.Build(identifiers);
             }
-
-            var versionIdentifiers = _heightConvention.Position switch {
-                HeightPosition.PreRelease => version.PreReleaseIdentifiers,
-                HeightPosition.Build => version.BuildIdentifiers,
-                _ => throw new InvalidOperationException($"The height position \"{_heightConvention.Position}\" does not exist")
-            };
-
-            var heightRules = _heightConvention.Rules ?? HeightRuleDictionary.Empty;
-            var dots = versionIdentifiers.Count;
-
-            if (heightRules.Count == 0) {
-                throw new InvalidOperationException($"Height feature is enabled but no rules are defined. {HeightRuleHintSentence(dots)}");
-            }
-
-            test(versionIdentifiers, dots, heightRules);
-
-            exit:
-            return version;
         }
     }
 }

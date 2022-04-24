@@ -21,7 +21,7 @@ namespace Vernuntii.PluginSystem.Events
     /// <typeparam name="TDerived"></typeparam>
     /// <typeparam name="TPayload"></typeparam>
     public class PubSubEvent<TDerived, TPayload> : PubSubEvent<TPayload>
-        where TDerived : PubSubEvent<TPayload>, new()
+        where TDerived : PubSubEvent<TDerived, TPayload>, new()
     {
         /// <summary>
         /// The discrimnator to enable inference of <typeparamref name="TPayload"/>.

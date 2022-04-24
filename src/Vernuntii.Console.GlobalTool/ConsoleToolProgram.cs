@@ -11,14 +11,14 @@ public static class ConsoleToolProgram
 {
     private const string Vernuntii = nameof(Vernuntii);
 
-    private const string VernuntiiMSBuild = $"{Vernuntii}.{nameof(MSBuild)}";
-    private const string MSBuildProps = $"{VernuntiiMSBuild}.props";
-    private const string MSBuildTargets = $"{VernuntiiMSBuild}.targets";
-    private const string MSBuildDll = $"{VernuntiiMSBuild}.dll";
+    private const string VernuntiiConsoleMSBuild = $"{Vernuntii}.{nameof(Console)}.{nameof(MSBuild)}";
+    private const string VernuntiiConsoleMSBuildProps = $"{VernuntiiConsoleMSBuild}.props";
+    private const string VernuntiiConsoleMSBuildTargets = $"{VernuntiiConsoleMSBuild}.targets";
+    private const string VernuntiiConsoleMSBuildDll = $"{VernuntiiConsoleMSBuild}.dll";
 
-    private const string VernuntiiConsole = $"{Vernuntii}.{nameof(Console)}";
-    private const string ConsoleDll = $"{VernuntiiConsole}.dll";
-    private const string ConsoleExe = $"{VernuntiiConsole}.exe";
+    private const string VernuntiiConsoleGlobalTool = $"{Vernuntii}.{nameof(Console)}.{nameof(GlobalTool)}";
+    private const string VernuntiiConsoleGlobalToolDll = $"{VernuntiiConsoleGlobalTool}.dll";
+    private const string VernuntiiConsoleGlobalToolExe = $"{VernuntiiConsoleGlobalTool}.exe";
 
     private const string BuildDirectory = "build";
 
@@ -69,11 +69,11 @@ public static class ConsoleToolProgram
                 var assemblyDirectory = AppContext.BaseDirectory;
 
                 var filePath = location switch {
-                    FileLocation.MSBuildProps => Path.Combine(assemblyDirectory, BuildDirectory, MSBuildProps),
-                    FileLocation.MSBuildTargets => Path.Combine(assemblyDirectory, BuildDirectory, MSBuildTargets),
-                    FileLocation.MSBuildDll => Path.Combine(assemblyDirectory, MSBuildDll),
-                    FileLocation.ConsoleDll => Path.Combine(assemblyDirectory, ConsoleDll),
-                    FileLocation.ConsoleExe => Path.Combine(assemblyDirectory, ConsoleExe),
+                    FileLocation.MSBuildProps => Path.Combine(assemblyDirectory, BuildDirectory, VernuntiiConsoleMSBuildProps),
+                    FileLocation.MSBuildTargets => Path.Combine(assemblyDirectory, BuildDirectory, VernuntiiConsoleMSBuildTargets),
+                    FileLocation.MSBuildDll => Path.Combine(assemblyDirectory, VernuntiiConsoleMSBuildDll),
+                    FileLocation.ConsoleDll => Path.Combine(assemblyDirectory, VernuntiiConsoleGlobalToolDll),
+                    FileLocation.ConsoleExe => Path.Combine(assemblyDirectory, VernuntiiConsoleGlobalToolExe),
                     _ => throw new ArgumentException("The location you specified does not exist")
                 };
 

@@ -1,9 +1,9 @@
-﻿namespace Vernuntii.MessageVersioning.HeightConventions
+﻿namespace Vernuntii.HeightVersioning
 {
     /// <summary>
     /// The position of height.
     /// </summary>
-    public enum HeightPosition
+    public enum HeightIdentifierPosition
     {
         /// <summary>
         /// Height is disabled.

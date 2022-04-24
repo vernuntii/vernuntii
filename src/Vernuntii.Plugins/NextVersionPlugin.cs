@@ -1,12 +1,12 @@
 ﻿using System.CommandLine;
 using System.Globalization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Autofac;
 using Vernuntii.Console;
 using Vernuntii.Extensions;
 using Vernuntii.Extensions.VersionFoundation;
-using Vernuntii.Git;
 using Vernuntii.PluginSystem.Events;
 using Vernuntii.VersionPresentation;
 using Vernuntii.VersionPresentation.Serializers;
@@ -21,6 +21,7 @@ namespace Vernuntii.PluginSystem
         private ILoggingPlugin _loggingPlugin = null!;
         private NextVersionOptionsPlugin _options = null!;
         private ILogger _logger = null!;
+        private IConfiguration _configuration = null!;
 
         #region command line options
 
@@ -109,8 +110,12 @@ namespace Vernuntii.PluginSystem
         private int ProduceVersionOutput()
         {
             try {
-                var globalServices = new ServiceCollection().AddLogging(builder => _loggingPlugin.Bind(builder));
+                IServiceCollection globalServices = new ServiceCollection();
                 EventAggregator.PublishEvent(NextVersionEvents.CreatedGlobalServices.Discriminator, globalServices);
+
+                globalServices.AddLogging(builder => _loggingPlugin.Bind(builder));
+                EventAggregator.PublishEvent(NextVersionEvents.ConfiguredGlobalServices.Discriminator, globalServices);
+
                 using var globalServiceProvider = globalServices.BuildLifetimeScopedServiceProvider();
 
                 using var calculationServiceProvider = globalServiceProvider.CreateScope(services => {
@@ -118,17 +123,20 @@ namespace Vernuntii.PluginSystem
 
                     services.ConfigureVernuntii(features => features
                         .AddSemanticVersionCalculator()
-                        .AddSemanticVersionCalculation()
+                        .AddSemanticVersionCalculation(features => features
+                            .TryOverrideStartVersion(_configuration))
                         .AddSemanticVersionFoundationProvider(options => options.EmptyCaches = _emptyCaches));
 
-                    if (_options.OverrideVersioningMode != null) {
+                    if (_options.ShouldOverrideVersioningMode) {
                         services.ConfigureVernuntii(features => features
                             .AddSemanticVersionCalculation(features => features
                                 .UseVersioningMode(_options.OverrideVersioningMode.Value)));
                     }
+
+                    EventAggregator.PublishEvent(NextVersionEvents.ConfiguredCalculationServices.Discriminator, services);
                 });
 
-                var repository = globalServiceProvider.GetRequiredService<IRepository>();
+                //var repository = globalServiceProvider.GetRequiredService<IRepository>();
                 var presentationFoundationProvider = calculationServiceProvider.GetRequiredService<SemanticVersionFoundationProvider>();
 
                 // get cache or calculate version.
@@ -147,13 +155,13 @@ namespace Vernuntii.PluginSystem
 
                 System.Console.WriteLine(formattedVersion);
 
-                if (_duplicateVersionFails && repository.HasCommitVersion(presentationFoundation.Version)) {
-                    return (int)ExitCode.VersionDuplicate;
-                }
+                //if (_duplicateVersionFails && repository.HasCommitVersion(presentationFoundation.Version)) {
+                //    return (int)ExitCode.VersionDuplicate;
+                //}
 
                 return (int)ExitCode.Success;
             } catch (Exception error) {
-                _logger.LogCritical(error, "An error prevented to calculate the next version.");
+                _logger.LogCritical(error, "A fatal exception happenend, so the version calculation has been canceled.");
                 return (int)ExitCode.Failure;
             }
         }
@@ -191,7 +199,13 @@ namespace Vernuntii.PluginSystem
                 _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
             });
 
-            SubscribeEvent(LoggingEvents.EnabledLoggingInfrastructure.Discriminator, plugin => _logger = plugin.CreateLogger<NextVersionPlugin>());
+            SubscribeEvent(
+                LoggingEvents.EnabledLoggingInfrastructure.Discriminator,
+                plugin => _logger = plugin.CreateLogger<NextVersionPlugin>());
+
+            SubscribeEvent(
+                ConfigurationEvents.CreatedConfiguration.Discriminator,
+                configuration => _configuration = configuration);
         }
     }
 }

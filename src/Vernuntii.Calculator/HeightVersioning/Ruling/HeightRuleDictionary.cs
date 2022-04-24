@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Collections.Extensions;
 
-namespace Vernuntii.MessageVersioning.HeightConventions.Ruling
+namespace Vernuntii.HeightVersioning.Ruling
 {
     /// <summary>
     /// Contains instances of <see cref="IHeightRule"/>.
@@ -17,9 +17,9 @@ namespace Vernuntii.MessageVersioning.HeightConventions.Ruling
         /// <summary>
         /// Default rules for one dotted string.
         /// </summary>
-        public readonly static HeightRuleDictionary OneDotRules = new HeightRuleDictionary(new[] {
-            new HeightRule(0, ".{y}"),
-            new HeightRule(1, ".{y}")
+        public readonly static HeightRuleDictionary BehindFirstDotRules = new HeightRuleDictionary(new[] {
+            new HeightRule(0, "{}."),
+            new HeightRule(1, "{0}.{y}")
         });
 
         /// <inheritdoc/>

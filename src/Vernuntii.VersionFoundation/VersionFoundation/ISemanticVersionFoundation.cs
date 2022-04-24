@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.VersionFoundation
+﻿using Vernuntii.SemVer;
+
+namespace Vernuntii.VersionFoundation
 {
     /// <summary>
     /// The facts of produced semantic version.

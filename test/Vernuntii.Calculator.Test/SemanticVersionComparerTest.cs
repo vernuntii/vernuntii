@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Vernuntii.SemVer;
 using Xunit;
 
 namespace Vernuntii

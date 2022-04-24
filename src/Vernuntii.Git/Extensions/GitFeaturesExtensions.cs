@@ -143,7 +143,18 @@ namespace Vernuntii.Extensions
                 var commitVersionFinder = sp.GetRequiredService<ICommitVersionFinder>();
                 var findingOptions = sp.GetRequiredService<IOptions<CommitVersionFindingOptions>>().Value;
                 var commitVersion = commitVersionFinder.FindCommitVersion(findingOptions);
-                return new CommitVersionFindingCache() { CommitVersion = commitVersion };
+                bool commitVersionCoreAlreadyReleased;
+
+                if (commitVersion != null) {
+                    commitVersionCoreAlreadyReleased = commitVersionFinder.IsVersionCoreReleased(commitVersion);
+                } else {
+                    commitVersionCoreAlreadyReleased = false;
+                }
+
+                return new CommitVersionFindingCache() {
+                    CommitVersion = commitVersion,
+                    CommitVersionCoreAlreadyReleased = commitVersionCoreAlreadyReleased
+                };
             });
 
             return options;
@@ -164,7 +175,11 @@ namespace Vernuntii.Extensions
             services.AddOptions<SemanticVersionCalculationOptions>()
                 .Configure<IServiceProvider>((options, sp) => {
                     var findingCache = sp.GetService<CommitVersionFindingCache>();
-                    options.TrySetNonNullStartVersion(findingCache?.CommitVersion);
+
+                    if (findingCache?.CommitVersion != null) {
+                        options.StartVersion = findingCache.CommitVersion;
+                        options.StartVersionCoreAlreadyReleased = findingCache.CommitVersionCoreAlreadyReleased;
+                    }
                 });
 
             return features;

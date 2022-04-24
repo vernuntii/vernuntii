@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.VersionTransformers
+﻿using Vernuntii.SemVer;
+
+namespace Vernuntii.VersionTransformers
 {
     /// <summary>
     /// Default implementation for not incrementing the version.

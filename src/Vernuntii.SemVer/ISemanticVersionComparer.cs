@@ -1,4 +1,4 @@
-﻿namespace Vernuntii
+﻿namespace Vernuntii.SemVer
 {
     /// <summary>
     /// Defines methods to compare two semantic versions.

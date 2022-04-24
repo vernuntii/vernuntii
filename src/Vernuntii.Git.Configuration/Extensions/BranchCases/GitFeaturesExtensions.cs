@@ -57,7 +57,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// <summary>
         /// Creates versioning mode extension for each branch case and
         /// configures <see cref="SemanticVersionCalculationOptions"/> to set
-        /// <see cref="SemanticVersionCalculationOptions.VersionCoreOptions"/>
+        /// <see cref="SemanticVersionCalculationOptions.VersionIncrementOptions"/>
         /// from active branch case.
         /// </summary>
         /// <param name="features"></param>
@@ -67,7 +67,7 @@ namespace Vernuntii.Extensions.BranchCases
 
             features.Services.AddOptions<SemanticVersionCalculationOptions>()
                 .Configure<IBranchCaseArgumentsProvider>((options, provider) =>
-                    options.VersionCoreOptions = provider.ActiveBranchCase.GetVersioningModeExtension().VersionTransformerOptions);
+                    options.VersionIncrementOptions = provider.ActiveBranchCase.GetVersioningModeExtension().VersionTransformerOptions);
 
             return features;
         }

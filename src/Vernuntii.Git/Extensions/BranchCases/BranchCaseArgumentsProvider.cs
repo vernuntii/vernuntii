@@ -97,6 +97,7 @@ namespace Vernuntii.Extensions.BranchCases
                     // Returns null if not successful.
                     IBranch? GetBranchByExpandingName() => branchName switch {
                         var x when x == null || x == "" => null,
+                        // Repository branch collection already supports regex
                         var x when RegexUtils.IsRegexPattern(x, out _) => null,
                         var x => _repository.ExpandBranchName(x) switch {
                             var y when y == null || y == "" => null,

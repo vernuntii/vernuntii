@@ -12,10 +12,8 @@ namespace Vernuntii.Extensions
 
         /// <summary>
         /// Uses <paramref name="configuration"/> through <paramref name="features"/>:
-        /// <code>
-        /// AddRepository(options => configuration.Bind(options))
-        /// AddBranchCases(configuration, configuration.GetSection("BranchCases").GetChildren())
-        /// </code>
+        /// <br/>- adds repository
+        /// <br/>- adds branch cases
         /// </summary>
         /// <param name="features"></param>
         /// <param name="configuration"></param>

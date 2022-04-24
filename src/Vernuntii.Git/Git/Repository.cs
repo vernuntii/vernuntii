@@ -3,6 +3,7 @@ using Vernuntii.Git.Command;
 using Teronis;
 using Teronis.Collections.Synchronization;
 using Teronis.IO;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.Git
 {
@@ -14,11 +15,12 @@ namespace Vernuntii.Git
         /// <inheritdoc/>
         public Branches Branches => _lazyBranches.Value;
 
+        private bool areCommitVersionsInitialized;
         private readonly RepositoryOptions _factoryOptions;
         private readonly ILogger<Repository> _logger;
         private readonly GitCommand _gitCommand;
         private readonly SlimLazy<Branches> _lazyBranches;
-        private readonly SynchronizingCollection<ICommitTag, CommitVersion> _commitVersions;
+        private readonly SynchronizableCollection<CommitVersion> _commitVersions;
         private readonly Action<ILogger, string, Exception?> _logGitDirectory;
         private readonly Action<ILogger, string, Exception?> _logBranches;
 
@@ -52,13 +54,7 @@ namespace Vernuntii.Git
                 return new Branches(branches);
             });
 
-            _commitVersions = new SynchronizingCollection<ICommitTag, CommitVersion>(commitTag => {
-                if (SemanticVersion.TryParse(commitTag.TagName, out var version)) {
-                    return new CommitVersion(version, commitTag.CommitSha);
-                }
-
-                return InvalidCommitVersion.Invalid;
-            });
+            _commitVersions = new SynchronizableCollection<CommitVersion>(SemanticVersionComparer.VersionReleaseBuild, descended: false);
         }
 
         private void LogBranches(ICollection<IBranch> branches)
@@ -94,17 +90,23 @@ namespace Vernuntii.Git
             _gitCommand.GetCommitTags();
 
         /// <inheritdoc/>
-        public IEnumerable<CommitVersion> GetCommitVersions()
+        public IReadOnlyList<CommitVersion> GetCommitVersions()
         {
-            _commitVersions.SynchronizeCollection(GetCommitTags());
+            if (!areCommitVersionsInitialized) {
+                _commitVersions.SynchronizeCollection(ParseCommitTags(GetCommitTags()));
+                areCommitVersionsInitialized = true;
 
-            foreach (var commitVersion in _commitVersions.SubItems) {
-                if (commitVersion.GetType() == InvalidCommitVersion.Type) {
-                    continue;
+                static IEnumerable<CommitVersion> ParseCommitTags(IEnumerable<ICommitTag> commitTags)
+                {
+                    foreach (var commitTag in commitTags) {
+                        if (SemanticVersion.TryParse(commitTag.TagName, out var version)) {
+                            yield return new CommitVersion(version, commitTag.CommitSha);
+                        }
+                    }
                 }
-
-                yield return commitVersion;
             }
+
+            return _commitVersions;
         }
 
         /// <inheritdoc/>

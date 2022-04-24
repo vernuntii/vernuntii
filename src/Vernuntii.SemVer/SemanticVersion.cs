@@ -1,10 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using Vernuntii.SemVer;
 using Vernuntii.SemVer.Parser;
 using static Vernuntii.SemVer.SemanticVersionBuilder;
 
-namespace Vernuntii
+namespace Vernuntii.SemVer
 {
     /// <summary>
     /// A strict semantic version implementation.
@@ -55,6 +54,7 @@ namespace Vernuntii
         /// </summary>
         /// <param name="value"></param>
         /// <param name="parser"></param>
+        /// <exception cref="ArgumentException"></exception>
         public static SemanticVersion Parse(string value, ISemanticVersionParser parser)
         {
             if (!TryParse(value, parser, out var result)) {
@@ -68,6 +68,7 @@ namespace Vernuntii
         /// Parses a version string.
         /// </summary>
         /// <param name="value"></param>
+        /// <exception cref="ArgumentException"></exception>
         public static SemanticVersion Parse(string value) =>
             Parse(value, SemanticVersionParser.Strict);
 
@@ -195,7 +196,12 @@ namespace Vernuntii
         /// </summary>
         public SemanticVersionBuilder With => new SemanticVersionBuilder(this);
 
-        internal ISemanticVersionParser Parser { get; }
+        /// <summary>
+        /// This parser was used at creation of this instance and it gets inherited
+        /// when you create a shallow copy of this instance for example by using
+        /// <see cref="With"/>.
+        /// </summary>
+        public ISemanticVersionParser Parser { get; }
 
         private string _prefix;
         private uint _major;

@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.MessageVersioning.HeightConventions.Ruling
+﻿namespace Vernuntii.HeightVersioning.Ruling
 {
     /// <summary>
     /// Represents a build height rule.

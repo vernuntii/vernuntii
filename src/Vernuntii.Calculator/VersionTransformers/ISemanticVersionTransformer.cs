@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.VersionTransformers
+﻿using Vernuntii.SemVer;
+
+namespace Vernuntii.VersionTransformers
 {
     /// <summary>
     /// Implements the ability to calculate the next version.

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Vernuntii.MessagesProviders;
 using Vernuntii.MessageVersioning;
+using Vernuntii.SemVer;
 using Vernuntii.VersionTransformers;
 
 namespace Vernuntii
@@ -22,6 +23,12 @@ namespace Vernuntii
         }
 
         /// <summary>
+        /// A boolean indicating whether the version core of <see cref="StartVersion"/> has been already released.
+        /// If true a version core increment is strived.
+        /// </summary>
+        public bool StartVersionCoreAlreadyReleased { get; set; }
+
+        /// <summary>
         /// The message provider.
         /// </summary>
         public IMessagesProvider? MessagesProvider { get; set; }
@@ -29,9 +36,9 @@ namespace Vernuntii
         /// <summary>
         /// The version core options.
         /// </summary>
-        public VersionTransformerBuilderOptions VersionCoreOptions {
-            get => _versionTransformerOptions;
-            set => _versionTransformerOptions = value ?? throw new ArgumentNullException(nameof(value));
+        public VersionIncrementBuilderOptions VersionIncrementOptions {
+            get => _versionIncrementOptions;
+            set => _versionIncrementOptions = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         /// <summary>
@@ -50,21 +57,7 @@ namespace Vernuntii
         /// </summary>
         internal bool IsPostVersionPreRelease => !string.IsNullOrEmpty(PostTransformer?.ProspectivePreRelease ?? StartVersion.PreRelease);
 
-        private SemanticVersion _startVersion = SemanticVersion.OneMinor;
-        private VersionTransformerBuilderOptions _versionTransformerOptions = VersionTransformerBuilderOptions.Default;
-
-        /// <summary>
-        /// Sets current version if not null.
-        /// </summary>
-        /// <param name="version"></param>
-        /// <returns>Calling instance</returns>
-        public SemanticVersionCalculationOptions TrySetNonNullStartVersion(SemanticVersion? version)
-        {
-            if (version != null) {
-                StartVersion = version;
-            }
-
-            return this;
-        }
+        private SemanticVersion _startVersion = SemanticVersion.OneMinor.With.PreRelease("alpha");
+        private VersionIncrementBuilderOptions _versionIncrementOptions = VersionIncrementBuilderOptions.Default;
     }
 }

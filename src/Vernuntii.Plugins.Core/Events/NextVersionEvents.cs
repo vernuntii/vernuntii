@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.PluginSystem.Events
 {
@@ -15,9 +16,23 @@ namespace Vernuntii.PluginSystem.Events
         }
 
         /// <summary>
+        /// Event when global service collection has been configured.
+        /// </summary>
+        public sealed class ConfiguredGlobalServices : PubSubEvent<ConfiguredGlobalServices, IServiceCollection>
+        {
+        }
+
+        /// <summary>
         /// Event when calculation service collection is created.
         /// </summary>
         public sealed class CreatedCalculationServices : PubSubEvent<CreatedCalculationServices, IServiceCollection>
+        {
+        }
+
+        /// <summary>
+        /// Event when calculation service collection has been configured.
+        /// </summary>
+        public sealed class ConfiguredCalculationServices : PubSubEvent<ConfiguredCalculationServices, IServiceCollection>
         {
         }
 

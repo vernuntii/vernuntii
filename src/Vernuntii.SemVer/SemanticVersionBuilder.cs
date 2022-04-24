@@ -16,7 +16,7 @@ namespace Vernuntii.SemVer
                 ? null
                 : string.Join('.', values));
 
-        private static string ToString(uint versionNumber) =>
+        private static string StringifyVersionNumber(uint versionNumber) =>
             versionNumber.ToString(CultureInfo.InvariantCulture);
 
         internal static void ValidatePrefix(IPrefixValidator validator, string? prefix)
@@ -28,7 +28,7 @@ namespace Vernuntii.SemVer
 
         internal static uint ParseVersionNumber(IVersionNumberParser parser, uint versionNumber)
         {
-            if (parser.TryParseVersionNumber(ToString(versionNumber)).DeconstructFailure(out var wrappedVersionNumber)) {
+            if (parser.TryParseVersionNumber(StringifyVersionNumber(versionNumber)).DeconstructFailure(out var wrappedVersionNumber)) {
                 throw new SemanticVersionBuilderException("Version number is not valid");
             }
 

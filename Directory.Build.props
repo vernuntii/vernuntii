@@ -10,6 +10,7 @@
     <TeronisDotNetEditorConfigBasePackageVersion>0.3.0-alpha.1</TeronisDotNetEditorConfigBasePackageVersion>
     <!-- CA1848: For high-performance logging scenarios, use the LoggerMessage pattern. -->
     <NoWarn>$(NoWarn);CA1848</NoWarn>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

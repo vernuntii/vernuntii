@@ -1,21 +1,26 @@
-﻿using Vernuntii.MessageVersioning.HeightConventions;
-using Vernuntii.MessageVersioning.MessageIndicators;
-using Vernuntii.MessageVersioning.HeightConventions.Ruling;
+﻿using Vernuntii.MessageVersioning.MessageIndicators;
+using Vernuntii.HeightVersioning;
+using Vernuntii.HeightVersioning.Ruling;
+using Vernuntii.HeightVersioning.Transforming;
 
 namespace Vernuntii.MessageVersioning
 {
     /// <summary>
-    /// Options class for <see cref="VersionTransformerBuilder"/>.
+    /// Options class for <see cref="VersionIncrementBuilder"/>.
     /// </summary>
-    public sealed record class VersionTransformerBuilderOptions : IEquatable<VersionTransformerBuilderOptions>
+    public sealed record class VersionIncrementBuilderOptions : IEquatable<VersionIncrementBuilderOptions>
     {
         /// <summary>
         /// Manual preset consisting of
         /// <br/> - none message indicators and
         /// <br/> - <see cref="VersionIncrementMode.None"/>
         /// </summary>
-        public readonly static VersionTransformerBuilderOptions Manual = new VersionTransformerBuilderOptions() {
+        public readonly static VersionIncrementBuilderOptions Manual = new VersionIncrementBuilderOptions() {
             IncrementMode = VersionIncrementMode.None
+        };
+
+        private readonly static HeightConvention OneDottedPreReleaseHeightConvention = new HeightConvention(HeightIdentifierPosition.PreRelease) {
+            Rules = HeightRuleDictionary.BehindFirstDotRules
         };
 
         /// <summary>
@@ -24,7 +29,7 @@ namespace Vernuntii.MessageVersioning
         /// <br/> - <see cref="TruthyMessageIndicator"/> for patch and
         /// <br/> - <see cref="VersionIncrementMode.Consecutive"/>
         /// </summary>
-        public readonly static VersionTransformerBuilderOptions ContinousDelivery = new VersionTransformerBuilderOptions() {
+        public readonly static VersionIncrementBuilderOptions ContinousDelivery = new VersionIncrementBuilderOptions() {
             IncrementMode = VersionIncrementMode.Consecutive,
             MajorIndicators = new[] { FalsyMessageIndicator.Default },
             MinorIndicators = new[] { FalsyMessageIndicator.Default },
@@ -35,7 +40,7 @@ namespace Vernuntii.MessageVersioning
         /// <summary>
         /// Default reset. Equivalent to <see cref="ContinousDelivery"/>.
         /// </summary>
-        public readonly static VersionTransformerBuilderOptions Default = ContinousDelivery;
+        public readonly static VersionIncrementBuilderOptions Default = ContinousDelivery;
 
         /// <summary>
         /// Continous deployment preset consisting of
@@ -43,7 +48,7 @@ namespace Vernuntii.MessageVersioning
         /// <br/> - <see cref="TruthyMessageIndicator"/> for patch and
         /// <br/> - <see cref="VersionIncrementMode.Successive"/>
         /// </summary>
-        public readonly static VersionTransformerBuilderOptions ContinousDeployment = new VersionTransformerBuilderOptions() {
+        public readonly static VersionIncrementBuilderOptions ContinousDeployment = new VersionIncrementBuilderOptions() {
             IncrementMode = VersionIncrementMode.Successive,
             MajorIndicators = new[] { FalsyMessageIndicator.Default },
             MinorIndicators = new[] { FalsyMessageIndicator.Default },
@@ -56,7 +61,7 @@ namespace Vernuntii.MessageVersioning
         /// <br/> - <see cref="ConventionalCommitsMessageIndicator"/> for version core and
         /// <br/> - <see cref="VersionIncrementMode.Consecutive"/>
         /// </summary>
-        public readonly static VersionTransformerBuilderOptions ConventionalCommitsDelivery = new VersionTransformerBuilderOptions() {
+        public readonly static VersionIncrementBuilderOptions ConventionalCommitsDelivery = new VersionIncrementBuilderOptions() {
             IncrementMode = VersionIncrementMode.Consecutive,
             MajorIndicators = new[] { ConventionalCommitsMessageIndicator.Default },
             MinorIndicators = new[] { ConventionalCommitsMessageIndicator.Default },
@@ -69,7 +74,7 @@ namespace Vernuntii.MessageVersioning
         /// <br/> - <see cref="ConventionalCommitsMessageIndicator"/> for version core and
         /// <br/> - <see cref="VersionIncrementMode.Successive"/>
         /// </summary>
-        public readonly static VersionTransformerBuilderOptions ConventionalCommitsDeployment = new VersionTransformerBuilderOptions() {
+        public readonly static VersionIncrementBuilderOptions ConventionalCommitsDeployment = new VersionIncrementBuilderOptions() {
             IncrementMode = VersionIncrementMode.Successive,
             MajorIndicators = new[] { ConventionalCommitsMessageIndicator.Default },
             MinorIndicators = new[] { ConventionalCommitsMessageIndicator.Default },
@@ -77,12 +82,8 @@ namespace Vernuntii.MessageVersioning
             HeightConvention = OneDottedPreReleaseHeightConvention
         };
 
-        private readonly static HeightConvention OneDottedPreReleaseHeightConvention = new HeightConvention(HeightPosition.PreRelease) {
-            Rules = HeightRuleDictionary.OneDotRules
-        };
-
-        private static Dictionary<string, VersionTransformerBuilderOptions> Presets =
-            new Dictionary<string, VersionTransformerBuilderOptions>(StringComparer.OrdinalIgnoreCase) {
+        private static Dictionary<string, VersionIncrementBuilderOptions> Presets =
+            new Dictionary<string, VersionIncrementBuilderOptions>(StringComparer.OrdinalIgnoreCase) {
                 { "", Default },
                 { VersioningModePreset.Manual.ToString(), Manual },
                 { VersioningModePreset.ContinousDelivery.ToString(), ContinousDelivery },
@@ -91,8 +92,8 @@ namespace Vernuntii.MessageVersioning
                 { VersioningModePreset.ConventionalCommitsDeployment.ToString(), ConventionalCommitsDeployment }
             };
 
-        private static Dictionary<string, VersionTransformerBuilderOptions> Conventions =
-            new Dictionary<string, VersionTransformerBuilderOptions>(Presets, StringComparer.OrdinalIgnoreCase) {
+        private static Dictionary<string, VersionIncrementBuilderOptions> Conventions =
+            new Dictionary<string, VersionIncrementBuilderOptions>(Presets, StringComparer.OrdinalIgnoreCase) {
                 { VersioningModeMessageConvention.Continous.ToString(), ContinousDelivery },
                 { VersioningModeMessageConvention.ConventionalCommits.ToString(), ConventionalCommitsDelivery }
             };
@@ -105,8 +106,8 @@ namespace Vernuntii.MessageVersioning
         /// <param name="nameToDisplayOnError">Name to display on error.</param>
         /// <returns>New instance.</returns>
         /// <exception cref="ArgumentException"></exception>
-        private static VersionTransformerBuilderOptions GetFromName(
-            IReadOnlyDictionary<string, VersionTransformerBuilderOptions> dictionary,
+        private static VersionIncrementBuilderOptions GetFromName(
+            IReadOnlyDictionary<string, VersionIncrementBuilderOptions> dictionary,
             string? name,
             string nameToDisplayOnError)
         {
@@ -126,7 +127,7 @@ namespace Vernuntii.MessageVersioning
         /// </summary>
         /// <param name="presetName"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static VersionTransformerBuilderOptions GetPreset(string? presetName) =>
+        public static VersionIncrementBuilderOptions GetPreset(string? presetName) =>
             GetFromName(Presets, presetName, nameof(presetName));
 
         /// <summary>
@@ -134,7 +135,7 @@ namespace Vernuntii.MessageVersioning
         /// </summary>
         /// <param name="preset"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static VersionTransformerBuilderOptions GetPreset(VersioningModePreset? preset) =>
+        public static VersionIncrementBuilderOptions GetPreset(VersioningModePreset? preset) =>
             GetFromName(Presets, preset.ToString(), nameof(preset));
 
         /// <summary>
@@ -142,7 +143,7 @@ namespace Vernuntii.MessageVersioning
         /// </summary>
         /// <param name="messageConventionName"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static VersionTransformerBuilderOptions GetMessageConvention(string? messageConventionName) =>
+        public static VersionIncrementBuilderOptions GetMessageConvention(string? messageConventionName) =>
             GetFromName(Conventions, messageConventionName, nameof(messageConventionName));
 
         /// <summary>
@@ -150,7 +151,7 @@ namespace Vernuntii.MessageVersioning
         /// </summary>
         /// <param name="messageConvention"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static VersionTransformerBuilderOptions GetMessageConvention(VersioningModePreset? messageConvention) =>
+        public static VersionIncrementBuilderOptions GetMessageConvention(VersioningModePreset? messageConvention) =>
             GetFromName(Conventions, messageConvention.ToString(), nameof(messageConvention));
 
         /// <summary>
@@ -158,7 +159,7 @@ namespace Vernuntii.MessageVersioning
         /// </summary>
         /// <param name="messageConvention"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static VersionTransformerBuilderOptions GetMessageConvention(VersioningModeMessageConvention? messageConvention) =>
+        public static VersionIncrementBuilderOptions GetMessageConvention(VersioningModeMessageConvention? messageConvention) =>
             GetFromName(Conventions, messageConvention.ToString(), nameof(messageConvention));
 
         private static bool Equals(IEnumerable<IMessageIndicator>? x, IEnumerable<IMessageIndicator>? y) =>
@@ -199,16 +200,50 @@ namespace Vernuntii.MessageVersioning
         /// </summary>
         public IReadOnlyCollection<IMessageIndicator>? PatchIndicators { get; init; }
         /// <summary>
-        /// Build height rules.
+        /// Height convention.
         /// </summary>
         public IHeightConvention? HeightConvention { get; init; }
+
+        /// <summary>
+        /// The height identifier transformer.
+        /// </summary>
+        public HeightConventionTransformer HeightIdentifierTransformer {
+            get {
+                if (HeightConvention == null) {
+                    throw new InvalidOperationException("Height convention is not defined");
+                }
+
+                if (_heightIdentifierTransformer is not null) {
+                    return _heightIdentifierTransformer;
+                }
+
+                HeightConventionTransformer transformer;
+
+                if (HeightIdentifierTransformerFactory != null) {
+                    transformer = HeightIdentifierTransformerFactory(HeightConvention);
+                } else {
+                    transformer = new HeightConventionTransformer(HeightConvention, HeightPlaceholderParser.Default);
+                }
+
+                return _heightIdentifierTransformer = transformer;
+            }
+
+            init => _heightIdentifierTransformer = value;
+        }
+
+        /// <summary>
+        /// A factory to create in instance for <see cref="HeightIdentifierTransformer"/> if it is null. Whenever used once.
+        /// </summary>
+        public Func<IHeightConvention, HeightConventionTransformer>? HeightIdentifierTransformerFactory { private get; init; }
+
+        private HeightConventionTransformer? _heightIdentifierTransformer;
 
         /// <summary>
         /// Creates an copy of this instance with new convention.
         /// </summary>
         /// <param name="convention"></param>
         /// <returns>New instance.</returns>
-        public VersionTransformerBuilderOptions WithConvention(VersionTransformerBuilderOptions convention)
+        public VersionIncrementBuilderOptions WithConvention(VersionIncrementBuilderOptions convention)
         {
             return this with {
                 MajorIndicators = convention.MajorIndicators,
@@ -222,7 +257,7 @@ namespace Vernuntii.MessageVersioning
         /// </summary>
         /// <param name="conventionName"></param>
         /// <returns>New instance.</returns>
-        public VersionTransformerBuilderOptions WithConvention(string conventionName) =>
+        public VersionIncrementBuilderOptions WithConvention(string conventionName) =>
             WithConvention(GetMessageConvention(conventionName));
 
         /// <summary>
@@ -230,7 +265,7 @@ namespace Vernuntii.MessageVersioning
         /// </summary>
         /// <param name="convention"></param>
         /// <returns>New instance.</returns>
-        public VersionTransformerBuilderOptions WithConvention(VersioningModePreset convention) =>
+        public VersionIncrementBuilderOptions WithConvention(VersioningModePreset convention) =>
             WithConvention(GetMessageConvention(convention));
 
         /// <summary>
@@ -238,11 +273,11 @@ namespace Vernuntii.MessageVersioning
         /// </summary>
         /// <param name="convention"></param>
         /// <returns>New instance.</returns>
-        public VersionTransformerBuilderOptions WithConvention(VersioningModeMessageConvention convention) =>
+        public VersionIncrementBuilderOptions WithConvention(VersioningModeMessageConvention convention) =>
             WithConvention(GetMessageConvention(convention));
 
         /// <inheritdoc/>
-        public bool Equals(VersionTransformerBuilderOptions? other) =>
+        public bool Equals(VersionIncrementBuilderOptions? other) =>
             other is not null
             && Equals(MajorIndicators, other.MajorIndicators)
             && Equals(MinorIndicators, other.MinorIndicators)

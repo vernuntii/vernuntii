@@ -10,7 +10,7 @@ namespace Vernuntii.Extensions
     {
         /// <summary>
         /// Configures <see cref="SemanticVersionCalculationOptions"/> to set
-        /// <see cref="SemanticVersionCalculationOptions.VersionCoreOptions"/>
+        /// <see cref="SemanticVersionCalculationOptions.VersionIncrementOptions"/>
         /// from <paramref name="versioningModePreset"/>.
         /// </summary>
         /// <param name="features"></param>
@@ -19,7 +19,7 @@ namespace Vernuntii.Extensions
         {
             features.Services.AddOptions<SemanticVersionCalculationOptions>()
                 .Configure(options =>
-                    options.VersionCoreOptions = VersionTransformerBuilderOptions.GetPreset(versioningModePreset.ToString()));
+                    options.VersionIncrementOptions = VersionIncrementBuilderOptions.GetPreset(versioningModePreset.ToString()));
 
             return features;
         }

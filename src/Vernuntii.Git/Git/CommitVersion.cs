@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.Git
+﻿using Vernuntii.SemVer;
+
+namespace Vernuntii.Git
 {
     /// <summary>
     /// Represents a semantic version with additional information regarding commit.

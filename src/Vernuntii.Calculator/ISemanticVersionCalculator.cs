@@ -1,4 +1,6 @@
-﻿namespace Vernuntii
+﻿using Vernuntii.SemVer;
+
+namespace Vernuntii
 {
     /// <summary>
     /// A calcutor for next semantic version.

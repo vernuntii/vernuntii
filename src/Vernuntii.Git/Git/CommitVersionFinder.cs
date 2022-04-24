@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.Git
 {
@@ -104,6 +105,22 @@ namespace Vernuntii.Git
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Checks if version core of <paramref name="version"/> already exists.
+        /// </summary>
+        /// <param name="version"></param>
+        /// <returns>True if version core is already released.</returns>
+        public bool IsVersionCoreReleased(SemanticVersion version)
+        {
+            if (version.IsPreRelease || version.HasBuild) { 
+                version = version.With
+                    .PreRelease(default(string))
+                    .Build(default(string));
+            }
+
+            return _commitVersionsAccessor.HasCommitVersion(version);
         }
     }
 }

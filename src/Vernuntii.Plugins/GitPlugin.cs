@@ -43,20 +43,26 @@ public class GitPlugin : Plugin, IGitPlugin
             ConfigurationEvents.CreatedConfiguration.Discriminator,
             configuration => _configuration = configuration);
 
-        SubscribeEvent(NextVersionEvents.CreatedGlobalServices.Discriminator, services => {
+        SubscribeEvent(NextVersionEvents.ConfiguredGlobalServices.Discriminator, services => {
+            EventAggregator.PublishEvent(GitEvents.ConfiguringGlobalServices.Discriminator, services);
+
             services.ConfigureVernuntii(features => features
                 .ConfigureGit(features => features
                     .UseConfigurationDefaults(_configuration)));
+
+            EventAggregator.PublishEvent(GitEvents.ConfiguredGlobalServices.Discriminator, services);
         });
 
-        SubscribeEvent(NextVersionEvents.CreatedCalculationServices.Discriminator, services => {
+        SubscribeEvent(NextVersionEvents.ConfiguredCalculationServices.Discriminator, services => {
+            EventAggregator.PublishEvent(GitEvents.ConfiguringCalculationServices.Discriminator, services);
+
             services.ConfigureVernuntii(features => features
                 .ConfigureGit(features => features
                     .UseLatestCommitVersion()
                     .UseActiveBranchCaseDefaults()
                     .UseCommitMessagesProvider()));
 
-            if (_options.OverrideVersioningMode == null) {
+            if (!_options.ShouldOverrideVersioningMode) {
                 services.ConfigureVernuntii(features => features
                     .ConfigureGit(features => features
                         .UseActiveBranchCaseVersioningMode()));
@@ -68,6 +74,8 @@ public class GitPlugin : Plugin, IGitPlugin
                         .ConfigurePreRelease(configurer => configurer
                             .SetPostPreRelease(_overridePostPreRelease))));
             }
+
+            EventAggregator.PublishEvent(GitEvents.ConfiguredCalculationServices.Discriminator, services);
         });
     }
 }

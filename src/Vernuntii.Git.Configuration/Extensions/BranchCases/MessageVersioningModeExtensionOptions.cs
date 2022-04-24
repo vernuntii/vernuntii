@@ -3,7 +3,7 @@
 namespace Vernuntii.Extensions.BranchCases
 {
     /// <summary>
-    /// Extension options for <see cref="VersionTransformerBuilder"/>
+    /// Extension options for <see cref="VersionIncrementBuilder"/>
     /// </summary>
     public sealed record class MessageVersioningModeExtensionOptions : IEquatable<MessageVersioningModeExtensionOptions>
     {
@@ -12,7 +12,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// </summary>
         /// <param name="presetName"></param>
         public static MessageVersioningModeExtensionOptions WithPreset(string? presetName) => new MessageVersioningModeExtensionOptions() {
-            VersionTransformerOptions = VersionTransformerBuilderOptions.GetPreset(presetName)
+            VersionTransformerOptions = VersionIncrementBuilderOptions.GetPreset(presetName)
         };
 
         /// <summary>
@@ -20,14 +20,14 @@ namespace Vernuntii.Extensions.BranchCases
         /// </summary>
         /// <param name="preset"></param>
         public static MessageVersioningModeExtensionOptions WithPreset(VersioningModePreset preset) => new MessageVersioningModeExtensionOptions() {
-            VersionTransformerOptions = VersionTransformerBuilderOptions.GetPreset(preset)
+            VersionTransformerOptions = VersionIncrementBuilderOptions.GetPreset(preset)
         };
 
         /// <summary>
-        /// Represents the version core options for <see cref="VersionTransformerBuilder"/>.
+        /// Represents the version core options for <see cref="VersionIncrementBuilder"/>.
         /// </summary>
-        public VersionTransformerBuilderOptions VersionTransformerOptions {
-            get => _versionTransformerOptions ??= new VersionTransformerBuilderOptions();
+        public VersionIncrementBuilderOptions VersionTransformerOptions {
+            get => _versionTransformerOptions ??= new VersionIncrementBuilderOptions();
             init => _versionTransformerOptions = value ?? throw new ArgumentNullException(nameof(value));
         }
 
@@ -35,7 +35,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// The extension name.
         /// </summary>
         internal const string ExtensionName = nameof(MessageVersioningModeExtensionOptions);
-        private VersionTransformerBuilderOptions? _versionTransformerOptions;
+        private VersionIncrementBuilderOptions? _versionTransformerOptions;
 
         /// <summary>
         /// Creates an instance of this type.
@@ -46,7 +46,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// Creates a shallow copy of <paramref name="options"/>.
         /// </summary>
         /// <param name="options"></param>
-        public MessageVersioningModeExtensionOptions(VersionTransformerBuilderOptions options) =>
+        public MessageVersioningModeExtensionOptions(VersionIncrementBuilderOptions options) =>
             VersionTransformerOptions = options;
 
         /// <inheritdoc/>
