@@ -34,7 +34,8 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
 
 Use [MSBuild Integration](#msbuild-package) when
 
-- You are libary author and
+- You are libary author
+- You just need to give your projects and their resulting packages a version
 - You do not need to coordinate the versioning "from above" like Nuke, Cake or any continous integration platform
 
 #### Scenario #2
@@ -44,7 +45,6 @@ Use [GitHub Actions](#github-actions) when
 - You use GitHub as continous integration platform
 - You need to coordinate the versioning "from above"
   - For example me (Vernuntii) needs myself for versioning my packages :smile:
-
 
 #### Scenario #3
 
@@ -62,6 +62,8 @@ Use [.NET CLI package](#net-cli-package) when
 - [Vernuntii integrations](#vernuntii-integrations)
   - [MSBuild package](#msbuild-package)
   - [GitHub Actions](#github-actions)
+- [Issues I am working on](#issues-i-am-working-on)
+  - [License](#license)
 
 # Vernuntii installers
 
@@ -72,11 +74,11 @@ A Vernuntii installer is another term for getting the bare metal binaries to exe
 [![Nuget][globaltool-nuget-package-badge]][globaltool-nuget-package]
 
 ```
-dotnet tool install --global Vernuntii.Console.GlobalTool --version 0.1.0
+dotnet tool install --global Vernuntii.Console.GlobalTool --version 0.1.0-alpha.0
 
 # local
 dotnet new tool-manifest # if you are setting up this repo
-dotnet tool install --local Vernuntii.Console.GlobalTool --version 0.1.0
+dotnet tool install --local Vernuntii.Console.GlobalTool --version 0.1.0-alpha.0
 ```
 
 # Vernuntii integrations
@@ -90,7 +92,7 @@ A Vernuntii integration is a facility that uses Vernuntii internally and allows 
 The MSBuild package is called `Vernuntii.Console.MSBuild` and installable over NuGet store or by adding these lines to your project:
 
 ```
-<PackageReference Include="Vernuntii.Console.GlobalTool" Version="SPECIFY VERSION HERE">
+<PackageReference Include="Vernuntii.Console.GlobalTool" Version="0.1.0-alpha.0">
   <PrivateAssets>all</PrivateAssets>
   <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 </PackageReference>
@@ -152,3 +154,17 @@ The following [GitHub actions][github-actions] are available.
 [configuration-file]: ./docs/configuration-file.md
 [semver-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer
 [semver-parser-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer.Parser
+
+# Issues I am working on
+
+This is my work list. :slightly_smiling_face:
+
+- Allow setting initial or explicit version prefix
+- Write commit-version pre-release matcher regarding height-convention
+- Finish plugin system
+  - Separate and modularize further
+- Issues I don't know at this moment
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
