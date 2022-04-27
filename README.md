@@ -13,46 +13,52 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
 - Plugin system (TBD)
   - Write your own plugins
   - Replace or mutate existing plugins
-- Git plugin (enabled)
+- Git plugin
   - Searches for latest commit version
   - Uses commit messages as message stream
   - Enables branch-based configuration
 - Optional [configuration file][configuration-file] (but recommended)
   - Either json or yaml
 - Range of versioning mode presets
-  - E.g. Continous Delivery (default), Continous Deployment or
-  - Conventional Commits Delivery or Conventional Commits Deployment
-  - With possiblity to override parts of preset
+  - With possiblity to override every part of any preset
   - See [configuration file](./docs/configuration-file.md#versioning-mode) for more informations
 - Inbuilt cache mechanism
-- Concurrency support
+- Can be run concurrently
 
 <!-- omit in toc -->
 # Quick start guide
 
-#### Scenario #1
+#### Use case #1
 
-Use [MSBuild Integration](#msbuild-package) when
+Using only [MSBuild Integration][msbuild-nuget-package-docs] because
 
-- You are libary author
-- You just need to give your projects and their resulting packages a version
+- You are author of one or more projects whose resulting packages need to be versioned by Vernuntii
 - You do not need to coordinate the versioning "from above" like Nuke, Cake or any continous integration platform
+- After publishing the packages with the produced version from Vernuntii you are willing to create manually the produced version as git tag
 
-#### Scenario #2
+#### Use case #2
 
-Use [GitHub Actions](#github-actions) when
+Using [MSBuild Integration][msbuild-nuget-package-docs] with [GitHub Actions](#github-actions) because
 
-- You use GitHub as continous integration platform
-- You need to coordinate the versioning "from above"
-  - For example me (Vernuntii) needs myself for versioning my packages :smile:
+- You would like to automate the git tag creation
+- You want to define a GitHub workflow when pushing changes to repository with the intention to publish the packages:
+  1. You define a step that uses [GitHub Actions](#github-actions) to have access the produced next version
+  2. You define a step that pushes the packages to your package registry (e.g. NuGet) and on success ..
+  3. .. you creates a git tag with produced next version and pushes it back to repository
 
-#### Scenario #3
+*This repository uses such workflow: [.github/workflows/build-test-pack-publish.yml](.github/workflows/build-test-pack-publish.yml)*
 
-Use [.NET CLI package](#net-cli-package) when
+#### Use case #3
 
-- You want have access to the "vernuntii"-binary
+Using only [.NET CLI package](#net-cli-package) because
+
+- You want to have access to the "vernuntii"-binary
 - You need FULL control because of GREAT complexity
-- You want to take a look at --help :wink:
+- You want to take a look at --help :upside_down_face:
+
+#### **Use case #?**
+
+Your use case is not described above? Open an issue and tell me about it.
 
 <!-- omit in toc -->
 # Table of Contents
@@ -108,7 +114,7 @@ When installed it sets MSBuild-specific properties:
 - `<InformationalVersion>$(Vernuntii_Version)$(Vernuntii_HyphenPreRelease)+$(Vernuntii_BranchName)</InformationalVersion>` (if not previously defined)
 - `<FileVersion>$(Vernuntii_Version).0</FileVersion>` (if not previously defined)
 
-The `Vernuntii_*`-properties are provided by an internal MSBuild-task that calls the Vernuntii console application.
+The `Vernuntii_*`-properties are provided by an internal MSBuild-task that calls the Vernuntii global tool.
 
 From the following set of **optional properties** you can choose to change the behaviour of the MSBuild package:
 
@@ -148,6 +154,7 @@ The following [GitHub actions][github-actions] are available.
 
 [msbuild-nuget-package]: https://www.nuget.org/packages/Vernuntii.Console.MSBuild
 [msbuild-nuget-package-badge]: https://img.shields.io/nuget/v/Vernuntii.Console.MSBuild
+[msbuild-nuget-package-docs]: #msbuild-package
 [globaltool-nuget-package]: https://www.nuget.org/packages/Vernuntii.Console.GlobalTool
 [globaltool-nuget-package-badge]: https://img.shields.io/nuget/v/Vernuntii.Console.GlobalTool
 [github-actions]: https://github.com/vernuntii/actions
@@ -163,6 +170,7 @@ This is my work list. :slightly_smiling_face:
 - Write commit-version pre-release matcher regarding height-convention
 - Finish plugin system
   - Separate and modularize further
+- Write tests, tests and more tests
 - Issues I don't know at this moment
 
 ## License

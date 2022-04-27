@@ -8,6 +8,11 @@ namespace Vernuntii.Extensions.BranchCases
     public sealed record class MessageVersioningModeExtensionOptions : IEquatable<MessageVersioningModeExtensionOptions>
     {
         /// <summary>
+        /// The extension name.
+        /// </summary>
+        internal const string ExtensionName = nameof(MessageVersioningModeExtensionOptions);
+
+        /// <summary>
         /// Creates an instance of <see cref="MessageVersioningModeExtensionOptions"/> with preset.
         /// </summary>
         /// <param name="presetName"></param>
@@ -31,10 +36,6 @@ namespace Vernuntii.Extensions.BranchCases
             init => _versionTransformerOptions = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        /// <summary>
-        /// The extension name.
-        /// </summary>
-        internal const string ExtensionName = nameof(MessageVersioningModeExtensionOptions);
         private VersionIncrementBuilderOptions? _versionTransformerOptions;
 
         /// <summary>
