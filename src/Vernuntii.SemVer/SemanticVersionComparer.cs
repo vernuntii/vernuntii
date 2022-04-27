@@ -45,7 +45,8 @@
                     result = 1;
                 }
             } else {
-                // We can ignore 2.0.0 case sensitive comparison, instead compare insensitively as specified in 2.0.1.
+                // We can ignore 2.0.0 case sensitive comparison, instead compare insensitively as specified in 2.1.0.
+                // See https://github.com/semver/semver/pull/276 for more.
                 result = StringComparer.OrdinalIgnoreCase.Compare(preRelease, otherPreRelease);
             }
 

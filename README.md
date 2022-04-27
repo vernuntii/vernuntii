@@ -68,8 +68,12 @@ Your use case is not described above? Open an issue and tell me about it.
 - [Vernuntii integrations](#vernuntii-integrations)
   - [MSBuild package](#msbuild-package)
   - [GitHub Actions](#github-actions)
-- [Issues I am working on](#issues-i-am-working-on)
-  - [License](#license)
+- [Development](#development)
+  - [Getting started](#getting-started)
+      - [Minimum requirements](#minimum-requirements)
+  - [Vernuntii.SemVer.Parser](#vernuntiisemverparser)
+  - [Issues I am working on](#issues-i-am-working-on)
+- [License](#license)
 
 # Vernuntii installers
 
@@ -162,7 +166,28 @@ The following [GitHub actions][github-actions] are available.
 [semver-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer
 [semver-parser-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer.Parser
 
-# Issues I am working on
+# Development
+
+## Getting started
+
+The project is out of the box compilable and you don't have to initialize anything before. Only consider the [Minimum requirements](#minimum-requirements).
+
+#### Minimum requirements
+
+- Visual Studio 2022 (optional)
+- .NET 6.0 SDK
+
+## Vernuntii.SemVer.Parser
+
+[![Nuget][vernuntii-semver-parser-nuget-badge]][vernuntii-semver-parser-nuget]
+
+Vernuntii uses [Vernuntii.SemVer.Parser][vernuntii-semver-parser-nuget] to parse your version strings. If you want to use it too, then check out the [README.md][vernuntii-semver-parser-readme] for more informations.
+
+[vernuntii-semver-parser-readme]: ./src/Vernuntii.SemVer.Parser
+[vernuntii-semver-parser-nuget]: https://www.nuget.org/packages/Vernuntii.SemVer.Parser
+[vernuntii-semver-parser-nuget-badge]: https://img.shields.io/nuget/v/Vernuntii.SemVer.Parser
+
+## Issues I am working on
 
 This is my work list. :slightly_smiling_face:
 
@@ -173,6 +198,6 @@ This is my work list. :slightly_smiling_face:
 - Write tests, tests and more tests
 - Issues I don't know at this moment
 
-## License
+# License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
