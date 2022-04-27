@@ -1,7 +1,6 @@
 ![Vernuntii Logo](res/logo.svg)
-<!-- [![Nuget](https://img.shields.io/nuget/v/Vernuntii)][NuGet Package] -->
 
-[:running: Quick start guide](#quick-start-guide) &nbsp;
+[:running: **Quick start guide**](#quick-start-guide) &nbsp; | &nbsp; [ :scroll: Chat on gitter](https://gitter.im/vernuntii/vernuntii?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Vernuntii (transl. versionable messages) is a tool for calculating the next semantic version. The tool has the capability to iterate a stream of (commit) messages and decide upon versioning mode to increment major, minor, patch or height. When using the git plugin the pre-release is derived from branch and highly customizable. The version prefix (e.g. v) is either inherited (default), (initially) set or explicitly removed depending on configuration. Each branch is separatly configurable. The most important fact is that this tool is single branch scoped like MinVer or Verlite, so simply said it reads all commits you see in git log.
 
