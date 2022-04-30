@@ -56,7 +56,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
         }
 
         /// <inheritdoc/>
-        public IdentifierParseResult<uint?> TryParseVersionNumber(string? versionNumber) =>
+        public IIdentifierParseResult<uint?> TryParseVersionNumber(string? versionNumber) =>
             TryParseIdentifier<uint?>(versionNumber, TryParseNonEmptyVersionNumber);
     }
 }

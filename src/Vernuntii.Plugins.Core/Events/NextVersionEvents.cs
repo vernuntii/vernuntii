@@ -46,7 +46,7 @@ namespace Vernuntii.PluginSystem.Events
         /// <summary>
         /// Event when next version has been calculated.
         /// </summary>
-        public sealed class CalculatedNextVersion : PubSubEvent<CalculatedNextVersion, SemanticVersion>
+        public sealed class CalculatedNextVersion : PubSubEvent<CalculatedNextVersion, ISemanticVersion>
         {
         }
     }

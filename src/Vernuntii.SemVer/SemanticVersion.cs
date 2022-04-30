@@ -8,7 +8,7 @@ namespace Vernuntii.SemVer
     /// <summary>
     /// A strict semantic version implementation.
     /// </summary>
-    public record SemanticVersion : IComparable, IComparable<SemanticVersion>, IEquatable<SemanticVersion>
+    public record SemanticVersion : ISemanticVersion, ISemanticVersionParserProvider, IComparable<SemanticVersion>, IEquatable<SemanticVersion>
     {
         internal static readonly string[] EmptyIdentifiers = Array.Empty<string>();
 
@@ -92,9 +92,7 @@ namespace Vernuntii.SemVer
         /// </summary>
         public static SemanticVersion OnePatch { get; } = Zero.With.Patch(1);
 
-        /// <summary>
-        /// Prefix of the version.
-        /// </summary>
+        /// <inheritdoc/>
         public string Prefix {
             get => _prefix;
 
@@ -104,38 +102,28 @@ namespace Vernuntii.SemVer
             }
         }
 
-        /// <summary>
-        /// Checks whether a prefix exists.
-        /// </summary>
+        /// <inheritdoc/>
         public bool HasPrefix => Prefix.Length != 0;
 
-        /// <summary>
-        /// Major version.
-        /// </summary>
+        /// <inheritdoc/>
         public uint Major {
             get => _major;
             init => _major = ParseVersionNumber(Parser.VersionNumberParser, value);
         }
 
-        /// <summary>
-        /// Minor version.
-        /// </summary>
+        /// <inheritdoc/>
         public uint Minor {
             get => _minor;
             init => _minor = ParseVersionNumber(Parser.VersionNumberParser, value);
         }
 
-        /// <summary>
-        /// Patch version.
-        /// </summary>
+        /// <inheritdoc/>
         public uint Patch {
             get => _patch;
             init => _patch = ParseVersionNumber(Parser.VersionNumberParser, value);
         }
 
-        /// <summary>
-        /// Pre-release identifiers of the version.
-        /// </summary>
+        /// <inheritdoc/>
         public IReadOnlyList<string> PreReleaseIdentifiers {
             get => _preReleaseIdentifiers;
 
@@ -145,9 +133,7 @@ namespace Vernuntii.SemVer
             }
         }
 
-        /// <summary>
-        /// Dot-separated pre-release of the version.
-        /// </summary>
+        /// <inheritdoc/>
         public string PreRelease {
             get => _preRelease ??= CombineDotSplitted(PreReleaseIdentifiers);
 
@@ -157,14 +143,10 @@ namespace Vernuntii.SemVer
             }
         }
 
-        /// <summary>
-        /// True if pre-release exists for the version.
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsPreRelease => PreReleaseIdentifiers.Count != 0;
 
-        /// <summary>
-        /// Build identifiers of the version.
-        /// </summary>
+        /// <inheritdoc/>
         public IReadOnlyList<string> BuildIdentifiers {
             get => _buildIdentifiers;
 
@@ -174,9 +156,7 @@ namespace Vernuntii.SemVer
             }
         }
 
-        /// <summary>
-        /// Dot-separated build of the version.
-        /// </summary>
+        /// <inheritdoc/>
         public string Build {
             get => _build ??= CombineDotSplitted(BuildIdentifiers);
 
@@ -186,9 +166,7 @@ namespace Vernuntii.SemVer
             }
         }
 
-        /// <summary>
-        /// True if build exists for the version.
-        /// </summary>
+        /// <inheritdoc/>
         public bool HasBuild => BuildIdentifiers.Count != 0;
 
         /// <summary>
@@ -207,9 +185,10 @@ namespace Vernuntii.SemVer
         private uint _major;
         private uint _minor;
         private uint _patch;
-        private string? _preRelease, _build;
-        private IReadOnlyList<string> _buildIdentifiers;
+        private string? _preRelease;
         private IReadOnlyList<string> _preReleaseIdentifiers;
+        private string? _build;
+        private IReadOnlyList<string> _buildIdentifiers;
 
         /// <summary>
         /// Creates a semantic version holding a reference to strict parser.
@@ -220,6 +199,23 @@ namespace Vernuntii.SemVer
             _prefix = string.Empty;
             _preReleaseIdentifiers = EmptyIdentifiers;
             _buildIdentifiers = EmptyIdentifiers;
+        }
+
+        /// <summary>
+        /// Copies the instance of <paramref name="semanticVersion"/>.
+        /// </summary>
+        /// <param name="semanticVersion"></param>
+        public SemanticVersion(ISemanticVersion semanticVersion)
+        {
+            Parser = semanticVersion.GetParserOrStrict();
+            _prefix = semanticVersion.Prefix;
+            _major = semanticVersion.Major;
+            _minor = semanticVersion.Minor;
+            _patch = semanticVersion.Patch;
+            _preRelease = semanticVersion.PreRelease;
+            _preReleaseIdentifiers = semanticVersion.PreReleaseIdentifiers;
+            _build = semanticVersion.Build;
+            _buildIdentifiers = semanticVersion.BuildIdentifiers;
         }
 
         /// <summary>
@@ -262,11 +258,29 @@ namespace Vernuntii.SemVer
         }
 
         /// <summary>
+        /// Compares the two versions.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <param name="comparisonMode"></param>
+        /// <returns>-1 if <see langword="this"/> is smaller to <paramref name="other"/>, 0 if equal and 1 if greater.</returns>
+        public int CompareTo(ISemanticVersion? other, SemanticVersionComparisonMode comparisonMode) =>
+            SemanticVersionComparer.Compare(this, other, comparisonMode);
+
+        /// <summary>
         /// Compares the two versions. Build won't be considered in comparison.
         /// </summary>
         /// <param name="other"></param>
+        /// <returns>-1 if <see langword="this"/> is smaller to <paramref name="other"/>, 0 if equal and 1 if greater.</returns>
+        public int CompareTo(ISemanticVersion? other) =>
+            CompareTo(other, SemanticVersionComparisonMode.VersionRelease);
+
+        /// <summary>
+        /// Compares the two versions. Build won't be considered in comparison.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns>-1 if <see langword="this"/> is smaller to <paramref name="other"/>, 0 if equal and 1 if greater.</returns>
         public int CompareTo(SemanticVersion? other) =>
-            SemanticVersionComparer.Compare(this, other, SemanticVersionComparisonMode.VersionRelease);
+            CompareTo(other, SemanticVersionComparisonMode.VersionRelease);
 
         /// <summary>
         /// Compares the two versions. Build won't be considered in comparison.
@@ -274,72 +288,17 @@ namespace Vernuntii.SemVer
         /// <param name="obj"></param>
         public int CompareTo(object? obj) => CompareTo(obj as SemanticVersion);
 
-        private void AppendMaybePrefix(StringBuilder stringBuilder)
-        {
-            if (HasPrefix) {
-                stringBuilder.Append(Prefix);
-            }
-        }
-
-        private void AppendVersion(StringBuilder stringBuilder)
-        {
-            stringBuilder.Append(Major);
-            stringBuilder.Append('.');
-            stringBuilder.Append(Minor);
-            stringBuilder.Append('.');
-            stringBuilder.Append(Patch);
-        }
-
-        private void AppendMaybePreRelease(StringBuilder stringBuilder)
-        {
-            if (IsPreRelease) {
-                stringBuilder.Append('-');
-                stringBuilder.Append(PreRelease);
-            }
-        }
-
-        private void AppendMaybeBuild(StringBuilder stringBuilder)
-        {
-            if (HasBuild) {
-                stringBuilder.Append('+');
-                stringBuilder.Append(Build);
-            }
-        }
-
-        /// <summary>
-        /// Gets the version in a custom format.
-        /// </summary>
-        /// <param name="format"></param>
-        public string ToString(SemanticVersionFormat format)
-        {
-            var stringBuilder = new StringBuilder();
-
-            if (format.HasFlag(SemanticVersionFormat.Prefix)) {
-                AppendMaybePrefix(stringBuilder);
-            }
-
-            if (format.HasFlag(SemanticVersionFormat.Version)) {
-                AppendVersion(stringBuilder);
-            }
-
-            if (format.HasFlag(SemanticVersionFormat.PreRelease)) {
-                AppendMaybePreRelease(stringBuilder);
-            }
-
-            if (format.HasFlag(SemanticVersionFormat.Build)) {
-                AppendMaybeBuild(stringBuilder);
-            }
-
-            return stringBuilder.ToString();
-        }
-
         /// <summary>
         /// Gets the version string in its full representation.
         /// </summary>
-        public override string ToString() => ToString(SemanticVersionFormat.SemanticVersion);
+        public override string ToString() => this.Format(SemanticVersionFormat.SemanticVersion);
 
         /// <inheritdoc/>
         public virtual bool Equals(SemanticVersion? other) =>
+            SemanticVersionComparer.VersionReleaseBuild.Equals(this, other);
+
+        /// <inheritdoc/>
+        public virtual bool Equals(ISemanticVersion? other) =>
             SemanticVersionComparer.VersionReleaseBuild.Equals(this, other);
 
         /// <inheritdoc/>

@@ -21,7 +21,7 @@ namespace Vernuntii.SemVer.Parser
     /// <summary>
     /// Represents the parse result.
     /// </summary>
-    public sealed class IdentifierParseResult<T>
+    public sealed class IdentifierParseResult<T> : IIdentifierParseResult<T>
     {
         /// <summary>
         /// Parse result with invalid state <see cref="IdentifierParseResultState.Null"/>.
@@ -43,24 +43,16 @@ namespace Vernuntii.SemVer.Parser
         /// </summary>
         public readonly static IdentifierParseResult<T> InvalidWhiteSpace = new IdentifierParseResult<T>(IdentifierParseResultState.WhiteSpace);
 
-        /// <summary>
-        /// Represents the state of parse result.
-        /// </summary>
+        /// <inheritdoc/>
         public IdentifierParseResultState State { get; }
 
-        /// <summary>
-        /// True if state contains only success states.
-        /// </summary>
+        /// <inheritdoc/>
         public bool Suceeded => ((IdentifierParseResultState)int.MaxValue & (~_successFlags) & State) == 0;
 
-        /// <summary>
-        /// True if state contains only failure states.
-        /// </summary>
+        /// <inheritdoc/>
         public bool Failed => (_successFlags & State) == 0;
 
-        /// <summary>
-        /// Represents the value of parse result.
-        /// </summary>
+        /// <inheritdoc/>
         public T? Value { get; init; }
 
         private IdentifierParseResultState _successFlags;
@@ -88,101 +80,6 @@ namespace Vernuntii.SemVer.Parser
             if (Suceeded == Failed) {
                 throw new InvalidOperationException("State can either only contain successes or failures but not both");
             }
-        }
-
-        /// <summary>
-        /// Checks if state has any successful state.
-        /// </summary>
-        /// <param name="value"></param>
-        public bool DeconstructSuccess([NotNullWhen(true)] out T? value)
-        {
-            value = Value;
-
-            if (Suceeded) {
-#pragma warning disable CS8762 // Parameter must have a non-null value when exiting in some condition.
-                return true;
-#pragma warning restore CS8762 // Parameter must have a non-null value when exiting in some condition.
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if state has any successful state.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="defaultValue"></param>
-        public bool DeconstructSuccess([NotNullIfNotNull("defaultValue")] out T? value, T defaultValue)
-        {
-            if (Value is null) {
-                value = defaultValue;
-            } else {
-                value = Value;
-            }
-
-            if (Failed) {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Checks if state has any failure.
-        /// </summary>
-        /// <param name="value"></param>
-        public bool DeconstructFailure([NotNullWhen(false)] out T? value)
-        {
-            value = Value;
-
-            if (Failed) {
-                return true;
-            }
-
-#pragma warning disable CS8762 // Parameter must have a non-null value when exiting in some condition.
-            return false;
-#pragma warning restore CS8762 // Parameter must have a non-null value when exiting in some condition.
-        }
-
-        /// <summary>
-        /// Checks if state has any failure.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="defaultValue"></param>
-        public bool DeconstructFailure([NotNullIfNotNull("defaultValue")] out T? value, T defaultValue)
-        {
-            if (Value is null) {
-                value = defaultValue;
-            } else {
-                value = Value;
-            }
-
-            if (Failed) {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Deconstructs this instance.
-        /// </summary>
-        /// <param name="state"></param>
-        /// <param name="value"></param>
-        public void Deconstruct(out IdentifierParseResultState state, out T? value)
-        {
-            state = State;
-            value = Value;
-        }
-
-        /// <summary>
-        /// Deconstruct this instance.
-        /// </summary>
-        /// <param name="value"></param>
-        public IdentifierParseResultState Deconstruct(out T? value)
-        {
-            value = Value;
-            return State;
         }
     }
 }

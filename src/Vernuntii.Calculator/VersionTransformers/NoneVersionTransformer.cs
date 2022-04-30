@@ -16,7 +16,7 @@ namespace Vernuntii.VersionTransformers
         /// <inheritdoc/>
         /// </summary>
         /// <param name="version"></param>
-        public SemanticVersion TransformVersion(SemanticVersion version) =>
+        public ISemanticVersion TransformVersion(ISemanticVersion version) =>
             version;
 
         bool ISemanticVersionTransformer.DoesNotTransform => true;

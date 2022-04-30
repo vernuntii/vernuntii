@@ -149,7 +149,7 @@ namespace Vernuntii.HeightConventions.Transformation
         /// <param name="version"></param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="NotSupportedException"></exception>
-        public HeightConventionTransformResult Transform(SemanticVersion version)
+        public HeightConventionTransformResult Transform(ISemanticVersion version)
         {
             string dottedIdentifier;
             IReadOnlyList<string> dotSplittedIdentifiers;

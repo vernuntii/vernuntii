@@ -1,11 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Vernuntii.Extensions.BranchCases;
 using Vernuntii.Extensions.Configurers;
 using Vernuntii.Git;
 using Vernuntii.MessagesProviders;
-using Vernuntii.MessageVersioning;
 
 namespace Vernuntii.Extensions
 {
@@ -15,7 +13,7 @@ namespace Vernuntii.Extensions
     public static class GitFeaturesExtensions
     {
         /// <summary>
-        /// Adds a <see cref="IRepository"/> via <see cref="IRepositoryFactory"/>.
+        /// Adds an instance of <see cref="IRepository"/>.
         /// </summary>
         /// <param name="options"></param>
         /// <param name="configureOptions"></param>

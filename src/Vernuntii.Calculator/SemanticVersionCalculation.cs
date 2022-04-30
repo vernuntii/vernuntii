@@ -22,6 +22,6 @@ namespace Vernuntii
         }
 
         /// <inheritdoc/>
-        public SemanticVersion GetVersion() => _calculator.CalculateVersion(_calculationOptions);
+        public ISemanticVersion GetVersion() => _calculator.CalculateVersion(_calculationOptions);
     }
 }

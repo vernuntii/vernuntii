@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Vernuntii.Extensions.BranchCases;
 using Vernuntii.SemVer;
 
 namespace Vernuntii.Git
@@ -50,15 +49,15 @@ namespace Vernuntii.Git
                 GetNonEmptyQuotedStringOrDefault(searchPreReleaseIdentifier, "only releases"),
                 null);
 
-        private Dictionary<string, SemanticVersion> GetVersionTags()
+        private Dictionary<string, ISemanticVersion> GetVersionTags()
         {
-            var versionsByCommitSha = new Dictionary<string, List<SemanticVersion>>();
+            var versionsByCommitSha = new Dictionary<string, List<ISemanticVersion>>();
 
             foreach (var commitVersion in _commitVersionsAccessor.GetCommitVersions()) {
                 var commitSha = commitVersion.CommitSha;
 
                 if (!versionsByCommitSha.TryGetValue(commitSha, out var versions)) {
-                    versions = new List<SemanticVersion>();
+                    versions = new List<ISemanticVersion>();
                     versionsByCommitSha.Add(commitSha, versions);
                 }
 
@@ -78,7 +77,7 @@ namespace Vernuntii.Git
         /// </summary>
         /// <param name="findingOptions"></param>
         /// <returns><inheritdoc/></returns>
-        public CommitVersion? FindCommitVersion(CommitVersionFindingOptions findingOptions)
+        public ICommitVersion? FindCommitVersion(CommitVersionFindingOptions findingOptions)
         {
             var branchName = findingOptions.BranchName;
             var sinceCommit = findingOptions.SinceCommit;
@@ -126,12 +125,14 @@ namespace Vernuntii.Git
         /// </summary>
         /// <param name="version"></param>
         /// <returns>True if version core is already released.</returns>
-        public bool IsVersionCoreReleased(SemanticVersion version)
+        public bool IsVersionCoreReleased(ISemanticVersion version)
         {
             if (version.IsPreRelease || version.HasBuild) {
-                version = version.With
+                version = version
+                    .With()
                     .PreRelease(default(string))
-                    .Build(default(string));
+                    .Build(default(string))
+                    .ToVersion();
             }
 
             return _commitVersionsAccessor.HasCommitVersion(version);

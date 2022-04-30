@@ -11,9 +11,9 @@ namespace Vernuntii;
 public class SemanticVersionCalculator : ISemanticVersionCalculator
 {
     private readonly ILogger _logger;
-    private readonly Action<ILogger, SemanticVersion, Exception?> _logInitialVersion;
-    private readonly Action<ILogger, SemanticVersion, SemanticVersion, Exception?> _logVersionTransformation;
-    private readonly Action<ILogger, SemanticVersion, SemanticVersion, Exception?> _logVersionPostTransformation;
+    private readonly Action<ILogger, ISemanticVersion, Exception?> _logInitialVersion;
+    private readonly Action<ILogger, ISemanticVersion, ISemanticVersion, Exception?> _logVersionTransformation;
+    private readonly Action<ILogger, ISemanticVersion, ISemanticVersion, Exception?> _logVersionPostTransformation;
     private readonly Action<ILogger, int, int, int, Exception?> _logMessageCountHavingProcessed;
 
     /// <summary>
@@ -22,17 +22,17 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
     /// <param name="logger">A logger (optional)</param>
     public SemanticVersionCalculator(ILogger<SemanticVersionCalculator> logger)
     {
-        _logInitialVersion = LoggerMessage.Define<SemanticVersion>(
+        _logInitialVersion = LoggerMessage.Define<ISemanticVersion>(
             LogLevel.Information,
             new EventId(1, "StartVersion"),
             "Use start version {InitialVersion} for next transformation");
 
-        _logVersionTransformation = LoggerMessage.Define<SemanticVersion, SemanticVersion>(
+        _logVersionTransformation = LoggerMessage.Define<ISemanticVersion, ISemanticVersion>(
             LogLevel.Information,
             new EventId(2, "TransformedVersion"),
             "Transformed version from {FromVersion} to {ToVersion}");
 
-        _logVersionPostTransformation = LoggerMessage.Define<SemanticVersion, SemanticVersion>(
+        _logVersionPostTransformation = LoggerMessage.Define<ISemanticVersion, ISemanticVersion>(
             LogLevel.Information,
             new EventId(4, "TransformedVersion"),
             "Post-transformed version from {FromVersion} to {ToVersion}");
@@ -45,10 +45,10 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    private void LogInitialVersion(SemanticVersion initialVersion) =>
+    private void LogInitialVersion(ISemanticVersion initialVersion) =>
         _logInitialVersion(_logger, initialVersion, null);
 
-    private void LogVersionTransformation(IMessage message, SemanticVersion fromVersion, SemanticVersion toVersion)
+    private void LogVersionTransformation(IMessage message, ISemanticVersion fromVersion, ISemanticVersion toVersion)
     {
         if (message is IMessageProvidingDebugMessage messageProvidingDebugMessage && messageProvidingDebugMessage.DebugMessageFactory != null) {
             var debugMessage = messageProvidingDebugMessage.DebugMessageFactory();
@@ -68,10 +68,8 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
         }
     }
 
-    private void LogVersionPostTransformation(SemanticVersion fromVersion, SemanticVersion toVersion)
-    {
+    private void LogVersionPostTransformation(ISemanticVersion fromVersion, ISemanticVersion toVersion) =>
         _logVersionPostTransformation(_logger, fromVersion, toVersion, null);
-    }
 
     private void LogMessageCountHavingProcessed(int messageCount, int messageCountInvolvedIntoTransformation)
     {
@@ -87,7 +85,7 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
     /// <inheritdoc/>
     /// </summary>
     /// <param name="options"><inheritdoc/></param>
-    public SemanticVersion CalculateVersion(SemanticVersionCalculationOptions options)
+    public ISemanticVersion CalculateVersion(SemanticVersionCalculationOptions options)
     {
         var nextVersion = options.StartVersion;
         LogInitialVersion(nextVersion);

@@ -1,4 +1,5 @@
-﻿using Vernuntii.SemVer.Parser.Parsers;
+﻿using Vernuntii.SemVer.Parser;
+using Vernuntii.SemVer.Parser.Parsers;
 
 namespace Vernuntii.HeightConventions.Transformation
 {

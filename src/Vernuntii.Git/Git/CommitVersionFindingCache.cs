@@ -8,7 +8,8 @@
         /// <summary>
         /// The found commit version.
         /// </summary>
-        public CommitVersion? CommitVersion { get; init; }
+        public ICommitVersion? CommitVersion { get; init; }
+
         /// <summary>
         /// True means that the version core of <see cref="CommitVersion"/>
         /// has not been already used.

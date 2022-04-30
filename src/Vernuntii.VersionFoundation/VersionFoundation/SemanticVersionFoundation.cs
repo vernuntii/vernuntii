@@ -14,7 +14,7 @@ namespace Vernuntii.VersionFoundation
         /// <param name="version"></param>
         /// <param name="branch"></param>
         /// <param name="creationRetentionTime">Creation retention time used to sum up with "now" (UTC) that represents the expiration time.</param>
-        public static SemanticVersionFoundation Create(SemanticVersion version, IBranch branch, TimeSpan? creationRetentionTime) =>
+        public static SemanticVersionFoundation Create(ISemanticVersion version, IBranch branch, TimeSpan? creationRetentionTime) =>
             new SemanticVersionFoundation(
                 version,
                 branch.ShortBranchName,
@@ -22,7 +22,7 @@ namespace Vernuntii.VersionFoundation
                 creationRetentionTime == null ? null : DateTime.UtcNow + creationRetentionTime);
 
         /// <inheritdoc/>
-        public SemanticVersion Version { get; }
+        public ISemanticVersion Version { get; }
         /// <inheritdoc/>
         public string BranchName { get; }
         /// <inheritdoc/>
@@ -39,7 +39,7 @@ namespace Vernuntii.VersionFoundation
         /// <param name="branchName"></param>
         /// <param name="commitSha"></param>
         /// <param name="expirationTime"></param>
-        public SemanticVersionFoundation(SemanticVersion version, string branchName, string commitSha, DateTime? expirationTime)
+        public SemanticVersionFoundation(ISemanticVersion version, string branchName, string commitSha, DateTime? expirationTime)
         {
             Version = version;
             BranchName = branchName;

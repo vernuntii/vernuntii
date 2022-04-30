@@ -13,7 +13,7 @@ namespace Vernuntii.Git
         private const string GitFolderOrFileName = ".git";
 
         /// <inheritdoc/>
-        public Branches Branches => _lazyBranches.Value;
+        public IBranches Branches => _lazyBranches.Value;
 
         private bool areCommitVersionsInitialized;
         private readonly RepositoryOptions _factoryOptions;
@@ -90,7 +90,7 @@ namespace Vernuntii.Git
             _gitCommand.GetCommitTags();
 
         /// <inheritdoc/>
-        public IReadOnlyList<CommitVersion> GetCommitVersions()
+        public IReadOnlyList<ICommitVersion> GetCommitVersions()
         {
             if (!areCommitVersionsInitialized) {
                 _commitVersions.SynchronizeCollection(ParseCommitTags(GetCommitTags()));

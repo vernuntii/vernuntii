@@ -17,6 +17,6 @@ namespace Vernuntii.VersionTransformers
         /// </summary>
         /// <param name="version"></param>
         /// <returns>The incremented version number</returns>
-        SemanticVersion TransformVersion(SemanticVersion version);
+        ISemanticVersion TransformVersion(ISemanticVersion version);
     }
 }

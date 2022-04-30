@@ -1,7 +1,7 @@
 ﻿namespace Vernuntii.SemVer
 {
     /// <summary>
-    /// A comparer for <see cref="SemanticVersion"/>.
+    /// A comparer for <see cref="ISemanticVersion"/>.
     /// </summary>
     public sealed class SemanticVersionComparer : ISemanticVersionComparer
     {
@@ -140,7 +140,7 @@
         /// <summary>
         /// Compares the two versions using <paramref name="SemanticVersionComparisonMode"/>.
         /// </summary>
-        public static int Compare(SemanticVersion? x, SemanticVersion? y, SemanticVersionComparisonMode SemanticVersionComparisonMode) =>
+        public static int Compare(ISemanticVersion? x, ISemanticVersion? y, SemanticVersionComparisonMode SemanticVersionComparisonMode) =>
             GetComparer(SemanticVersionComparisonMode).Compare(x, y);
 
         private readonly SemanticVersionComparisonMode _comparisonMode;
@@ -161,14 +161,14 @@
         /// <summary>
         /// Determines if both versions are equal.
         /// </summary>
-        public bool Equals(SemanticVersion? x, SemanticVersion? y) =>
+        public bool Equals(ISemanticVersion? x, ISemanticVersion? y) =>
             Compare(x, y) == 0;
 
         /// <summary>
         /// Gives a hash code based on the normalized version string.
         /// </summary>
         /// <param name="obj"></param>
-        public int GetHashCode(SemanticVersion? obj)
+        public int GetHashCode(ISemanticVersion? obj)
         {
             if (obj is null) {
                 return 0;
@@ -194,7 +194,7 @@
         /// <summary>
         /// Compares two versions.
         /// </summary>
-        public int Compare(SemanticVersion? x, SemanticVersion? y)
+        public int Compare(ISemanticVersion? x, ISemanticVersion? y)
         {
             if (ReferenceEquals(x, y)) {
                 return 0;

@@ -5,11 +5,9 @@ namespace Vernuntii.Git
     /// <summary>
     /// Represents a semantic version with additional information regarding commit.
     /// </summary>
-    public record CommitVersion : SemanticVersion
+    public record CommitVersion : SemanticVersion, ICommitVersion
     {
-        /// <summary>
-        /// Represents the commit sha that is associated with this version.
-        /// </summary>
+        /// <inheritdoc/>
         public string CommitSha { get; }
 
         /// <summary>
@@ -24,7 +22,7 @@ namespace Vernuntii.Git
         /// </summary>
         /// <param name="version"></param>
         /// <param name="commitSha"></param>
-        public CommitVersion(SemanticVersion version, string commitSha)
+        public CommitVersion(ISemanticVersion version, string commitSha)
             : base(version) =>
             CommitSha = commitSha;
 

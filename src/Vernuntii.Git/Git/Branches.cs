@@ -7,7 +7,7 @@ namespace Vernuntii.Git
     /// <summary>
     /// Represents a collection of branches.
     /// </summary>
-    public class Branches : IReadOnlyList<IBranch>
+    public class Branches : IBranches
     {
         private readonly List<IBranch> _branches;
 

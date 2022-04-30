@@ -20,7 +20,7 @@ namespace Vernuntii.VersionTransformers
             return metdataNumber + 1;
         }
 
-        public SemanticVersion TransformVersion(SemanticVersion version) =>
-            version.With.Build(GetBuildNumber(version.Build).ToString(CultureInfo.InvariantCulture));
+        public ISemanticVersion TransformVersion(ISemanticVersion version) =>
+            version.With().Build(GetBuildNumber(version.Build).ToString(CultureInfo.InvariantCulture)).ToVersion();
     }
 }

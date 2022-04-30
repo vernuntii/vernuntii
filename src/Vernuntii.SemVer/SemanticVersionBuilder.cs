@@ -51,7 +51,7 @@ namespace Vernuntii.SemVer
             IReadOnlyCollection<string>? newdotSplittedIdentifiers) =>
             ParseDottedIdentifier(dottedIdentifierParser, CombineDotSplitted(newdotSplittedIdentifiers));
 
-        internal SemanticVersion BaseVersion { get; }
+        internal ISemanticVersion BaseVersion { get; }
 
         uint? _major, _minor, _patch;
         IReadOnlyCollection<string>? _preReleaseIdentifiers, _buildIdentifiers;
@@ -63,7 +63,7 @@ namespace Vernuntii.SemVer
         /// </summary>
         /// <param name="baseVersion"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public SemanticVersionBuilder(SemanticVersion baseVersion) =>
+        public SemanticVersionBuilder(ISemanticVersion baseVersion) =>
             BaseVersion = baseVersion ?? throw new ArgumentNullException(nameof(baseVersion));
 
         /// <summary>
@@ -189,17 +189,18 @@ namespace Vernuntii.SemVer
         /// Builds the version.
         /// </summary>
         /// <param name="parser"></param>
-        public SemanticVersion BuildVersion(ISemanticVersionParser parser) =>
+        public SemanticVersion ToVersion(ISemanticVersionParser parser) =>
             BuildByParsing(parser);
 
         /// <summary>
-        /// Builds the version.
+        /// Builds the version. If it does implement <see cref="ISemanticVersionParserProvider"/>
+        /// its parser will be taken, otherwise <see cref="SemanticVersionParser.Strict"/>.
         /// </summary>
-        public SemanticVersion BuildVersion() =>
-            BuildVersion(BaseVersion.Parser);
+        public SemanticVersion ToVersion() =>
+            ToVersion(BaseVersion.GetParserOrStrict());
 
         /// <inheritdoc/>
         public static implicit operator SemanticVersion(SemanticVersionBuilder builder) =>
-            builder.BuildVersion();
+            builder.ToVersion();
     }
 }

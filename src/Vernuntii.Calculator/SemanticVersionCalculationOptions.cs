@@ -13,13 +13,13 @@ namespace Vernuntii
     /// </summary>
     public sealed class SemanticVersionCalculationOptions
     {
-        private static SemanticVersion GetNonNullVersionOrThrow(SemanticVersion? version) =>
+        private static ISemanticVersion GetNonNullVersionOrThrow(ISemanticVersion? version) =>
             version ?? throw new ArgumentNullException(nameof(version));
 
         /// <summary>
         /// The start version (default is 0.1.0). All upcoming transformations are applied on this version.
         /// </summary>
-        public SemanticVersion StartVersion {
+        public ISemanticVersion StartVersion {
             get => _startVersion;
             set => _startVersion = GetNonNullVersionOrThrow(value);
         }
@@ -64,7 +64,7 @@ namespace Vernuntii
         /// </summary>
         internal bool IsPostVersionPreRelease => !string.IsNullOrEmpty(PostTransformer?.ProspectivePreRelease ?? StartVersion.PreRelease);
 
-        private SemanticVersion _startVersion = SemanticVersion.OneMinor.With.PreRelease("alpha");
+        private ISemanticVersion _startVersion = SemanticVersion.OneMinor.With.PreRelease("alpha").ToVersion();
         private IVersioningPreset _versionIncrementOptions = VersioningPresets.VersioningPreset.Default;
 
         internal HeightConventionTransformer CreateHeightIdentifierTransformer()

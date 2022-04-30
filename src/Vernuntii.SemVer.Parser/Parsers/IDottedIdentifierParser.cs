@@ -10,6 +10,6 @@
         /// </summary>
         /// <param name="dottedIdentifier"></param>
         /// <returns>Valid parse result if successful.</returns>
-        IdentifierParseResult<IEnumerable<string>> TryParseDottedIdentifier(string? dottedIdentifier);
+        IIdentifierParseResult<IEnumerable<string>> TryParseDottedIdentifier(string? dottedIdentifier);
     }
 }

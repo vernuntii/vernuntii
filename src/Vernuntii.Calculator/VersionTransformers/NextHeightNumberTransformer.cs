@@ -34,7 +34,7 @@ namespace Vernuntii.VersionTransformers
         }
 
         [MemberNotNull(nameof(_transformResult))]
-        private void EnsureUsingTransformer(SemanticVersion version)
+        private void EnsureUsingTransformer(ISemanticVersion version)
         {
             if (_transformResult is not null) {
                 return;
@@ -45,10 +45,10 @@ namespace Vernuntii.VersionTransformers
             }
 
             _transformResult = _transformer.Transform(version);
-            _ = _transformResult.TryParseHeight(version.Parser.VersionNumberParser, out _parsedHeightNumber);
+            _ = _transformResult.TryParseHeight(version.GetParserOrStrict().VersionNumberParser, out _parsedHeightNumber);
         }
 
-        public SemanticVersion TransformVersion(SemanticVersion version)
+        public ISemanticVersion TransformVersion(ISemanticVersion version)
         {
             EnsureUsingTransformer(version);
             var identifiers = _transformResult.Identifiers;
@@ -57,9 +57,9 @@ namespace Vernuntii.VersionTransformers
                 GetStartOrNextHeight(_parsedHeightNumber, _transformResult.Convention.StartHeight));
 
             if (_transformResult.Convention.Position == HeightIdentifierPosition.PreRelease) {
-                return version.With.PreRelease(identifiers);
+                return version.With().PreRelease(identifiers).ToVersion();
             } else {
-                return version.With.Build(identifiers);
+                return version.With().Build(identifiers).ToVersion();
             }
         }
     }

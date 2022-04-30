@@ -10,6 +10,6 @@ namespace Vernuntii
         /// <summary>
         /// Gets the version of current calculation.
         /// </summary>
-        SemanticVersion GetVersion();
+        ISemanticVersion GetVersion();
     }
 }

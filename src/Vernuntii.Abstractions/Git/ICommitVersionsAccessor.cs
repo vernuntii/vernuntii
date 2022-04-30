@@ -8,6 +8,6 @@
         /// <summary>
         /// Gets versions which are each associated to a commit.
         /// </summary>
-        IReadOnlyList<CommitVersion> GetCommitVersions();
+        IReadOnlyList<ICommitVersion> GetCommitVersions();
     }
 }

@@ -18,24 +18,24 @@ namespace Vernuntii.VersionTransformers
             ProspectivePreRelease = preRelease;
 
         /// <inheritdoc/>
-        public SemanticVersion TransformVersion(SemanticVersion version)
+        public ISemanticVersion TransformVersion(ISemanticVersion version)
         {
             if (string.IsNullOrEmpty(ProspectivePreRelease)) {
-                return version.With.PreRelease(default(string));
+                return version.With().PreRelease(default(string)).ToVersion();
             }
 
             var currentIdentifiers = version.PreReleaseIdentifiers.ToArray();
             var prospectiveIdentifiers = ProspectivePreRelease.Split('.').ToArray();
 
             if (prospectiveIdentifiers.Length >= currentIdentifiers.Length) {
-                return version.With.PreRelease(prospectiveIdentifiers);
+                return version.With().PreRelease(prospectiveIdentifiers).ToVersion();
             }
 
             for (var i = 0; i < prospectiveIdentifiers.Length; i++) {
                 currentIdentifiers[i] = prospectiveIdentifiers[i];
             }
 
-            return version.With.PreRelease(currentIdentifiers);
+            return version.With().PreRelease(currentIdentifiers).ToVersion();
         }
     }
 }

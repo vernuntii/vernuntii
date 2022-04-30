@@ -8,7 +8,7 @@
         /// <summary>
         /// A collection of branches.
         /// </summary>
-        Branches Branches { get; }
+        IBranches Branches { get; }
 
         /// <summary>
         /// Expands branch name to long name.

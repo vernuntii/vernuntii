@@ -17,7 +17,7 @@ namespace Vernuntii.VersionTransformers
         /// <inheritdoc/>
         /// </summary>
         /// <param name="version"></param>
-        public SemanticVersion TransformVersion(SemanticVersion version) => 
-            version.With.Version(version.Major + 1, 0, 0);
+        public ISemanticVersion TransformVersion(ISemanticVersion version) => 
+            version.With().Version(version.Major + 1, 0, 0).ToVersion();
     }
 }

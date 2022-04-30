@@ -10,7 +10,7 @@ namespace Vernuntii.VersionFoundation
         /// <summary>
         /// The version.
         /// </summary>
-        SemanticVersion Version { get; }
+        ISemanticVersion Version { get; }
         /// <summary>
         /// The branch name.
         /// </summary>

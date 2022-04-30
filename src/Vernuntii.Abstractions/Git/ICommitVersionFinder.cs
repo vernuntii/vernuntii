@@ -12,11 +12,11 @@ namespace Vernuntii.Git
         /// </summary>
         /// <param name="findingOptions"></param>
         /// <returns>The found version, otherwise null</returns>
-        CommitVersion? FindCommitVersion(CommitVersionFindingOptions findingOptions);
+        ICommitVersion? FindCommitVersion(CommitVersionFindingOptions findingOptions);
         /// <summary>
         /// Checks of version core (without pre-release and build) is released.
         /// </summary>
         /// <param name="version"></param>
-        bool IsVersionCoreReleased(SemanticVersion version);
+        bool IsVersionCoreReleased(ISemanticVersion version);
     }
 }

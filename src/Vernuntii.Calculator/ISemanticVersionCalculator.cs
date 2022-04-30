@@ -11,6 +11,6 @@ namespace Vernuntii
         /// Calculates the next version.
         /// </summary>
         /// <returns>The next semantic version</returns>
-        SemanticVersion CalculateVersion(SemanticVersionCalculationOptions options);
+        ISemanticVersion CalculateVersion(SemanticVersionCalculationOptions options);
     }
 }

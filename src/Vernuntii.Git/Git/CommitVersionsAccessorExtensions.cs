@@ -13,7 +13,7 @@ namespace Vernuntii.Git
         /// </summary>
         /// <param name="commitVersionAccessor"></param>
         /// <param name="version"></param>
-        public static bool HasCommitVersion(this ICommitVersionsAccessor commitVersionAccessor, SemanticVersion version) =>
+        public static bool HasCommitVersion(this ICommitVersionsAccessor commitVersionAccessor, ISemanticVersion version) =>
             commitVersionAccessor.GetCommitVersions().BinarySearch(version, SemanticVersionComparer.VersionReleaseBuild) != -1;
     }
 }

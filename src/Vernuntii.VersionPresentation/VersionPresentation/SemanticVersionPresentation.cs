@@ -25,7 +25,7 @@ namespace Vernuntii.VersionPresentation
             }
 
             if (presentableParts.HasFlag(SemanticVersionPresentationPart.Version)) {
-                versionPresentation.Version = version.ToString(SemanticVersionFormat.Version);
+                versionPresentation.Version = version.Format(SemanticVersionFormat.Version);
             }
 
             if (presentableParts.HasFlag(SemanticVersionPresentationPart.PreRelease)) {
@@ -33,7 +33,7 @@ namespace Vernuntii.VersionPresentation
             }
 
             if (presentableParts.HasFlag(SemanticVersionPresentationPart.HyphenPreRelease)) {
-                versionPresentation.HyphenPreRelease = version.ToString(SemanticVersionFormat.PreRelease);
+                versionPresentation.HyphenPreRelease = version.Format(SemanticVersionFormat.PreRelease);
             }
 
             if (presentableParts.HasFlag(SemanticVersionPresentationPart.Build)) {
@@ -41,11 +41,11 @@ namespace Vernuntii.VersionPresentation
             }
 
             if (presentableParts.HasFlag(SemanticVersionPresentationPart.PlusBuild)) {
-                versionPresentation.PlusBuild = version.ToString(SemanticVersionFormat.Build);
+                versionPresentation.PlusBuild = version.Format(SemanticVersionFormat.Build);
             }
 
             if (presentableParts.HasFlag(SemanticVersionPresentationPart.SemanticVersion)) {
-                versionPresentation.SemanticVersion = version.ToString(SemanticVersionFormat.SemanticVersion);
+                versionPresentation.SemanticVersion = version.Format(SemanticVersionFormat.SemanticVersion);
             }
 
             if (presentableParts.HasFlag(SemanticVersionPresentationPart.BranchName)) {

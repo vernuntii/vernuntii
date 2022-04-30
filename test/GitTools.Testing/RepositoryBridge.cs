@@ -79,8 +79,8 @@ namespace GitTools.Testing
         public Vernuntii.Git.IBranch GetActiveBranch() => _VernuntiiRepository.GetActiveBranch();
         public IEnumerable<Vernuntii.Git.ICommit> GetCommits(string? branchName = null, string? sinceCommit = null, bool reverse = false) => _VernuntiiRepository.GetCommits(branchName, sinceCommit, reverse);
         public IEnumerable<Vernuntii.Git.ICommitTag> GetCommitTags() => _VernuntiiRepository.GetCommitTags();
-        public IReadOnlyList<Vernuntii.Git.CommitVersion> GetCommitVersions() => _VernuntiiRepository.GetCommitVersions();
-        Vernuntii.Git.Branches Vernuntii.Git.IRepository.Branches => _VernuntiiRepository.Branches;
+        public IReadOnlyList<Vernuntii.Git.ICommitVersion> GetCommitVersions() => _VernuntiiRepository.GetCommitVersions();
+        Vernuntii.Git.IBranches Vernuntii.Git.IRepository.Branches => _VernuntiiRepository.Branches;
         public string? ExpandBranchName(string? branchName) => _VernuntiiRepository.ExpandBranchName(branchName);
     }
 }

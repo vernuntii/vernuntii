@@ -10,6 +10,6 @@
         /// </summary>
         /// <param name="versionNumber"></param>
         /// <returns>Valid parse result if successful.</returns>
-        IdentifierParseResult<uint?> TryParseVersionNumber(string? versionNumber);
+        IIdentifierParseResult<uint?> TryParseVersionNumber(string? versionNumber);
     }
 }

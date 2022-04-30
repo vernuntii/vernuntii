@@ -16,7 +16,7 @@ namespace Vernuntii.MessageVersioning
         /// <summary>
         /// The current version before the next transformation is applied.
         /// </summary>
-        public SemanticVersion CurrentVersion {
+        public ISemanticVersion CurrentVersion {
             get => _currentVersion ?? VersionCalculationOptions.StartVersion;
 
             init {
@@ -58,7 +58,7 @@ namespace Vernuntii.MessageVersioning
         /// </summary>
         public HeightConventionTransformer HeightIdentifierTransformer { get; }
 
-        private SemanticVersion? _currentVersion;
+        private ISemanticVersion? _currentVersion;
         private bool? _doesCurrentVersionContainsMajorIncrement;
         private bool? _doesCurrentVersionContainsMinorIncrement;
         private bool? _doesCurrentVersionContainsPatchIncrement;
@@ -108,7 +108,7 @@ namespace Vernuntii.MessageVersioning
         {
             var startVersionTransformResult = HeightIdentifierTransformer.Transform(VersionCalculationOptions.StartVersion);
             var currentVersionTransformrResult = HeightIdentifierTransformer.Transform(CurrentVersion);
-            var versionNumberParser = CurrentVersion.Parser.VersionNumberParser;
+            var versionNumberParser = CurrentVersion.GetParserOrStrict().VersionNumberParser;
 
             _ = currentVersionTransformrResult.TryParseHeight(versionNumberParser, out var currentVersionHeight);
             _ = startVersionTransformResult.TryParseHeight(versionNumberParser, out var startVersionHeight);

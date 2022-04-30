@@ -29,7 +29,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
             _identifierParser.TryParseDottedIdentifier(dottedIdentifier, out result, lookupSingleZero: true);
 
         /// <inheritdoc/>
-        public IdentifierParseResult<IEnumerable<string>> TryParseDottedIdentifier(string? dottedIdentifier) =>
+        public IIdentifierParseResult<IEnumerable<string>> TryParseDottedIdentifier(string? dottedIdentifier) =>
             TryParseIdentifier<IEnumerable<string>>(dottedIdentifier, TryParseNonEmptyPreRelease, allowNull: true);
     }
 }
