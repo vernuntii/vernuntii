@@ -2,9 +2,7 @@
 
 [:running: **Quick start guide**](#quick-start-guide) &nbsp; | &nbsp; [ :scroll: Chat on gitter](https://gitter.im/vernuntii/vernuntii?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Vernuntii (transl. versionable messages) is a tool for calculating the next semantic version. The tool has the capability to iterate a stream of (commit) messages and decide upon versioning mode to increment major, minor, patch or height. When using the git plugin the pre-release is derived from branch and highly customizable. The version prefix (e.g. v) is either inherited (default), (initially) set or explicitly removed depending on configuration. Each branch is separatly configurable. The most important fact is that this tool is single branch scoped like MinVer or Verlite, so simply said it reads all commits you see in git log.
-
-> :warning: This README is under construction. Please take a seat or take part to the discussions: https://github.com/vernuntii/vernuntii/discussions
+Vernuntii (transl. versionable messages) is a tool for calculating the next semantic version. The tool has the capability to iterate a stream of commit messages and decide upon versioning mode to increment major, minor, patch or height. The pre-release is derived from branch and highly customizable. The version prefix (e.g. v) is either inherited (default), initially set or explicitly removed depending on configuration. Each branch is separatly configurable. The most important fact is that this tool is single branch scoped like MinVer, so simply said it reads all commits you see in git log.
 
 <!-- omit in toc -->
 ### Key facts
@@ -18,8 +16,8 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
   - Enables branch-based configuration
 - Optional [configuration file][configuration-file] (but recommended)
   - Either json or yaml
-- In-built [versioning mode presets](./docs/configuration-file.md#versioning-mode)
-  - Possiblity to override every part of any preset
+- In-built [versioning modes](./docs/configuration-file.md#versioning-mode)
+  - Possiblity to override increment mode, message convention and more
 - Inbuilt cache mechanism
 - Can be run concurrently
 
@@ -51,7 +49,7 @@ Using [MSBuild Integration][msbuild-nuget-package-docs] with [GitHub Actions](#g
 Using only [.NET CLI package](#net-cli-package) because
 
 - You want to have access to the "vernuntii"-binary
-- You need FULL control because of GREAT complexity
+- You need full control and want to realize custom workflows
 - You want to take a look at --help :upside_down_face:
 
 #### **Use case #?**
