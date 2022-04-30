@@ -21,9 +21,11 @@ public class YamlConfigurationFileFinderTest : IClassFixture<ConfigurationFixtur
     private static IEnumerable<object?[]> YamlFileFinderShouldFindFileGenerator()
     {
         yield return new object?[] { YmlConfigFile, YmlEmptyDirectory, default(string) };
+        { /* This superfluous block is required, otherwise I hit false positive in windows defender ._. */ }
         yield return new object?[] { YmlConfigFile, YmlEmptyDirectory, YamlConfigurationFileDefaults.YmlFileName };
 
         yield return new object?[] { YamlConfigFile, YamlEmptyDirectory, default(string) };
+        { /* This superfluous block is required, otherwise I hit false positive in windows defender ._. */ }
         yield return new object?[] { YamlConfigFile, YamlEmptyDirectory, YamlConfigurationFileDefaults.YamlFileName };
     }
 
@@ -38,3 +40,4 @@ public class YamlConfigurationFileFinderTest : IClassFixture<ConfigurationFixtur
         Assert.Equal(expectedConfigFile, assumedFile);
     }
 }
+

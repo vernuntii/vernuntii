@@ -7,14 +7,14 @@ namespace Vernuntii.VersioningPresets
     /// <summary>
     /// A compendium for all kind of presets.
     /// </summary>
-    public class VersioningPresetCompendium : IVersioningPresetCompendium
+    public class VersioningpresetManager : IVersioningPresetManager
     {
         /// <summary>
         /// Creates a default preset compendium.
         /// </summary>
-        public static VersioningPresetCompendium CreateDefault()
+        public static VersioningpresetManager CreateDefault()
         {
-            var presets = new VersioningPresetCompendium();
+            var presets = new VersioningpresetManager();
 
             // Adds presets including message conventions and height conventions.
             presets.Add(nameof(VersioningPresetKind.Default), VersioningPreset.Default);

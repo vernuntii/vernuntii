@@ -19,9 +19,9 @@ namespace Vernuntii.MessageVersioning
         /// A factory for <see cref="MessageVersioningModeExtensionOptions"/>.
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="presetCompendium"></param>
+        /// <param name="presetManager"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static Func<MessageVersioningModeExtensionOptions> CreateFactory(IConfiguration configuration, IVersioningPresetCompendium presetCompendium)
+        public static Func<MessageVersioningModeExtensionOptions> CreateFactory(IConfiguration configuration, IVersioningPresetManager presetManager)
         {
             var versioningModeSection = configuration.GetSection(VersioningModeKey);
             Func<MessageVersioningModeExtensionOptions> extensionFactory;
@@ -29,9 +29,14 @@ namespace Vernuntii.MessageVersioning
             if (!versioningModeSection.Exists() || versioningModeSection.Value != null) {
                 extensionFactory = CreateFromString;
 
-                MessageVersioningModeExtensionOptions CreateFromString() => new MessageVersioningModeExtensionOptions {
-                    VersioningPreset = presetCompendium.GetVersioningPreset(configuration.GetValue(VersioningModeKey, default(string)))
-                };
+                MessageVersioningModeExtensionOptions CreateFromString()
+                {
+                    var versioningMode = configuration.GetValue(VersioningModeKey, nameof(VersioningPresetKind.Default));
+
+                    return new MessageVersioningModeExtensionOptions {
+                        VersioningPreset = presetManager.GetVersioningPreset(versioningMode)
+                    };
+                }
             } else {
                 extensionFactory = CreateFromObject;
 
@@ -51,15 +56,15 @@ namespace Vernuntii.MessageVersioning
                     IVersioningPreset basePreset;
 
                     if (versioningModeObject.Preset != null) {
-                        basePreset = presetCompendium.GetVersioningPreset(versioningModeObject.Preset);
+                        basePreset = presetManager.GetVersioningPreset(versioningModeObject.Preset);
                     } else {
-                        basePreset = presetCompendium.GetVersioningPreset(VersioningPresetKind.Default);
+                        basePreset = presetManager.GetVersioningPreset(VersioningPresetKind.Default);
                     }
 
                     IMessageConvention? messageConvention;
 
                     if (versioningModeObject.MessageConvention != null) {
-                        messageConvention = presetCompendium.GetMessageConvention(versioningModeObject.MessageConvention);
+                        messageConvention = presetManager.GetMessageConvention(versioningModeObject.MessageConvention);
                     } else {
                         messageConvention = basePreset.MessageConvention;
                     }

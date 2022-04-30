@@ -13,18 +13,18 @@ namespace Vernuntii.PluginSystem
         public override int? Order => -4000;
 
         /// <inheritdoc/>
-        public IVersioningPresetCompendium Presets { get; } = VersioningPresetCompendium.CreateDefault();
+        public IVersioningPresetManager PresetManager { get; } = VersioningpresetManager.CreateDefault();
 
         /// <summary>
-        /// Creates an instance of this instance and poplulates <see cref="Presets"/> with defaults.
+        /// Creates an instance of this instance and poplulates <see cref="PresetManager"/> with defaults.
         /// </summary>
         public VersioningPresetsPlugin()
         {
         }
 
         /// <summary>
-        /// <inheritdoc/> Registers <see cref="Presets"/> to global services as
-        /// <br/> - <see cref="IVersioningPresetCompendium"/>
+        /// <inheritdoc/> Registers <see cref="PresetManager"/> to global services as
+        /// <br/> - <see cref="IVersioningPresetManager"/>
         /// <br/> - <see cref="IVersioningPresetRegistry"/>
         /// <br/> - <see cref="IMessageConventionRegistry"/>
         /// <br/> - <see cref="IHeightConventionRegistry"/>
@@ -32,10 +32,10 @@ namespace Vernuntii.PluginSystem
         protected override void OnEventAggregation()
         {
             SubscribeEvent(NextVersionEvents.CreatedGlobalServices.Discriminator, services => {
-                services.AddSingleton(Presets);
-                services.AddSingleton<IVersioningPresetRegistry>(Presets);
-                services.AddSingleton<IMessageConventionRegistry>(Presets);
-                services.AddSingleton<IHeightConventionRegistry>(Presets);
+                services.AddSingleton(PresetManager);
+                services.AddSingleton<IVersioningPresetRegistry>(PresetManager);
+                services.AddSingleton<IMessageConventionRegistry>(PresetManager);
+                services.AddSingleton<IHeightConventionRegistry>(PresetManager);
                 EventAggregator.GetEvent<VersioningPresetsEvents.ConfiguredGlobalServices>().Publish(services);
             });
         }

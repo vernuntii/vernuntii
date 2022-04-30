@@ -70,41 +70,6 @@ namespace Vernuntii.Extensions.BranchCases
         }
 
         /// <summary>
-        /// Configures instances of <see cref="IBranchCase"/> of <see cref="BranchCasesOptions"/>.
-        /// </summary>
-        /// <param name="features"></param>
-        /// <param name="configureBranchCase"></param>
-        public static IGitFeatures ConfigureBranchCases(this IGitFeatures features, Action<IBranchCase> configureBranchCase)
-        {
-            features.Services.AddOptions<BranchCasesOptions>()
-                .Configure(options => {
-                    foreach (var branchCaseArguments in options.BranchCases.Values) {
-                        configureBranchCase(branchCaseArguments);
-                    }
-                });
-
-            return features;
-        }
-
-        /// <summary>
-        /// Configures instances of <see cref="IBranchCase"/> of <see cref="BranchCasesOptions"/>.
-        /// </summary>
-        /// <param name="features"></param>
-        /// <param name="configureBranchCase"></param>
-        public static IGitFeatures ConfigureBranchCases<TDependency>(this IGitFeatures features, Action<IBranchCase, TDependency> configureBranchCase)
-            where TDependency : class
-        {
-            features.Services.AddOptions<BranchCasesOptions>()
-                .Configure<TDependency>((options, dependency) => {
-                    foreach (var branchCaseArguments in options.BranchCases.Values) {
-                        configureBranchCase(branchCaseArguments, dependency);
-                    }
-                });
-
-            return features;
-        }
-
-        /// <summary>
         /// Applies settings of active branch case by calling:
         /// <br/><see cref="ISinceCommitConfigurer.SetVersionFindingSinceCommit(string?)"/>
         /// <br/><see cref="ISinceCommitConfigurer.SetMessageReadingSinceCommit(string?)"/>

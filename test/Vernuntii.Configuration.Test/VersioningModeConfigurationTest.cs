@@ -17,15 +17,20 @@ namespace Vernuntii.Configuration
         private const string VersioningModeObjectValidFileName = "ObjectValid.yml";
 
         private static AnyPath Workspace = FilesystemDir / "versioning-mode";
-        private static IVersioningPresetCompendium PresetCompendium = VersioningPresetCompendium.CreateDefault();
+        private static IVersioningPresetManager presetManager = VersioningpresetManager.CreateDefault();
 
-        private static IServiceCollection CreateBranchCasesProviderServices(string fileName) =>
-            new ServiceCollection()
+        private static IServiceCollection CreateBranchCasesProviderServices(string fileName)
+        {
+            var services = new ServiceCollection()
                 .AddLogging()
                 .AddOptions()
                 .ConfigureVernuntii(features => features
                     .ConfigureGit(features => features
                         .UseConfigurationDefaults(ConfigurationFixture.Default.FindYamlConfigurationFile(Workspace, fileName))));
+
+            services.AddSingleton(presetManager);
+            return services;
+        }
 
         private static IBranchCasesProvider CreateBranchCasesProvider(IServiceCollection services) =>
             services.BuildLifetimeScopedServiceProvider().CreateScope().ServiceProvider.GetRequiredService<IBranchCasesProvider>();
@@ -36,22 +41,22 @@ namespace Vernuntii.Configuration
 
             services.ConfigureVernuntii(features => features
                 .ConfigureGit(features => features
-                    .ConfigureBranchCases(branchCase => branchCase.TryCreateVersioningModeExtension())));
+                    .ConfigureBranchCases(branchCases => branchCases
+                        .TryCreateVersioningModeExtension())));
 
             return CreateBranchCasesProvider(services);
         }
 
         public static IEnumerable<object[]> VersioningModeStringShouldMatchPresetGenerator()
         {
-
             foreach (var value in CreateBranchCasesProvider(VersioningModeStringFileName).BranchCases.Values) {
                 yield return new object[] {
-                    new MessageVersioningModeExtensionOptions(
-                        PresetCompendium.GetVersioningPreset(value
-                            .GetConfigurationExtension()
-                            .GetValue<string>(BranchCaseExtensions.VersioningModeKey))),
-                    value.GetVersioningModeExtension()
-                };
+                     new MessageVersioningModeExtensionOptions(
+                         presetManager.GetVersioningPreset(value
+                             .GetConfigurationExtension()
+                             .GetValue<string>(BranchCaseExtensions.VersioningModeKey))),
+                     value.GetVersioningModeExtension()
+                 };
             }
         }
 
@@ -67,17 +72,17 @@ namespace Vernuntii.Configuration
             var branchCases = CreateBranchCasesProvider(CreateBranchCasesProviderServices(VersioningModeObjectInvalidFileName)).NestedBranchCases;
 
             yield return new object[] {
-                nameof(BranchCaseExtensions.VersioningModeObject.IncrementMode),
-                () => CreateVersioningModeExtension(branchCases["OnlyConvention"])
-            };
+                 nameof(BranchCaseExtensions.VersioningModeObject.IncrementMode),
+                 () => CreateVersioningModeExtension(branchCases["OnlyConvention"])
+             };
 
             yield return new object[] {
-                nameof(BranchCaseExtensions.VersioningModeObject.MessageConvention),
-                () => CreateVersioningModeExtension(branchCases["OnlyIncrementMode"])
-            };
+                 nameof(BranchCaseExtensions.VersioningModeObject.MessageConvention),
+                 () => CreateVersioningModeExtension(branchCases["OnlyIncrementMode"])
+             };
 
             static MessageVersioningModeExtensionOptions CreateVersioningModeExtension(IBranchCase branchCase) => branchCase
-                .TryCreateVersioningModeExtension(PresetCompendium)
+                .TryCreateVersioningModeExtension(presetManager)
                 .GetVersioningModeExtension();
         }
 
@@ -97,18 +102,18 @@ namespace Vernuntii.Configuration
             var branchCases = CreateBranchCasesProvider(VersioningModeObjectValidFileName).NestedBranchCases;
 
             yield return new object[] {
-                new MessageVersioningModeExtensionOptions(VersioningPreset.ConventionalCommitsDelivery),
-                branchCases["OnlyPreset"].GetVersioningModeExtension()
-            };
+                 new MessageVersioningModeExtensionOptions(VersioningPreset.ConventionalCommitsDelivery),
+                 branchCases["OnlyPreset"].GetVersioningModeExtension()
+             };
 
             {
                 yield return new object[] {
-                    new MessageVersioningModeExtensionOptions(VersioningPreset.Manual with {
-                        MessageConvention = VersioningPreset.ConventionalCommitsDelivery.MessageConvention,
-                        IncrementMode = VersionIncrementMode.Successive
-                    }),
-                    branchCases["Mixing"].GetVersioningModeExtension()
-                };
+                     new MessageVersioningModeExtensionOptions(VersioningPreset.Manual with {
+                         MessageConvention = VersioningPreset.ConventionalCommitsDelivery.MessageConvention,
+                         IncrementMode = VersionIncrementMode.Successive
+                     }),
+                     branchCases["Mixing"].GetVersioningModeExtension()
+                 };
             }
         }
 

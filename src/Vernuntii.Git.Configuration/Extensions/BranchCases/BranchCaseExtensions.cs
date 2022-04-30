@@ -89,16 +89,16 @@ namespace Vernuntii.Extensions.BranchCases
         /// Binds configuration to new or existing instance of type <see cref="MessageVersioningModeExtensionOptions"/>.
         /// </summary>
         /// <param name="branchCaseArguments"></param>
-        /// <param name="presetCompendium"></param>
+        /// <param name="presetManager"></param>
         /// <param name="configuration"></param>
-        public static IBranchCase TryCreateVersioningModeExtension(this IBranchCase branchCaseArguments, IVersioningPresetCompendium presetCompendium, IConfiguration? configuration = null)
+        public static IBranchCase TryCreateVersioningModeExtension(this IBranchCase branchCaseArguments, IVersioningPresetManager presetManager, IConfiguration? configuration = null)
         {
             if (configuration is null) {
                 configuration = branchCaseArguments.GetConfigurationExtension();
             }
 
             var versioningModeSection = configuration.GetSection(VersioningModeKey);
-            var extensionFactory = MessageVersioningModeExtensionOptions.CreateFactory(configuration, presetCompendium);
+            var extensionFactory = MessageVersioningModeExtensionOptions.CreateFactory(configuration, presetManager);
             _ = branchCaseArguments.GetExtensionOrCreate(MessageVersioningModeExtensionOptions.ExtensionName, extensionFactory);
             return branchCaseArguments;
         }

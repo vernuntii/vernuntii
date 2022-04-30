@@ -1,5 +1,8 @@
 ﻿namespace Vernuntii.MessageConventions.MessageIndicators
 {
+    /// <summary>
+    /// Message indicator.
+    /// </summary>
     public abstract class MessageIndicator : IMessageIndicator
     {
         /// <inheritdoc/>
@@ -23,6 +26,7 @@
         /// <param name="message"></param>
         protected abstract bool IsMessageIndicatingPatch(string message);
 
+        /// <inheritdoc/>
         public bool IsMessageIndicating(string? message, VersionPart partToIndicate) => partToIndicate switch {
             _ when message == null => false,
             VersionPart.Major => IsMessageIndicatingMajor(message),

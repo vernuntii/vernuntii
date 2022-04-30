@@ -1,7 +1,11 @@
-﻿VersioningMode: ""
+﻿# Implicit test: not specified 'VersioningMode' -> default versioning mode
 Branches:
   - IfBranch: "ContinousDelivery"
     VersioningMode: "ContinousDelivery"
+  #- IfBranch: "ImplicitEmpty"
+  #  VersioningMode:
+  #- IfBranch: "ExplicitEmpty"
+  #  VersioningMode: ""
   - IfBranch: "ContinousDeployment"
     VersioningMode: "ContinousDeployment"
   - IfBranch: "Manual"

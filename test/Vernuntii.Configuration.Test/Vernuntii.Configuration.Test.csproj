@@ -20,28 +20,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Vernuntii.Autofac\Vernuntii.Autofac.csproj" />
-    <ProjectReference Include="..\..\src\Vernuntii.Git.Configuration\Vernuntii.Git.Configuration.csproj" />
-    <ProjectReference Include="..\..\src\Vernuntii.Plugins\Vernuntii.Plugins.csproj" />
-    <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)filesystem\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="filesystem\versioning-mode\ObjectValid.yml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="filesystem\versioning-mode\ObjectInvalid.yml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="filesystem\versioning-mode\VersioningModeString.yml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <ProjectReference Include="..\..\src\Vernuntii.Autofac\Vernuntii.Autofac.csproj" />
+    <ProjectReference Include="..\..\src\Vernuntii.Git.Configuration\Vernuntii.Git.Configuration.csproj" />
+    <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -71,14 +71,14 @@ public class GitPlugin : Plugin, IGitPlugin
             EventAggregator.PublishEvent(GitEvents.ConfiguringCalculationServices.Discriminator, services);
 
             services.ConfigureVernuntii(features => features
-                .ConfigureGit(features => features
+                .ConfigureGit(git => git
                     .UseLatestCommitVersion()
                     .UseActiveBranchCaseDefaults()
                     .UseCommitMessagesProvider()));
 
             if (!_options.ShouldOverrideVersioningMode) {
-                services.ConfigureVernuntii(features => features
-                    .ConfigureGit(features => features
+                services.ConfigureVernuntii(vernuntii => vernuntii
+                    .ConfigureGit(git => git
                         .UseActiveBranchCaseVersioningMode()));
             }
 

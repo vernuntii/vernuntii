@@ -10,6 +10,6 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// The compendium of presets.
         /// </summary>
-        IVersioningPresetCompendium Presets { get; }
+        IVersioningPresetManager PresetManager { get; }
     }
 }
