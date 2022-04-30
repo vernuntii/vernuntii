@@ -18,9 +18,8 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
   - Enables branch-based configuration
 - Optional [configuration file][configuration-file] (but recommended)
   - Either json or yaml
-- Range of versioning mode presets
-  - With possiblity to override every part of any preset
-  - See [configuration file](./docs/configuration-file.md#versioning-mode) for more informations
+- In-built [versioning mode presets](./docs/configuration-file.md#versioning-mode)
+  - Possiblity to override every part of any preset
 - Inbuilt cache mechanism
 - Can be run concurrently
 
