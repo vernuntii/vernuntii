@@ -180,7 +180,7 @@ The project is out of the box compilable and you don't have to initialize anythi
 
 [![Nuget][vernuntii-semver-parser-nuget-badge]][vernuntii-semver-parser-nuget]
 
-Vernuntii uses [Vernuntii.SemVer.Parser][vernuntii-semver-parser-nuget] to parse your version strings. If you want to use it too, then check out the [README.md][vernuntii-semver-parser-readme] for more informations.
+Vernuntii uses [Vernuntii.SemVer.Parser][vernuntii-semver-parser-nuget] to parse your version strings. If you want to use it too, then check out the [README.md][vernuntii-semver-parser-readme] for more details.
 
 [vernuntii-semver-parser-readme]: ./src/Vernuntii.SemVer.Parser
 [vernuntii-semver-parser-nuget]: https://www.nuget.org/packages/Vernuntii.SemVer.Parser
