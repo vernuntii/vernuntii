@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Vernuntii.Console</RootNamespace>
     <Description>Simple semantic versioning with git integration. The primary goal of this package is to set the version of NuGet-package(s).</Description>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <!-- We don't build an executable package.

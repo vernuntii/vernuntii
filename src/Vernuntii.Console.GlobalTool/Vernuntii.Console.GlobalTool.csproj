@@ -7,6 +7,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vernuntii</ToolCommandName>
     <Description>Simple semantic versioning with git integration. Installing this package as dotnet tool makes the global command "vernuntii" available.</Description>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
