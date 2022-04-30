@@ -20,8 +20,6 @@
     <ProjectReference Include="..\Vernuntii.Git.Configuration\Vernuntii.Git.Configuration.csproj" />
     <ProjectReference Include="..\Vernuntii.Git\Vernuntii.Git.csproj" />
     <ProjectReference Include="..\Vernuntii.Plugins.Core\Vernuntii.Plugins.Core.csproj" />
-    <ProjectReference Include="..\Vernuntii.VersionFoundation\Vernuntii.VersionFoundation.csproj" />
-    <ProjectReference Include="..\Vernuntii.VersionPresentation\Vernuntii.VersionPresentation.csproj" />
   </ItemGroup>
 
 </Project>

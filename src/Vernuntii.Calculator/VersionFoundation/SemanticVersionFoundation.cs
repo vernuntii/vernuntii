@@ -1,4 +1,5 @@
-﻿using Vernuntii.Git;
+﻿using System.Text.Json.Serialization;
+using Vernuntii.Git;
 using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionFoundation
@@ -22,7 +23,7 @@ namespace Vernuntii.VersionFoundation
                 creationRetentionTime == null ? null : DateTime.UtcNow + creationRetentionTime);
 
         /// <inheritdoc/>
-        public ISemanticVersion Version { get; }
+        public SemanticVersion Version { get; }
         /// <inheritdoc/>
         public string BranchName { get; }
         /// <inheritdoc/>
@@ -39,12 +40,25 @@ namespace Vernuntii.VersionFoundation
         /// <param name="branchName"></param>
         /// <param name="commitSha"></param>
         /// <param name="expirationTime"></param>
-        public SemanticVersionFoundation(ISemanticVersion version, string branchName, string commitSha, DateTime? expirationTime)
+        [JsonConstructor]
+        public SemanticVersionFoundation(SemanticVersion version, string branchName, string commitSha, DateTime? expirationTime)
         {
             Version = version;
             BranchName = branchName;
             CommitSha = commitSha;
             ExpirationTime = expirationTime;
+        }
+
+        /// <summary>
+        /// Creates an instance of this.
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="branchName"></param>
+        /// <param name="commitSha"></param>
+        /// <param name="expirationTime"></param>
+        public SemanticVersionFoundation(ISemanticVersion version, string branchName, string commitSha, DateTime? expirationTime)
+            : this(new SemanticVersion(version), branchName, commitSha, expirationTime)
+        {
         }
     }
 }

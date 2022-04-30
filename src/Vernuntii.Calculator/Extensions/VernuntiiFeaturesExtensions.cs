@@ -1,6 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Teronis;
+using Vernuntii.Extensions.VersionFoundation;
+using Vernuntii.VersionFoundation;
+using Vernuntii.VersionFoundation.Caching;
 
 namespace Vernuntii.Extensions
 {
@@ -44,6 +48,39 @@ namespace Vernuntii.Extensions
 
             services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<SemanticVersionCalculationOptions>>().Value);
             services.TryAddSingleton<ISemanticVersionCalculation, SemanticVersionCalculation>();
+            return features;
+        }
+
+        internal static IVernuntiiFeatures AddSemanticVersionFoundationCache(this IVernuntiiFeatures features)
+        {
+            var services = features.Services;
+            services.AddOptions();
+            services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<SemanticVersionFoundationCacheOptions>>().Value);
+            services.TryAddSingleton<SemanticVersionFoundationCache<SemanticVersionFoundation>>();
+            return features;
+        }
+
+        /// <summary>
+        /// Adds <see cref="SemanticVersionFoundationProvider"/> to services.
+        /// </summary>
+        /// <param name="features"></param>
+        /// <param name="configureOptions"></param>
+        public static IVernuntiiFeatures AddSemanticVersionFoundationProvider(
+            this IVernuntiiFeatures features,
+            Action<SemanticVersionFoundationProviderOptions>? configureOptions = null)
+        {
+            features.AddSemanticVersionFoundationCache();
+            var services = features.Services;
+            var optionsBuilder = services.AddOptions<SemanticVersionFoundationProviderOptions>();
+
+            if (configureOptions != null) {
+                optionsBuilder.Configure(configureOptions);
+            }
+
+            services.TryAddSingleton(sp => new SlimLazy<ISemanticVersionCalculation>(() => sp.GetRequiredService<ISemanticVersionCalculation>()));
+            services.TryAddSingleton<ISemanticVersionFoundationCache<SemanticVersionFoundation>, SemanticVersionFoundationCache<SemanticVersionFoundation>>();
+            services.TryAddSingleton<SemanticVersionFoundationProvider>();
+
             return features;
         }
     }

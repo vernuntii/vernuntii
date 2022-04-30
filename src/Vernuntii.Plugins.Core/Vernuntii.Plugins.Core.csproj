@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Console\**" />
+    <EmbeddedResource Remove="Console\**" />
+    <None Remove="Console\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
@@ -18,10 +24,6 @@
     <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" />
     <ProjectReference Include="..\Vernuntii.PluginSystem.Core\Vernuntii.PluginSystem.Core.csproj" />
     <ProjectReference Include="..\Vernuntii.SemVer\Vernuntii.SemVer.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Console\" />
   </ItemGroup>
 
 </Project>

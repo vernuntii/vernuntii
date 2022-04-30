@@ -29,7 +29,5 @@
     <ProjectReference Include="..\Vernuntii.Git\Vernuntii.Git.csproj" />
     <ProjectReference Include="..\Vernuntii.Calculator\Vernuntii.Calculator.csproj" />
     <ProjectReference Include="..\Vernuntii.PluginSystem\Vernuntii.PluginSystem.csproj" />
-    <ProjectReference Include="..\Vernuntii.VersionFoundation\Vernuntii.VersionFoundation.csproj" />
-    <ProjectReference Include="..\Vernuntii.VersionPresentation\Vernuntii.VersionPresentation.csproj" />
   </ItemGroup>
 </Project>

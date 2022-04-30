@@ -8,6 +8,7 @@ using Vernuntii.Console;
 using Vernuntii.Extensions;
 using Vernuntii.Extensions.VersionFoundation;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.SemVer;
 using Vernuntii.VersionPresentation;
 using Vernuntii.VersionPresentation.Serializers;
 
@@ -145,7 +146,7 @@ namespace Vernuntii.PluginSystem
                     creationRetentionTime: _cacheCreationRetentionTime,
                     lastAccessRetentionTime: _cacheLastAccessRetentionTime);
 
-                EventAggregator.PublishEvent(NextVersionEvents.CalculatedNextVersion.Discriminator, presentationFoundation.Version);
+                EventAggregator.PublishEvent<NextVersionEvents.CalculatedNextVersion, ISemanticVersion>(presentationFoundation.Version);
 
                 var formattedVersion = new SemanticVersionPresentationStringBuilder(presentationFoundation)
                     .UsePresentationKind(_presentationKind)
