@@ -13,12 +13,12 @@ namespace Vernuntii.Extensions.BranchCases
             new RegexEscape("///", static _ => "-")
         };
 
-        public IReadOnlyDictionary<string, IBranchCaseArguments> BranchCases => _branchCases;
+        public IReadOnlyDictionary<string, IBranchCase> BranchCases => _branchCases;
         public IReadOnlyCollection<IRegexEscape>? DefaultPreReleaseEscapes { get; }
 
-        Dictionary<string, IBranchCaseArguments> _branchCases = new Dictionary<string, IBranchCaseArguments>();
+        Dictionary<string, IBranchCase> _branchCases = new Dictionary<string, IBranchCase>();
 
-        public void AddBranchCase(IBranchCaseArguments branchCase)
+        public void AddBranchCase(IBranchCase branchCase)
         {
             if (branchCase is null) {
                 throw new ArgumentNullException(nameof(branchCase));
@@ -44,7 +44,7 @@ namespace Vernuntii.Extensions.BranchCases
             void IPostConfigureOptions<BranchCasesOptions>.PostConfigure(string _, BranchCasesOptions options)
             {
                 if (options._branchCases.TryGetValue(DefaultBranchCaseKey, out var branchCase) && branchCase.PreReleaseEscapes == null) {
-                    options._branchCases[DefaultBranchCaseKey] = new BranchCaseArguments(branchCase) with {
+                    options._branchCases[DefaultBranchCaseKey] = new BranchCase(branchCase) with {
                         PreReleaseEscapes = CreateDefaultPreReleaseEscapes()
                     };
                 }

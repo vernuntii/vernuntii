@@ -18,6 +18,7 @@ public static class ConsoleProgram
     {
         using var pluginRegistry = new PluginRegistry();
 
+        pluginRegistry.Register<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
         pluginRegistry.Register<ICommandLinePlugin, CommandLinePlugin>();
         pluginRegistry.Register<ILoggingPlugin, LoggingPlugin>();
         pluginRegistry.Register<IConfigurationPlugin, ConfigurationPlugin>();

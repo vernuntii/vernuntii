@@ -94,7 +94,7 @@ namespace Vernuntii.PluginSystem
         }
 
         /// <inheritdoc/>
-        protected override void OnEventAggregator()
+        protected override void OnEventAggregation()
         {
             SubscribeEvent(CommandLineEvents.SetCommandLineArgs.Discriminator, args => CommandLineArgs = args);
             SubscribeEvent<CommandLineEvents.ParseCommandLineArgs>(ParseCommandLineArgs);

@@ -92,7 +92,7 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
         var nextVersion = options.StartVersion;
         LogInitialVersion(nextVersion);
 
-        var versionIncrementBuilder = new VersionIncrementBuilder(options.VersionIncrementOptions);
+        var versionIncrementBuilder = new VersionIncrementBuilder(options.VersioningPreset);
         var versioningContext = new MessageVersioningContext(options);
 
         var messages = options.MessagesProvider?.GetMessages();

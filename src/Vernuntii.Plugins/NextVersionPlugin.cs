@@ -128,7 +128,7 @@ namespace Vernuntii.PluginSystem
                     if (_options.ShouldOverrideVersioningMode) {
                         services.ConfigureVernuntii(features => features
                             .AddSemanticVersionCalculation(features => features
-                                .UseVersioningMode(_options.OverrideVersioningMode.Value)));
+                                .UseVersioningMode(_options.OverrideVersioningMode)));
                     }
 
                     EventAggregator.PublishEvent(NextVersionEvents.ConfiguredCalculationServices.Discriminator, services);
@@ -181,7 +181,7 @@ namespace Vernuntii.PluginSystem
         }
 
         /// <inheritdoc/>
-        protected override void OnEventAggregator()
+        protected override void OnEventAggregation()
         {
             SubscribeEvent(CommandLineEvents.ParsedCommandLineArgs.Discriminator, parseResult => {
                 _presentationKind = parseResult.GetValueForOption(_presentationKindOption);

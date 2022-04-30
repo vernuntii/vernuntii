@@ -38,7 +38,7 @@ namespace Vernuntii.PluginSystem
         }
 
         /// <inheritdoc/>
-        protected override void OnEventAggregator()
+        protected override void OnEventAggregation()
         {
             SubscribeEvent(
                 CommandLineEvents.ParsedCommandLineArgs.Discriminator,

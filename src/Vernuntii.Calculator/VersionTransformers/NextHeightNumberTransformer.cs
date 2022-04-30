@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Vernuntii.HeightVersioning;
-using Vernuntii.HeightVersioning.Transforming;
+using Vernuntii.HeightConventions;
+using Vernuntii.HeightConventions.Transformation;
 using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionTransformers

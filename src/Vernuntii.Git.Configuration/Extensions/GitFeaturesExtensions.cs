@@ -21,7 +21,7 @@ namespace Vernuntii.Extensions
         public static IGitFeatures UseConfigurationDefaults(
             this IGitFeatures features,
             IConfiguration configuration,
-            Action<IBranchCaseArguments>? configureBranchCase = null) => features
+            Action<IBranchCase>? configureBranchCase = null) => features
                 .AddRepository(options => configuration.Bind(options))
                 .AddBranchCases(configuration, configuration.GetSection(BranchesSectionKey).GetChildren(), configureBranchCase);
     }

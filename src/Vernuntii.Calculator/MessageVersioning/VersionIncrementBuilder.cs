@@ -1,6 +1,7 @@
-﻿using Vernuntii.HeightVersioning;
+﻿using Vernuntii.HeightConventions;
+using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.MessagesProviders;
-using Vernuntii.MessageVersioning.MessageIndicators;
+using Vernuntii.VersioningPresets;
 using Vernuntii.VersionTransformers;
 
 namespace Vernuntii.MessageVersioning
@@ -22,19 +23,19 @@ namespace Vernuntii.MessageVersioning
             return false;
         }
 
-        private readonly VersionIncrementBuilderOptions _options;
+        private readonly IVersioningPreset _options;
 
-        public VersionIncrementBuilder(VersionIncrementBuilderOptions options) =>
+        public VersionIncrementBuilder(IVersioningPreset options) =>
             _options = options ?? throw new ArgumentNullException(nameof(options));
 
         private bool IsMessageIndicatingMajor(string? message) =>
-            IsMessageIndicating(_options.MajorIndicators, message, VersionPart.Major);
+            IsMessageIndicating(_options.MessageConvention?.MajorIndicators, message, VersionPart.Major);
 
         private bool IsMessageIndicatingMinor(string? message) =>
-            IsMessageIndicating(_options.MinorIndicators, message, VersionPart.Minor);
+            IsMessageIndicating(_options.MessageConvention?.MinorIndicators, message, VersionPart.Minor);
 
         private bool IsMessageIndicatingPatch(string? message) =>
-            IsMessageIndicating(_options.PatchIndicators, message, VersionPart.Patch);
+            IsMessageIndicating(_options.MessageConvention?.PatchIndicators, message, VersionPart.Patch);
 
         public IEnumerable<ISemanticVersionTransformer> BuildIncrement(IMessage message, MessageVersioningContext context)
         {

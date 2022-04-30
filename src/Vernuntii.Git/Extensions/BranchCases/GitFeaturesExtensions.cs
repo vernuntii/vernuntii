@@ -20,7 +20,7 @@ namespace Vernuntii.Extensions.BranchCases
                 new SlimLazy<IOptionsSnapshot<BranchCasesOptions>>(
                     sp.GetRequiredService<IOptionsSnapshot<BranchCasesOptions>>));
 
-            services.TryAddScoped<IBranchCaseArgumentsProvider, BranchCaseArgumentsProvider>();
+            services.TryAddScoped<IBranchCasesProvider, BranchCasesProvider>();
             return extensions;
         }
 
@@ -29,7 +29,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// </summary>
         /// <param name="features"></param>
         /// <param name="branchCaseArgumentsList"></param>
-        public static IGitFeatures AddBranchCases(this IGitFeatures features, IEnumerable<IBranchCaseArguments> branchCaseArgumentsList)
+        public static IGitFeatures AddBranchCases(this IGitFeatures features, IEnumerable<IBranchCase> branchCaseArgumentsList)
         {
             features.AddBranchCaseArgumentsProvider();
 
@@ -50,36 +50,54 @@ namespace Vernuntii.Extensions.BranchCases
         /// Adds multiple branch cases.
         /// </summary>
         /// <param name="features"></param>
-        /// <param name="branchCaseArguments"></param>
-        /// <param name="additionalBranchCaseArguments"></param>
+        /// <param name="branchCases"></param>
+        /// <param name="additionalBranchCases"></param>
         public static IGitFeatures AddBranchCases(
             this IGitFeatures features,
-            IBranchCaseArguments branchCaseArguments,
-            IEnumerable<IBranchCaseArguments> additionalBranchCaseArguments)
+            IBranchCase branchCases,
+            IEnumerable<IBranchCase> additionalBranchCases)
         {
-            return features.AddBranchCases(GetBranchCases(branchCaseArguments, additionalBranchCaseArguments));
+            return features.AddBranchCases(GetBranchCases(branchCases, additionalBranchCases));
 
-            static IEnumerable<IBranchCaseArguments> GetBranchCases(IBranchCaseArguments branchCaseArguments, IEnumerable<IBranchCaseArguments> additionalBranchCaseArguments)
+            static IEnumerable<IBranchCase> GetBranchCases(IBranchCase branchCase, IEnumerable<IBranchCase> additionalBranchCases)
             {
-                yield return branchCaseArguments;
+                yield return branchCase;
 
-                foreach (var caseArguments in additionalBranchCaseArguments) {
+                foreach (var caseArguments in additionalBranchCases) {
                     yield return caseArguments;
                 }
             }
         }
 
         /// <summary>
-        /// Configures instances of <see cref="IBranchCaseArguments"/> of <see cref="BranchCasesOptions"/>.
+        /// Configures instances of <see cref="IBranchCase"/> of <see cref="BranchCasesOptions"/>.
         /// </summary>
         /// <param name="features"></param>
         /// <param name="configureBranchCase"></param>
-        public static IGitFeatures ConfigureBranchCases(this IGitFeatures features, Action<IBranchCaseArguments> configureBranchCase)
+        public static IGitFeatures ConfigureBranchCases(this IGitFeatures features, Action<IBranchCase> configureBranchCase)
         {
             features.Services.AddOptions<BranchCasesOptions>()
                 .Configure(options => {
                     foreach (var branchCaseArguments in options.BranchCases.Values) {
                         configureBranchCase(branchCaseArguments);
+                    }
+                });
+
+            return features;
+        }
+
+        /// <summary>
+        /// Configures instances of <see cref="IBranchCase"/> of <see cref="BranchCasesOptions"/>.
+        /// </summary>
+        /// <param name="features"></param>
+        /// <param name="configureBranchCase"></param>
+        public static IGitFeatures ConfigureBranchCases<TDependency>(this IGitFeatures features, Action<IBranchCase, TDependency> configureBranchCase)
+            where TDependency : class
+        {
+            features.Services.AddOptions<BranchCasesOptions>()
+                .Configure<TDependency>((options, dependency) => {
+                    foreach (var branchCaseArguments in options.BranchCases.Values) {
+                        configureBranchCase(branchCaseArguments, dependency);
                     }
                 });
 
@@ -93,10 +111,10 @@ namespace Vernuntii.Extensions.BranchCases
         /// <br/><see cref="IBranchNameConfigurer.SetVersionFindingSinceCommit(string?)"/>
         /// <br/><see cref="IBranchNameConfigurer.SetMessageReadingSinceCommit(string?)"/>
         /// <br/><see cref="IPreReleaseConfigurer.SetSearchPreRelease(string?)"/>:
-        /// Either <see cref="IBranchCaseArguments.SearchPreRelease"/> or pre-release as explained below is taken.
+        /// Either <see cref="IBranchCase.SearchPreRelease"/> or pre-release as explained below is taken.
         /// <br/><see cref="IPreReleaseConfigurer.SetPostPreRelease(string?)"/>:
-        /// If <see cref="IBranchCaseArguments.PreRelease"/> has no value, so is null and therefore is not "" is specified the value
-        /// of <see cref="IBranchCaseArguments.Branch"/> or the active branch is taken.
+        /// If <see cref="IBranchCase.PreRelease"/> has no value, so is null and therefore is not "" is specified the value
+        /// of <see cref="IBranchCase.Branch"/> or the active branch is taken.
         /// If "" (default) then no pre-release is taken. The non-empty pre-release that is taken by the one or the other way is used
         /// to search "&lt;major>.&lt;minor>.&lt;patch>"- and "&lt;major>.&lt;minor>.&lt;patch>-&lt;taken-pre-release>"-versions
         /// otherwise only "&lt;major>.&lt;minor>.&lt;patch>"-versions are considered.

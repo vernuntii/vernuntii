@@ -1,4 +1,4 @@
-﻿using Vernuntii.HeightVersioning.Transforming;
+﻿using Vernuntii.HeightConventions.Transformation;
 using Vernuntii.SemVer;
 
 namespace Vernuntii.MessageVersioning
@@ -53,6 +53,11 @@ namespace Vernuntii.MessageVersioning
         public VersionHeightInformations DoesCurrentVersionContainsHeightIncrement =>
             _doesCurrentVersionContainsHeightIncrement ??= CurrentVersionContainsHeightIncrement();
 
+        /// <summary>
+        /// The height identifier transformer.
+        /// </summary>
+        public HeightConventionTransformer HeightIdentifierTransformer { get; }
+
         private SemanticVersion? _currentVersion;
         private bool? _doesCurrentVersionContainsMajorIncrement;
         private bool? _doesCurrentVersionContainsMinorIncrement;
@@ -63,8 +68,11 @@ namespace Vernuntii.MessageVersioning
         /// Creates an instance of this type.
         /// </summary>
         /// <param name="versionCalculationOptions"></param>
-        public MessageVersioningContext(SemanticVersionCalculationOptions versionCalculationOptions) =>
+        public MessageVersioningContext(SemanticVersionCalculationOptions versionCalculationOptions)
+        {
             VersionCalculationOptions = versionCalculationOptions;
+            HeightIdentifierTransformer = versionCalculationOptions.CreateHeightIdentifierTransformer();
+        }
 
         /// <summary>
         /// Creates an instance of this type.
@@ -73,6 +81,7 @@ namespace Vernuntii.MessageVersioning
         public MessageVersioningContext(MessageVersioningContext context)
         {
             VersionCalculationOptions = context.VersionCalculationOptions;
+            HeightIdentifierTransformer = context.HeightIdentifierTransformer;
             _currentVersion = context.CurrentVersion;
             _doesCurrentVersionContainsMajorIncrement = context._doesCurrentVersionContainsMajorIncrement;
             _doesCurrentVersionContainsMinorIncrement = context._doesCurrentVersionContainsMinorIncrement;
@@ -97,8 +106,8 @@ namespace Vernuntii.MessageVersioning
 
         private VersionHeightInformations CurrentVersionContainsHeightIncrement()
         {
-            var startVersionTransformResult = VersionCalculationOptions.VersionIncrementOptions.HeightIdentifierTransformer.Transform(VersionCalculationOptions.StartVersion);
-            var currentVersionTransformrResult = VersionCalculationOptions.VersionIncrementOptions.HeightIdentifierTransformer.Transform(CurrentVersion);
+            var startVersionTransformResult = HeightIdentifierTransformer.Transform(VersionCalculationOptions.StartVersion);
+            var currentVersionTransformrResult = HeightIdentifierTransformer.Transform(CurrentVersion);
             var versionNumberParser = CurrentVersion.Parser.VersionNumberParser;
 
             _ = currentVersionTransformrResult.TryParseHeight(versionNumberParser, out var currentVersionHeight);

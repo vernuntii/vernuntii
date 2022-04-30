@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.MessageVersioning;
+using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.Extensions
 {
@@ -10,16 +11,16 @@ namespace Vernuntii.Extensions
     {
         /// <summary>
         /// Configures <see cref="SemanticVersionCalculationOptions"/> to set
-        /// <see cref="SemanticVersionCalculationOptions.VersionIncrementOptions"/>
+        /// <see cref="SemanticVersionCalculationOptions.VersioningPreset"/>
         /// from <paramref name="versioningModePreset"/>.
         /// </summary>
         /// <param name="features"></param>
         /// <param name="versioningModePreset"></param>
-        public static ISemanticVersionCalculationFeatures UseVersioningMode(this ISemanticVersionCalculationFeatures features, VersioningModePreset versioningModePreset)
+        public static ISemanticVersionCalculationFeatures UseVersioningMode(this ISemanticVersionCalculationFeatures features, string versioningModePreset)
         {
             features.Services.AddOptions<SemanticVersionCalculationOptions>()
-                .Configure(options =>
-                    options.VersionIncrementOptions = VersionIncrementBuilderOptions.GetPreset(versioningModePreset.ToString()));
+                .Configure<IVersioningPresetRegistry>((options, registry) =>
+                    options.VersioningPreset = registry.GetVersioningPreset(versioningModePreset));
 
             return features;
         }

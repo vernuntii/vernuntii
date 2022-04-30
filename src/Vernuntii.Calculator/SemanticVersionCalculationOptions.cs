@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Vernuntii.HeightConventions;
+using Vernuntii.HeightConventions.Transformation;
 using Vernuntii.MessagesProviders;
-using Vernuntii.MessageVersioning;
 using Vernuntii.SemVer;
+using Vernuntii.VersioningPresets;
 using Vernuntii.VersionTransformers;
 
 namespace Vernuntii
@@ -36,10 +38,15 @@ namespace Vernuntii
         /// <summary>
         /// The version core options.
         /// </summary>
-        public VersionIncrementBuilderOptions VersionIncrementOptions {
+        public IVersioningPreset VersioningPreset {
             get => _versionIncrementOptions;
             set => _versionIncrementOptions = value ?? throw new ArgumentNullException(nameof(value));
         }
+
+        /// <summary>
+        /// A factory to create in instance of <see cref="HeightConventionTransformer"/>.
+        /// </summary>
+        public Func<IHeightConvention, HeightConventionTransformer>? HeightIdentifierTransformerFactory { private get; init; }
 
         /// <summary>
         /// Used on calculated version.
@@ -58,6 +65,14 @@ namespace Vernuntii
         internal bool IsPostVersionPreRelease => !string.IsNullOrEmpty(PostTransformer?.ProspectivePreRelease ?? StartVersion.PreRelease);
 
         private SemanticVersion _startVersion = SemanticVersion.OneMinor.With.PreRelease("alpha");
-        private VersionIncrementBuilderOptions _versionIncrementOptions = VersionIncrementBuilderOptions.Default;
+        private IVersioningPreset _versionIncrementOptions = VersioningPresets.VersioningPreset.Default;
+
+        internal HeightConventionTransformer CreateHeightIdentifierTransformer()
+        {
+            var heightConvention = VersioningPreset.HeightConvention ?? HeightConvention.None;
+
+            return HeightIdentifierTransformerFactory?.Invoke(heightConvention)
+                ?? new HeightConventionTransformer(heightConvention, HeightPlaceholderParser.Default);
+        }
     }
 }

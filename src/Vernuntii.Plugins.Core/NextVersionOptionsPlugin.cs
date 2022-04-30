@@ -14,7 +14,7 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Override versioning mode.
         /// </summary>
-        public VersioningModePreset? OverrideVersioningMode { get; set; }
+        public string? OverrideVersioningMode { get; set; }
 
         /// <summary>
         /// True of <see cref="OverrideVersioningMode"/> is not <see langword="null"/>.
@@ -22,14 +22,21 @@ namespace Vernuntii.PluginSystem
         [MemberNotNullWhen(true, nameof(OverrideVersioningMode))]
         public bool ShouldOverrideVersioningMode => OverrideVersioningMode != null;
 
-        private Option<VersioningModePreset?> _overrideVersioningModeOption = new Option<VersioningModePreset?>(new[] { "--override-versioning-mode" });
+        private Option<string?> _overrideVersioningModeOption = null!;
 
         /// <inheritdoc/>
-        protected override void OnCompletedRegistration() =>
-            PluginRegistry.First<ICommandLinePlugin>().Registered += plugin => plugin.RootCommand.Add(_overrideVersioningModeOption);
+        protected override void OnCompletedRegistration()
+        {
+            var versioningPresetsPlugin = FirstPlugin<IVersioningPresetsPlugin>();
+
+            _overrideVersioningModeOption = new Option<string?>(new[] { "--override-versioning-mode" })
+                .AddCompletions(_ => versioningPresetsPlugin.Presets.VersioningPresets.Keys);
+
+            FirstPlugin<ICommandLinePlugin>().RootCommand.Add(_overrideVersioningModeOption);
+        }
 
         /// <inheritdoc/>
-        protected override void OnEventAggregator() =>
+        protected override void OnEventAggregation() =>
             SubscribeEvent(CommandLineEvents.ParsedCommandLineArgs.Discriminator, parseResult =>
                 OverrideVersioningMode = parseResult.GetValueForOption(_overrideVersioningModeOption));
     }

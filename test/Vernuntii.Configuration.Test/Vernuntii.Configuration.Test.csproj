@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Vernuntii.Autofac\Vernuntii.Autofac.csproj" />
     <ProjectReference Include="..\..\src\Vernuntii.Git.Configuration\Vernuntii.Git.Configuration.csproj" />
+    <ProjectReference Include="..\..\src\Vernuntii.Plugins\Vernuntii.Plugins.csproj" />
     <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
   </ItemGroup>
 

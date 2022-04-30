@@ -8,11 +8,11 @@ namespace Vernuntii.Extensions.BranchCases
     /// </summary>
     public static class GitFeaturesExtensions
     {
-        private static BranchCaseArguments CreateBranchCaseArguments(IConfiguration configuration, Action<IBranchCaseArguments>? configureBranchCase)
+        private static BranchCase CreateBranchCaseArguments(IConfiguration configuration, Action<IBranchCase>? configureBranchCase)
         {
-            var branchCaseArguments = new BranchCaseArguments();
+            var branchCaseArguments = new BranchCase();
             configuration.Bind(branchCaseArguments);
-            branchCaseArguments.Extensions[BranchCaseArguments.ConfigurationExtensionName] = configuration;
+            branchCaseArguments.Extensions[BranchCase.ConfigurationExtensionName] = configuration;
             configureBranchCase?.Invoke(branchCaseArguments);
             return branchCaseArguments;
         }
@@ -26,7 +26,7 @@ namespace Vernuntii.Extensions.BranchCases
         public static IGitFeatures AddBranchCases(
             this IGitFeatures features,
             IEnumerable<IConfiguration> branchCaseSections,
-            Action<IBranchCaseArguments>? configureBranchCase = null) =>
+            Action<IBranchCase>? configureBranchCase = null) =>
             features.AddBranchCases(branchCaseSections.Select(configuration => CreateBranchCaseArguments(configuration, configureBranchCase)));
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Vernuntii.Extensions.BranchCases
             this IGitFeatures features,
             IConfiguration branchCaseSection,
             IEnumerable<IConfiguration> addtionalBranchCaseSections,
-            Action<IBranchCaseArguments>? configureBranchCase = null)
+            Action<IBranchCase>? configureBranchCase = null)
         {
             static IEnumerable<IConfiguration> GetConfigurations(IConfiguration configuration, IEnumerable<IConfiguration> addtionalSections)
             {
@@ -57,7 +57,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// <summary>
         /// Creates versioning mode extension for each branch case and
         /// configures <see cref="SemanticVersionCalculationOptions"/> to set
-        /// <see cref="SemanticVersionCalculationOptions.VersionIncrementOptions"/>
+        /// <see cref="SemanticVersionCalculationOptions.VersioningPreset"/>
         /// from active branch case.
         /// </summary>
         /// <param name="features"></param>
@@ -66,8 +66,8 @@ namespace Vernuntii.Extensions.BranchCases
             features.ConfigureBranchCases(branchCase => branchCase.TryCreateVersioningModeExtension());
 
             features.Services.AddOptions<SemanticVersionCalculationOptions>()
-                .Configure<IBranchCaseArgumentsProvider>((options, provider) =>
-                    options.VersionIncrementOptions = provider.ActiveBranchCase.GetVersioningModeExtension().VersionTransformerOptions);
+                .Configure<IBranchCasesProvider>((options, branchCaseProvider) =>
+                    options.VersioningPreset = branchCaseProvider.ActiveBranchCase.GetVersioningModeExtension().VersioningPreset);
 
             return features;
         }

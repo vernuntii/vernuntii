@@ -20,7 +20,7 @@ namespace Vernuntii.PluginSystem
         /// Represents the plugin event aggregator.
         /// </summary>
         protected internal IPluginEventAggregator EventAggregator =>
-            _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnEventAggregator)} was not called yet");
+            _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnEventAggregation)} was not called yet");
 
         private IPluginRegistry? _pluginRegistry;
         private IPluginEventAggregator? _eventAggregator;
@@ -63,6 +63,15 @@ namespace Vernuntii.PluginSystem
         {
         }
 
+        /// <summary>
+        /// Gets the first plugin of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected T FirstPlugin<T>()
+            where T : IPlugin =>
+            PluginRegistry.First<T>().Value;
+
         void IPlugin.OnCompletedRegistration() =>
             OnCompletedRegistration();
 
@@ -70,14 +79,14 @@ namespace Vernuntii.PluginSystem
         /// Called when this plugin gets notified about event aggregator.
         /// Called after <see cref="OnRegistration()"/>.
         /// </summary>
-        protected virtual void OnEventAggregator()
+        protected virtual void OnEventAggregation()
         {
         }
 
         void IPlugin.OnEventAggregation(IPluginEventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
-            OnEventAggregator();
+            OnEventAggregation();
         }
 
         /// <summary>

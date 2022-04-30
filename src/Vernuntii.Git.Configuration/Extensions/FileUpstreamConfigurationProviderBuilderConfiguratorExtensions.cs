@@ -28,8 +28,8 @@ namespace Vernuntii.Extensions
             configurator.AddShadow(new GitDirectoryCorrectionConfigurationProvider(fileContainingDirectory, configurator.RootConfigurationProvider));
 
             configurator.AddShadow(new EmptyArrayCorrectionConfigurationProvider(configurator.RootConfigurationProvider) {
-                $"/{nameof(IBranchCaseArguments.PreReleaseEscapes)}$/",
-                $"/{nameof(IBranchCaseArguments.SearchPreReleaseEscapes)}$/",
+                $"/{nameof(IBranchCase.PreReleaseEscapes)}$/",
+                $"/{nameof(IBranchCase.SearchPreReleaseEscapes)}$/",
             });
 
             return configurator;
