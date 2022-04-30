@@ -42,7 +42,7 @@ namespace Vernuntii.Configuration
             services.ConfigureVernuntii(features => features
                 .ConfigureGit(features => features
                     .ConfigureBranchCases(branchCases => branchCases
-                        .TryCreateVersioningModeExtension())));
+                        .TryCreateVersioningPresetExtension())));
 
             return CreateBranchCasesProvider(services);
         }
@@ -51,7 +51,7 @@ namespace Vernuntii.Configuration
         {
             foreach (var value in CreateBranchCasesProvider(VersioningModeStringFileName).BranchCases.Values) {
                 yield return new object[] {
-                     new MessageVersioningModeExtensionOptions(
+                     new VersioningPresetExtension(
                          presetManager.GetVersioningPreset(value
                              .GetConfigurationExtension()
                              .GetValue<string>(BranchCaseExtensions.VersioningModeKey))),
@@ -63,8 +63,8 @@ namespace Vernuntii.Configuration
         [Theory]
         [MemberData(nameof(VersioningModeStringShouldMatchPresetGenerator))]
         public void VersioningModeStringShouldMatchPreset(
-            MessageVersioningModeExtensionOptions expectedExtensionOptions,
-            MessageVersioningModeExtensionOptions assumedExtensionOptions) =>
+            VersioningPresetExtension expectedExtensionOptions,
+            VersioningPresetExtension assumedExtensionOptions) =>
             Assert.Equal(expectedExtensionOptions, assumedExtensionOptions);
 
         public static IEnumerable<object[]> InvalidVersioningModeObjectShouldThrowGenerator()
@@ -81,8 +81,8 @@ namespace Vernuntii.Configuration
                  () => CreateVersioningModeExtension(branchCases["OnlyIncrementMode"])
              };
 
-            static MessageVersioningModeExtensionOptions CreateVersioningModeExtension(IBranchCase branchCase) => branchCase
-                .TryCreateVersioningModeExtension(presetManager)
+            static VersioningPresetExtension CreateVersioningModeExtension(IBranchCase branchCase) => branchCase
+                .TryCreateVersioningPresetExtension(presetManager)
                 .GetVersioningModeExtension();
         }
 
@@ -90,7 +90,7 @@ namespace Vernuntii.Configuration
         [MemberData(nameof(InvalidVersioningModeObjectShouldThrowGenerator))]
         public void InvalidVersioningModeObjectShouldThrow(
             string expectedArgumentExceptionFieldName,
-            Func<MessageVersioningModeExtensionOptions> extensionFactory)
+            Func<VersioningPresetExtension> extensionFactory)
         {
             var error = Record.Exception(extensionFactory);
             var argumentException = Assert.IsType<ArgumentException>(error);
@@ -102,13 +102,13 @@ namespace Vernuntii.Configuration
             var branchCases = CreateBranchCasesProvider(VersioningModeObjectValidFileName).NestedBranchCases;
 
             yield return new object[] {
-                 new MessageVersioningModeExtensionOptions(VersioningPreset.ConventionalCommitsDelivery),
+                 new VersioningPresetExtension(VersioningPreset.ConventionalCommitsDelivery),
                  branchCases["OnlyPreset"].GetVersioningModeExtension()
              };
 
             {
                 yield return new object[] {
-                     new MessageVersioningModeExtensionOptions(VersioningPreset.Manual with {
+                     new VersioningPresetExtension(VersioningPreset.Manual with {
                          MessageConvention = VersioningPreset.ConventionalCommitsDelivery.MessageConvention,
                          IncrementMode = VersionIncrementMode.Successive
                      }),
@@ -120,8 +120,8 @@ namespace Vernuntii.Configuration
         [Theory]
         [MemberData(nameof(ValidVersioningModeObjectShouldMatchGenerator))]
         public void ValidVersioningModeObjectShouldMatch(
-            MessageVersioningModeExtensionOptions expectedExtensionOptions,
-            MessageVersioningModeExtensionOptions assumedExtensionOptions) =>
+            VersioningPresetExtension expectedExtensionOptions,
+            VersioningPresetExtension assumedExtensionOptions) =>
             Assert.Equal(expectedExtensionOptions, assumedExtensionOptions);
     }
 }

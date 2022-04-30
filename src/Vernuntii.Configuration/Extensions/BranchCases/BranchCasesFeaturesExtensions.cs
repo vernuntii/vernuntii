@@ -11,12 +11,12 @@ namespace Vernuntii.Extensions.BranchCases
         /// Adds versioning mode extension for every branch case.
         /// </summary>
         /// <param name="features"></param>
-        public static IBranchCasesFeatures TryCreateVersioningModeExtension(this IBranchCasesFeatures features)
+        public static IBranchCasesFeatures TryCreateVersioningPresetExtension(this IBranchCasesFeatures features)
         {
             features.Services.ConfigureVernuntii(vernuntii => vernuntii
                 .ConfigureGit(features => features
                     .ConfigureBranchCases(branchCases => branchCases
-                        .ForEach<IVersioningPresetManager>((branchCase, presetManager) => branchCase.TryCreateVersioningModeExtension(presetManager)))));
+                        .ForEach<IVersioningPresetManager>((branchCase, presetManager) => branchCase.TryCreateVersioningPresetExtension(presetManager)))));
 
             return features;
         }

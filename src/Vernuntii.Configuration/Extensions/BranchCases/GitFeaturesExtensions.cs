@@ -63,7 +63,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// <param name="features"></param>
         public static IGitFeatures UseActiveBranchCaseVersioningMode(this IGitFeatures features)
         {
-            features.ConfigureBranchCases(branchCases => branchCases.TryCreateVersioningModeExtension());
+            features.ConfigureBranchCases(branchCases => branchCases.TryCreateVersioningPresetExtension());
 
             features.Services.AddOptions<SemanticVersionCalculationOptions>()
                 .Configure<IBranchCasesProvider>((options, branchCaseProvider) =>

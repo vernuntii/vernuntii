@@ -6,7 +6,7 @@ namespace Vernuntii.Configuration
     /// <summary>
     /// Extension methods for <see cref="IConventionalConfigurationBuilder"/>.
     /// </summary>
-    public static class ConventionalConfigurationBuilderExtensions
+    public static class JsonConventionalConfigurationBuilderExtensions
     {
         /// <summary>
         /// Adds messages versioning configuration file.

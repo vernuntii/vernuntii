@@ -12,9 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Vernuntii.Configuration.Json\Vernuntii.Configuration.Json.csproj" />
-    <ProjectReference Include="..\..\src\Vernuntii.Configuration.Yaml\Vernuntii.Configuration.Yaml.csproj" />
-    <ProjectReference Include="..\..\src\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj" />
+    <ProjectReference Include="..\..\src\Vernuntii.Configuration\Vernuntii.Configuration.csproj" />
     <ProjectReference Include="..\..\src\Vernuntii.Git\Vernuntii.Git.csproj" />
   </ItemGroup>
 

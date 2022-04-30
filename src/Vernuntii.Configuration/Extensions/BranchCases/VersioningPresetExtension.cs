@@ -8,7 +8,7 @@ namespace Vernuntii.MessageVersioning
     /// <summary>
     /// Extension options for <see cref="VersionIncrementBuilder"/>
     /// </summary>
-    public sealed record class MessageVersioningModeExtensionOptions : IEquatable<MessageVersioningModeExtensionOptions>
+    public sealed record class VersioningPresetExtension : IEquatable<VersioningPresetExtension>
     {
         /// <summary>
         /// The "VersioningMode"-key.
@@ -16,63 +16,77 @@ namespace Vernuntii.MessageVersioning
         public const string VersioningModeKey = "VersioningMode";
 
         /// <summary>
-        /// A factory for <see cref="MessageVersioningModeExtensionOptions"/>.
+        /// A factory for <see cref="VersioningPresetExtension"/>.
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="presetManager"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static Func<MessageVersioningModeExtensionOptions> CreateFactory(IConfiguration configuration, IVersioningPresetManager presetManager)
+        public static Func<VersioningPresetExtension> CreateFactory(IConfiguration configuration, IVersioningPresetManager presetManager)
         {
             var versioningModeSection = configuration.GetSection(VersioningModeKey);
-            Func<MessageVersioningModeExtensionOptions> extensionFactory;
+            Func<VersioningPresetExtension> extensionFactory;
 
-            if (!versioningModeSection.Exists() || versioningModeSection.Value != null) {
+            if (!versioningModeSection.Exists() || versioningModeSection.Value != null)
+            {
                 extensionFactory = CreateFromString;
 
-                MessageVersioningModeExtensionOptions CreateFromString()
+                VersioningPresetExtension CreateFromString()
                 {
                     var versioningMode = configuration.GetValue(VersioningModeKey, nameof(VersioningPresetKind.Default));
 
-                    return new MessageVersioningModeExtensionOptions {
+                    return new VersioningPresetExtension
+                    {
                         VersioningPreset = presetManager.GetVersioningPreset(versioningMode)
                     };
                 }
-            } else {
+            }
+            else
+            {
                 extensionFactory = CreateFromObject;
 
-                MessageVersioningModeExtensionOptions CreateFromObject()
+                VersioningPresetExtension CreateFromObject()
                 {
                     var versioningModeObject = new VersioningModeObject();
                     versioningModeSection.Bind(versioningModeObject);
 
-                    if (versioningModeObject.MessageConvention == null && versioningModeObject.Preset == null) {
+                    if (versioningModeObject.MessageConvention == null && versioningModeObject.Preset == null)
+                    {
                         throw new ArgumentException($"Field \"{nameof(versioningModeObject.MessageConvention)}\" is null." +
                             $" Either set it or specifiy the field \"{nameof(versioningModeObject.Preset)}\".");
-                    } else if (versioningModeObject.IncrementMode == null && versioningModeObject.Preset == null) {
+                    }
+                    else if (versioningModeObject.IncrementMode == null && versioningModeObject.Preset == null)
+                    {
                         throw new ArgumentException($"Field \"{nameof(versioningModeObject.IncrementMode)}\" is null." +
                             $" Either set it or specifiy the field \"{nameof(versioningModeObject.Preset)}\".");
                     }
 
                     IVersioningPreset basePreset;
 
-                    if (versioningModeObject.Preset != null) {
+                    if (versioningModeObject.Preset != null)
+                    {
                         basePreset = presetManager.GetVersioningPreset(versioningModeObject.Preset);
-                    } else {
+                    }
+                    else
+                    {
                         basePreset = presetManager.GetVersioningPreset(VersioningPresetKind.Default);
                     }
 
                     IMessageConvention? messageConvention;
 
-                    if (versioningModeObject.MessageConvention != null) {
+                    if (versioningModeObject.MessageConvention != null)
+                    {
                         messageConvention = presetManager.GetMessageConvention(versioningModeObject.MessageConvention);
-                    } else {
+                    }
+                    else
+                    {
                         messageConvention = basePreset.MessageConvention;
                     }
 
                     IHeightConvention? heightConvention = basePreset.HeightConvention;
                     var versionIncrementMode = versioningModeObject.IncrementMode ?? basePreset.IncrementMode;
 
-                    return new MessageVersioningModeExtensionOptions(new VersioningPreset() {
+                    return new VersioningPresetExtension(new VersioningPreset()
+                    {
                         IncrementMode = versionIncrementMode,
                         MessageConvention = messageConvention,
                         HeightConvention = heightConvention
@@ -86,12 +100,13 @@ namespace Vernuntii.MessageVersioning
         /// <summary>
         /// The extension name.
         /// </summary>
-        internal const string ExtensionName = nameof(MessageVersioningModeExtensionOptions);
+        internal const string ExtensionName = nameof(VersioningPresetExtension);
 
         /// <summary>
         /// Represents the version core options for <see cref="VersionIncrementBuilder"/>.
         /// </summary>
-        public IVersioningPreset VersioningPreset {
+        public IVersioningPreset VersioningPreset
+        {
             get => _versioningPreset ??= new VersioningPreset();
             init => _versioningPreset = value ?? throw new ArgumentNullException(nameof(value));
         }
@@ -101,17 +116,17 @@ namespace Vernuntii.MessageVersioning
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        public MessageVersioningModeExtensionOptions() { }
+        public VersioningPresetExtension() { }
 
         /// <summary>
         /// Creates a shallow copy of <paramref name="options"/>.
         /// </summary>
         /// <param name="options"></param>
-        public MessageVersioningModeExtensionOptions(IVersioningPreset options) =>
+        public VersioningPresetExtension(IVersioningPreset options) =>
             VersioningPreset = options;
 
         /// <inheritdoc/>
-        public bool Equals(MessageVersioningModeExtensionOptions? other) =>
+        public bool Equals(VersioningPresetExtension? other) =>
             VersioningPreset.Equals(other?.VersioningPreset);
 
         /// <inheritdoc/>

@@ -86,29 +86,29 @@ namespace Vernuntii.Extensions.BranchCases
         #region VersioningModeExtension
 
         /// <summary>
-        /// Binds configuration to new or existing instance of type <see cref="MessageVersioningModeExtensionOptions"/>.
+        /// Binds configuration to new or existing instance of type <see cref="VersioningPresetExtension"/>.
         /// </summary>
         /// <param name="branchCaseArguments"></param>
         /// <param name="presetManager"></param>
         /// <param name="configuration"></param>
-        public static IBranchCase TryCreateVersioningModeExtension(this IBranchCase branchCaseArguments, IVersioningPresetManager presetManager, IConfiguration? configuration = null)
+        public static IBranchCase TryCreateVersioningPresetExtension(this IBranchCase branchCaseArguments, IVersioningPresetManager presetManager, IConfiguration? configuration = null)
         {
             if (configuration is null) {
                 configuration = branchCaseArguments.GetConfigurationExtension();
             }
 
             var versioningModeSection = configuration.GetSection(VersioningModeKey);
-            var extensionFactory = MessageVersioningModeExtensionOptions.CreateFactory(configuration, presetManager);
-            _ = branchCaseArguments.GetExtensionOrCreate(MessageVersioningModeExtensionOptions.ExtensionName, extensionFactory);
+            var extensionFactory = VersioningPresetExtension.CreateFactory(configuration, presetManager);
+            _ = branchCaseArguments.GetExtensionOrCreate(VersioningPresetExtension.ExtensionName, extensionFactory);
             return branchCaseArguments;
         }
 
         /// <summary>
-        /// Gets the instance of <see cref="MessageVersioningModeExtensionOptions"/> from <see cref="IBranchCase.Extensions"/>.
+        /// Gets the instance of <see cref="VersioningPresetExtension"/> from <see cref="IBranchCase.Extensions"/>.
         /// </summary>
         /// <param name="branchCaseArguments"></param>
-        public static MessageVersioningModeExtensionOptions GetVersioningModeExtension(this IBranchCase branchCaseArguments) =>
-            branchCaseArguments.GetExtension<MessageVersioningModeExtensionOptions>(MessageVersioningModeExtensionOptions.ExtensionName);
+        public static VersioningPresetExtension GetVersioningModeExtension(this IBranchCase branchCaseArguments) =>
+            branchCaseArguments.GetExtension<VersioningPresetExtension>(VersioningPresetExtension.ExtensionName);
 
         internal class VersioningModeObject
         {
