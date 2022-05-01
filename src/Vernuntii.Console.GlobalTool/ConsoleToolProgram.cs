@@ -83,7 +83,7 @@ public static class ConsoleToolProgram
         }
 
         protected override void OnCompletedRegistration() =>
-            PluginRegistry.First<ICommandLinePlugin>().Registered +=
+            Plugins.First<ICommandLinePlugin>().Registered +=
                 plugin => plugin.RootCommand.AddCommand(fileLocationCommand);
     }
 }

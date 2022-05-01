@@ -29,46 +29,46 @@ public class GitPlugin : Plugin, IGitPlugin
 
     /// <inheritdoc/>
     protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
-        await PluginRegistry.TryRegisterAsync<NextVersionOptionsPlugin>();
+        await Plugins.TryRegisterAsync<NextVersionOptionsPlugin>();
 
     /// <inheritdoc/>
     protected override void OnCompletedRegistration()
     {
-        PluginRegistry.First<ICommandLinePlugin>().Registered += plugin => {
+        Plugins.First<ICommandLinePlugin>().Registered += plugin => {
             plugin.RootCommand.Add(_overridePostPreReleaseOption);
             plugin.RootCommand.Add(_duplicateVersionFailsOption);
         };
 
-        _options = PluginRegistry.First<NextVersionOptionsPlugin>().Value;
-        _nextVersionPlugin = PluginRegistry.First<INextVersionPlugin>().Value;
+        _options = Plugins.First<NextVersionOptionsPlugin>().Value;
+        _nextVersionPlugin = Plugins.First<INextVersionPlugin>().Value;
     }
 
     /// <inheritdoc/>
-    protected override void OnEventAggregation()
+    protected override void OnEvents()
     {
-        SubscribeEvent(
-            CommandLineEvents.ParsedCommandLineArgs.Discriminator,
+        Events.SubscribeOnce(
+            CommandLineEvents.ParsedCommandLineArgs,
             parseResult => {
                 _overridePostPreRelease = parseResult.GetValueForOption(_overridePostPreReleaseOption);
                 _duplicateVersionFails = parseResult.GetValueForOption(_duplicateVersionFailsOption);
             });
 
-        SubscribeEvent(
-            ConfigurationEvents.CreatedConfiguration.Discriminator,
+        Events.SubscribeOnce(
+            ConfigurationEvents.CreatedConfiguration,
             configuration => _configuration = configuration);
 
-        SubscribeEvent(NextVersionEvents.ConfiguredGlobalServices.Discriminator, services => {
-            EventAggregator.PublishEvent(GitEvents.ConfiguringGlobalServices.Discriminator, services);
+        Events.SubscribeOnce(NextVersionEvents.ConfiguredGlobalServices, services => {
+            Events.Publish(GitEvents.ConfiguringGlobalServices, services);
 
             services.ConfigureVernuntii(features => features
                 .ConfigureGit(features => features
                     .UseConfigurationDefaults(_configuration)));
 
-            EventAggregator.PublishEvent(GitEvents.ConfiguredGlobalServices.Discriminator, services);
+            Events.Publish(GitEvents.ConfiguredGlobalServices, services);
         });
 
-        SubscribeEvent(NextVersionEvents.ConfiguredCalculationServices.Discriminator, services => {
-            EventAggregator.PublishEvent(GitEvents.ConfiguringCalculationServices.Discriminator, services);
+        Events.SubscribeOnce(NextVersionEvents.ConfiguredCalculationServices, services => {
+            Events.Publish(GitEvents.ConfiguringCalculationServices, services);
 
             services.ConfigureVernuntii(features => features
                 .ConfigureGit(git => git
@@ -89,17 +89,17 @@ public class GitPlugin : Plugin, IGitPlugin
                             .SetPostPreRelease(_overridePostPreRelease))));
             }
 
-            EventAggregator.PublishEvent(GitEvents.ConfiguredCalculationServices.Discriminator, services);
+            Events.Publish(GitEvents.ConfiguredCalculationServices, services);
         });
 
         IRepository repository = null!;
 
-        SubscribeEvent(
-                NextVersionEvents.CreatedCalculationServiceProvider.Discriminator,
+        Events.SubscribeOnce(
+                NextVersionEvents.CreatedCalculationServiceProvider,
                 sp => repository = sp.GetRequiredService<IRepository>());
 
-        SubscribeEvent(
-            NextVersionEvents.CalculatedNextVersion.Discriminator, version => {
+        Events.SubscribeOnce(
+            NextVersionEvents.CalculatedNextVersion, version => {
                 if (_duplicateVersionFails && repository.HasCommitVersion(version)) {
                     _nextVersionPlugin.ExitCodeOnSuccess = (int)ExitCode.VersionDuplicate;
                 }

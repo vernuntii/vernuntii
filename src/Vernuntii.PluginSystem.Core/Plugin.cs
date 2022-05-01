@@ -13,17 +13,17 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Represents the plugin registry.
         /// </summary>
-        protected internal IPluginRegistry PluginRegistry =>
-            _pluginRegistry ?? throw new InvalidOperationException($"Method {nameof(OnRegistrationAsync)} was not called yet");
+        protected internal IPluginRegistry Plugins =>
+            _plugins ?? throw new InvalidOperationException($"Method {nameof(OnRegistrationAsync)} was not called yet");
 
         /// <summary>
         /// Represents the plugin event aggregator.
         /// </summary>
-        protected internal IPluginEventAggregator EventAggregator =>
-            _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnEventAggregation)} was not called yet");
+        protected internal IPluginEventCache Events =>
+            _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnEvents)} was not called yet");
 
-        private IPluginRegistry? _pluginRegistry;
-        private IPluginEventAggregator? _eventAggregator;
+        private IPluginRegistry? _plugins;
+        private IPluginEventCache? _eventAggregator;
         private List<IDisposable> _disposables = new List<IDisposable>();
 
         internal void AddDisposable(IDisposable disposable) =>
@@ -40,7 +40,7 @@ namespace Vernuntii.PluginSystem
 
         async ValueTask<bool> IPlugin.OnRegistration(IPluginRegistry pluginRegistry)
         {
-            _pluginRegistry = pluginRegistry;
+            _plugins = pluginRegistry;
             var registrationContext = new RegistrationContext();
             await OnRegistrationAsync(registrationContext);
             return registrationContext.AcceptRegistration;
@@ -66,7 +66,7 @@ namespace Vernuntii.PluginSystem
         /// <exception cref="InvalidOperationException"></exception>
         protected T FirstPlugin<T>()
             where T : IPlugin =>
-            PluginRegistry.First<T>().Value;
+            Plugins.First<T>().Value;
 
         ValueTask IPlugin.OnCompletedRegistration()
         {
@@ -78,7 +78,7 @@ namespace Vernuntii.PluginSystem
         /// Called when this plugin gets notified about event aggregator.
         /// Called after <see cref="OnRegistrationAsync(RegistrationContext)"/>.
         /// </summary>
-        protected virtual void OnEventAggregation()
+        protected virtual void OnEvents()
         {
         }
 
@@ -86,48 +86,48 @@ namespace Vernuntii.PluginSystem
         /// Called when this plugin gets notified about event aggregator.
         /// Called after <see cref="OnRegistrationAsync(RegistrationContext)"/>.
         /// </summary>
-        protected virtual ValueTask OnEventAggregationAsync() =>
+        protected virtual ValueTask OnEventsAsync() =>
             ValueTask.CompletedTask;
 
-        ValueTask IPlugin.OnEventAggregation(IPluginEventAggregator eventAggregator)
+        ValueTask IPlugin.OnEvents(IPluginEventCache eventAggregator)
         {
             _eventAggregator = eventAggregator;
-            OnEventAggregation();
-            return OnEventAggregationAsync();
+            OnEvents();
+            return OnEventsAsync();
         }
 
-        /// <summary>
-        /// Subscribes to event that gets canceled when the plugin is disposed.
-        /// </summary>
-        /// <typeparam name="TEvent"></typeparam>
-        /// <param name="action"></param>
-        protected void SubscribeEvent<TEvent>(Action action)
-            where TEvent : PubSubEvent, new() =>
-            AddDisposable(EventAggregator.GetEvent<TEvent>().Subscribe(action));
+        ///// <summary>
+        ///// Subscribes to event that gets canceled when the plugin is disposed.
+        ///// </summary>
+        ///// <typeparam name="TEvent"></typeparam>
+        ///// <param name="action"></param>
+        //protected void SubscribeEvent<TEvent>(Action action)
+        //    where TEvent : PubSubEvent, new() =>
+        //    AddDisposable(Events.GetEvent<TEvent>().Subscribe(action));
 
-        /// <summary>
-        /// Subscribes to event that gets canceled when the plugin is disposed.
-        /// </summary>
-        /// <typeparam name="TEvent"></typeparam>
-        /// <typeparam name="TPayload"></typeparam>
-        /// <param name="action"></param>
-        protected void SubscribeEvent<TEvent, TPayload>(Action<TPayload> action)
-            where TEvent : PubSubEvent<TPayload>, new() =>
-            AddDisposable(EventAggregator.GetEvent<TEvent>().Subscribe(action));
+        ///// <summary>
+        ///// Subscribes to event that gets canceled when the plugin is disposed.
+        ///// </summary>
+        ///// <typeparam name="TEvent"></typeparam>
+        ///// <typeparam name="TPayload"></typeparam>
+        ///// <param name="action"></param>
+        //protected void SubscribeEvent<TEvent, TPayload>(Action<TPayload> action)
+        //    where TEvent : PubSubEvent<TPayload>, new() =>
+        //    AddDisposable(Events.GetEvent<TEvent>().Subscribe(action));
 
-        /// <summary>
-        /// Subscribes to event that gets canceled when the plugin is disposed.
-        /// </summary>
-        /// <typeparam name="TEvent"></typeparam>
-        /// <typeparam name="TPayload"></typeparam>
-        /// <param name="discriminator"></param>
-        /// <param name="action"></param>
-        /// <returns>The actual event you can subscribe to.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Roslynator", "RCS1163:Unused parameter.", Justification = "<Pending>")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-        protected void SubscribeEvent<TEvent, TPayload>(PubSubEvent<TEvent, TPayload> discriminator, Action<TPayload> action)
-            where TEvent : PubSubEvent<TEvent, TPayload>, new() =>
-            AddDisposable(EventAggregator.GetEvent<TEvent>().Subscribe(action));
+        ///// <summary>
+        ///// Subscribes to event that gets canceled when the plugin is disposed.
+        ///// </summary>
+        ///// <typeparam name="TEvent"></typeparam>
+        ///// <typeparam name="TPayload"></typeparam>
+        ///// <param name="discriminator"></param>
+        ///// <param name="action"></param>
+        ///// <returns>The actual event you can subscribe to.</returns>
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Roslynator", "RCS1163:Unused parameter.", Justification = "<Pending>")]
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+        //protected void SubscribeEvent<TEvent, TPayload>(PubSubEvent<TEvent, TPayload> discriminator, Action<TPayload> action)
+        //    where TEvent : PubSubEvent<TEvent, TPayload>, new() =>
+        //    AddDisposable(Events.GetEvent<TEvent>().Subscribe(action));
 
         /// <summary>
         /// Called when plugin gets explictly destroyed.

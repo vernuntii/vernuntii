@@ -29,14 +29,14 @@ namespace Vernuntii.PluginSystem
         /// <br/> - <see cref="IMessageConventionRegistry"/>
         /// <br/> - <see cref="IHeightConventionRegistry"/>
         /// </summary>
-        protected override void OnEventAggregation()
+        protected override void OnEvents()
         {
-            SubscribeEvent(NextVersionEvents.CreatedGlobalServices.Discriminator, services => {
+            Events.SubscribeOnce(NextVersionEvents.CreatedGlobalServices, services => {
                 services.AddSingleton(PresetManager);
                 services.AddSingleton<IVersioningPresetRegistry>(PresetManager);
                 services.AddSingleton<IMessageConventionRegistry>(PresetManager);
                 services.AddSingleton<IHeightConventionRegistry>(PresetManager);
-                EventAggregator.GetEvent<VersioningPresetsEvents.ConfiguredGlobalServices>().Publish(services);
+                Events.Publish(VersioningPresetsEvents.ConfiguredGlobalServices, services);
             });
         }
     }

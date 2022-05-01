@@ -8,7 +8,6 @@ using Vernuntii.Console;
 using Vernuntii.Extensions;
 using Vernuntii.Extensions.VersionFoundation;
 using Vernuntii.PluginSystem.Events;
-using Vernuntii.SemVer;
 using Vernuntii.VersionPresentation;
 using Vernuntii.VersionPresentation.Serializers;
 
@@ -104,21 +103,21 @@ namespace Vernuntii.PluginSystem
 
         /// <inheritdoc/>
         protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
-            await PluginRegistry.TryRegisterAsync<NextVersionOptionsPlugin>();
+            await Plugins.TryRegisterAsync<NextVersionOptionsPlugin>();
 
         private int ProduceVersionOutput()
         {
             try {
                 IServiceCollection globalServices = new ServiceCollection();
-                EventAggregator.PublishEvent(NextVersionEvents.CreatedGlobalServices.Discriminator, globalServices);
+                Events.Publish(NextVersionEvents.CreatedGlobalServices, globalServices);
 
                 globalServices.AddLogging(builder => _loggingPlugin.Bind(builder));
-                EventAggregator.PublishEvent(NextVersionEvents.ConfiguredGlobalServices.Discriminator, globalServices);
+                Events.Publish(NextVersionEvents.ConfiguredGlobalServices, globalServices);
 
                 using var globalServiceProvider = globalServices.BuildLifetimeScopedServiceProvider();
 
                 using var calculationServiceProvider = globalServiceProvider.CreateScope(services => {
-                    EventAggregator.PublishEvent(NextVersionEvents.CreatedCalculationServices.Discriminator, services);
+                    Events.Publish(NextVersionEvents.CreatedCalculationServices, services);
 
                     services.ConfigureVernuntii(features => features
                         .AddSemanticVersionCalculator()
@@ -132,10 +131,10 @@ namespace Vernuntii.PluginSystem
                                 .UseVersioningMode(_options.OverrideVersioningMode)));
                     }
 
-                    EventAggregator.PublishEvent(NextVersionEvents.ConfiguredCalculationServices.Discriminator, services);
+                    Events.Publish(NextVersionEvents.ConfiguredCalculationServices, services);
                 });
 
-                EventAggregator.PublishEvent<NextVersionEvents.CreatedCalculationServiceProvider, IServiceProvider>(calculationServiceProvider);
+                Events.Publish(NextVersionEvents.CreatedCalculationServiceProvider, calculationServiceProvider);
 
                 //var repository = globalServiceProvider.GetRequiredService<IRepository>();
                 var presentationFoundationProvider = calculationServiceProvider.GetRequiredService<SemanticVersionFoundationProvider>();
@@ -146,7 +145,7 @@ namespace Vernuntii.PluginSystem
                     creationRetentionTime: _cacheCreationRetentionTime,
                     lastAccessRetentionTime: _cacheLastAccessRetentionTime);
 
-                EventAggregator.PublishEvent<NextVersionEvents.CalculatedNextVersion, ISemanticVersion>(presentationFoundation.Version);
+                Events.Publish(NextVersionEvents.CalculatedNextVersion, presentationFoundation.Version);
 
                 var formattedVersion = new SemanticVersionPresentationStringBuilder(presentationFoundation)
                     .UsePresentationKind(_presentationKind)
@@ -166,7 +165,7 @@ namespace Vernuntii.PluginSystem
         /// <inheritdoc/>
         protected override void OnCompletedRegistration()
         {
-            PluginRegistry.First<ICommandLinePlugin>().Registered += plugin => {
+            Plugins.First<ICommandLinePlugin>().Registered += plugin => {
                 plugin.SetRootCommandHandler(ProduceVersionOutput);
                 plugin.RootCommand.Add(_presentationKindOption);
                 plugin.RootCommand.Add(_presentationPartsOption);
@@ -177,14 +176,14 @@ namespace Vernuntii.PluginSystem
                 plugin.RootCommand.Add(_emptyCachesOption);
             };
 
-            _loggingPlugin = PluginRegistry.First<ILoggingPlugin>().Value;
-            _options = PluginRegistry.First<NextVersionOptionsPlugin>().Value;
+            _loggingPlugin = Plugins.First<ILoggingPlugin>().Value;
+            _options = Plugins.First<NextVersionOptionsPlugin>().Value;
         }
 
         /// <inheritdoc/>
-        protected override void OnEventAggregation()
+        protected override void OnEvents()
         {
-            SubscribeEvent(CommandLineEvents.ParsedCommandLineArgs.Discriminator, parseResult => {
+            Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult => {
                 _presentationKind = parseResult.GetValueForOption(_presentationKindOption);
                 _presentationParts = parseResult.GetValueForOption(_presentationPartsOption);
                 _presentationView = parseResult.GetValueForOption(_presentationViewOption);
@@ -194,12 +193,12 @@ namespace Vernuntii.PluginSystem
                 _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
             });
 
-            SubscribeEvent(
-                LoggingEvents.EnabledLoggingInfrastructure.Discriminator,
+            Events.SubscribeOnce(
+                LoggingEvents.EnabledLoggingInfrastructure,
                 plugin => _logger = plugin.CreateLogger<NextVersionPlugin>());
 
-            SubscribeEvent(
-                ConfigurationEvents.CreatedConfiguration.Discriminator,
+            Events.SubscribeOnce(
+                ConfigurationEvents.CreatedConfiguration,
                 configuration => _configuration = configuration);
         }
     }

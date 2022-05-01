@@ -30,7 +30,7 @@ public interface IPlugin : IDisposable
     /// Called after <see cref="OnCompletedRegistration()"/>.
     /// </summary>
     /// <param name="eventAggregator"></param>
-    ValueTask OnEventAggregation(IPluginEventAggregator eventAggregator);
+    ValueTask OnEvents(IPluginEventCache eventAggregator);
 
     /// <summary>
     /// Called when plugin gets explictly destroyed.

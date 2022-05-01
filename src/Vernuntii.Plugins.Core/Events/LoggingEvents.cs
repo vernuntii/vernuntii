@@ -8,15 +8,11 @@
         /// <summary>
         /// Event when logging infrastructure is getting enabled.
         /// </summary>
-        public sealed class EnableLoggingInfrastructure : PubSubEvent
-        {
-        }
+        public readonly static SubjectEvent EnableLoggingInfrastructure = new SubjectEvent();
 
         /// <summary>
         /// Event when logging infrastructure is enabled.
         /// </summary>
-        public sealed class EnabledLoggingInfrastructure : PubSubEvent<EnabledLoggingInfrastructure, ILoggingPlugin>
-        {
-        }
+        public readonly static SubjectEvent<ILoggingPlugin> EnabledLoggingInfrastructure = new SubjectEvent<ILoggingPlugin>();
     }
 }

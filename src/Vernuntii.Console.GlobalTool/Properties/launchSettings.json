@@ -2,7 +2,7 @@
   "profiles": {
     "Vernuntii.Console.GlobalTool": {
       "commandName": "Project",
-      "commandLineArgs": "--verbose Debug"
+      "commandLineArgs": "--verbose Debug --empty-caches"
     }
   }
 }

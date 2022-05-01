@@ -36,8 +36,8 @@ namespace Vernuntii.PluginSystem
         }
 
         /// <inheritdoc/>
-        protected override void OnEventAggregation() =>
-            SubscribeEvent(CommandLineEvents.ParsedCommandLineArgs.Discriminator, parseResult =>
+        protected override void OnEvents() =>
+            Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult =>
                 OverrideVersioningMode = parseResult.GetValueForOption(_overrideVersioningModeOption));
     }
 }

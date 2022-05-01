@@ -10,14 +10,11 @@ namespace Vernuntii.PluginSystem.Events
         /// <summary>
         /// Event is happening when the configuration is getting created.
         /// </summary>
-        public sealed class CreateConfiguration : PubSubEvent { 
-        }
+        public readonly static SubjectEvent CreateConfiguration = new SubjectEvent();
 
         /// <summary>
         /// Event is happening when the configuration got created.
         /// </summary>
-        public sealed class CreatedConfiguration : PubSubEvent<CreatedConfiguration, IConfiguration>
-        {
-        }
+        public readonly static SubjectEvent<IConfiguration> CreatedConfiguration = new SubjectEvent<IConfiguration>();
     }
 }

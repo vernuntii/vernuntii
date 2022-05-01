@@ -73,9 +73,9 @@ namespace Vernuntii.PluginSystem
 
             if (_parseResult == null) {
                 // This is also the case when the help text is displayed but that's okay.
-                EventAggregator.PublishEvent(CommandLineEvents.InvokedRootCommand.Discriminator, exitCode);
+                Events.Publish(CommandLineEvents.InvokedRootCommand, exitCode);
             } else {
-                EventAggregator.PublishEvent(CommandLineEvents.ParsedCommandLineArgs.Discriminator, _parseResult);
+                Events.Publish(CommandLineEvents.ParsedCommandLineArgs, _parseResult);
             }
         }
 
@@ -90,15 +90,15 @@ namespace Vernuntii.PluginSystem
             }
 
             var exitCode = _parseResult.Invoke();
-            EventAggregator.PublishEvent(CommandLineEvents.InvokedRootCommand.Discriminator, exitCode);
+            Events.Publish(CommandLineEvents.InvokedRootCommand, exitCode);
         }
 
         /// <inheritdoc/>
-        protected override void OnEventAggregation()
+        protected override void OnEvents()
         {
-            SubscribeEvent(CommandLineEvents.SetCommandLineArgs.Discriminator, args => CommandLineArgs = args);
-            SubscribeEvent<CommandLineEvents.ParseCommandLineArgs>(ParseCommandLineArgs);
-            SubscribeEvent<CommandLineEvents.InvokeRootCommand>(InvokeRootCommand);
+            Events.SubscribeOnce(CommandLineEvents.SetCommandLineArgs, args => CommandLineArgs = args);
+            Events.SubscribeOnce(CommandLineEvents.ParseCommandLineArgs, ParseCommandLineArgs);
+            Events.SubscribeOnce(CommandLineEvents.InvokeRootCommand, InvokeRootCommand);
         }
     }
 }

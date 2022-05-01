@@ -1,7 +1,7 @@
 ﻿namespace Vernuntii.VersionFoundation.Caching
 {
     /// <summary>
-    /// The options for <see cref="SemanticVersionFoundationCache"/>.
+    /// The options for <see cref="SemanticVersionFoundationCache{T}"/>
     /// </summary>
     public class SemanticVersionFoundationCacheOptions
     {

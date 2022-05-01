@@ -10,29 +10,21 @@ namespace Vernuntii.PluginSystem.Events
         /// <summary>
         /// Event when global service collection is about to be configured.
         /// </summary>
-        public sealed class ConfiguringGlobalServices : PubSubEvent<ConfiguringGlobalServices, IServiceCollection>
-        {
-        }
+        public readonly static SubjectEvent<IServiceCollection> ConfiguringGlobalServices = new SubjectEvent<IServiceCollection>();
 
         /// <summary>
         /// Event when global service collection has been configured.
         /// </summary>
-        public sealed class ConfiguredGlobalServices : PubSubEvent<ConfiguredGlobalServices, IServiceCollection>
-        {
-        }
+        public readonly static SubjectEvent<IServiceCollection> ConfiguredGlobalServices = new SubjectEvent<IServiceCollection>();
 
         /// <summary>
         /// Event when calculation service collection is about to be configured.
         /// </summary>
-        public sealed class ConfiguringCalculationServices : PubSubEvent<ConfiguringCalculationServices, IServiceCollection>
-        {
-        }
+        public readonly static SubjectEvent<IServiceCollection> ConfiguringCalculationServices = new SubjectEvent<IServiceCollection>();
 
         /// <summary>
         /// Event when calculation service collection has been configured.
         /// </summary>
-        public sealed class ConfiguredCalculationServices : PubSubEvent<ConfiguredCalculationServices, IServiceCollection>
-        {
-        }
+        public readonly static SubjectEvent<IServiceCollection> ConfiguredCalculationServices = new SubjectEvent<IServiceCollection>();
     }
 }

@@ -8,14 +8,14 @@ namespace Vernuntii.PluginSystem
     public class PluginExecutor
     {
         private PluginRegistry _pluginRegistry;
-        private readonly IPluginEventAggregator _eventAggregator;
+        private readonly IPluginEventCache _eventAggregator;
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
         /// <param name="pluginRegistry"></param>
         /// <param name="eventAggregator"></param>
-        public PluginExecutor(PluginRegistry pluginRegistry, IPluginEventAggregator eventAggregator)
+        public PluginExecutor(PluginRegistry pluginRegistry, IPluginEventCache eventAggregator)
         {
             _pluginRegistry = pluginRegistry;
             _eventAggregator = eventAggregator;
@@ -33,7 +33,7 @@ namespace Vernuntii.PluginSystem
             }
 
             foreach (var registration in _pluginRegistry.PluginRegistrations) {
-                await registration.Plugin.OnEventAggregation(_eventAggregator);
+                await registration.Plugin.OnEvents(_eventAggregator);
             }
         }
 

@@ -16,37 +16,37 @@ public static class ConsoleProgram
     /// <returns>exit code</returns>
     public static async Task<int> RunAsync(string[] args, IEnumerable<PluginDescriptor>? pluginDescriptors = null)
     {
-        using var pluginRegistry = new PluginRegistry();
+        using var plugins = new PluginRegistry();
 
-        await pluginRegistry.RegisterAsync<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
-        await pluginRegistry.RegisterAsync<ICommandLinePlugin, CommandLinePlugin>();
-        await pluginRegistry.RegisterAsync<ILoggingPlugin, LoggingPlugin>();
-        await pluginRegistry.RegisterAsync<IConfigurationPlugin, ConfigurationPlugin>();
-        await pluginRegistry.RegisterAsync<IGitPlugin, GitPlugin>();
-        await pluginRegistry.RegisterAsync<INextVersionPlugin, NextVersionPlugin>();
-        await pluginRegistry.RegisterAsync<VersionCalculationPerfomancePlugin>();
+        await plugins.RegisterAsync<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
+        await plugins.RegisterAsync<ICommandLinePlugin, CommandLinePlugin>();
+        await plugins.RegisterAsync<ILoggingPlugin, LoggingPlugin>();
+        await plugins.RegisterAsync<IConfigurationPlugin, ConfigurationPlugin>();
+        await plugins.RegisterAsync<IGitPlugin, GitPlugin>();
+        await plugins.RegisterAsync<INextVersionPlugin, NextVersionPlugin>();
+        await plugins.RegisterAsync<VersionCalculationPerfomancePlugin>();
 
         if (pluginDescriptors is not null) {
             foreach (var pluginDescriptor in pluginDescriptors) {
-                await pluginRegistry.RegisterAsync(pluginDescriptor.PluginType, pluginDescriptor.Plugin);
+                await plugins.RegisterAsync(pluginDescriptor.PluginType, pluginDescriptor.Plugin);
             }
         }
 
-        var pluginEventAggregator = new PluginEventAggregator();
+        var pluginEvents = new PluginEventCache();
 
-        var pluginExecutor = new PluginExecutor(pluginRegistry, pluginEventAggregator);
+        var pluginExecutor = new PluginExecutor(plugins, pluginEvents);
         await pluginExecutor.ExecuteAsync();
 
         int exitCode = (int)ExitCode.NotExecuted;
-        using var exitCodeSubscription = pluginEventAggregator.GetEvent<CommandLineEvents.InvokedRootCommand>().Subscribe(i => exitCode = i);
+        using var exitCodeSubscription = pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, i => exitCode = i);
 
-        pluginEventAggregator.PublishEvent(CommandLineEvents.SetCommandLineArgs.Discriminator, args);
-        pluginEventAggregator.PublishEvent<CommandLineEvents.ParseCommandLineArgs>();
+        pluginEvents.Publish(CommandLineEvents.SetCommandLineArgs, args);
+        pluginEvents.Publish(CommandLineEvents.ParseCommandLineArgs);
 
         if (exitCode == (int)ExitCode.NotExecuted) {
-            pluginEventAggregator.PublishEvent<LoggingEvents.EnableLoggingInfrastructure>();
-            pluginEventAggregator.PublishEvent<ConfigurationEvents.CreateConfiguration>();
-            pluginEventAggregator.PublishEvent<CommandLineEvents.InvokeRootCommand>();
+            pluginEvents.Publish(LoggingEvents.EnableLoggingInfrastructure);
+            pluginEvents.Publish(ConfigurationEvents.CreateConfiguration);
+            pluginEvents.Publish(CommandLineEvents.InvokeRootCommand);
         }
 
         await pluginExecutor.DestroyAsync();

@@ -33,18 +33,18 @@ namespace Vernuntii.PluginSystem
         /// <inheritdoc/>
         protected override void OnCompletedRegistration()
         {
-            PluginRegistry.First<ICommandLinePlugin>().Registered +=
+            Plugins.First<ICommandLinePlugin>().Registered +=
                 plugin => plugin.RootCommand.Add(_configPathOption);
         }
 
         /// <inheritdoc/>
-        protected override void OnEventAggregation()
+        protected override void OnEvents()
         {
-            SubscribeEvent(
-                CommandLineEvents.ParsedCommandLineArgs.Discriminator,
+            Events.SubscribeOnce(
+                CommandLineEvents.ParsedCommandLineArgs,
                 parseResult => _configPath = parseResult.GetValueForOption(_configPathOption));
 
-            SubscribeEvent<ConfigurationEvents.CreateConfiguration>(() => {
+            Events.SubscribeOnce(ConfigurationEvents.CreateConfiguration, () => {
                 var configurationBuilder = new ConventionalConfigurationBuilder()
                    .AddConventionalYamlFileFinder()
                    .AddConventionalJsonFileFinder();
@@ -61,11 +61,11 @@ namespace Vernuntii.PluginSystem
 
                 Configuration = configurationBuilder.Build();
                 _logger.LogInformation("Use configuration file: {ConfigurationFilePath}", addedFilePath);
-                EventAggregator.PublishEvent(ConfigurationEvents.CreatedConfiguration.Discriminator, Configuration);
+                Events.Publish(ConfigurationEvents.CreatedConfiguration, Configuration);
             });
 
-            SubscribeEvent(
-                LoggingEvents.EnabledLoggingInfrastructure.Discriminator,
+            Events.SubscribeOnce(
+                LoggingEvents.EnabledLoggingInfrastructure,
                 plugin => _logger = plugin.CreateLogger<ConfigurationPlugin>());
         }
     }

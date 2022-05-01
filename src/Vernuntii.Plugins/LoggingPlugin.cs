@@ -50,7 +50,7 @@ namespace Vernuntii.PluginSystem
 
         /// <inheritdoc/>
         protected override void OnCompletedRegistration() =>
-            PluginRegistry.First<ICommandLinePlugin>().Registered += plugin => plugin.RootCommand.Add(VerboseOption);
+            Plugins.First<ICommandLinePlugin>().Registered += plugin => plugin.RootCommand.Add(VerboseOption);
 
         private void EnableLoggingInfrastructure()
         {
@@ -64,16 +64,16 @@ namespace Vernuntii.PluginSystem
 
             _loggerBinder = builder => builder.AddSerilog(_logger);
             _loggerFactory = LoggerFactory.Create(builder => _loggerBinder(builder));
-            EventAggregator.PublishEvent<LoggingEvents.EnabledLoggingInfrastructure, ILoggingPlugin>(this);
+            Events.Publish(LoggingEvents.EnabledLoggingInfrastructure, this);
         }
 
         /// <inheritdoc/>
-        protected override void OnEventAggregation()
+        protected override void OnEvents()
         {
-            SubscribeEvent(CommandLineEvents.ParsedCommandLineArgs.Discriminator, parseResult =>
+            Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult =>
                 _verbosity = parseResult.GetValueForOption(VerboseOption));
 
-            SubscribeEvent<LoggingEvents.EnableLoggingInfrastructure>(EnableLoggingInfrastructure);
+            Events.SubscribeOnce(LoggingEvents.EnableLoggingInfrastructure, EnableLoggingInfrastructure);
         }
 
         /// <inheritdoc/>
