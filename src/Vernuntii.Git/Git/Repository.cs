@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Vernuntii.Git.Command;
-using Teronis;
 using Teronis.Collections.Synchronization;
 using Teronis.IO;
 using Vernuntii.SemVer;
@@ -13,13 +12,15 @@ namespace Vernuntii.Git
         private const string GitFolderOrFileName = ".git";
 
         /// <inheritdoc/>
-        public IBranches Branches => _lazyBranches.Value;
+        public IBranches Branches => _branches ??= LoadBranches();
+
+        internal GitCommand GitCommand => _gitCommand ??= CreateCommand();
 
         private bool areCommitVersionsInitialized;
-        private readonly RepositoryOptions _factoryOptions;
+        private RepositoryOptions _options;
         private readonly ILogger<Repository> _logger;
-        private readonly GitCommand _gitCommand;
-        private readonly SlimLazy<Branches> _lazyBranches;
+        private GitCommand? _gitCommand;
+        private Branches? _branches;
         private readonly SynchronizableCollection<CommitVersion> _commitVersions;
         private readonly Action<ILogger, string, Exception?> _logGitDirectory;
         private readonly Action<ILogger, string, Exception?> _logBranches;
@@ -27,11 +28,11 @@ namespace Vernuntii.Git
         /// <summary>
         /// Creates an instance of <see cref="Repository"/>.
         /// </summary>
-        /// <param name="factoryOptions"></param>
+        /// <param name="options"></param>
         /// <param name="logger"></param>
-        public Repository(RepositoryOptions factoryOptions, ILogger<Repository> logger)
+        public Repository(RepositoryOptions options, ILogger<Repository> logger)
         {
-            _factoryOptions = factoryOptions ?? throw new ArgumentNullException(nameof(factoryOptions));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _logGitDirectory = LoggerMessage.Define<string>(
@@ -44,17 +45,25 @@ namespace Vernuntii.Git
                 new EventId(1),
                 "Loaded branches: {Branches}");
 
+            _commitVersions = new SynchronizableCollection<CommitVersion>(SemanticVersionComparer.VersionReleaseBuild, descended: false);
+        }
+
+        internal virtual Func<string, GitCommand> CreateCommandFactory() =>
+            gitDirectory => new GitCommand(gitDirectory);
+
+        private GitCommand CreateCommand()
+        {
+            var commandFactory = CreateCommandFactory();
             var gitDirectory = GetGitRootDirectory();
             _logGitDirectory(_logger, gitDirectory, null);
-            _gitCommand = new GitCommand(gitDirectory);
+            return commandFactory(gitDirectory);
+        }
 
-            _lazyBranches = new SlimLazy<Branches>(() => {
-                var branches = _gitCommand.GetBranches().ToList();
-                LogBranches(branches);
-                return new Branches(branches);
-            });
-
-            _commitVersions = new SynchronizableCollection<CommitVersion>(SemanticVersionComparer.VersionReleaseBuild, descended: false);
+        private Branches LoadBranches()
+        {
+            var branches = GitCommand.GetBranches().ToList();
+            LogBranches(branches);
+            return new Branches(branches);
         }
 
         private void LogBranches(ICollection<IBranch> branches)
@@ -78,16 +87,16 @@ namespace Vernuntii.Git
             (DirectoryUtils.GetDirectoryOfPathAbove(directory => {
                 var path = Path.Combine(directory.FullName, GitFolderOrFileName);
                 return File.Exists(path) || Directory.Exists(path);
-            }, new DirectoryInfo(_factoryOptions.GitDirectory), includeBeginningDirectory: true)
+            }, new DirectoryInfo(_options.GitDirectory), includeBeginningDirectory: true)
                 ?? throw new InvalidOperationException("Did not find a parent directory containing a .git-directory or .git-file")).FullName;
 
         /// <inheritdoc/>
         public string GetGitDirectory() =>
-            _gitCommand.GetGitDirectory();
+            GitCommand.GetGitDirectory();
 
         /// <inheritdoc/>
         public IEnumerable<ICommitTag> GetCommitTags() =>
-            _gitCommand.GetCommitTags();
+            GitCommand.GetCommitTags();
 
         /// <inheritdoc/>
         public IReadOnlyList<ICommitVersion> GetCommitVersions()
@@ -111,12 +120,12 @@ namespace Vernuntii.Git
 
         /// <inheritdoc/>
         public IEnumerable<ICommit> GetCommits(string? branchName = null, string? sinceCommit = null, bool reverse = false) =>
-            _gitCommand.GetCommits(branchName, sinceCommit, reverse);
+            GitCommand.GetCommits(branchName, sinceCommit, reverse);
 
         /// <inheritdoc/>
         public IBranch GetActiveBranch()
         {
-            var activeBranchName = _gitCommand.GetActiveBranchName();
+            var activeBranchName = GitCommand.GetActiveBranchName();
             return Branches[activeBranchName] ?? throw new InvalidOperationException($"Active branch \"{activeBranchName}\" is not retrievable");
         }
 
@@ -134,7 +143,7 @@ namespace Vernuntii.Git
         /// <inheritdoc/>
         public string? ExpandBranchName(string? branchName)
         {
-            if (_gitCommand.TryResolveReference(branchName, ShowRefLimit.Heads, out var reference)) {
+            if (GitCommand.TryResolveReference(branchName, ShowRefLimit.Heads, out var reference)) {
                 return reference.ReferenceName;
             }
 

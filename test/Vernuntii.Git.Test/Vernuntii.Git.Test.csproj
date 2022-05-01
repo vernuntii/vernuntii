@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Vernuntii.Git\Vernuntii.Git.csproj" />
-    <ProjectReference Include="..\GitTools.Testing\GitTools.Testing.csproj" />
     <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
   </ItemGroup>
 

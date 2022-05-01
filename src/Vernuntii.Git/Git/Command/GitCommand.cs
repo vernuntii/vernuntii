@@ -9,9 +9,24 @@ namespace Vernuntii.Git.Command
     {
         private readonly string _workingDirectory;
 
-        public GitCommand(string workingDirectory) => _workingDirectory = workingDirectory;
+        public GitCommand(string workingDirectory) => 
+            _workingDirectory = workingDirectory;
 
         private GitProcessStartInfo CreateStartInfo(string? args) => new GitProcessStartInfo(args, _workingDirectory);
+
+        protected int ExecuteCommand(string args) => SimpleProcess.StartThenWaitForExit(CreateStartInfo(args));
+
+        protected void ExecuteCommandThenSucceed(string args, int expectedExitCode = 0)
+        {
+            var actualExitCode = ExecuteCommand(args);
+
+            if (actualExitCode != expectedExitCode) {
+                throw new InvalidOperationException($"Git returned unexpected exit code: {expectedExitCode} (Actual = {actualExitCode})");
+            }
+        }
+
+        protected string ExecuteCommandThenReadOutput(string? args) =>
+            SimpleProcess.StartThenWaitForExitThenReadOutput(CreateStartInfo(args), shouldThrowOnNonZeroCode: true).TrimEnd();
 
         protected List<string> ExecuteCommandThenReadLines(string? args) => SimpleProcess
             .StartThenWaitForExitThenReadOutput(
@@ -19,11 +34,6 @@ namespace Vernuntii.Git.Command
                 shouldThrowOnNonZeroCode: true)
             .Split("\n")
             .ToList();
-
-        protected int ExecuteCommand(string args) => SimpleProcess.StartThenWaitForExit(CreateStartInfo(args));
-
-        protected string ExecuteCommandThenReadOutput(string? args) =>
-            SimpleProcess.StartThenWaitForExitThenReadOutput(CreateStartInfo(args), shouldThrowOnNonZeroCode: true).TrimEnd();
 
         public bool IsHeadDetached() => ExecuteCommand("symbolic-ref -q HEAD") == 1;
 

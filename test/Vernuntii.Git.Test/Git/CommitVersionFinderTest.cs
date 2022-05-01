@@ -1,5 +1,4 @@
-﻿using GitTools.Testing;
-using Vernuntii.SemVer;
+﻿using Vernuntii.SemVer;
 using Xunit;
 
 namespace Vernuntii.Git
@@ -9,16 +8,17 @@ namespace Vernuntii.Git
         [Fact]
         public void FindCommitVersionShouldFindLatestVersion()
         {
-            //using var repository = new EmptyRepositoryFixture();
-            //repository.MakeACommit();
-            //repository.ApplyTag("0.0.1"); // release
-            //repository.ApplyTag("0.0.1-alpha"); // pre-release
-            //repository.ApplyTag("0.0.1-beta"); // pre-release
+            using var repository = new TempoararyRepository(LoggerFactory.CreateLogger<TempoararyRepository>());
+            repository.CommitEmpty();
+            repository.TagLightweight("0.0.1");
+            repository.TagLightweight("0.0.1-alpha");
+            repository.TagLightweight("0.0.1-beta");
 
-            //var version = new CommitVersionFinder(repository.Repository, repository.Repository, LoggerFactory.CreateLogger<CommitVersionFinder>())
-            //    .FindCommitVersion(new CommitVersionFindingOptions());
+            var version = new CommitVersionFinder(new CommitVersionFinderOptions(), repository, repository, LoggerFactory.CreateLogger<CommitVersionFinder>())
+                .FindCommitVersion(new CommitVersionFindingOptions());
 
-            //Assert.Equal(SemanticVersion.OnePatch, version);
+            Assert.NotNull(version);
+            Assert.Equal(SemanticVersion.OnePatch, version!, SemanticVersionComparer.VersionReleaseBuild);
         }
     }
 }
