@@ -103,8 +103,8 @@ namespace Vernuntii.PluginSystem
         private bool _emptyCaches;
 
         /// <inheritdoc/>
-        protected override void OnRegistration() =>
-            PluginRegistry.TryRegister<NextVersionOptionsPlugin>();
+        protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
+            await PluginRegistry.TryRegisterAsync<NextVersionOptionsPlugin>();
 
         private int ProduceVersionOutput()
         {

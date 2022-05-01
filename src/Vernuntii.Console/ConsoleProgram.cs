@@ -14,28 +14,28 @@ public static class ConsoleProgram
     /// <param name="args">arguments</param>
     /// <param name="pluginDescriptors"></param>
     /// <returns>exit code</returns>
-    public static Task<int> RunAsync(string[] args, IEnumerable<PluginDescriptor>? pluginDescriptors = null)
+    public static async Task<int> RunAsync(string[] args, IEnumerable<PluginDescriptor>? pluginDescriptors = null)
     {
         using var pluginRegistry = new PluginRegistry();
 
-        pluginRegistry.Register<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
-        pluginRegistry.Register<ICommandLinePlugin, CommandLinePlugin>();
-        pluginRegistry.Register<ILoggingPlugin, LoggingPlugin>();
-        pluginRegistry.Register<IConfigurationPlugin, ConfigurationPlugin>();
-        pluginRegistry.Register<IGitPlugin, GitPlugin>();
-        pluginRegistry.Register<INextVersionPlugin, NextVersionPlugin>();
-        pluginRegistry.Register<VersionCalculationPerfomancePlugin>();
+        await pluginRegistry.RegisterAsync<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
+        await pluginRegistry.RegisterAsync<ICommandLinePlugin, CommandLinePlugin>();
+        await pluginRegistry.RegisterAsync<ILoggingPlugin, LoggingPlugin>();
+        await pluginRegistry.RegisterAsync<IConfigurationPlugin, ConfigurationPlugin>();
+        await pluginRegistry.RegisterAsync<IGitPlugin, GitPlugin>();
+        await pluginRegistry.RegisterAsync<INextVersionPlugin, NextVersionPlugin>();
+        await pluginRegistry.RegisterAsync<VersionCalculationPerfomancePlugin>();
 
         if (pluginDescriptors is not null) {
             foreach (var pluginDescriptor in pluginDescriptors) {
-                pluginRegistry.Register(pluginDescriptor.PluginType, pluginDescriptor.Plugin);
+                await pluginRegistry.RegisterAsync(pluginDescriptor.PluginType, pluginDescriptor.Plugin);
             }
         }
 
         var pluginEventAggregator = new PluginEventAggregator();
 
         var pluginExecutor = new PluginExecutor(pluginRegistry, pluginEventAggregator);
-        pluginExecutor.Execute();
+        await pluginExecutor.ExecuteAsync();
 
         int exitCode = (int)ExitCode.NotExecuted;
         using var exitCodeSubscription = pluginEventAggregator.GetEvent<CommandLineEvents.InvokedRootCommand>().Subscribe(i => exitCode = i);
@@ -49,13 +49,13 @@ public static class ConsoleProgram
             pluginEventAggregator.PublishEvent<CommandLineEvents.InvokeRootCommand>();
         }
 
-        pluginExecutor.Destroy();
+        await pluginExecutor.DestroyAsync();
 
         if (exitCode == (int)ExitCode.NotExecuted) {
             throw new InvalidOperationException("The command line plugin was not running");
         }
 
-        return Task.FromResult(exitCode);
+        return exitCode;
     }
 
     /// <summary>

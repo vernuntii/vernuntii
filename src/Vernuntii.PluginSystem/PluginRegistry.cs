@@ -57,10 +57,10 @@
         }
 
         /// <inheritdoc/>
-        private IPluginRegistration RegisterCore(Type serviceType, IPlugin plugin)
+        private async ValueTask<IPluginRegistration> RegisterAsyncCore(Type serviceType, IPlugin plugin)
         {
             EnsureNotSealed();
-            var acceptRegistration = plugin.OnRegistration(this);
+            var acceptRegistration = await plugin.OnRegistration(this);
 
             int pluginId;
 
@@ -81,7 +81,7 @@
         }
 
         /// <inheritdoc/>
-        public IPluginRegistration Register(Type serviceType, IPlugin plugin)
+        public async ValueTask<IPluginRegistration> RegisterAsync(Type serviceType, IPlugin plugin)
         {
             var pluginType = plugin.GetType();
 
@@ -89,7 +89,7 @@
                 throw new ArgumentException($"Service type \"{serviceType}\" is not a subset of plugin type \"{pluginType.GetType()}\"", nameof(serviceType));
             }
 
-            return RegisterCore(serviceType, plugin);
+            return await RegisterAsyncCore(serviceType, plugin);
         }
 
         /// <summary>

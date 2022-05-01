@@ -11,26 +11,26 @@
         /// <typeparam name="TService"></typeparam>
         /// <param name="pluginRegistry"></param>
         /// <param name="plugin"></param>
-        public static IPluginRegistration Register<TService>(this IPluginRegistry pluginRegistry, IPlugin plugin)
+        public static ValueTask<IPluginRegistration> RegisterAsync<TService>(this IPluginRegistry pluginRegistry, IPlugin plugin)
             where TService : IPlugin =>
-            pluginRegistry.Register(typeof(TService), plugin);
+            pluginRegistry.RegisterAsync(typeof(TService), plugin);
 
         /// <summary>
         /// Registers a plugin.
         /// </summary>
         /// <param name="pluginRegistry"></param>
-        public static IPluginRegistration Register<TService, TImplementation>(this IPluginRegistry pluginRegistry)
+        public static ValueTask<IPluginRegistration> RegisterAsync<TService, TImplementation>(this IPluginRegistry pluginRegistry)
             where TService : IPlugin
             where TImplementation : TService, new() =>
-            pluginRegistry.Register(typeof(TService), new TImplementation());
+            pluginRegistry.RegisterAsync(typeof(TService), new TImplementation());
 
         /// <summary>
         /// Registers a plugin.
         /// </summary>
         /// <param name="pluginRegistry"></param>
-        public static IPluginRegistration Register<TPlugin>(this IPluginRegistry pluginRegistry)
+        public static ValueTask<IPluginRegistration> RegisterAsync<TPlugin>(this IPluginRegistry pluginRegistry)
             where TPlugin : IPlugin, new() =>
-            pluginRegistry.Register(typeof(IPlugin), new TPlugin());
+            pluginRegistry.RegisterAsync(typeof(IPlugin), new TPlugin());
 
         /// <summary>
         /// Registers a plugin.
@@ -38,8 +38,16 @@
         /// <param name="pluginRegistry"></param>
         /// <param name="serviceType"></param>
         /// <param name="plugin"></param>
-        public static IPluginRegistration TryRegister(this IPluginRegistry pluginRegistry, Type serviceType, IPlugin plugin) =>
-            pluginRegistry.PluginRegistrations.FirstOrDefault(x => x.ServiceType == serviceType) ?? pluginRegistry.Register(serviceType, plugin);
+        public static async ValueTask<IPluginRegistration> TryRegisterAsync(this IPluginRegistry pluginRegistry, Type serviceType, IPlugin plugin)
+        {
+            var pluginRegistration = pluginRegistry.PluginRegistrations.FirstOrDefault(x => x.ServiceType == serviceType);
+
+            if (pluginRegistration is null) {
+                pluginRegistration = await pluginRegistry.RegisterAsync(serviceType, plugin);
+            }
+
+            return pluginRegistration;
+        }
 
         /// <summary>
         /// Registers a plugin.
@@ -47,25 +55,25 @@
         /// <typeparam name="TService"></typeparam>
         /// <param name="pluginRegistry"></param>
         /// <param name="plugin"></param>
-        public static IPluginRegistration TryRegister<TService>(this IPluginRegistry pluginRegistry, IPlugin plugin)
+        public static ValueTask<IPluginRegistration> TryRegisterAsync<TService>(this IPluginRegistry pluginRegistry, IPlugin plugin)
             where TService : IPlugin =>
-            pluginRegistry.TryRegister(typeof(TService), plugin);
+            pluginRegistry.TryRegisterAsync(typeof(TService), plugin);
 
         /// <summary>
         /// Registers a plugin.
         /// </summary>
         /// <param name="pluginRegistry"></param>
-        public static IPluginRegistration TryRegister<TService, TImplementation>(this IPluginRegistry pluginRegistry)
+        public static ValueTask<IPluginRegistration> TryRegisterAsync<TService, TImplementation>(this IPluginRegistry pluginRegistry)
             where TService : IPlugin
             where TImplementation : TService, new() =>
-            pluginRegistry.TryRegister(typeof(TService), new TImplementation());
+            pluginRegistry.TryRegisterAsync(typeof(TService), new TImplementation());
 
         /// <summary>
         /// Registers a plugin.
         /// </summary>
         /// <param name="pluginRegistry"></param>
-        public static IPluginRegistration TryRegister<TPlugin>(this IPluginRegistry pluginRegistry)
+        public static ValueTask<IPluginRegistration> TryRegisterAsync<TPlugin>(this IPluginRegistry pluginRegistry)
             where TPlugin : IPlugin, new() =>
-            pluginRegistry.TryRegister(typeof(TPlugin), new TPlugin());
+            pluginRegistry.TryRegisterAsync(typeof(TPlugin), new TPlugin());
     }
 }

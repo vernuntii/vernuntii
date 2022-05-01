@@ -28,8 +28,8 @@ public class GitPlugin : Plugin, IGitPlugin
     private bool _duplicateVersionFails;
 
     /// <inheritdoc/>
-    protected override void OnRegistration() =>
-        PluginRegistry.TryRegister<NextVersionOptionsPlugin>();
+    protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
+        await PluginRegistry.TryRegisterAsync<NextVersionOptionsPlugin>();
 
     /// <inheritdoc/>
     protected override void OnCompletedRegistration()

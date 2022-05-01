@@ -18,22 +18,22 @@ public interface IPlugin : IDisposable
     /// </summary>
     /// <param name="pluginRegistry"></param>
     /// <returns><see langword="true"/> accepts the registration.</returns>
-    bool OnRegistration(IPluginRegistry pluginRegistry);
+    ValueTask<bool> OnRegistration(IPluginRegistry pluginRegistry);
 
     /// <summary>
     /// Called when all plugins are registered and ordered.
     /// </summary>
-    void OnCompletedRegistration();
+    ValueTask OnCompletedRegistration();
 
     /// <summary>
     /// Called when this plugin gets notified about event aggregator.
     /// Called after <see cref="OnCompletedRegistration()"/>.
     /// </summary>
     /// <param name="eventAggregator"></param>
-    void OnEventAggregation(IPluginEventAggregator eventAggregator);
+    ValueTask OnEventAggregation(IPluginEventAggregator eventAggregator);
 
     /// <summary>
     /// Called when plugin gets explictly destroyed.
     /// </summary>
-    void OnDestroy();
+    ValueTask OnDestroy();
 }

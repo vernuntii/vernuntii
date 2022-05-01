@@ -14,7 +14,7 @@ namespace Vernuntii.PluginSystem
         /// Represents the plugin registry.
         /// </summary>
         protected internal IPluginRegistry PluginRegistry =>
-            _pluginRegistry ?? throw new InvalidOperationException($"Method {nameof(OnRegistration)} was not called yet");
+            _pluginRegistry ?? throw new InvalidOperationException($"Method {nameof(OnRegistrationAsync)} was not called yet");
 
         /// <summary>
         /// Represents the plugin event aggregator.
@@ -31,28 +31,18 @@ namespace Vernuntii.PluginSystem
 
         /// <summary>
         /// Called when this plugin gets added. It gives
-        /// you the opportunity to prepare dependencies.
-        /// </summary>
-        protected virtual void OnRegistration()
-        {
-        }
-
-        /// <summary>
-        /// Called when this plugin gets added. It gives
         /// you the opportunity to prepare dependencies
         /// and prevent the registration.
         /// </summary>
         /// <param name="registrationContext"></param>
-        protected virtual void OnRegistration(RegistrationContext registrationContext)
-        {
-        }
+        protected virtual ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
+            ValueTask.CompletedTask;
 
-        bool IPlugin.OnRegistration(IPluginRegistry pluginRegistry)
+        async ValueTask<bool> IPlugin.OnRegistration(IPluginRegistry pluginRegistry)
         {
             _pluginRegistry = pluginRegistry;
-            OnRegistration();
             var registrationContext = new RegistrationContext();
-            OnRegistration(registrationContext);
+            await OnRegistrationAsync(registrationContext);
             return registrationContext.AcceptRegistration;
         }
 
@@ -64,6 +54,12 @@ namespace Vernuntii.PluginSystem
         }
 
         /// <summary>
+        /// Called when all plugins are registered and ordered.
+        /// </summary>
+        protected virtual ValueTask OnCompletedRegistrationAsync() =>
+            ValueTask.CompletedTask;
+
+        /// <summary>
         /// Gets the first plugin of type <typeparamref name="T"/>.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -72,21 +68,32 @@ namespace Vernuntii.PluginSystem
             where T : IPlugin =>
             PluginRegistry.First<T>().Value;
 
-        void IPlugin.OnCompletedRegistration() =>
+        ValueTask IPlugin.OnCompletedRegistration()
+        {
             OnCompletedRegistration();
+            return OnCompletedRegistrationAsync();
+        }
 
         /// <summary>
         /// Called when this plugin gets notified about event aggregator.
-        /// Called after <see cref="OnRegistration()"/>.
+        /// Called after <see cref="OnRegistrationAsync(RegistrationContext)"/>.
         /// </summary>
         protected virtual void OnEventAggregation()
         {
         }
 
-        void IPlugin.OnEventAggregation(IPluginEventAggregator eventAggregator)
+        /// <summary>
+        /// Called when this plugin gets notified about event aggregator.
+        /// Called after <see cref="OnRegistrationAsync(RegistrationContext)"/>.
+        /// </summary>
+        protected virtual ValueTask OnEventAggregationAsync() =>
+            ValueTask.CompletedTask;
+
+        ValueTask IPlugin.OnEventAggregation(IPluginEventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
             OnEventAggregation();
+            return OnEventAggregationAsync();
         }
 
         /// <summary>
@@ -129,7 +136,17 @@ namespace Vernuntii.PluginSystem
         {
         }
 
-        void IPlugin.OnDestroy() => OnDestroy();
+        /// <summary>
+        /// Called when plugin gets explictly destroyed.
+        /// </summary>
+        protected virtual ValueTask OnDestroyAsync() =>
+            ValueTask.CompletedTask;
+
+        ValueTask IPlugin.OnDestroy()
+        {
+            OnDestroy();
+            return OnDestroyAsync();
+        }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

@@ -15,7 +15,7 @@
         /// </summary>
         /// <param name="serviceType"></param>
         /// <param name="plugin"></param>
-        IPluginRegistration Register(Type serviceType, IPlugin plugin);
+        ValueTask<IPluginRegistration> RegisterAsync(Type serviceType, IPlugin plugin);
 
         /// <summary>
         /// The registered plugin.

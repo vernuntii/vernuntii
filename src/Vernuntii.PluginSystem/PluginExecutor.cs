@@ -24,26 +24,26 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Executes the plugins one after the other.
         /// </summary>
-        public void Execute()
+        public async ValueTask ExecuteAsync()
         {
             _pluginRegistry.Seal();
 
             foreach (var registration in _pluginRegistry.PluginRegistrations) {
-                registration.Plugin.OnCompletedRegistration();
+                await registration.Plugin.OnCompletedRegistration();
             }
 
             foreach (var registration in _pluginRegistry.PluginRegistrations) {
-                registration.Plugin.OnEventAggregation(_eventAggregator);
+                await registration.Plugin.OnEventAggregation(_eventAggregator);
             }
         }
 
         /// <summary>
         /// Destroys the plugins one after the other.
         /// </summary>
-        public void Destroy()
+        public async ValueTask DestroyAsync()
         {
             foreach (var registration in _pluginRegistry.PluginRegistrations) {
-                registration.Plugin.OnDestroy();
+                await registration.Plugin.OnDestroy();
             }
         }
     }
