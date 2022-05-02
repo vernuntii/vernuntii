@@ -10,7 +10,7 @@ namespace Vernuntii.VersionTransformers
         /// <summary>
         /// Indicates that the transformer is actually not transforming.
         /// </summary>
-        bool DoesNotTransform => false;
+        bool DoesNotTransform { get; }
 
         /// <summary>
         /// Transform the version.

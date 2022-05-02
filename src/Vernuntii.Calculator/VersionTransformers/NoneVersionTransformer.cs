@@ -12,13 +12,13 @@ namespace Vernuntii.VersionTransformers
         /// </summary>
         public readonly static NoneVersionTransformer Default = new NoneVersionTransformer();
 
+        bool ISemanticVersionTransformer.DoesNotTransform => true;
+
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
         /// <param name="version"></param>
         public ISemanticVersion TransformVersion(ISemanticVersion version) =>
             version;
-
-        bool ISemanticVersionTransformer.DoesNotTransform => true;
     }
 }

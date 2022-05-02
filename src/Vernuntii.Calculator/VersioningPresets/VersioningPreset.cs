@@ -16,9 +16,7 @@ namespace Vernuntii.VersioningPresets
         /// <br/> - none message indicators and
         /// <br/> - <see cref="VersionIncrementMode.None"/>
         /// </summary>
-        public readonly static VersioningPreset Manual = new VersioningPreset() {
-            IncrementMode = VersionIncrementMode.None
-        };
+        public readonly static VersioningPreset Manual = new VersioningPreset();
 
         private readonly static HeightConvention OneDottedPreReleaseHeightConvention = new HeightConvention(HeightIdentifierPosition.PreRelease) {
             Rules = HeightRuleDictionary.BehindFirstDotRules
@@ -91,19 +89,16 @@ namespace Vernuntii.VersioningPresets
             HeightConvention = OneDottedPreReleaseHeightConvention
         };
 
-        /// <summary>
-        /// Increment mode.
-        /// </summary>
+        /// <inheritdoc/>
         public VersionIncrementMode IncrementMode { get; init; }
 
-        /// <summary>
-        /// Message convention.
-        /// </summary>
+        /// <inheritdoc/>
+        public bool RightShiftWhenZeroMajor { get; init; }
+
+        /// <inheritdoc/>
         public IMessageConvention? MessageConvention { get; init; }
 
-        /// <summary>
-        /// Height convention.
-        /// </summary>
+        /// <inheritdoc/>
         public IHeightConvention? HeightConvention { get; init; }
 
         /// <summary>

@@ -2,6 +2,7 @@
 using Vernuntii.MessagesProviders;
 using Vernuntii.MessageVersioning;
 using Vernuntii.SemVer;
+using Vernuntii.VersionTransformers;
 
 namespace Vernuntii;
 
@@ -10,9 +11,11 @@ namespace Vernuntii;
 /// </summary>
 public class SemanticVersionCalculator : ISemanticVersionCalculator
 {
+    private const string _logVersionTransformationTemplate = "Transformed version from {FromVersion} to {ToVersion}";
+
     private readonly ILogger _logger;
     private readonly Action<ILogger, ISemanticVersion, Exception?> _logInitialVersion;
-    private readonly Action<ILogger, ISemanticVersion, ISemanticVersion, Exception?> _logVersionTransformation;
+    private readonly Action<ILogger, ISemanticVersion, ISemanticVersion, bool, Exception?> _logVersionTransformation;
     private readonly Action<ILogger, ISemanticVersion, ISemanticVersion, Exception?> _logVersionPostTransformation;
     private readonly Action<ILogger, int, int, int, Exception?> _logMessageCountHavingProcessed;
 
@@ -27,10 +30,10 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
             new EventId(1, "StartVersion"),
             "Use start version {InitialVersion} for next transformation");
 
-        _logVersionTransformation = LoggerMessage.Define<ISemanticVersion, ISemanticVersion>(
+        _logVersionTransformation = LoggerMessage.Define<ISemanticVersion, ISemanticVersion, bool>(
             LogLevel.Information,
             new EventId(2, "TransformedVersion"),
-            "Transformed version from {FromVersion} to {ToVersion}");
+            _logVersionTransformationTemplate + " (RightShifted = {RightShifted})");
 
         _logVersionPostTransformation = LoggerMessage.Define<ISemanticVersion, ISemanticVersion>(
             LogLevel.Information,
@@ -48,23 +51,22 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
     private void LogInitialVersion(ISemanticVersion initialVersion) =>
         _logInitialVersion(_logger, initialVersion, null);
 
-    private void LogVersionTransformation(IMessage message, ISemanticVersion fromVersion, ISemanticVersion toVersion)
+    private void LogVersionTransformation(IMessage message, ISemanticVersion fromVersion, ISemanticVersion toVersion, bool rightShifted)
     {
         if (message is IMessageProvidingDebugMessage messageProvidingDebugMessage && messageProvidingDebugMessage.DebugMessageFactory != null) {
             var debugMessage = messageProvidingDebugMessage.DebugMessageFactory();
 
-            var arguments = new List<object>() { fromVersion, toVersion };
+            var arguments = new List<object>() { fromVersion, toVersion, rightShifted };
             arguments.AddRange(debugMessage.Arguments);
 
             // Disable:
-            // 1. Use the LoggerMessage delegates
-            // 2. Template should be a static expression
-#pragma warning disable CA1848, CA2254
-            _logger.LogInformation(new EventId(3), "Transformed version from {FromVersion} to {ToVersion}" +
-                $" ({debugMessage.FormatString})", arguments.ToArray());
-#pragma warning restore CA1848, CA2254
+            // 1. Template should be a static expression
+#pragma warning disable CA2254
+            _logger.LogInformation(new EventId(3), _logVersionTransformationTemplate +
+                $" (RightShifted = {{RightShifted}}, {debugMessage.FormatString})", arguments.ToArray());
+#pragma warning restore CA2254
         } else {
-            _logVersionTransformation(_logger, fromVersion, toVersion, null);
+            _logVersionTransformation(_logger, fromVersion, toVersion, rightShifted, null);
         }
     }
 
@@ -90,7 +92,7 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
         var nextVersion = options.StartVersion;
         LogInitialVersion(nextVersion);
 
-        var versionIncrementBuilder = new VersionIncrementBuilder(options.VersioningPreset);
+        var versionIncrementBuilder = new VersionIncrementBuilder();
         var versioningContext = new MessageVersioningContext(options);
 
         var messages = options.MessagesProvider?.GetMessages();
@@ -101,21 +103,13 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
             foreach (var message in messages) {
                 messageCounter++;
 
-                var preflightVersion = nextVersion;
-
-                foreach (var versionTransformer in versionIncrementBuilder.BuildIncrement(message, versioningContext)) {
-                    if (versionTransformer is null || versionTransformer.DoesNotTransform) {
-                        continue;
-                    }
-
-                    preflightVersion = versionTransformer.TransformVersion(preflightVersion);
-                }
+                var preflightVersion = versionIncrementBuilder.BuildIncrement(message, versioningContext).TransformVersion(nextVersion);
 
                 if (ReferenceEquals(preflightVersion, nextVersion) || preflightVersion.Equals(nextVersion)) {
                     continue;
                 }
 
-                LogVersionTransformation(message, nextVersion, preflightVersion);
+                LogVersionTransformation(message, nextVersion, preflightVersion, versioningContext.IsVersionIndicationRightShifted);
                 nextVersion = preflightVersion;
                 messageInvolvedIntoTransformationCounter++;
 

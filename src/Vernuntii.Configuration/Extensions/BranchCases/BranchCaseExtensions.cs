@@ -112,9 +112,10 @@ namespace Vernuntii.Extensions.BranchCases
 
         internal class VersioningModeObject
         {
-            public string? Preset { get; set; }
-            public string? MessageConvention { get; set; }
             public VersionIncrementMode? IncrementMode { get; set; }
+            public string? Preset { get; set; }
+            public bool RightShiftWhenZeroMajor { get; set; }
+            public string? MessageConvention { get; set; }
         }
 
         #endregion

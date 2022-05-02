@@ -24,6 +24,8 @@ namespace Vernuntii.VersionTransformers
         private HeightConventionTransformResult? _transformResult;
         private uint? _parsedHeightNumber;
 
+        bool ISemanticVersionTransformer.DoesNotTransform => false;
+
         public NextHeightNumberTransformer(HeightConventionTransformer transformer) =>
             _transformer = transformer ?? throw new ArgumentNullException(nameof(transformer));
 

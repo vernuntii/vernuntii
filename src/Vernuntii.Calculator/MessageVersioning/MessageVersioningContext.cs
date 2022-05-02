@@ -1,5 +1,6 @@
 ﻿using Vernuntii.HeightConventions.Transformation;
 using Vernuntii.SemVer;
+using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.MessageVersioning
 {
@@ -57,6 +58,12 @@ namespace Vernuntii.MessageVersioning
         /// The height identifier transformer.
         /// </summary>
         public HeightConventionTransformer HeightIdentifierTransformer { get; }
+
+        /// <summary>
+        /// <see langword="true"/> if indicator of next version has been right shifted.
+        /// See <see cref="IVersioningPreset.RightShiftWhenZeroMajor"/> for more details.
+        /// </summary>
+        internal bool IsVersionIndicationRightShifted { get; set; }
 
         private ISemanticVersion? _currentVersion;
         private bool? _doesCurrentVersionContainsMajorIncrement;

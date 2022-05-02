@@ -10,6 +10,8 @@ namespace Vernuntii.VersionTransformers
         /// <inheritdoc/>
         public string? ProspectivePreRelease { get; }
 
+        bool ISemanticVersionTransformer.DoesNotTransform => false;
+
         /// <summary>
         /// Default constructor.
         /// </summary>

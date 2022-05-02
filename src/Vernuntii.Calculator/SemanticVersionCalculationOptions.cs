@@ -64,6 +64,13 @@ namespace Vernuntii
         /// </summary>
         internal bool IsPostVersionPreRelease => !string.IsNullOrEmpty(PostTransformer?.ProspectivePreRelease ?? StartVersion.PreRelease);
 
+        /// <summary>
+        /// <see langword="true"/> if major of current version is zero and versioning preset allows right shifting.
+        /// </summary>
+        public bool CanRightShiftVersion =>
+            StartVersion.Major == 0
+            && VersioningPreset.RightShiftWhenZeroMajor;
+
         private ISemanticVersion _startVersion = SemanticVersion.OneMinor.With.PreRelease("alpha").ToVersion();
         private IVersioningPreset _versionIncrementOptions = VersioningPresets.VersioningPreset.Default;
 

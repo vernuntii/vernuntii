@@ -7,6 +7,8 @@ namespace Vernuntii.VersionTransformers
     {
         public readonly static NextBuildNumberTransformer Default = new NextBuildNumberTransformer();
 
+        bool ISemanticVersionTransformer.DoesNotTransform => false;
+
         private static int GetBuildNumber(string? build)
         {
             if (string.IsNullOrWhiteSpace(build)) {

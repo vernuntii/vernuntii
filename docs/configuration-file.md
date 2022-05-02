@@ -7,11 +7,12 @@ The configuration file is the heart of Vernuntii. By defining properties you cha
   - [Git Plugin](#git-plugin)
     - [Branches](#branches)
       - [Usage](#usage)
-      - [Explanations](#explanations)
+      - [Types](#types)
       - [Defaults](#defaults)
     - [Versioning Mode](#versioning-mode)
       - [Usage](#usage-1)
-      - [Structure](#structure)
+      - [Types](#types-1)
+      - [Defaults](#defaults-1)
 
 ## Auto-discovery
 
@@ -38,6 +39,7 @@ Branches allows you to define rules for one or more branches.
 ```yaml
 # The git directory to use
 GitDirectory: <git-branch:string> (optional)
+StartVersion: <start-version:string> (optional)
 
 # Below properties are available in "Branches" too.
 # If no <if-branch>-branch matches the current branch then the properties of this root level is taken.
@@ -75,7 +77,7 @@ Branches:
   - ...
 ```
 
-#### Explanations
+#### Types
 
 - `<if-branch>`
   - Can be the the full branch name or a part of it
@@ -100,6 +102,9 @@ These defaults are automatically applied.
 
 ```yaml
 GitDirectory: (the location where this configuration file has been found)
+StartVersion: (latest version)
+
+# Below properties are available in "Branches" too.
 SinceCommit: (latest version)
 
 PreRelease: (short name of current branch, e.g. main)
@@ -121,13 +126,16 @@ The versioning mode allows you to choose one of the many available version strat
 #### Usage
 
 ```yaml
-VersioningMode: <preset>
+VersioningMode: <preset> (optional)
 # or more detailed
 VersioningMode:
-  Preset: <preset:string>
-  MessageConvention: <message-convention:string>
-  IncrementMode: <increment-mode:string>
+  Preset: <preset:string> (optional)
+  MessageConvention: <message-convention:string> (optional if <preset> is set)
+  IncrementMode: <increment-mode:string> (optional if <preset> is set)
+  RightShiftWhenZeroMajor: <right-shift-when-zero-major:boolean> (optional)
 ```
+
+You can define `VersioningMode` also on each branch.
 
 ```yaml
 Branches:
@@ -135,7 +143,7 @@ Branches:
     VersioningMode: (same as above)
 ```
 
-#### Structure
+#### Types
 
 - `<preset>` 
   - `ContinousDelivery` (default)
@@ -144,12 +152,15 @@ Branches:
       - Minor indicator: never
       - Patch indicator: always
     - `<increment-mode>`: `Consecutive`
+    - `<right-shift-when-zero-major>`: `false`
+  - `Default`: same as `ContinousDelivery`
   - `ContinousDeployment`
     - `<message-convention>`
       - Major indicator: never
       - Minor indicator: never
       - Patch indicator: always
     - `<increment-mode>`: `Successive`
+    - `<right-shift-when-zero-major>`: `false`
   - `ConventionalCommitsDelivery`
     - `<message-convention>`
       - Major indicator: `^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)`
@@ -159,12 +170,14 @@ Branches:
   - `ConventionalCommitsDeployment`
     - `<message-convention>`: same as `ConventionalCommitsDelivery`
     - `<increment-mode>`: `Successive`
+    - `<right-shift-when-zero-major>`: `false`
   - `Manual`
     - `<message-convention>`
       - Major indicator: never
       - Minor indicator: never
       - Patch indicator: never
     - `<increment-mode>`: `None`
+    - `<right-shift-when-zero-major>`: `false`
 - `<message-convention>`
   - `Manual`: same as `Manual`.`<message-convention>`
   - `Continous`: same as `Continous*`.`<message-convention>`
@@ -173,3 +186,24 @@ Branches:
   - `None`: does not increment anything
   - `Consecutive`: increment only the most significant version number once
   - `Successive`: increment most significant version number as often as indicated
+- `<right-shift-when-zero-major>`
+  - `true`: does not right shift version when start version has zero major, so next major becomes next minor, next minor becomes next patch
+  - `false`: does not right shift version when start version has zero major
+
+#### Defaults
+
+If `VersioningMode` is not set its default is:
+
+```yaml
+VersioningMode: `Default`
+```
+
+If `VersioningMode` is defined as object its default is:
+
+```yaml
+VersioningMode:
+  Preset: (not set)
+  MessageConvention: (not set)
+  IncrementMode: (not set)
+  RightShiftWhenZeroMajor: false
+```

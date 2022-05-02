@@ -1,62 +1,50 @@
 ﻿using Vernuntii.HeightConventions;
-using Vernuntii.MessageConventions.MessageIndicators;
+using Vernuntii.MessageConventions;
 using Vernuntii.MessagesProviders;
-using Vernuntii.VersioningPresets;
 using Vernuntii.VersionTransformers;
 
 namespace Vernuntii.MessageVersioning
 {
-    internal class VersionIncrementBuilder
+    internal class VersionIncrementBuilder : IVersionIncrementBuilder
     {
-        private static bool IsMessageIndicating(IEnumerable<IMessageIndicator>? messageIndicators, string? message, VersionPart partToIndicate)
-        {
-            var enumerator = messageIndicators?.GetEnumerator();
-
-            if (enumerator is not null && enumerator.MoveNext()) {
-                do {
-                    if (enumerator.Current.IsMessageIndicating(message, partToIndicate)) {
-                        return true;
-                    }
-                } while (enumerator.MoveNext());
-            }
-
-            return false;
-        }
-
-        private readonly IVersioningPreset _options;
-
-        public VersionIncrementBuilder(IVersioningPreset options) =>
-            _options = options ?? throw new ArgumentNullException(nameof(options));
-
-        private bool IsMessageIndicatingMajor(string? message) =>
-            IsMessageIndicating(_options.MessageConvention?.MajorIndicators, message, VersionPart.Major);
-
-        private bool IsMessageIndicatingMinor(string? message) =>
-            IsMessageIndicating(_options.MessageConvention?.MinorIndicators, message, VersionPart.Minor);
-
-        private bool IsMessageIndicatingPatch(string? message) =>
-            IsMessageIndicating(_options.MessageConvention?.PatchIndicators, message, VersionPart.Patch);
-
         public IEnumerable<ISemanticVersionTransformer> BuildIncrement(IMessage message, MessageVersioningContext context)
         {
             var messageContent = message.Content;
+            var versioningPreset = context.VersionCalculationOptions.VersioningPreset;
+            var messageConvention = versioningPreset.MessageConvention;
 
-            bool isMessageIncrementingMajor = IsMessageIndicatingMajor(messageContent);
+            bool isMessageIncrementingMajor = messageConvention.IsMessageIndicatingMajor(messageContent);
 
             bool isMessageIncrementingMinor = isMessageIncrementingMajor
                 ? false
-                : IsMessageIndicatingMinor(messageContent);
+                : messageConvention.IsMessageIndicatingMinor(messageContent);
 
             bool isMessageIncrementingPatch = isMessageIncrementingMajor || isMessageIncrementingMinor
                 ? false
-                : IsMessageIndicatingPatch(messageContent);
+                : messageConvention.IsMessageIndicatingPatch(messageContent);
 
+            if (context.VersionCalculationOptions.CanRightShiftVersion) {
+                if (isMessageIncrementingMajor) {
+                    isMessageIncrementingMajor = false;
+                    isMessageIncrementingMinor = true;
+                    context.IsVersionIndicationRightShifted = true;
+                } else if (isMessageIncrementingMinor) {
+                    isMessageIncrementingMinor = false;
+                    isMessageIncrementingPatch = true;
+                    context.IsVersionIndicationRightShifted = true;
+                } else {
+                    // Patch remains as it is.
+                }
+            }
+
+            var heightConvention = versioningPreset.HeightConvention;
+            var incrementMode = versioningPreset.IncrementMode;
             var isPostVersionPreRelease = context.VersionCalculationOptions.IsPostVersionPreRelease;
             var startVersionCoreAlreadyReleased = context.VersionCalculationOptions.StartVersionCoreAlreadyReleased;
-            bool isHeightConventionApplicable = _options.HeightConvention is not null && _options.HeightConvention.Position != HeightIdentifierPosition.None;
-            bool allowUnlimitedIncrements = _options.IncrementMode == VersionIncrementMode.Successive;
+            bool isHeightConventionApplicable = heightConvention is not null && heightConvention.Position != HeightIdentifierPosition.None;
+            bool allowUnlimitedIncrements = incrementMode == VersionIncrementMode.Successive;
 
-            if (_options.IncrementMode != VersionIncrementMode.None) {
+            if (incrementMode != VersionIncrementMode.None) {
                 var allowIncrementBecauseReleaseOrDisabledHeight = !isPostVersionPreRelease || !isHeightConventionApplicable;
 
                 if (isMessageIncrementingMajor

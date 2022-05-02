@@ -13,6 +13,8 @@ namespace Vernuntii.VersionTransformers
         /// </summary>
         public readonly static NextMinorVersionTransformer Default = new NextMinorVersionTransformer();
 
+        bool ISemanticVersionTransformer.DoesNotTransform => false;
+
         /// <summary>
         /// <inheritdoc/>
         /// </summary>

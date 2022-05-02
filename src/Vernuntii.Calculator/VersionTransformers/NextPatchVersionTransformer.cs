@@ -12,6 +12,8 @@ namespace Vernuntii.VersionTransformers
         /// </summary>
         public readonly static NextPatchVersionTransformer Default = new NextPatchVersionTransformer();
 
+        bool ISemanticVersionTransformer.DoesNotTransform => false;
+
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
