@@ -187,7 +187,7 @@ Branches:
   - `Consecutive`: increment only the most significant version number once
   - `Successive`: increment most significant version number as often as indicated
 - `<right-shift-when-zero-major>`
-  - `true`: does not right shift version when start version has zero major, so next major becomes next minor, next minor becomes next patch
+  - `true`: does right shift version when start version has zero major, so next major becomes next minor, next minor becomes next patch
   - `false`: does not right shift version when start version has zero major
 
 #### Defaults
@@ -195,7 +195,7 @@ Branches:
 If `VersioningMode` is not set its default is:
 
 ```yaml
-VersioningMode: `Default`
+VersioningMode: Default
 ```
 
 If `VersioningMode` is defined as object its default is:
