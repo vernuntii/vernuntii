@@ -1,6 +1,4 @@
-﻿using Vernuntii.SemVer.Parser.Normalization;
-using Vernuntii.SemVer.Parser.Parsers;
-using Xunit;
+﻿using Xunit;
 
 namespace Vernuntii.SemVer.Parser
 {
@@ -8,54 +6,60 @@ namespace Vernuntii.SemVer.Parser
     {
         private static IEnumerable<object?[]> TryParseShouldParseStrictSucceededGenerator(SemanticVersionParser parser)
         {
-            yield return new object?[] { parser, "0.0.0", new ParseResult(true, "", 0, 0, 0) };
+            yield return new object?[] { parser, "1.1.1", new ParseResult(true, "", 1, 1, 1) };
 
-            yield return new object?[] { parser, "v0.0.0", new ParseResult(true, "v", 0, 0, 0) };
+            yield return new object?[] { parser, "v1.1.1", new ParseResult(true, "v", 1, 1, 1) };
 
-            yield return new object?[] { parser, "0.0.0-a", new ParseResult(true, "", 0, 0, 0, new[] { "a" }) };
-            yield return new object?[] { parser, "0.0.0-a.b", new ParseResult(true, "", 0, 0, 0, new[] { "a", "b" }) };
-            yield return new object?[] { parser, "0.0.0-00a", new ParseResult(true, "", 0, 0, 0, new[] { "00a" }) };
-            yield return new object?[] { parser, "0.0.0-0.a", new ParseResult(true, "", 0, 0, 0, new[] { "0", "a" }) };
+            yield return new object?[] { parser, "1.1.1-a", new ParseResult(true, "", 1, 1, 1, new[] { "a" }) };
+            yield return new object?[] { parser, "1.1.1-a.b", new ParseResult(true, "", 1, 1, 1, new[] { "a", "b" }) };
+            yield return new object?[] { parser, "1.1.1-01a", new ParseResult(true, "", 1, 1, 1, new[] { "01a" }) };
+            yield return new object?[] { parser, "1.1.1-0.a", new ParseResult(true, "", 1, 1, 1, new[] { "0", "a" }) };
 
-            yield return new object?[] { parser, "0.0.0+a", new ParseResult(true, "", 0, 0, 0, null, new[] { "a" }) };
-            yield return new object?[] { parser, "0.0.0+a.b", new ParseResult(true, "", 0, 0, 0, null, new[] { "a", "b" }) };
-            yield return new object?[] { parser, "0.0.0+00", new ParseResult(true, "", 0, 0, 0, null, new[] { "00" }) };
-            yield return new object?[] { parser, "0.0.0+00a", new ParseResult(true, "", 0, 0, 0, null, new[] { "00a" }) };
-            yield return new object?[] { parser, "0.0.0+0.a", new ParseResult(true, "", 0, 0, 0, null, new[] { "0", "a" }) };
+            yield return new object?[] { parser, "1.1.1+a", new ParseResult(true, "", 1, 1, 1, null, new[] { "a" }) };
+            yield return new object?[] { parser, "1.1.1+a.b", new ParseResult(true, "", 1, 1, 1, null, new[] { "a", "b" }) };
+            yield return new object?[] { parser, "1.1.1+01", new ParseResult(true, "", 1, 1, 1, null, new[] { "01" }) };
+            yield return new object?[] { parser, "1.1.1+01a", new ParseResult(true, "", 1, 1, 1, null, new[] { "01a" }) };
+            yield return new object?[] { parser, "1.1.1+1.a", new ParseResult(true, "", 1, 1, 1, null, new[] { "1", "a" }) };
         }
 
         private static IEnumerable<object?[]> TryParseShouldNotParseStrictFailedGenerator(SemanticVersionParser parser)
         {
             yield return new object?[] { parser, null, new ParseResult(false) };
             yield return new object?[] { parser, "", new ParseResult(false, "") };
+            yield return new object?[] { parser, "0", new ParseResult(false, "") };
+            yield return new object?[] { parser, "1", new ParseResult(false, "") };
             yield return new object?[] { parser, "0.0", new ParseResult(false, "") };
-            yield return new object?[] { parser, "00.0.0", new ParseResult(false, "") };
-            yield return new object?[] { parser, "0.00.0", new ParseResult(false, "", 0) };
-            yield return new object?[] { parser, "0.0.00", new ParseResult(false, "", 0, 0) };
-            yield return new object?[] { parser, "01.0.0", new ParseResult(false, "") };
-            yield return new object?[] { parser, "0a.0.0", new ParseResult(false, "0a") };
-            yield return new object?[] { parser, "0.0a.0", new ParseResult(false, "", 0) };
-            yield return new object?[] { parser, "0.0.0a", new ParseResult(false, "", 0, 0) };
+            yield return new object?[] { parser, "1.1", new ParseResult(false, "") };
+            yield return new object?[] { parser, "00.1.1", new ParseResult(false, "") };
+            yield return new object?[] { parser, "01.1.1", new ParseResult(false, "") };
+            yield return new object?[] { parser, "1.00.1", new ParseResult(false, "", 1) };
+            yield return new object?[] { parser, "1.01.1", new ParseResult(false, "", 1) };
+            yield return new object?[] { parser, "1.1.00", new ParseResult(false, "", 1, 1) };
+            yield return new object?[] { parser, "1.1.01", new ParseResult(false, "", 1, 1) };
+            yield return new object?[] { parser, "01.1.1", new ParseResult(false, "") };
+            yield return new object?[] { parser, "1a.1.1", new ParseResult(false, "1a") };
+            yield return new object?[] { parser, "1.1a.1", new ParseResult(false, "", 1) };
+            yield return new object?[] { parser, "1.1.1a", new ParseResult(false, "", 1, 1) };
 
-            yield return new object?[] { parser, "v0", new ParseResult(false, "v") };
-            yield return new object?[] { parser, "v0.0", new ParseResult(false, "v") };
-            yield return new object?[] { parser, "V0.0.0", new ParseResult(false, "V") };
+            yield return new object?[] { parser, "v1", new ParseResult(false, "v") };
+            yield return new object?[] { parser, "v1.1", new ParseResult(false, "v") };
+            yield return new object?[] { parser, "V1.1.1", new ParseResult(false, "V") };
 
-            yield return new object?[] { parser, "0.0.0-", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0- ", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0-ä", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0-00", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0-.", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0-a.", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0-.a", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "1.1.1-", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1- ", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1-ä", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1-01", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1-.", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1-a.", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1-.a", new ParseResult(false, "", 1, 1, 1) };
 
-            yield return new object?[] { parser, "0.0.0+", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0+ ", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0+ä", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0+00", new ParseResult(true, "", 0, 0, 0, null, new[] { "00" }) };
-            yield return new object?[] { parser, "0.0.0+.", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0+a.", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.0+.a", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "1.1.1+", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1+ ", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1+ä", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1+01", new ParseResult(true, "", 1, 1, 1, null, new[] { "01" }) };
+            yield return new object?[] { parser, "1.1.1+.", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1+a.", new ParseResult(false, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.1+.a", new ParseResult(false, "", 1, 1, 1) };
         }
 
         private static IEnumerable<object?[]> TryParseShouldParseStrictGenerator()
@@ -79,24 +83,34 @@ namespace Vernuntii.SemVer.Parser
                 yield return item;
             }
 
-            yield return new object?[] { parser, "00.0.0", new ParseResult(true, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.00.0", new ParseResult(true, "", 0, 0, 0) };
-            yield return new object?[] { parser, "0.0.00", new ParseResult(true, "", 0, 0, 0) };
+            yield return new object?[] { parser, "00.1.1", new ParseResult(true, "", 0, 1, 1) };
+            yield return new object?[] { parser, "000.1.1", new ParseResult(true, "", 0, 1, 1) };
+            yield return new object?[] { parser, "1.00.1", new ParseResult(true, "", 1, 0, 1) };
+            yield return new object?[] { parser, "1.000.1", new ParseResult(true, "", 1, 0, 1) };
+            yield return new object?[] { parser, "1.1.00", new ParseResult(true, "", 1, 1, 0) };
+            yield return new object?[] { parser, "1.1.000", new ParseResult(true, "", 1, 1, 0) };
 
-            yield return new object?[] { parser, "v0.0.0", new ParseResult(true, "v", 0, 0, 0) };
-            yield return new object?[] { parser, "a0.0.0", new ParseResult(false, "a") };
+            yield return new object?[] { parser, "01.1.1", new ParseResult(true, "", 1, 1, 1) };
+            yield return new object?[] { parser, "001.1.1", new ParseResult(true, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.01.1", new ParseResult(true, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.001.1", new ParseResult(true, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.01", new ParseResult(true, "", 1, 1, 1) };
+            yield return new object?[] { parser, "1.1.001", new ParseResult(true, "", 1, 1, 1) };
+
+            yield return new object?[] { parser, "v0.1.1", new ParseResult(true, "v", 0, 1, 1) };
+            yield return new object?[] { parser, "a0.1.1", new ParseResult(false, "a") };
             yield return new object?[] { parser, "0.a0.0", new ParseResult(false, "", 0) };
-            yield return new object?[] { parser, "0.0.a0", new ParseResult(false, "", 0, 0) };
+            yield return new object?[] { parser, "1.1.a0", new ParseResult(false, "", 1, 1) };
 
-            yield return new object?[] { parser, "\00.0.0", new ParseResult(false, "\0") };
+            yield return new object?[] { parser, "\01.1.1", new ParseResult(false, "\0") };
 
-            yield return new object?[] { parser, "0.0.0-00", new ParseResult(true, "", 0, 0, 0, new[] { "0" }) };
-            yield return new object?[] { parser, "0.0.0-\00", new ParseResult(true, "", 0, 0, 0, new[] { "0" }) };
-            yield return new object?[] { parser, "0.0.0-\0a\00", new ParseResult(true, "", 0, 0, 0, new[] { "a0" }) };
+            yield return new object?[] { parser, "1.1.1-01", new ParseResult(true, "", 1, 1, 1, new[] { "1" }) };
+            yield return new object?[] { parser, "1.1.1-\01", new ParseResult(true, "", 1, 1, 1, new[] { "1" }) };
+            yield return new object?[] { parser, "1.1.1-\0a\01", new ParseResult(true, "", 1, 1, 1, new[] { "a1" }) };
 
-            yield return new object?[] { parser, "0.0.0+00", new ParseResult(true, "", 0, 0, 0, null, new[] { "00" }) };
-            yield return new object?[] { parser, "0.0.0+\00", new ParseResult(true, "", 0, 0, 0, null, new[] { "0" }) };
-            yield return new object?[] { parser, "0.0.0+\0a\00", new ParseResult(true, "", 0, 0, 0, null, new[] { "a0" }) };
+            yield return new object?[] { parser, "1.1.1+01", new ParseResult(true, "", 1, 1, 1, null, new[] { "01" }) };
+            yield return new object?[] { parser, "1.1.1+\01", new ParseResult(true, "", 1, 1, 1, null, new[] { "1" }) };
+            yield return new object?[] { parser, "1.1.1+\0a\01", new ParseResult(true, "", 1, 1, 1, null, new[] { "a1" }) };
         }
 
         [Theory]

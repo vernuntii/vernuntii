@@ -48,13 +48,21 @@ namespace Vernuntii.SemVer.Parser.Parsers
             bool lookupAlphanumeric = false,
             bool lookupNumeric = false)
         {
-            var preReleaseIdentifierLength = value.Length;
+            var valueLength = value.Length;
             List<SemanticVersionFault> faults = new List<SemanticVersionFault>();
 
-            if (lookupSingleZero && value.HasNumberLeadingZeros(out var leadingZeros)) {
-                faults.Add(new SemanticVersionFault(IdentifierExpectation.SingleZero, 0..leadingZeros));
+            if (lookupSingleZero && value.HasNumberLeadingZeros(out var zeros)) {
+                IdentifierExpectation expectation;
+
+                if (zeros == valueLength) {
+                    expectation = IdentifierExpectation.SingleZero;
+                } else {
+                    expectation = IdentifierExpectation.Empty;
+                }
+
+                faults.Add(new SemanticVersionFault(expectation, 0..zeros));
             } else {
-                for (int i = 0; i < preReleaseIdentifierLength; i++) {
+                for (int i = 0; i < valueLength; i++) {
                     var currentCharacter = value[i];
 
                     @continue:
@@ -63,7 +71,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
                     if (lookupBackslashZero && currentCharacter == '\0') {
                         int faultStartAt = i;
 
-                        for (i++; i < preReleaseIdentifierLength; i++) {
+                        for (i++; i < valueLength; i++) {
                             currentCharacter = value[i];
 
                             if (currentCharacter != '\0') {
@@ -72,13 +80,13 @@ namespace Vernuntii.SemVer.Parser.Parsers
                             }
                         }
 
-                        faults.Add(new SemanticVersionFault(IdentifierExpectation.Alphanumeric, faultStartAt..preReleaseIdentifierLength));
+                        faults.Add(new SemanticVersionFault(IdentifierExpectation.Empty, faultStartAt..valueLength));
                     }
 
                     if (lookupAlphanumeric && !IsContainedInAlphanumericIdentifierCharset(currentCharacter)) {
                         int faultStartAt = i;
 
-                        for (i++; i < preReleaseIdentifierLength; i++) {
+                        for (i++; i < valueLength; i++) {
                             currentCharacter = value[i];
 
                             if (IsContainedInAlphanumericIdentifierCharset(currentCharacter)) {
@@ -87,13 +95,13 @@ namespace Vernuntii.SemVer.Parser.Parsers
                             }
                         }
 
-                        faults.Add(new SemanticVersionFault(IdentifierExpectation.Alphanumeric, faultStartAt..preReleaseIdentifierLength));
+                        faults.Add(new SemanticVersionFault(IdentifierExpectation.Alphanumeric, faultStartAt..valueLength));
                     }
 
                     if (lookupNumeric && !char.IsDigit(currentCharacter)) {
                         int faultStartAt = i;
 
-                        for (i++; i < preReleaseIdentifierLength; i++) {
+                        for (i++; i < valueLength; i++) {
                             currentCharacter = value[i];
 
                             if (char.IsDigit(currentCharacter)) {
@@ -102,7 +110,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
                             }
                         }
 
-                        faults.Add(new SemanticVersionFault(IdentifierExpectation.Numeric, faultStartAt..preReleaseIdentifierLength));
+                        faults.Add(new SemanticVersionFault(IdentifierExpectation.Numeric, faultStartAt..valueLength));
                     }
                 }
             }

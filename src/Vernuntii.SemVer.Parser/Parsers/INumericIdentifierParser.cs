@@ -8,8 +8,8 @@
         /// <summary>
         /// Tries to parse a numeric identifier.
         /// </summary>
-        /// <param name="versionNumber"></param>
+        /// <param name="numericIdentifier"></param>
         /// <returns>Valid parse result if successful.</returns>
-        IIdentifierParseResult<uint?> TryParseNumericIdentifier(string? versionNumber);
+        IIdentifierParseResult<uint?> TryParseNumericIdentifier(string? numericIdentifier);
     }
 }

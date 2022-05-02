@@ -4,9 +4,9 @@ namespace Vernuntii.SemVer.Parser.Extensions
 {
     internal static class ReadOnlySpanCharExtensions
     {
-        public static bool IsNumeric(this ReadOnlySpan<char> value, out int leadingZeros)
+        public static bool IsNumeric(this ReadOnlySpan<char> value, out int zeros)
         {
-            leadingZeros = 0;
+            zeros = 0;
             bool canIncreaseLeadingZero = true;
             var preReleaseLength = value.Length;
 
@@ -18,7 +18,7 @@ namespace Vernuntii.SemVer.Parser.Extensions
                 }
 
                 if (canIncreaseLeadingZero && currentCharacter == Zero) {
-                    leadingZeros++;
+                    zeros++;
                 } else {
                     canIncreaseLeadingZero = false;
                 }
@@ -27,16 +27,16 @@ namespace Vernuntii.SemVer.Parser.Extensions
             return true;
         }
 
-        public static bool HasNumberLeadingZeros(this ReadOnlySpan<char> value, out int leadingZeros)
+        public static bool HasNumberLeadingZeros(this ReadOnlySpan<char> value, out int zeros)
         {
             if (value.Length >= 2
                 && value[0] == Zero
-                && value.Slice(1).IsNumeric(out var otherLeadingZeros)) {
-                leadingZeros = otherLeadingZeros + 1;
+                && value.Slice(1).IsNumeric(out var otherZeros)) {
+                zeros = otherZeros + 1;
                 return true;
             }
 
-            leadingZeros = 0;
+            zeros = 0;
             return false;
         }
     }

@@ -31,12 +31,13 @@ namespace Vernuntii.SemVer.Parser.Parsers
         public NumericIdentifierParser(ISemanticVersionNormalizer normalizer)
             : this(new IdentifierParser(normalizer)) { }
 
-        private bool TryParseNonEmptyVersionNumber(ReadOnlyMemory<char> numericIdentifierSpan, out uint versionNumber)
+        private bool TryParseNonEmptyNumericIdentifier(ReadOnlyMemory<char> numericIdentifierSpan, out uint versionNumber)
         {
             var success = _identifierParser.TryResolveFaults(
                 numericIdentifierSpan,
                 value => SearchFaults(
                     value.Span,
+                    lookupBackslashZero: true,
                     lookupSingleZero: true,
                     lookupNumeric: true),
                 out var result);
@@ -49,9 +50,9 @@ namespace Vernuntii.SemVer.Parser.Parsers
             return uint.TryParse(result.Span, NumberStyles.None, NumberFormatInfo.InvariantInfo, out versionNumber);
         }
 
-        private bool TryParseNonEmptyVersionNumber(string? numericIdentifierString, [NotNullWhen(true)] out uint? versionNumber)
+        private bool TryParseNonEmptyNumericIdentifier(string? numericIdentifierString, [NotNullWhen(true)] out uint? versionNumber)
         {
-            if (TryParseNonEmptyVersionNumber(numericIdentifierString.AsMemory(), out var result)) {
+            if (TryParseNonEmptyNumericIdentifier(numericIdentifierString.AsMemory(), out var result)) {
                 versionNumber = result;
                 return true;
             }
@@ -62,6 +63,6 @@ namespace Vernuntii.SemVer.Parser.Parsers
 
         /// <inheritdoc/>
         public IIdentifierParseResult<uint?> TryParseNumericIdentifier(string? numericIdentifier) =>
-            TryParseIdentifier<uint?>(numericIdentifier, TryParseNonEmptyVersionNumber);
+            TryParseIdentifier<uint?>(numericIdentifier, TryParseNonEmptyNumericIdentifier);
     }
 }
