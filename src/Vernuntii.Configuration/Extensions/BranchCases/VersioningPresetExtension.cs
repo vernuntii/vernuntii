@@ -71,11 +71,13 @@ namespace Vernuntii.MessageVersioning
 
                     IHeightConvention? heightConvention = basePreset.HeightConvention;
                     var versionIncrementMode = versioningModeObject.IncrementMode ?? basePreset.IncrementMode;
+                    var rightShiftWhenZeroMajor = versioningModeObject.RightShiftWhenZeroMajor;
 
                     return new VersioningPresetExtension(new VersioningPreset() {
                         IncrementMode = versionIncrementMode,
                         MessageConvention = messageConvention,
-                        HeightConvention = heightConvention
+                        HeightConvention = heightConvention,
+                        RightShiftWhenZeroMajor = rightShiftWhenZeroMajor
                     });
                 }
             }
@@ -122,6 +124,7 @@ namespace Vernuntii.MessageVersioning
             public VersionIncrementMode? IncrementMode { get; set; }
             public string? Preset { get; set; }
             public string? MessageConvention { get; set; }
+            public bool RightShiftWhenZeroMajor { get; set; }
         }
     }
 }
