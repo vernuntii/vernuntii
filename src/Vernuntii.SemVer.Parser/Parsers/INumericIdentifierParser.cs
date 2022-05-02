@@ -3,13 +3,13 @@
     /// <summary>
     /// A parser to parse one of the numeric identifier of a SemVer-compatible version.
     /// </summary>
-    public interface IVersionNumberParser
+    public interface INumericIdentifierParser
     {
         /// <summary>
         /// Tries to parse a numeric identifier.
         /// </summary>
         /// <param name="versionNumber"></param>
         /// <returns>Valid parse result if successful.</returns>
-        IIdentifierParseResult<uint?> TryParseVersionNumber(string? versionNumber);
+        IIdentifierParseResult<uint?> TryParseNumericIdentifier(string? versionNumber);
     }
 }

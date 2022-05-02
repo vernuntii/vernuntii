@@ -15,6 +15,17 @@ namespace Vernuntii.SemVer.Parser
         public readonly static SemanticVersionParser Strict = new SemanticVersionParser();
 
         /// <summary>
+        /// A strict version parser of the Semantic Versioning specification.
+        /// If the parser hits invalid leading zeros or invalid alpha-numerics
+        /// then they get erased.
+        /// </summary>
+        public readonly static SemanticVersionParser Erase = new SemanticVersionParser() {
+            VersionParser = NumericIdentifierParser.Erase,
+            BuildParser = BuildIdentifierParser.Erase,
+            PreReleaseParser = PreReleaseIdentifierParser.Erase,
+        };
+
+        /// <summary>
         /// Prefix validator. Default is to allowing "v" as prefix.
         /// </summary>
         public IPrefixValidator PrefixValidator {
@@ -23,7 +34,7 @@ namespace Vernuntii.SemVer.Parser
         }
 
         /// <inheritdoc/>
-        public IVersionNumberParser VersionNumberParser {
+        public INumericIdentifierParser VersionParser {
             get => _numericIdentifierParser;
             init => _numericIdentifierParser = value ?? throw new ArgumentNullException(nameof(value));
         }
@@ -50,7 +61,7 @@ namespace Vernuntii.SemVer.Parser
 
         private ISemanticVersionSlicer _slicer = SemanticVersionSlicer.Default;
         private IPrefixValidator _prefixValidator = PrefixAllowlist.Default;
-        private IVersionNumberParser _numericIdentifierParser = Parsers.VersionNumberParser.Strict;
+        private INumericIdentifierParser _numericIdentifierParser = NumericIdentifierParser.Strict;
         private IDottedIdentifierParser _preReleaseIdentifierParser = PreReleaseIdentifierParser.Strict;
         private IDottedIdentifierParser _buildIdentifierParser = BuildIdentifierParser.Strict;
 
@@ -76,15 +87,15 @@ namespace Vernuntii.SemVer.Parser
                 goto major;
             }
 
-            if (VersionNumberParser.TryParseVersionNumber(majorString).DeconstructFailure(out major)) {
+            if (VersionParser.TryParseNumericIdentifier(majorString).DeconstructFailure(out major)) {
                 goto major;
             }
 
-            if (VersionNumberParser.TryParseVersionNumber(minorString).DeconstructFailure(out minor)) {
+            if (VersionParser.TryParseNumericIdentifier(minorString).DeconstructFailure(out minor)) {
                 goto minor;
             }
 
-            if (VersionNumberParser.TryParseVersionNumber(patchString).DeconstructFailure(out patch)) {
+            if (VersionParser.TryParseNumericIdentifier(patchString).DeconstructFailure(out patch)) {
                 goto patch;
             }
 

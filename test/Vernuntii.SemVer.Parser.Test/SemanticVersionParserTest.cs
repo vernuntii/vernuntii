@@ -1,59 +1,110 @@
-﻿using Xunit;
+﻿using Vernuntii.SemVer.Parser.Normalization;
+using Vernuntii.SemVer.Parser.Parsers;
+using Xunit;
 
 namespace Vernuntii.SemVer.Parser
 {
     public class SemanticVersionParserTest
     {
+        private static IEnumerable<object?[]> TryParseShouldParseStrictSucceededGenerator(SemanticVersionParser parser)
+        {
+            yield return new object?[] { parser, "0.0.0", new ParseResult(true, "", 0, 0, 0) };
+
+            yield return new object?[] { parser, "v0.0.0", new ParseResult(true, "v", 0, 0, 0) };
+
+            yield return new object?[] { parser, "0.0.0-a", new ParseResult(true, "", 0, 0, 0, new[] { "a" }) };
+            yield return new object?[] { parser, "0.0.0-a.b", new ParseResult(true, "", 0, 0, 0, new[] { "a", "b" }) };
+            yield return new object?[] { parser, "0.0.0-00a", new ParseResult(true, "", 0, 0, 0, new[] { "00a" }) };
+            yield return new object?[] { parser, "0.0.0-0.a", new ParseResult(true, "", 0, 0, 0, new[] { "0", "a" }) };
+
+            yield return new object?[] { parser, "0.0.0+a", new ParseResult(true, "", 0, 0, 0, null, new[] { "a" }) };
+            yield return new object?[] { parser, "0.0.0+a.b", new ParseResult(true, "", 0, 0, 0, null, new[] { "a", "b" }) };
+            yield return new object?[] { parser, "0.0.0+00", new ParseResult(true, "", 0, 0, 0, null, new[] { "00" }) };
+            yield return new object?[] { parser, "0.0.0+00a", new ParseResult(true, "", 0, 0, 0, null, new[] { "00a" }) };
+            yield return new object?[] { parser, "0.0.0+0.a", new ParseResult(true, "", 0, 0, 0, null, new[] { "0", "a" }) };
+        }
+
+        private static IEnumerable<object?[]> TryParseShouldNotParseStrictFailedGenerator(SemanticVersionParser parser)
+        {
+            yield return new object?[] { parser, null, new ParseResult(false) };
+            yield return new object?[] { parser, "", new ParseResult(false, "") };
+            yield return new object?[] { parser, "0.0", new ParseResult(false, "") };
+            yield return new object?[] { parser, "00.0.0", new ParseResult(false, "") };
+            yield return new object?[] { parser, "0.00.0", new ParseResult(false, "", 0) };
+            yield return new object?[] { parser, "0.0.00", new ParseResult(false, "", 0, 0) };
+            yield return new object?[] { parser, "01.0.0", new ParseResult(false, "") };
+            yield return new object?[] { parser, "0a.0.0", new ParseResult(false, "0a") };
+            yield return new object?[] { parser, "0.0a.0", new ParseResult(false, "", 0) };
+            yield return new object?[] { parser, "0.0.0a", new ParseResult(false, "", 0, 0) };
+
+            yield return new object?[] { parser, "v0", new ParseResult(false, "v") };
+            yield return new object?[] { parser, "v0.0", new ParseResult(false, "v") };
+            yield return new object?[] { parser, "V0.0.0", new ParseResult(false, "V") };
+
+            yield return new object?[] { parser, "0.0.0-", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0- ", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0-ä", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0-00", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0-.", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0-a.", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0-.a", new ParseResult(false, "", 0, 0, 0) };
+
+            yield return new object?[] { parser, "0.0.0+", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0+ ", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0+ä", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0+00", new ParseResult(true, "", 0, 0, 0, null, new[] { "00" }) };
+            yield return new object?[] { parser, "0.0.0+.", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0+a.", new ParseResult(false, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.0+.a", new ParseResult(false, "", 0, 0, 0) };
+        }
+
         private static IEnumerable<object?[]> TryParseShouldParseStrictGenerator()
         {
-            yield return new object?[] { null, new ParseResult(false) };
-            yield return new object?[] { "", new ParseResult(false, "") };
-            yield return new object?[] { "0.0", new ParseResult(false, "") };
-            yield return new object?[] { "0.0.0", new ParseResult(true, "", 0, 0, 0) };
-            yield return new object?[] { "00.0.0", new ParseResult(false, "") };
-            yield return new object?[] { "0.00.0", new ParseResult(false, "", 0) };
-            yield return new object?[] { "0.0.00", new ParseResult(false, "", 0, 0) };
-            yield return new object?[] { "01.0.0", new ParseResult(false, "") };
-            yield return new object?[] { "0a.0.0", new ParseResult(false, "0a") };
-            yield return new object?[] { "0.0a.0", new ParseResult(false, "", 0) };
-            yield return new object?[] { "0.0.0a", new ParseResult(false, "", 0, 0) };
+            var parser = new SemanticVersionParser();
 
-            yield return new object?[] { "v0", new ParseResult(false, "v") };
-            yield return new object?[] { "v0.0", new ParseResult(false, "v") };
-            yield return new object?[] { "v0.0.0", new ParseResult(true, "v", 0, 0, 0) };
-            yield return new object?[] { "V0.0.0", new ParseResult(false, "V") };
+            foreach (var item in TryParseShouldParseStrictSucceededGenerator(parser)) {
+                yield return item;
+            }
 
-            yield return new object?[] { "0.0.0-", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0- ", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0-ä", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0-a", new ParseResult(true, "", 0, 0, 0, new[] { "a" }) };
-            yield return new object?[] { "0.0.0-a.b", new ParseResult(true, "", 0, 0, 0, new[] { "a", "b" }) };
-            yield return new object?[] { "0.0.0-00", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0-00a", new ParseResult(true, "", 0, 0, 0, new[] { "00a" }) };
-            yield return new object?[] { "0.0.0-0.a", new ParseResult(true, "", 0, 0, 0, new[] { "0", "a" }) };
-            yield return new object?[] { "0.0.0-.", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0-a.", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0-.a", new ParseResult(false, "", 0, 0, 0) };
+            foreach (var item in TryParseShouldNotParseStrictFailedGenerator(parser)) {
+                yield return item;
+            }
+        }
 
-            yield return new object?[] { "0.0.0+", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0+ ", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0+ä", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0+a", new ParseResult(true, "", 0, 0, 0, null, new[] { "a" }) };
-            yield return new object?[] { "0.0.0+a.b", new ParseResult(true, "", 0, 0, 0, null, new[] { "a", "b" }) };
-            yield return new object?[] { "0.0.0+00", new ParseResult(true, "", 0, 0, 0, null, new[] { "00" }) };
-            yield return new object?[] { "0.0.0+00a", new ParseResult(true, "", 0, 0, 0, null, new[] { "00a" }) };
-            yield return new object?[] { "0.0.0+0.a", new ParseResult(true, "", 0, 0, 0, null, new[] { "0", "a" }) };
-            yield return new object?[] { "0.0.0+.", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0+a.", new ParseResult(false, "", 0, 0, 0) };
-            yield return new object?[] { "0.0.0+.a", new ParseResult(false, "", 0, 0, 0) };
+        private static IEnumerable<object?[]> TryParseShouldParseEraseGenerator()
+        {
+            var parser = SemanticVersionParser.Erase;
+
+            foreach (var item in TryParseShouldParseStrictSucceededGenerator(parser)) {
+                yield return item;
+            }
+
+            yield return new object?[] { parser, "00.0.0", new ParseResult(true, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.00.0", new ParseResult(true, "", 0, 0, 0) };
+            yield return new object?[] { parser, "0.0.00", new ParseResult(true, "", 0, 0, 0) };
+
+            yield return new object?[] { parser, "v0.0.0", new ParseResult(true, "v", 0, 0, 0) };
+            yield return new object?[] { parser, "a0.0.0", new ParseResult(false, "a") };
+            yield return new object?[] { parser, "0.a0.0", new ParseResult(false, "", 0) };
+            yield return new object?[] { parser, "0.0.a0", new ParseResult(false, "", 0, 0) };
+
+            yield return new object?[] { parser, "\00.0.0", new ParseResult(false, "\0") };
+
+            yield return new object?[] { parser, "0.0.0-00", new ParseResult(true, "", 0, 0, 0, new[] { "0" }) };
+            yield return new object?[] { parser, "0.0.0-\00", new ParseResult(true, "", 0, 0, 0, new[] { "0" }) };
+            yield return new object?[] { parser, "0.0.0-\0a\00", new ParseResult(true, "", 0, 0, 0, new[] { "a0" }) };
+
+            yield return new object?[] { parser, "0.0.0+00", new ParseResult(true, "", 0, 0, 0, null, new[] { "00" }) };
+            yield return new object?[] { parser, "0.0.0+\00", new ParseResult(true, "", 0, 0, 0, null, new[] { "0" }) };
+            yield return new object?[] { parser, "0.0.0+\0a\00", new ParseResult(true, "", 0, 0, 0, null, new[] { "a0" }) };
         }
 
         [Theory]
         [MemberData(nameof(TryParseShouldParseStrictGenerator))]
-        public void TryParseShouldParseStrict(string value, ParseResult assumedResult)
+        [MemberData(nameof(TryParseShouldParseEraseGenerator))]
+        public void TryParseShouldParse(SemanticVersionParser parser, string value, ParseResult assumedResult)
         {
-            var versionSeparater = new SemanticVersionParser();
-            var parseResult = versionSeparater.TryParse(value, out var prefix, out var major, out var minor, out var patch, out var preReleaseIdentifiers, out var build);
+            var parseResult = parser.TryParse(value, out var prefix, out var major, out var minor, out var patch, out var preReleaseIdentifiers, out var build);
             Assert.Equal(assumedResult.Result, parseResult);
             Assert.Equal(assumedResult.Prefix, prefix);
             Assert.Equal(assumedResult.Major, major);

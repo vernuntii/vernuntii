@@ -14,6 +14,11 @@ namespace Vernuntii.SemVer.Parser.Parsers
         /// </summary>
         public readonly static BuildIdentifierParser Strict = new BuildIdentifierParser(IdentifierParser.Strict);
 
+        /// <summary>
+        /// Build identifier parser with erasing aspects: erases invalid leading zeros and invalid alpha-numerics.
+        /// </summary>
+        public readonly static BuildIdentifierParser Erase = new BuildIdentifierParser(IdentifierParser.Erase);
+
         private readonly IdentifierParser _identifierParser;
 
         internal BuildIdentifierParser(IdentifierParser identifierParser) => _identifierParser = identifierParser;

@@ -108,19 +108,19 @@ namespace Vernuntii.SemVer
         /// <inheritdoc/>
         public uint Major {
             get => _major;
-            init => _major = ParseVersionNumber(Parser.VersionNumberParser, value);
+            init => _major = ParseVersionNumber(Parser.VersionParser, value);
         }
 
         /// <inheritdoc/>
         public uint Minor {
             get => _minor;
-            init => _minor = ParseVersionNumber(Parser.VersionNumberParser, value);
+            init => _minor = ParseVersionNumber(Parser.VersionParser, value);
         }
 
         /// <inheritdoc/>
         public uint Patch {
             get => _patch;
-            init => _patch = ParseVersionNumber(Parser.VersionNumberParser, value);
+            init => _patch = ParseVersionNumber(Parser.VersionParser, value);
         }
 
         /// <inheritdoc/>

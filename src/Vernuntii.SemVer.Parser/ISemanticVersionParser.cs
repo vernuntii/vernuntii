@@ -16,7 +16,7 @@ namespace Vernuntii.SemVer.Parser
         /// <summary>
         /// A version number parser.
         /// </summary>
-        IVersionNumberParser VersionNumberParser { get; }
+        INumericIdentifierParser VersionParser { get; }
 
         /// <summary>
         /// A pre-release parser.

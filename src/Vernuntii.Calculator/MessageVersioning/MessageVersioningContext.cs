@@ -115,7 +115,7 @@ namespace Vernuntii.MessageVersioning
         {
             var startVersionTransformResult = HeightIdentifierTransformer.Transform(VersionCalculationOptions.StartVersion);
             var currentVersionTransformrResult = HeightIdentifierTransformer.Transform(CurrentVersion);
-            var versionNumberParser = CurrentVersion.GetParserOrStrict().VersionNumberParser;
+            var versionNumberParser = CurrentVersion.GetParserOrStrict().VersionParser;
 
             _ = currentVersionTransformrResult.TryParseHeight(versionNumberParser, out var currentVersionHeight);
             _ = startVersionTransformResult.TryParseHeight(versionNumberParser, out var startVersionHeight);

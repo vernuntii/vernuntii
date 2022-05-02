@@ -26,9 +26,9 @@ namespace Vernuntii.SemVer
             }
         }
 
-        internal static uint ParseVersionNumber(IVersionNumberParser parser, uint versionNumber)
+        internal static uint ParseVersionNumber(INumericIdentifierParser parser, uint versionNumber)
         {
-            if (parser.TryParseVersionNumber(StringifyVersionNumber(versionNumber)).DeconstructFailure(out var wrappedVersionNumber)) {
+            if (parser.TryParseNumericIdentifier(StringifyVersionNumber(versionNumber)).DeconstructFailure(out var wrappedVersionNumber)) {
                 throw new SemanticVersionBuilderException("Version number is not valid");
             }
 
@@ -163,7 +163,7 @@ namespace Vernuntii.SemVer
                     return baseVersionNumber;
                 }
 
-                return ParseVersionNumber(parser.VersionNumberParser, newVersionNumber.Value);
+                return ParseVersionNumber(parser.VersionParser, newVersionNumber.Value);
             }
 
             IReadOnlyList<string> SelectDottedIdentifiers(

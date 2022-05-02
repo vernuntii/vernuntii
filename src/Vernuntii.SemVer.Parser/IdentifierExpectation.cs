@@ -6,7 +6,7 @@
     public enum IdentifierExpectation
     {
         /// <summary>
-        /// Expect single zero
+        /// Expect single zero.
         /// <code>
         /// ^0$
         /// </code>
@@ -25,6 +25,10 @@
         /// ^[0-9]+$
         /// </code>
         /// </summary>
-        Numeric = 3
+        Numeric = 3,
+        /// <summary>
+        /// Expect empty.
+        /// </summary>
+        Empty = 4,
     }
 }

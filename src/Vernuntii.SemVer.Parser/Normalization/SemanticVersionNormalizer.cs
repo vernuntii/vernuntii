@@ -23,7 +23,8 @@ namespace Vernuntii.SemVer.Parser.Normalization
             if (fault.Expectation == IdentifierExpectation.SingleZero) {
                 value[fault.Range.WithStart(1)].Clear();
             } else if (fault.Expectation == IdentifierExpectation.Alphanumeric
-                || fault.Expectation == IdentifierExpectation.Numeric) {
+                || fault.Expectation == IdentifierExpectation.Numeric
+                || fault.Expectation == IdentifierExpectation.Empty) {
                 value[fault.Range].Clear();
             }
         }
@@ -38,19 +39,38 @@ namespace Vernuntii.SemVer.Parser.Normalization
                 _fixFault = fixFault;
 
             /// <inheritdoc/>
-            public ReadOnlySpan<char> NormalizeFaults(ReadOnlySpan<char> value, IReadOnlyList<SemanticVersionFault> faults) =>
-                string.Create(value.Length, faults, (preReleaseIdentifierSpan, faults) => {
+            public ReadOnlyMemory<char> NormalizeFaults(ReadOnlyMemory<char> value, IReadOnlyList<SemanticVersionFault> faults)
+            {
+                int newLength = 0;
+
+                return string.Create(value.Length, value, (newValue, value) => {
+                    value.Span.CopyTo(newValue);
+
                     for (int i = faults.Count - 1; i >= 0; i--) {
-                        _fixFault(preReleaseIdentifierSpan, faults[i]);
+                        _fixFault(newValue, faults[i]);
                     }
-                });
+
+                    int newValueLength = newValue.Length;
+
+                    for (int i = 0; i < newValueLength; i++) {
+                        if (newValue[i] != '\0') {
+                            if (newLength != i) {
+                                newValue[newLength] = newValue[i];
+                                newValue[i] = '\0';
+                            }
+
+                            newLength++;
+                        }
+                    }
+                }).AsMemory(0, newLength);
+            }
         }
 
         private class NoActionSemanticVersionNormalizer : ISemanticVersionNormalizer
         {
             public bool TrimPreReleaseDots => false;
 
-            public ReadOnlySpan<char> NormalizeFaults(ReadOnlySpan<char> value, IReadOnlyList<SemanticVersionFault> faults) =>
+            public ReadOnlyMemory<char> NormalizeFaults(ReadOnlyMemory<char> value, IReadOnlyList<SemanticVersionFault> faults) =>
                 value;
         }
     }

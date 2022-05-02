@@ -8,9 +8,10 @@ namespace Vernuntii.SemVer.Parser.Parsers
     internal class IdentifierParser
     {
         public delegate bool TryParseNonEmptyIdentifier<T>(string dottedIdentifier, [NotNullWhen(true)] out T? result);
-        public delegate IReadOnlyList<SemanticVersionFault> SearchFaultsDelegate(ReadOnlySpan<char> spar);
+        public delegate IReadOnlyList<SemanticVersionFault> SearchFaultsDelegate(ReadOnlyMemory<char> spar);
 
         public readonly static IdentifierParser Strict = new IdentifierParser(SemanticVersionNormalizer.NoAction);
+        public readonly static IdentifierParser Erase = new IdentifierParser(SemanticVersionNormalizer.Erase);
 
         public static IdentifierParseResult<T> TryParseIdentifier<T>(
             string? identifier,
@@ -42,6 +43,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
 
         public static IReadOnlyList<SemanticVersionFault> SearchFaults(
             ReadOnlySpan<char> value,
+            bool lookupBackslashZero = false,
             bool lookupSingleZero = false,
             bool lookupAlphanumeric = false,
             bool lookupNumeric = false)
@@ -55,14 +57,32 @@ namespace Vernuntii.SemVer.Parser.Parsers
                 for (int i = 0; i < preReleaseIdentifierLength; i++) {
                     var currentCharacter = value[i];
 
+                    @continue:
+                    ;
+
+                    if (lookupBackslashZero && currentCharacter == '\0') {
+                        int faultStartAt = i;
+
+                        for (i++; i < preReleaseIdentifierLength; i++) {
+                            currentCharacter = value[i];
+
+                            if (currentCharacter != '\0') {
+                                faults.Add(new SemanticVersionFault(IdentifierExpectation.Empty, faultStartAt..(i - 1)));
+                                goto @continue;
+                            }
+                        }
+
+                        faults.Add(new SemanticVersionFault(IdentifierExpectation.Alphanumeric, faultStartAt..preReleaseIdentifierLength));
+                    }
+
                     if (lookupAlphanumeric && !IsContainedInAlphanumericIdentifierCharset(currentCharacter)) {
                         int faultStartAt = i;
 
-                        for (int j = i + 1; j < preReleaseIdentifierLength; j++) {
+                        for (i++; i < preReleaseIdentifierLength; i++) {
                             currentCharacter = value[i];
 
                             if (IsContainedInAlphanumericIdentifierCharset(currentCharacter)) {
-                                faults.Add(new SemanticVersionFault(IdentifierExpectation.Alphanumeric, faultStartAt..(j - 1)));
+                                faults.Add(new SemanticVersionFault(IdentifierExpectation.Alphanumeric, faultStartAt..(i - 1)));
                                 goto @continue;
                             }
                         }
@@ -73,20 +93,17 @@ namespace Vernuntii.SemVer.Parser.Parsers
                     if (lookupNumeric && !char.IsDigit(currentCharacter)) {
                         int faultStartAt = i;
 
-                        for (int j = i + 1; j < preReleaseIdentifierLength; j++) {
+                        for (i++; i < preReleaseIdentifierLength; i++) {
                             currentCharacter = value[i];
 
                             if (char.IsDigit(currentCharacter)) {
-                                faults.Add(new SemanticVersionFault(IdentifierExpectation.Numeric, faultStartAt..(j - 1)));
+                                faults.Add(new SemanticVersionFault(IdentifierExpectation.Numeric, faultStartAt..(i - 1)));
                                 goto @continue;
                             }
                         }
 
                         faults.Add(new SemanticVersionFault(IdentifierExpectation.Numeric, faultStartAt..preReleaseIdentifierLength));
                     }
-
-                    @continue:
-                    ;
                 }
             }
 
@@ -97,23 +114,23 @@ namespace Vernuntii.SemVer.Parser.Parsers
 
         public IdentifierParser(ISemanticVersionNormalizer normalizer) => Normalizer = normalizer;
 
-        public bool TryResolveFaults(ReadOnlySpan<char> value, SearchFaultsDelegate searchFaults, out ReadOnlySpan<char> result)
+        public bool TryResolveFaults(ReadOnlyMemory<char> valueMemory, SearchFaultsDelegate searchFaults, out ReadOnlyMemory<char> result)
         {
             recheck:
-            var faults = searchFaults(value);
+            var faults = searchFaults(valueMemory);
 
             if (faults.Count != 0) {
-                var normalized = Normalizer.NormalizeFaults(value, faults);
+                var normalizedMemory = Normalizer.NormalizeFaults(valueMemory, faults);
 
-                if (value.Equals(normalized, StringComparison.Ordinal)) {
+                if (valueMemory.Span.Equals(normalizedMemory.Span, StringComparison.Ordinal)) {
                     goto exit;
                 }
 
-                value = normalized;
+                valueMemory = normalizedMemory;
                 goto recheck;
             }
 
-            result = value;
+            result = valueMemory;
             return true;
 
             exit:
@@ -131,22 +148,23 @@ namespace Vernuntii.SemVer.Parser.Parsers
             var emptyIdentifiers = 0;
 
             for (int i = 0; i < dotSplittedIdentifierArrayLength; i++) {
-                ReadOnlySpan<char> unresolved = dotSplittedIdentifierArray[i];
+                var unresolvedMemory = dotSplittedIdentifierArray[i].AsMemory();
 
                 var success = TryResolveFaults(
-                    unresolved,
+                    unresolvedMemory,
                     value => SearchFaults(
-                        value,
+                        value.Span,
+                        lookupBackslashZero: true,
                         lookupSingleZero: lookupSingleZero,
                         lookupAlphanumeric: true),
-                    out var resolved);
+                    out var resolvedSpan);
 
                 if (!success) {
                     goto exit;
                 }
 
-                if (unresolved != resolved) {
-                    dotSplittedIdentifierArray[i] = resolved.ToString();
+                if (unresolvedMemory.Span != resolvedSpan.Span) {
+                    dotSplittedIdentifierArray[i] = resolvedSpan.ToString();
                 }
 
                 if (dotSplittedIdentifierArray[i].Length == 0) {

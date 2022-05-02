@@ -54,7 +54,7 @@ namespace Vernuntii.HeightConventions.Transformation
         /// <param name="versionNumberParser"></param>
         /// <param name="height"></param>
         /// <returns>True if height is number.</returns>
-        public bool TryParseHeight(IVersionNumberParser versionNumberParser, out uint? height) =>
-            versionNumberParser.TryParseVersionNumber(GetHeight()).DeconstructSuccess(out height);
+        public bool TryParseHeight(INumericIdentifierParser versionNumberParser, out uint? height) =>
+            versionNumberParser.TryParseNumericIdentifier(GetHeight()).DeconstructSuccess(out height);
     }
 }
