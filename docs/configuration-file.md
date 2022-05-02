@@ -146,6 +146,7 @@ Branches:
 #### Types
 
 - `<preset>` 
+  - `Default`: same as `ContinousDelivery`
   - `ContinousDelivery` (default)
     - `<message-convention>`
       - Major indicator: never
@@ -153,7 +154,6 @@ Branches:
       - Patch indicator: always
     - `<increment-mode>`: `Consecutive`
     - `<right-shift-when-zero-major>`: `false`
-  - `Default`: same as `ContinousDelivery`
   - `ContinousDeployment`
     - `<message-convention>`
       - Major indicator: never
@@ -187,8 +187,8 @@ Branches:
   - `Consecutive`: increment only the most significant version number once
   - `Successive`: increment most significant version number as often as indicated
 - `<right-shift-when-zero-major>`
-  - `true`: does right shift version when start version has zero major, so next major becomes next minor, next minor becomes next patch
-  - `false`: does not right shift version when start version has zero major
+  - `true`: does right shift version when latest version has zero major, so next major becomes next minor, next minor becomes next patch
+  - `false`: does not right shift version when latest version has zero major
 
 #### Defaults
 
