@@ -8,17 +8,17 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
 ### Key facts
 
 - Next version is [adaptiv](#version-adaptivity)
-- Plugin system (TBD)
-  - Write your own plugins
-  - Replace or mutate existing plugins
-- Git plugin
-  - Searches for latest commit version
-  - Uses commit messages as message stream
-  - Enables branch-based configuration
 - Optional [configuration file][configuration-file] (but recommended)
   - Either json or yaml
 - In-built [versioning modes](./docs/configuration-file.md#versioning-mode)
   - Possiblity to override increment mode, message convention and more
+- Git plugin
+  - Searches for latest commit version
+  - Uses commit messages as message stream
+  - Enables branch-based configuration
+- Plugin system (TBD)
+  - Write your own plugins
+  - Replace or mutate existing plugins
 - Inbuilt cache mechanism
 - Can be run concurrently
 
@@ -43,7 +43,7 @@ Using [MSBuild Integration][msbuild-nuget-package-docs] with [GitHub Actions](#g
   2. You define a step that pushes the packages to your package registry (e.g. NuGet) and on success ..
   3. .. you creates a git tag with produced next version and pushes it back to repository
 
-*This repository uses such workflow: [.github/workflows/build-test-pack-publish.yml](.github/workflows/build-test-pack-publish.yml)*
+> This repository uses such workflow: [.github/workflows/build-test-pack-publish.yml](.github/workflows/build-test-pack-publish.yml)
 
 #### Use case #3
 
@@ -60,7 +60,7 @@ Your use case is not described above? Open an issue and tell me about it.
 <!-- omit in toc -->
 # Table of Contents
 
-- [](#)
+- [Version adaptivity](#version-adaptivity)
 - [Vernuntii installers](#vernuntii-installers)
   - [.NET CLI package](#net-cli-package)
 - [Vernuntii integrations](#vernuntii-integrations)
@@ -77,6 +77,7 @@ Your use case is not described above? Open an issue and tell me about it.
 
 Vernuntii wants to simplify semantic versioning, so we try to adapt as much as possible and let the user control how the next version should be calculated.
 
+<!-- omit in toc -->
 ## Version prefix
 
 The version prefix refers to the prefix before the version core e.g. `v0.1.0`. The current behaviour is to adapt if existing the prefix `v` of the latest version.
@@ -87,6 +88,7 @@ The version prefix refers to the prefix before the version core e.g. `v0.1.0`. T
 
 > Currently none or `v` prefix is adapted. You cannot set initial or explicit version prefix yet. When you want an initial prefix then it is recommended to set the start version via git tag or configuration file.
 
+<!-- omit in toc -->
 ## Version core
 
 The version core refers to `<major>.<minor>.<patch>`. When Vernuntii searches for the latest version. It does not care what the latest version core is. If we assume
@@ -96,7 +98,7 @@ The version core refers to `<major>.<minor>.<patch>`. When Vernuntii searches fo
 8f24ad3 (tag: 0.1.0) initial commit
 ```
 
-Then the latest version would be `0.1.0`. If we decide to change the version by ourself by tagging HEAD with `0.5.0` for whatever reason
+then the latest version would be `0.1.0`. If we decide to change the version by ourself by tagging HEAD with `0.5.0` for whatever reason
 
 ```
 771c4ea (HEAD -> main, tag: 0.5.0) second commit
@@ -105,6 +107,7 @@ Then the latest version would be `0.1.0`. If we decide to change the version by 
 
 then the latest version would be `0.5.0`.
 
+<!-- omit in toc -->
 ## Drawback
 
 One drawback of being adaptive is that the latest or next version is not deterministic when you would remove all tags, but to be fair: I am not aware of one versioning tool that gurantees full deterministic in calculating the next version in case you remove all tags.
