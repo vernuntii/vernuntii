@@ -7,6 +7,7 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
 <!-- omit in toc -->
 ### Key facts
 
+- Next version is [adaptiv](#version-adaptivity)
 - Plugin system (TBD)
   - Write your own plugins
   - Replace or mutate existing plugins
@@ -59,6 +60,7 @@ Your use case is not described above? Open an issue and tell me about it.
 <!-- omit in toc -->
 # Table of Contents
 
+- [](#)
 - [Vernuntii installers](#vernuntii-installers)
   - [.NET CLI package](#net-cli-package)
 - [Vernuntii integrations](#vernuntii-integrations)
@@ -70,6 +72,42 @@ Your use case is not described above? Open an issue and tell me about it.
   - [Vernuntii.SemVer.Parser](#vernuntiisemverparser)
   - [Issues I am working on](#issues-i-am-working-on)
 - [License](#license)
+
+# Version adaptivity
+
+Vernuntii wants to simplify semantic versioning, so we try to adapt as much as possible and let the user control how the next version should be calculated.
+
+## Version prefix
+
+The version prefix refers to the prefix before the version core e.g. `v0.1.0`. The current behaviour is to adapt if existing the prefix `v` of the latest version.
+
+- If latest is
+  - `v0.1.0` -> prefix `v` is adapted
+  - `0.1.0` -> no prefix is adapted
+
+> Currently none or `v` prefix is adapted. You cannot set initial or explicit version prefix yet. When you want an initial prefix then it is recommended to set the start version via git tag or configuration file.
+
+## Version core
+
+The version core refers to `<major>.<minor>.<patch>`. When Vernuntii searches for the latest version. It does not care what the latest version core is. If we assume
+
+```
+771c4ea (HEAD -> main) second commit
+8f24ad3 (tag: 0.1.0) initial commit
+```
+
+Then the latest version would be `0.1.0`. If we decide to change the version by ourself by tagging HEAD with `0.5.0` for whatever reason
+
+```
+771c4ea (HEAD -> main, tag: 0.5.0) second commit
+8f24ad3 (tag: 0.1.0) initial commit
+```
+
+then the latest version would be `0.5.0`.
+
+## Drawback
+
+One drawback of being adaptive is that the latest or next version is not deterministic when you would remove all tags, but to be fair: I am not aware of one versioning tool that gurantees full deterministic in calculating the next version in case you remove all tags.
 
 # Vernuntii installers
 
@@ -188,6 +226,7 @@ Vernuntii uses [Vernuntii.SemVer.Parser][vernuntii-semver-parser-nuget] to parse
 This is my work list. :slightly_smiling_face:
 
 - Allow setting initial or explicit version prefix
+- Allow additional custom prefixes that differ from `v`
 - Write commit-version pre-release matcher regarding height-convention
 - Finish plugin system
   - Separate and modularize further
