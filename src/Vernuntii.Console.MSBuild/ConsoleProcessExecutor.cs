@@ -18,7 +18,7 @@ namespace Vernuntii.Console
         }
 
         public SemanticVersionPresentation Execute(
-            string? verbose,
+            string? verbosity,
             string configPath,
             string? cacheId,
             string? cacheCreationRetentionTime,
@@ -53,8 +53,8 @@ namespace Vernuntii.Console
                     " --presentation-parts all" +
                     " --presentation-view json");
 
-                if (!string.IsNullOrWhiteSpace(verbose)) {
-                    stringBuilder.Append($" --verbose {verbose}");
+                if (!string.IsNullOrWhiteSpace(verbosity)) {
+                    stringBuilder.Append($" --verbosity {verbosity}");
                 }
 
                 if (!string.IsNullOrWhiteSpace(cacheId)) {

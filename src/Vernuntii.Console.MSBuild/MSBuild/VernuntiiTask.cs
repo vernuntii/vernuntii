@@ -24,7 +24,7 @@ namespace Vernuntii.Console.MSBuild
         /// <summary>
         /// See console executable help for more informations.
         /// </summary>
-        public string? Verbose { get; set; }
+        public string? Verbosity { get; set; }
 
         /// <summary>
         /// The cache id is used to cache the version informations once and load them on next accesses.
@@ -121,7 +121,7 @@ namespace Vernuntii.Console.MSBuild
                     logger: Log);
 
                 var version = executor.Execute(
-                    verbose: Verbose,
+                    verbosity: Verbosity,
                     configPath: ConfigPath!,
                     cacheId: CacheId,
                     cacheCreationRetentionTime: CacheCreationRetentionTime,

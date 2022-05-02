@@ -83,7 +83,7 @@ jobs:
       - name: Enable "Vernuntii" in subsequent MSBuild calls
         uses: vernuntii/actions/install/msbuild-import@main
         with:
-          verbose: ${{ env.VERNUNTII_VERBOSITY }}
+          verbosity: ${{ env.VERNUNTII_VERBOSITY }}
           cache-id: ${{ env.CACHE_ID }}
 
       - name: Set semantic version from non-empty event input
@@ -103,7 +103,7 @@ jobs:
           || github.event_name != 'workflow_dispatch'
         uses: vernuntii/actions/execute@main
         with:
-          verbose: ${{ env.VERNUNTII_VERBOSITY }}
+          verbosity: ${{ env.VERNUNTII_VERBOSITY }}
           cache-id: ${{ env.CACHE_ID }}
           duplicate-version-fails: true
 

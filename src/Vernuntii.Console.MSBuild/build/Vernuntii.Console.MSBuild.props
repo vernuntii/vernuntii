@@ -6,7 +6,7 @@
     <DisableVernuntii Condition="'$(DisableVernuntii)' == ''">false</DisableVernuntii>
     <VernuntiiAssemblyFile Condition="'$(VernuntiiAssemblyFile)' == ''">$(MSBuildThisFileDirectory)..\tools\msbuild\netstandard2.0\Vernuntii.Console.MSBuild.dll</VernuntiiAssemblyFile>
     <VernuntiiConsoleExecutableFile Condition="'$(VernuntiiConsoleExecutableFile)' == ''">$(MSBuildThisFileDirectory)..\tools\console\net6.0\Vernuntii.Console.dll</VernuntiiConsoleExecutableFile>
-    <VernuntiiVerbose Condition="'$(VernuntiiVerbose)' == ''"></VernuntiiVerbose>
+    <VernuntiiVerbosity Condition="'$(VernuntiiVerbosity)' == ''"></VernuntiiVerbosity>
     <VernuntiiConfigPath Condition="'$(VernuntiiConfigPath)' == ''">$(MSBuildProjectDirectory)</VernuntiiConfigPath>
     <VernuntiiConfigPath Condition="'$(VernuntiiConfigPath)' == ''">$(SolutionDir)</VernuntiiConfigPath>
     <VernuntiiCacheId Condition="'$(VernuntiiCacheId)' == ''"></VernuntiiCacheId>

@@ -34,7 +34,7 @@
 
     <PropertyGroup>
       <_VernuntiiConsoleExecutableFile Condition="'$(_VernuntiiConsoleExecutableFile)' == ''">$(VernuntiiConsoleExecutableFile)</_VernuntiiConsoleExecutableFile>
-      <_VernuntiiVerbose Condition="'$(_VernuntiiVerbose)' == ''">$(VernuntiiVerbose)</_VernuntiiVerbose>
+      <_VernuntiiVerbosity Condition="'$(_VernuntiiVerbosity)' == ''">$(VernuntiiVerbosity)</_VernuntiiVerbosity>
       <_VernuntiiConfigPath Condition="'$(_VernuntiiConfigPath)' == ''">$(VernuntiiConfigPath)</_VernuntiiConfigPath>
       <_VernuntiiCacheId Condition="'$(_VernuntiiCacheId)' == ''">$(VernuntiiCacheId)</_VernuntiiCacheId>
       <_VernuntiiCacheCreationRetentionTime Condition="'$(_VernuntiiCacheCreationRetentionTime)' == ''">$(VernuntiiCacheCreationRetentionTime)</_VernuntiiCacheCreationRetentionTime>
@@ -43,7 +43,7 @@
     </PropertyGroup>
 
     <VernuntiiTask ConsoleExecutablePath="$(_VernuntiiConsoleExecutableFile)"
-                             Verbose="$(_VernuntiiVerbose)"
+                             Verbosity="$(_VernuntiiVerbosity)"
                              ConfigPath="$(_VernuntiiConfigPath)"
                              CacheId="$(_VernuntiiCacheId)"
                              CacheCreationRetentionTime="$(_VernuntiiCacheCreationRetentionTime)"

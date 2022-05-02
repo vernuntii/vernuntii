@@ -163,7 +163,7 @@ From the following set of **optional properties** you can choose to change the b
   - Disables Vernuntii
 - `<VernuntiiAssemblyFile/>`
 - `<VernuntiiConsoleExecutableFile/>`
-- `<VernuntiiVerbose/>`
+- `<VernuntiiVerbosity/>`
   - Allowed value: `Debug`, `Error`, `Fatal` (implicit default), `Information`, `Verbose`, `Warning`
 - `<VernuntiiConfigPath/>`
   - Path to [configuration file][configuration-file]

@@ -22,7 +22,7 @@ namespace Vernuntii.PluginSystem
          * If value is not specified, then log on information level.
          * If value is specified, then log on specified log level.
          */
-        private Option<LogEventLevel?> VerboseOption = new Option<LogEventLevel?>(new[] { "--verbose", "-v" }, parseArgument: result => {
+        private Option<LogEventLevel?> verbosityOption = new Option<LogEventLevel?>(new[] { "--verbosity", "-v" }, parseArgument: result => {
             if (result.Tokens.Count == 0) {
                 return LogEventLevel.Information;
             }
@@ -50,7 +50,7 @@ namespace Vernuntii.PluginSystem
 
         /// <inheritdoc/>
         protected override void OnCompletedRegistration() =>
-            Plugins.First<ICommandLinePlugin>().Registered += plugin => plugin.RootCommand.Add(VerboseOption);
+            Plugins.First<ICommandLinePlugin>().Registered += plugin => plugin.RootCommand.Add(verbosityOption);
 
         private void EnableLoggingInfrastructure()
         {
@@ -71,7 +71,7 @@ namespace Vernuntii.PluginSystem
         protected override void OnEvents()
         {
             Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult =>
-                _verbosity = parseResult.GetValueForOption(VerboseOption));
+                _verbosity = parseResult.GetValueForOption(verbosityOption));
 
             Events.SubscribeOnce(LoggingEvents.EnableLoggingInfrastructure, EnableLoggingInfrastructure);
         }
