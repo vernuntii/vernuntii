@@ -1,15 +1,15 @@
 # Configuration file
 
-The configuration file is the heart of Vernuntii. By defining properties you change fundamentally the processes.
+The configuration file is the heart of Vernuntii. By defining properties you change fundamentally the behvaiour of Vernuntii.
 
 - [Configuration file](#configuration-file)
   - [Auto-discovery](#auto-discovery)
-  - [Git Plugin](#git-plugin)
+  - [Git plugin](#git-plugin)
     - [Branches](#branches)
       - [Usage](#usage)
       - [Types](#types)
       - [Defaults](#defaults)
-    - [Versioning Mode](#versioning-mode)
+    - [Versioning mode](#versioning-mode)
       - [Usage](#usage-1)
       - [Types](#types-1)
       - [Defaults](#defaults-1)
@@ -26,7 +26,7 @@ Depending on integration you use the following default start locations are assum
 - MSBuild Integration: root of project or in one of the directories above
 - GitHub Actions (`vernuntii/actions/execute`): current directory where the action has been called
 
-## Git Plugin
+## Git plugin
 
 The git plugin adds the following features.
 
@@ -119,7 +119,7 @@ SearchPreRelease: (if not specified then it inherits <pre-release>)
 SearchPreReleaseEscapes: (if not specified then it inherits <pre-release-escapes>)
 ```
 
-### Versioning Mode
+### Versioning mode
 
 The versioning mode allows you to choose one of the many available version strategies to calculate the next version.
 
