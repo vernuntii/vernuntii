@@ -15,24 +15,24 @@ namespace Vernuntii.VersioningPresets
         /// <param name="messageConventionName"></param>
         /// <exception cref="ArgumentException"></exception>
         public static IMessageConvention? GetMessageConvention(this IMessageConventionRegistry registry, string? messageConventionName) =>
-            registry.MessageConventions[messageConventionName ?? nameof(VersioningPresetKind.Default)];
+            registry.MessageConventions[messageConventionName ?? nameof(InbuiltVersioningPreset.Default)];
 
         /// <summary>
         /// Gets message convention.
         /// </summary>
         /// <param name="registry"></param>
-        /// <param name="versioningPresetKind"></param>
+        /// <param name="InbuiltVersioningPreset"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static IMessageConvention? GetMessageConvention(this IMessageConventionRegistry registry, VersioningPresetKind? versioningPresetKind) =>
-            registry.GetMessageConvention(versioningPresetKind?.ToString());
+        public static IMessageConvention? GetMessageConvention(this IMessageConventionRegistry registry, InbuiltVersioningPreset? InbuiltVersioningPreset) =>
+            registry.GetMessageConvention(InbuiltVersioningPreset?.ToString());
 
         /// <summary>
         /// Gets message convention.
         /// </summary>
         /// <param name="registry"></param>
-        /// <param name="messageConventionKind"></param>
+        /// <param name="InbuiltMessageConvention"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static IMessageConvention? GetMessageConvention(this IMessageConventionRegistry registry, MessageConventionKind? messageConventionKind) =>
-            registry.GetMessageConvention(messageConventionKind?.ToString());
+        public static IMessageConvention? GetMessageConvention(this IMessageConventionRegistry registry, InbuiltMessageConvention? InbuiltMessageConvention) =>
+            registry.GetMessageConvention(InbuiltMessageConvention?.ToString());
     }
 }

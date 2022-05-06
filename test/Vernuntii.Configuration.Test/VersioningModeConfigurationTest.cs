@@ -17,7 +17,7 @@ namespace Vernuntii.Configuration
         private const string VersioningModeObjectValidFileName = "ObjectValid.yml";
 
         private static AnyPath Workspace = FilesystemDir / "versioning-mode";
-        private static IVersioningPresetManager presetManager = VersioningpresetManager.CreateDefault();
+        private static IVersioningPresetManager presetManager = VersioningPresetManager.CreateDefault();
 
         private static IServiceCollection CreateBranchCasesProviderServices(string fileName)
         {

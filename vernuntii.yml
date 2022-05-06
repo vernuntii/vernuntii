@@ -1,4 +1,4 @@
-VersioningMode: 
+VersioningMode:
   Preset: ConventionalCommitsDelivery
   RightShiftWhenZeroMajor: true
 PreRelease: alpha

@@ -14,15 +14,15 @@ namespace Vernuntii.VersioningPresets
         /// <param name="versioningPresetName"></param>
         /// <exception cref="ArgumentException"></exception>
         public static IVersioningPreset GetVersioningPreset(this IVersioningPresetRegistry registry, string? versioningPresetName) =>
-            registry.VersioningPresets[versioningPresetName ?? nameof(VersioningPresetKind.Default)];
+            registry.VersioningPresets[versioningPresetName ?? nameof(InbuiltVersioningPreset.Default)];
 
         /// <summary>
         /// Gets versioning preset.
         /// </summary>
         /// <param name="registry"></param>
-        /// <param name="versioningPresetKind"></param>
+        /// <param name="InbuiltVersioningPreset"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static IVersioningPreset GetVersioningPreset(this IVersioningPresetRegistry registry, VersioningPresetKind? versioningPresetKind) =>
-            registry.GetVersioningPreset(versioningPresetKind?.ToString());
+        public static IVersioningPreset GetVersioningPreset(this IVersioningPresetRegistry registry, InbuiltVersioningPreset? InbuiltVersioningPreset) =>
+            registry.GetVersioningPreset(InbuiltVersioningPreset?.ToString());
     }
 }

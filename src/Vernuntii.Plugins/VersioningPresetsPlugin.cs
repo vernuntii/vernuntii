@@ -13,7 +13,7 @@ namespace Vernuntii.PluginSystem
         public override int? Order => -4000;
 
         /// <inheritdoc/>
-        public IVersioningPresetManager PresetManager { get; } = VersioningpresetManager.CreateDefault();
+        public IVersioningPresetManager PresetManager { get; } = VersioningPresetManager.CreateDefault();
 
         /// <summary>
         /// Creates an instance of this instance and poplulates <see cref="PresetManager"/> with defaults.

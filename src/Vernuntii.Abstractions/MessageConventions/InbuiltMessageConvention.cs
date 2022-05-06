@@ -3,7 +3,7 @@
     /// <summary>
     /// The inbuilt presets.
     /// </summary>
-    public enum MessageConventionKind
+    public enum InbuiltMessageConvention
     {
         /// <summary>
         /// No message is considered to increment anything.

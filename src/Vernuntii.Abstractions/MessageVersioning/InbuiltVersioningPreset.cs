@@ -3,7 +3,7 @@
     /// <summary>
     /// The inbuilt presets.
     /// </summary>
-    public enum VersioningPresetKind
+    public enum InbuiltVersioningPreset
     {
         /// <summary>
         /// Continous delivery preset consisting of

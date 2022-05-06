@@ -1,5 +1,6 @@
 ﻿using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
+using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.MessageVersioning;
 
 namespace Vernuntii.VersioningPresets
@@ -7,26 +8,31 @@ namespace Vernuntii.VersioningPresets
     /// <summary>
     /// A compendium for all kind of presets.
     /// </summary>
-    public class VersioningpresetManager : IVersioningPresetManager
+    public class VersioningPresetManager : IVersioningPresetManager
     {
         /// <summary>
         /// Creates a default preset compendium.
         /// </summary>
-        public static VersioningpresetManager CreateDefault()
+        public static VersioningPresetManager CreateDefault()
         {
-            var presets = new VersioningpresetManager();
+            var presets = new VersioningPresetManager();
 
             // Adds presets including message conventions and height conventions.
-            presets.Add(nameof(VersioningPresetKind.Default), VersioningPreset.Default);
-            presets.Add(nameof(VersioningPresetKind.Manual), VersioningPreset.Manual);
-            presets.Add(nameof(VersioningPresetKind.ContinousDelivery), VersioningPreset.ContinousDelivery);
-            presets.Add(nameof(VersioningPresetKind.ContinousDeployment), VersioningPreset.ContinousDeployment);
-            presets.Add(nameof(VersioningPresetKind.ConventionalCommitsDelivery), VersioningPreset.ConventionalCommitsDelivery);
-            presets.Add(nameof(VersioningPresetKind.ConventionalCommitsDeployment), VersioningPreset.ConventionalCommitsDeployment);
+            presets.Add(nameof(InbuiltVersioningPreset.Default), VersioningPreset.Default);
+            presets.Add(nameof(InbuiltVersioningPreset.Manual), VersioningPreset.Manual);
+            presets.Add(nameof(InbuiltVersioningPreset.ContinousDelivery), VersioningPreset.ContinousDelivery);
+            presets.Add(nameof(InbuiltVersioningPreset.ContinousDeployment), VersioningPreset.ContinousDeployment);
+            presets.Add(nameof(InbuiltVersioningPreset.ConventionalCommitsDelivery), VersioningPreset.ConventionalCommitsDelivery);
+            presets.Add(nameof(InbuiltVersioningPreset.ConventionalCommitsDeployment), VersioningPreset.ConventionalCommitsDeployment);
 
             // Add message conventions.
-            presets.AddMessageConvention(nameof(MessageConventionKind.Continous), VersioningPreset.ContinousDelivery.MessageConvention);
-            presets.AddMessageConvention(nameof(MessageConventionKind.ConventionalCommits), VersioningPreset.ConventionalCommitsDelivery.MessageConvention);
+            presets.AddMessageConvention(nameof(InbuiltMessageConvention.Continous), VersioningPreset.ContinousDelivery.MessageConvention);
+            presets.AddMessageConvention(nameof(InbuiltMessageConvention.ConventionalCommits), VersioningPreset.ConventionalCommitsDelivery.MessageConvention);
+
+            // Add message indicators.
+            presets.AddMessageIndicator(nameof(InbuiltMessageIndicator.ConventionalCommits), ConventionalCommitsMessageIndicator.Default);
+            presets.AddMessageIndicator(nameof(InbuiltMessageIndicator.Falsy), FalsyMessageIndicator.Default);
+            presets.AddMessageIndicator(nameof(InbuiltMessageIndicator.Truthy), TruthyMessageIndicator.Default);
 
             return presets;
         }
@@ -43,9 +49,14 @@ namespace Vernuntii.VersioningPresets
         public IReadOnlyDictionary<string, IHeightConvention?> HeightConventions =>
             _heightConventions;
 
+        /// <inheritdoc/>
+        public IReadOnlyDictionary<string, IMessageIndicator> MessageIndicators =>
+            _messageIndicators;
+
         private Dictionary<string, IVersioningPreset> _versioningPresets = new Dictionary<string, IVersioningPreset>();
         private Dictionary<string, IMessageConvention?> _messageConventions = new Dictionary<string, IMessageConvention?>();
         private Dictionary<string, IHeightConvention?> _heightConventions = new Dictionary<string, IHeightConvention?>();
+        private Dictionary<string, IMessageIndicator> _messageIndicators = new Dictionary<string, IMessageIndicator>();
 
         private void EnsureNotExistingPreset(string name)
         {
@@ -99,6 +110,10 @@ namespace Vernuntii.VersioningPresets
         }
 
         /// <inheritdoc/>
+        public void AddMessageIndicator(string name, IMessageIndicator messageIndicator) =>
+            _messageIndicators.Add(name, messageIndicator);
+
+        /// <inheritdoc/>
         public void ClearVersioningPresets() => _versioningPresets.Clear();
 
         /// <inheritdoc/>
@@ -106,6 +121,9 @@ namespace Vernuntii.VersioningPresets
 
         /// <inheritdoc/>
         public void ClearHeightConventions() => _heightConventions.Clear();
+
+        /// <inheritdoc/>
+        public void ClearMessageIndicators() => _messageIndicators.Clear();
 
         /// <inheritdoc/>
         public void Clear()

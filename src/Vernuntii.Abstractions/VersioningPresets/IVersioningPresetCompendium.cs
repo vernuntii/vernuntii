@@ -3,7 +3,7 @@
     /// <summary>
     /// A compendium for all kind of presets.
     /// </summary>
-    public interface IVersioningPresetManager : IVersioningPresetRegistry, IMessageConventionRegistry, IHeightConventionRegistry
+    public interface IVersioningPresetManager : IVersioningPresetRegistry, IMessageConventionRegistry, IHeightConventionRegistry, IMessageIndicatorRegistry
     {
         /// <summary>
         /// Adds a preset.

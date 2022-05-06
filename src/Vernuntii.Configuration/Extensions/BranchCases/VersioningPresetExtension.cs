@@ -6,7 +6,7 @@ using Vernuntii.VersioningPresets;
 namespace Vernuntii.MessageVersioning
 {
     /// <summary>
-    /// Extension options for <see cref="VersionIncrementBuilder"/>
+    /// Versioning preset extension.
     /// </summary>
     public sealed record class VersioningPresetExtension : IEquatable<VersioningPresetExtension>
     {
@@ -26,12 +26,13 @@ namespace Vernuntii.MessageVersioning
             var versioningModeSection = configuration.GetSection(VersioningModeKey);
             Func<VersioningPresetExtension> extensionFactory;
 
+            // 'VersioningMode:' also results into empty string.
             if (!versioningModeSection.Exists() || versioningModeSection.Value != null) {
                 extensionFactory = CreateFromString;
 
                 VersioningPresetExtension CreateFromString()
                 {
-                    var versioningMode = configuration.GetValue(VersioningModeKey, nameof(VersioningPresetKind.Default));
+                    var versioningMode = configuration.GetValue(VersioningModeKey, nameof(InbuiltVersioningPreset.Default));
 
                     return new VersioningPresetExtension {
                         VersioningPreset = presetManager.GetVersioningPreset(versioningMode)
@@ -58,7 +59,7 @@ namespace Vernuntii.MessageVersioning
                     if (versioningModeObject.Preset != null) {
                         basePreset = presetManager.GetVersioningPreset(versioningModeObject.Preset);
                     } else {
-                        basePreset = presetManager.GetVersioningPreset(VersioningPresetKind.Manual);
+                        basePreset = presetManager.GetVersioningPreset(InbuiltVersioningPreset.Manual);
                     }
 
                     IMessageConvention? messageConvention;
