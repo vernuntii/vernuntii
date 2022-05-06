@@ -78,10 +78,6 @@ namespace Vernuntii.Extensions.BranchCases
         /// <exception cref="InvalidCastException"></exception>
         public static IConfiguration GetConfigurationExtension(this IBranchCase branchCaseArguments) =>
             branchCaseArguments.GetExtension<IConfiguration>(BranchCase.ConfigurationExtensionName);
-        /// <summary>
-        /// The "VersioningMode"-key.
-        /// </summary>
-        public const string VersioningModeKey = "VersioningMode";
 
         #region VersioningModeExtension
 
@@ -89,17 +85,16 @@ namespace Vernuntii.Extensions.BranchCases
         /// Binds configuration to new or existing instance of type <see cref="VersioningPresetExtension"/>.
         /// </summary>
         /// <param name="branchCaseArguments"></param>
-        /// <param name="presetManager"></param>
-        /// <param name="configuration"></param>
-        public static IBranchCase TryCreateVersioningPresetExtension(this IBranchCase branchCaseArguments, IVersioningPresetManager presetManager, IConfiguration? configuration = null)
+        /// <param name="presetExtensionFactory"></param>
+        /// <param name="branchConfiguration"></param>
+        public static IBranchCase TryCreateVersioningPresetExtension(this IBranchCase branchCaseArguments, IVersioningPresetExtensionFactory presetExtensionFactory, IConfiguration? branchConfiguration = null)
         {
-            if (configuration is null) {
-                configuration = branchCaseArguments.GetConfigurationExtension();
-            }
+            branchConfiguration ??= branchCaseArguments.GetConfigurationExtension();
 
-            var versioningModeSection = configuration.GetSection(VersioningModeKey);
-            var extensionFactory = VersioningPresetExtension.CreateFactory(configuration, presetManager);
-            _ = branchCaseArguments.GetExtensionOrCreate(VersioningPresetExtension.ExtensionName, extensionFactory);
+            _ = branchCaseArguments.GetExtensionOrCreate(
+                VersioningPresetExtension.ExtensionName,
+                () => presetExtensionFactory.Create(branchConfiguration));
+
             return branchCaseArguments;
         }
 
@@ -107,8 +102,8 @@ namespace Vernuntii.Extensions.BranchCases
         /// Gets the instance of <see cref="VersioningPresetExtension"/> from <see cref="IBranchCase.Extensions"/>.
         /// </summary>
         /// <param name="branchCaseArguments"></param>
-        public static VersioningPresetExtension GetVersioningModeExtension(this IBranchCase branchCaseArguments) =>
-            branchCaseArguments.GetExtension<VersioningPresetExtension>(VersioningPresetExtension.ExtensionName);
+        public static IVersioningPresetExtension GetVersioningModeExtension(this IBranchCase branchCaseArguments) =>
+            branchCaseArguments.GetExtension<IVersioningPresetExtension>(VersioningPresetExtension.ExtensionName);
 
         internal class VersioningModeObject
         {

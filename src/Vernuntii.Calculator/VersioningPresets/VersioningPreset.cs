@@ -120,10 +120,16 @@ namespace Vernuntii.VersioningPresets
         }
 
         /// <inheritdoc/>
-        public bool Equals(VersioningPreset? other) =>
+        public bool Equals(IVersioningPreset? other) =>
             other is not null
             && Equals(IncrementMode, other.IncrementMode)
-            && Equals(MessageConvention, other.MessageConvention);
+            && RightShiftWhenZeroMajor == other.RightShiftWhenZeroMajor
+            && Equals(MessageConvention, other.MessageConvention)
+            && Equals(HeightConvention, other.HeightConvention);
+
+        /// <inheritdoc/>
+        public bool Equals(VersioningPreset? other) =>
+            Equals((IVersioningPreset?)other);
 
         /// <inheritdoc/>
         public override int GetHashCode()

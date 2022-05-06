@@ -18,6 +18,7 @@ namespace Vernuntii.Configuration
 
         private static AnyPath Workspace = FilesystemDir / "versioning-mode";
         private static IVersioningPresetManager presetManager = VersioningPresetManager.CreateDefault();
+        private static VersioningPresetExtensionFactory presetExtensionFactory = new VersioningPresetExtensionFactory(presetManager);
 
         private static IServiceCollection CreateBranchCasesProviderServices(string fileName)
         {
@@ -54,7 +55,7 @@ namespace Vernuntii.Configuration
                      new VersioningPresetExtension(
                          presetManager.GetVersioningPreset(value
                              .GetConfigurationExtension()
-                             .GetValue<string>(BranchCaseExtensions.VersioningModeKey))),
+                             .GetValue<string>(VersioningPresetExtensionFactory.VersioningModeKey))),
                      value.GetVersioningModeExtension()
                  };
             }
@@ -63,8 +64,8 @@ namespace Vernuntii.Configuration
         [Theory]
         [MemberData(nameof(VersioningModeStringShouldMatchPresetGenerator))]
         public void VersioningModeStringShouldMatchPreset(
-            VersioningPresetExtension expectedExtensionOptions,
-            VersioningPresetExtension assumedExtensionOptions) =>
+            IVersioningPresetExtension expectedExtensionOptions,
+            IVersioningPresetExtension assumedExtensionOptions) =>
             Assert.Equal(expectedExtensionOptions, assumedExtensionOptions);
 
         public static IEnumerable<object[]> InvalidVersioningModeObjectShouldThrowGenerator()
@@ -81,8 +82,8 @@ namespace Vernuntii.Configuration
                  () => CreateVersioningModeExtension(branchCases["OnlyIncrementMode"])
              };
 
-            static VersioningPresetExtension CreateVersioningModeExtension(IBranchCase branchCase) => branchCase
-                .TryCreateVersioningPresetExtension(presetManager)
+            static IVersioningPresetExtension CreateVersioningModeExtension(IBranchCase branchCase) => branchCase
+                .TryCreateVersioningPresetExtension(presetExtensionFactory)
                 .GetVersioningModeExtension();
         }
 
@@ -90,9 +91,9 @@ namespace Vernuntii.Configuration
         [MemberData(nameof(InvalidVersioningModeObjectShouldThrowGenerator))]
         public void InvalidVersioningModeObjectShouldThrow(
             string expectedArgumentExceptionFieldName,
-            Func<VersioningPresetExtension> extensionFactory)
+            Func<IVersioningPresetExtension> presetExtensionFactory)
         {
-            var error = Record.Exception(extensionFactory);
+            var error = Record.Exception(presetExtensionFactory);
             var argumentException = Assert.IsType<ArgumentException>(error);
             Assert.Contains(expectedArgumentExceptionFieldName, argumentException.Message);
         }
@@ -120,8 +121,8 @@ namespace Vernuntii.Configuration
         [Theory]
         [MemberData(nameof(ValidVersioningModeObjectShouldMatchGenerator))]
         public void ValidVersioningModeObjectShouldMatch(
-            VersioningPresetExtension expectedExtensionOptions,
-            VersioningPresetExtension assumedExtensionOptions) =>
+            IVersioningPresetExtension expectedExtensionOptions,
+            IVersioningPresetExtension assumedExtensionOptions) =>
             Assert.Equal(expectedExtensionOptions, assumedExtensionOptions);
     }
 }

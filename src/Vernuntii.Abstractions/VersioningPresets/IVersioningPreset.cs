@@ -7,7 +7,7 @@ namespace Vernuntii.VersioningPresets
     /// <summary>
     /// A versioning preset.
     /// </summary>
-    public interface IVersioningPreset
+    public interface IVersioningPreset : IEquatable<IVersioningPreset>
     {
         /// <summary>
         /// Increment mode.

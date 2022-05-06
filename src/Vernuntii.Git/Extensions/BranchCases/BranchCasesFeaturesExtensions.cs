@@ -41,5 +41,24 @@ namespace Vernuntii.Extensions.BranchCases
 
             return features;
         }
+
+        /// <summary>
+        /// Configures instances of <see cref="IBranchCase"/> of <see cref="BranchCasesOptions"/>.
+        /// </summary>
+        /// <param name="features"></param>
+        /// <param name="configureBranchCase"></param>
+        public static IBranchCasesFeatures ForEach<TDependency1, TDependency2>(this IBranchCasesFeatures features, Action<IBranchCase, TDependency1, TDependency2> configureBranchCase)
+            where TDependency1 : class
+            where TDependency2 : class
+        {
+            features.Services.AddOptions<BranchCasesOptions>()
+                .Configure<TDependency1, TDependency2>((options, dependency, dependency2) => {
+                    foreach (var branchCaseArguments in options.BranchCases.Values) {
+                        configureBranchCase(branchCaseArguments, dependency, dependency2);
+                    }
+                });
+
+            return features;
+        }
     }
 }

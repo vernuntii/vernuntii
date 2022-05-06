@@ -1,4 +1,5 @@
-﻿using Vernuntii.VersioningPresets;
+﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.Extensions.BranchCases
 {
@@ -16,7 +17,7 @@ namespace Vernuntii.Extensions.BranchCases
             features.Services.ConfigureVernuntii(vernuntii => vernuntii
                 .ConfigureGit(features => features
                     .ConfigureBranchCases(branchCases => branchCases
-                        .ForEach<IVersioningPresetManager>((branchCase, presetManager) => branchCase.TryCreateVersioningPresetExtension(presetManager)))));
+                        .ForEach<IVersioningPresetExtensionFactory>((branchCase, presetExtensionFactory) => branchCase.TryCreateVersioningPresetExtension(presetExtensionFactory)))));
 
             return features;
         }

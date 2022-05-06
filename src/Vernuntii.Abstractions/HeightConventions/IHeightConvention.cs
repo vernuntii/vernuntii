@@ -5,7 +5,7 @@ namespace Vernuntii.HeightConventions
     /// <summary>
     /// Height convention.
     /// </summary>
-    public interface IHeightConvention
+    public interface IHeightConvention : IEquatable<IHeightConvention>
     {
         /// <summary>
         /// Position of height.

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.Extensions.BranchCases
 {
@@ -26,8 +28,11 @@ namespace Vernuntii.Extensions.BranchCases
         public static IGitFeatures AddBranchCases(
             this IGitFeatures features,
             IEnumerable<IConfiguration> branchCaseSections,
-            Action<IBranchCase>? configureBranchCase = null) =>
-            features.AddBranchCases(branchCaseSections.Select(configuration => CreateBranchCaseArguments(configuration, configureBranchCase)));
+            Action<IBranchCase>? configureBranchCase = null)
+        {
+            features.Services.TryAddSingleton<IVersioningPresetExtensionFactory, VersioningPresetExtensionFactory>();
+            return features.AddBranchCases(branchCaseSections.Select(configuration => CreateBranchCaseArguments(configuration, configureBranchCase)));
+        }
 
         /// <summary>
         /// Adds multiple branch cases from configuration sections.
