@@ -48,8 +48,17 @@ namespace Vernuntii.Git
             _commitVersions = new SynchronizableCollection<CommitVersion>(SemanticVersionComparer.VersionReleaseBuild, descended: false);
         }
 
-        internal virtual Func<string, GitCommand> CreateCommandFactory() =>
-            gitDirectory => new GitCommand(gitDirectory);
+        internal virtual Func<string, GitCommand> CreateCommandFactory() => gitDirectory => {
+            var gitCommand = new GitCommand(gitDirectory);
+
+            if (gitCommand.IsShallowRepository()) {
+                throw new ShallowRepositoryException("Repository is not allowed to be shallow to prevent misbehavior") {
+                    GitDirectory = gitDirectory
+                };
+            }
+
+            return gitCommand;
+        };
 
         private GitCommand CreateCommand()
         {

@@ -1,18 +1,16 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Text;
 using Vernuntii.Git.Diagnostics;
 
 namespace Vernuntii.Git.Command
 {
     internal class GitCommand
     {
-        private readonly string _workingDirectory;
+        public string WorkingDirectory { get; }
 
-        public GitCommand(string workingDirectory) => 
-            _workingDirectory = workingDirectory;
+        public GitCommand(string workingDirectory) =>
+            WorkingDirectory = workingDirectory ?? throw new ArgumentNullException(nameof(workingDirectory));
 
-        private GitProcessStartInfo CreateStartInfo(string? args) => new GitProcessStartInfo(args, _workingDirectory);
+        private GitProcessStartInfo CreateStartInfo(string? args) => new GitProcessStartInfo(args, WorkingDirectory);
 
         protected int ExecuteCommand(string args) => SimpleProcess.StartThenWaitForExit(CreateStartInfo(args));
 
@@ -21,7 +19,7 @@ namespace Vernuntii.Git.Command
             var actualExitCode = ExecuteCommand(args);
 
             if (actualExitCode != expectedExitCode) {
-                throw new InvalidOperationException($"Git returned unexpected exit code: {expectedExitCode} (Actual = {actualExitCode})");
+                throw new InvalidOperationException($"Git returned unexpected exit code: {expectedExitCode} (Actual = {actualExitCode}, Args = {args})");
             }
         }
 
@@ -60,8 +58,8 @@ namespace Vernuntii.Git.Command
 
             string BuildArguments()
             {
-                var stringBuilder = new StringBuilder();
-                stringBuilder.Append(CultureInfo.InvariantCulture, $"show-ref {name}");
+                var stringBuilder = CultureStringBuilder.Invariant();
+                stringBuilder.Append($"show-ref {name}");
 
                 if (showRefLimit.HasFlag(ShowRefLimit.Tags)) {
                     stringBuilder.Append(" --tags");
@@ -135,11 +133,11 @@ namespace Vernuntii.Git.Command
 
             string BuildArguments()
             {
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.Append(CultureInfo.InvariantCulture, $"log {branchName ?? "HEAD"}");
+                CultureStringBuilder stringBuilder = CultureStringBuilder.Invariant();
+                stringBuilder.Append($"log {branchName ?? "HEAD"}");
 
                 if (!string.IsNullOrEmpty(sinceCommit)) {
-                    stringBuilder.Append(CultureInfo.InvariantCulture, $" --not {sinceCommit}");
+                    stringBuilder.Append($" --not {sinceCommit}");
                 }
 
                 stringBuilder.Append(" --format=\"%H %s\"");
@@ -152,6 +150,9 @@ namespace Vernuntii.Git.Command
             }
         }
 
+        public bool IsShallowRepository() =>
+            ExecuteCommandThenReadOutput("rev-parse --is-shallow-repository").Equals("true", StringComparison.OrdinalIgnoreCase);
+
         private class GitProcessStartInfo : SimpleProcessStartInfo
         {
             private const string GitCommandName = "git";
@@ -160,6 +161,52 @@ namespace Vernuntii.Git.Command
               : base(GitCommandName, args, workingDirectory)
             {
             }
+        }
+
+        internal readonly struct NullableQuote
+        {
+            public static NullableQuote DoubleQuoted(string content) =>
+                new NullableQuote($"\"{content}\"");
+
+            public static NullableQuote SingleQuoted(string content) =>
+                new NullableQuote($"'{content}'");
+
+            public string? Content { get; }
+
+            public NullableQuote(string content) =>
+                Content = content;
+
+            public override string? ToString() => Content;
+
+            public static implicit operator NullableQuote(string? content) =>
+                content == null ? default : DoubleQuoted(content);
+
+            public static implicit operator string?(NullableQuote quote) =>
+                quote.Content;
+        }
+
+        internal readonly struct Quote
+        {
+            public static Quote DoubleQuoted(string message) =>
+                new Quote($"\"{message}\"");
+
+            public static Quote SingleQuoted(string message) =>
+                new Quote($"'{message}'");
+
+            public string Content => _content ?? throw new InvalidOperationException("Quote is not set");
+
+            private readonly string? _content;
+
+            public Quote(string content) =>
+                _content = content ?? throw new ArgumentNullException(nameof(content));
+
+            public override string? ToString() => Content;
+
+            public static implicit operator Quote(string content) =>
+                DoubleQuoted(content);
+
+            public static implicit operator string(Quote quote) =>
+                quote.Content;
         }
     }
 }

@@ -3,14 +3,14 @@ using Vernuntii.Git.Command;
 
 namespace Vernuntii.Git
 {
-    internal class TempoararyRepository : Repository, IDisposable
+    internal class TemporaryRepository : Repository, IDisposable
     {
         internal new TestingGitCommand GitCommand => (TestingGitCommand)base.GitCommand;
 
         private readonly TemporaryRepositoryOptions _options;
         private bool _isDisposed;
 
-        public TempoararyRepository(TemporaryRepositoryOptions options, ILogger<Repository> logger)
+        public TemporaryRepository(TemporaryRepositoryOptions options, ILogger<TemporaryRepository> logger)
             : base(options.RepositoryOptions, logger)
         {
             if (options.DeleteOnDispose
@@ -22,7 +22,7 @@ namespace Vernuntii.Git
             _options = options;
         }
 
-        public TempoararyRepository(ILogger<Repository> logger)
+        public TemporaryRepository(ILogger<TemporaryRepository> logger)
             : this(new TemporaryRepositoryOptions(), logger)
         {
         }
@@ -32,14 +32,18 @@ namespace Vernuntii.Git
             var gitDirectory = _options.RepositoryOptions.GitDirectory;
             Directory.CreateDirectory(_options.RepositoryOptions.GitDirectory);
             var gitCommand = new TestingGitCommand(gitDirectory);
-            gitCommand.Init();
+            var cloneOptions = _options.CloneOptions;
+
+            if (cloneOptions != null) {
+                gitCommand.Clone(cloneOptions.SourceUrl(), cloneOptions.Depth);
+            } else {
+                gitCommand.Init();
+            }
+
             gitCommand.SetConfig("user.name", "Vernuntii");
             gitCommand.SetConfig("user.email", "vernuntii@vernuntii.dev");
             return _ => gitCommand;
         }
-
-        public void Init() =>
-            GitCommand.Init();
 
         public void SetConfig(string name, string value) =>
             GitCommand.SetConfig(name: name, value: value);
@@ -55,7 +59,6 @@ namespace Vernuntii.Git
             if (_isDisposed) {
                 return;
             }
-
 
             if (disposing && _options.DeleteOnDispose) {
                 var gitDirectory = _options.RepositoryOptions.GitDirectory;

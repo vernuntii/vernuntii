@@ -5,7 +5,7 @@
 Vernuntii (transl. versionable messages) is a tool for calculating the next semantic version. The tool has the capability to iterate a stream of commit messages and decide upon versioning mode to increment major, minor, patch or height. The pre-release is derived from branch and highly customizable. The version prefix (e.g. v) is either inherited (default), initially set or explicitly removed depending on configuration. Each branch is separatly configurable. The most important fact is that this tool is single branch scoped like MinVer, so simply said it reads all commits you see in git log.
 
 <!-- omit in toc -->
-### Vernuntii key facts
+### Vernuntii key facts on a glance
 
 - Calculates version with [adaptivity](#version-adaptivity) in mind
 - Optional [configuration file][configuration-file] (but recommended)
@@ -13,12 +13,12 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
 - In-built [versioning modes](./docs/configuration-file.md#versioning-mode)
   - Possiblity to override increment mode, message convention and more
 - Git plugin
+  - Reads commits and tags, so it:
   - Searches for latest commit version
   - Uses commit messages as message stream
   - Enables branch-based configuration
+  - Fails fast if using a shallow repository
 - Plugin system (TBD)
-  - Write your own plugins
-  - Replace or mutate existing plugins
 - Inbuilt cache mechanism
 - Can be run concurrently
 
@@ -29,7 +29,9 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
 
 - .NET 6.0 Runtime
 - Git
-- A project with at least one commit :smiley:
+- A repositry with at least one commit :smiley:
+
+> :warning: Make sure the repository is not shallowed!
 
 #### Use case #1
 
@@ -66,9 +68,7 @@ Your use case is not described above? Open an issue and tell me about it.
 <!-- omit in toc -->
 ## How it works
 
-Vernuntii is getting advanced in time, so there is no one time answer but let me give you the way Vernuntii behaves by default.
-
-So first we assume a configuration file that is empty or not even existing. In this case defaults are applied. They roughly look like this:
+So we first assume a configuration file that is empty or not even existing. In this case defaults are applied. They roughly look like this:
 
 ```yaml
 # /vernuntii.yml
@@ -80,7 +80,7 @@ We also assume we are in the branch `main`. Now we move on to the logic.
 1. If the current commit has one or more lightweight git tags with a SemVer-compatible version string as tag name then the **latest** version of these versions is used and the next bullet points are skipped.
 2. If the current commit *does not* have one SemVer-compatible version then the next version is about to be calculated, so we take a look to `git log` and go from current commit backwards and search for the latest version.
 3. If the latest version has been found, then this version serves as start version, otherwise the default version `0.1.0-main.0` is assumed and next bullet points are skipped.
-4. If a pre-release is given then as `ContinousDelivery` indicates, we assume a human triggered release workflow or in other words: we only need the next version when the program is in an actual delivery state. So once and only for once we <ins>increment height by one</ins>. If the height was `0`, then it won't exceed `1` in this calculation. Why height and not patch? Because of the word "Continous". Yes, the program in a delivery state and we just want continously calculate the next version but without soil the version core, so we increment the height.
+4. If a pre-release is given then as `ContinousDelivery` indicates, we assume a human triggered release workflow or in other words: we only need the next version when the program is in an actual delivery state. So we once <ins>increment height by one</ins>. If the height was `0`, then it won't exceed `1` in this calculation. Why height and not patch? Because of the word "Continous". Yes, the program in a delivery state and we just want continously calculate the next version but without soil the version core, so we increment the height.
 5. If a pre-release is not given then as `ContinousDelivery` indicates, we once <ins>increment the patch by one</ins>. If the patch was `0`, then it won't exceed `1` in this calculation. Why patch? Because a change in version core signalizes a *new release*. Why only patch? First of all, there are different [versioning modes](./docs/configuration-file.md#versioning-mode) but `ContinousDelivery` is one of the more feasible workflows that are easy introducable, so if you want for example introduce a minor or major release, you would create such a tag and [vernuntii will just consider it](#version-adaptivity) in next version calculation.
 
 <!-- omit in toc -->
@@ -101,7 +101,7 @@ We also assume we are in the branch `main`. Now we move on to the logic.
 
 ## Version adaptivity
 
-Vernuntii wants to simplify semantic versioning, so we try to adapt as much as possible and let the user control how the next version should be calculated.
+Vernuntii wants to simplify semantic versioning, so it tries to adapt as much as possible and let the user control how the next version should be calculated.
 
 <!-- omit in toc -->
 ### Version prefix
@@ -136,7 +136,7 @@ then the latest version would be `0.5.0`.
 <!-- omit in toc -->
 ### Drawback
 
-One drawback of being adaptive is that the latest or next version is not deterministic when you would remove all tags, but to be fair: I am not aware of one versioning tool that gurantees full deterministic in calculating the next version in case you remove all tags.
+One drawback of being adaptive is that the latest or next version is not deterministic when you would remove all tags, but to be fair: I am not aware of any versioning tool that gurantees full determinism in calculating the next version in case you remove all tags.
 
 ## Vernuntii installers
 
@@ -219,15 +219,12 @@ The following [GitHub actions][github-actions] are available.
 - `vernuntii/actions/execute@main`
   - Executes the "vernuntii"-binary
 
-[msbuild-nuget-package]: https://www.nuget.org/packages/Vernuntii.Console.MSBuild
-[msbuild-nuget-package-badge]: https://img.shields.io/nuget/v/Vernuntii.Console.MSBuild
-[msbuild-nuget-package-docs]: #msbuild-package
-[globaltool-nuget-package]: https://www.nuget.org/packages/Vernuntii.Console.GlobalTool
-[globaltool-nuget-package-badge]: https://img.shields.io/nuget/v/Vernuntii.Console.GlobalTool
-[github-actions]: https://github.com/vernuntii/actions
-[configuration-file]: ./docs/configuration-file.md
-[semver-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer
-[semver-parser-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer.Parser
+> :warning: Ensure to not fetch the repository shallowed by simply specifying:
+> ```
+> - uses: actions/checkout@v3
+>   with:
+>     fetch-depth: 0
+> ```
 
 ## Development
 
@@ -246,10 +243,6 @@ The project is out of the box compilable and you don't have to initialize anythi
 
 Vernuntii uses [Vernuntii.SemVer.Parser][vernuntii-semver-parser-nuget] to parse your version strings. If you want to use it too, then check out the [README.md][vernuntii-semver-parser-readme] for more details.
 
-[vernuntii-semver-parser-readme]: ./src/Vernuntii.SemVer.Parser
-[vernuntii-semver-parser-nuget]: https://www.nuget.org/packages/Vernuntii.SemVer.Parser
-[vernuntii-semver-parser-nuget-badge]: https://img.shields.io/nuget/v/Vernuntii.SemVer.Parser
-
 ### Issues I am working on
 
 This is my work list. :slightly_smiling_face:
@@ -265,3 +258,16 @@ This is my work list. :slightly_smiling_face:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+[msbuild-nuget-package]: https://www.nuget.org/packages/Vernuntii.Console.MSBuild
+[msbuild-nuget-package-badge]: https://img.shields.io/nuget/v/Vernuntii.Console.MSBuild
+[msbuild-nuget-package-docs]: #msbuild-package
+[globaltool-nuget-package]: https://www.nuget.org/packages/Vernuntii.Console.GlobalTool
+[globaltool-nuget-package-badge]: https://img.shields.io/nuget/v/Vernuntii.Console.GlobalTool
+[github-actions]: https://github.com/vernuntii/actions
+[configuration-file]: ./docs/configuration-file.md
+[semver-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer
+[semver-parser-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer.Parser
+[vernuntii-semver-parser-readme]: ./src/Vernuntii.SemVer.Parser
+[vernuntii-semver-parser-nuget]: https://www.nuget.org/packages/Vernuntii.SemVer.Parser
+[vernuntii-semver-parser-nuget-badge]: https://img.shields.io/nuget/v/Vernuntii.SemVer.Parser

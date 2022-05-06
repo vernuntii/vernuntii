@@ -8,7 +8,7 @@ namespace Vernuntii.Git
         [Fact]
         public void FindCommitVersionShouldFindLatestVersion()
         {
-            using var repository = new TempoararyRepository(LoggerFactory.CreateLogger<TempoararyRepository>());
+            using var repository = new TemporaryRepository(LoggerFactory.CreateLogger<TemporaryRepository>());
             repository.CommitEmpty();
             repository.TagLightweight("0.0.1");
             repository.TagLightweight("0.1.0");

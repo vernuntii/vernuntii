@@ -157,7 +157,7 @@ namespace Vernuntii.PluginSystem
 
                 return ExitCodeOnSuccess ?? (int)ExitCode.Success;
             } catch (Exception error) {
-                _logger.LogCritical(error, "A fatal exception happenend, so the version calculation has been canceled.");
+                _logger.LogCritical(error, $"{nameof(Vernuntii)} stopped due to an exception.");
                 return (int)ExitCode.Failure;
             }
         }

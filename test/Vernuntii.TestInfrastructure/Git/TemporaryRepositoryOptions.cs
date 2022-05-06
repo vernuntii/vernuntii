@@ -18,6 +18,8 @@
         /// </summary>
         public bool DeleteOnlyTempDirectory { get; set; } = true;
 
+        public CloneOptions? CloneOptions { get; set; }
+
         public TemporaryRepositoryOptions()
         {
             RepositoryOptions = new RepositoryOptions() {

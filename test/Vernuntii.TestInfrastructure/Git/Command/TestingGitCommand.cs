@@ -1,7 +1,4 @@
-﻿using System.Globalization;
-using System.Text;
-
-namespace Vernuntii.Git.Command
+﻿namespace Vernuntii.Git.Command
 {
     internal class TestingGitCommand : GitCommand
     {
@@ -12,13 +9,13 @@ namespace Vernuntii.Git.Command
 
         public int Init() => ExecuteCommand("init");
 
-        public void SetConfig(QuotedString name, QuotedString value)
+        public void SetConfig(NullableQuote name, NullableQuote value)
         {
-            var args = new StringBuilder();
-            args.Append(" config");
-            args.Append(CultureInfo.InvariantCulture, $" {name.Value}");
-            args.Append(CultureInfo.InvariantCulture, $" {value.Value}");
-            ExecuteCommandThenSucceed(args.ToString());
+            var args = CultureStringBuilder.Invariant();
+            args.Append("config");
+            args.Append($" {name}");
+            args.Append($" {value}");
+            ExecuteCommandThenSucceed(args);
         }
 
         /// <summary>
@@ -27,54 +24,55 @@ namespace Vernuntii.Git.Command
         /// <param name="message"></param>
         /// <param name="allowEmpty"></param>
         /// <param name="allowEmptyMessage"></param>
-        public void Commit(QuotedString message = default, bool allowEmpty = false, bool allowEmptyMessage = false)
+        public void Commit(NullableQuote message = default, bool allowEmpty = false, bool allowEmptyMessage = false)
         {
-            var args = new StringBuilder();
-            args.Append(" commit");
+            var args = CultureStringBuilder.Invariant();
+            args.Append("commit");
 
-            if (message.Value != null) {
-                args.Append(CultureInfo.InvariantCulture, $" -m {message.Value}");
+            if (message.Content != null) {
+                args.Append($" -m {message}");
             }
 
             if (allowEmpty) {
-                args.Append(CultureInfo.InvariantCulture, $" --allow-empty");
+                args.Append($" --allow-empty");
             }
 
             if (allowEmptyMessage) {
-                args.Append(CultureInfo.InvariantCulture, $" --allow-empty-message");
+                args.Append($" --allow-empty-message");
             }
 
-            ExecuteCommandThenSucceed(args.ToString());
+            ExecuteCommandThenSucceed(args);
         }
 
-        public void TagLightweight(QuotedString tagName, QuotedString commit = default)
+        public void TagLightweight(NullableQuote tagName, NullableQuote commit = default)
         {
-            var args = new StringBuilder();
-            args.Append(" tag");
-            args.Append(CultureInfo.InvariantCulture, $" {tagName.Value}");
+            var args = CultureStringBuilder.Invariant();
+            args.Append("tag");
+            args.Append($" {tagName}");
 
-            if (commit.Value != null) {
-                args.Append(CultureInfo.InvariantCulture, $" {commit.Value}");
+            if (commit.Content != null) {
+                args.Append($" {commit}");
             }
 
-            ExecuteCommandThenSucceed(args.ToString());
+            ExecuteCommandThenSucceed(args);
         }
 
-        public readonly struct QuotedString
+        /// <summary>
+        /// Clones a repository in a new directory.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="depth"></param>
+        public void Clone(NullableQuote url, int? depth = null)
         {
-            public static QuotedString DoubleQuoted(string message) =>
-                new QuotedString($"\"{message}\"");
+            var args = CultureStringBuilder.Invariant();
+            args.Append("clone");
 
-            public static QuotedString SingleQuoted(string message) =>
-                new QuotedString($"'{message}'");
+            if (depth != null) {
+                args.Append($" --depth {depth}");
+            }
 
-            public string? Value { get; }
-
-            public QuotedString(string message) =>
-                Value = message;
-
-            public static implicit operator QuotedString(string? message) =>
-                message == null ? default : DoubleQuoted(message);
+            args.Append($" {url} {(Quote)WorkingDirectory}");
+            ExecuteCommandThenSucceed(args);
         }
     }
 }
