@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Vernuntii.MessageConventions;
 using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.Extensions.BranchCases
@@ -30,7 +31,8 @@ namespace Vernuntii.Extensions.BranchCases
             IEnumerable<IConfiguration> branchCaseSections,
             Action<IBranchCase>? configureBranchCase = null)
         {
-            features.Services.TryAddSingleton<IVersioningPresetExtensionFactory, VersioningPresetExtensionFactory>();
+            features.Services.TryAddSingleton<IConfiguredMessageConventionFactory, ConfiguredMessageConventionFactory>();
+            features.Services.TryAddSingleton<IConfiguredVersioningPresetFactory, ConfiguredVersioningPresetFactory>();
             return features.AddBranchCases(branchCaseSections.Select(configuration => CreateBranchCaseArguments(configuration, configureBranchCase)));
         }
 
@@ -72,7 +74,7 @@ namespace Vernuntii.Extensions.BranchCases
 
             features.Services.AddOptions<SemanticVersionCalculationOptions>()
                 .Configure<IBranchCasesProvider>((options, branchCaseProvider) =>
-                    options.VersioningPreset = branchCaseProvider.ActiveBranchCase.GetVersioningModeExtension().VersioningPreset);
+                    options.VersioningPreset = branchCaseProvider.ActiveBranchCase.GetVersioningPresetExtension());
 
             return features;
         }

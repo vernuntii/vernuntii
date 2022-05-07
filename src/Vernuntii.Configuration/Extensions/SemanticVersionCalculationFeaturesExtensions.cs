@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Vernuntii.MessageVersioning;
 using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.Extensions

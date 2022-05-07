@@ -6,16 +6,22 @@
     public interface IVersioningPresetRegistry
     {
         /// <summary>
-        /// Data source of versioning presets.
+        /// Versioning preset identifiers.
         /// </summary>
-        IReadOnlyDictionary<string, IVersioningPreset> VersioningPresets { get; }
+        IEnumerable<string> VersioningPresetIdentifiers { get; }
 
         /// <summary>
         /// Adds a preset associated to a name.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="preset"></param>
-        void AddPreset(string name, IVersioningPreset preset);
+        void AddVersioningPreset(string name, IVersioningPreset preset);
+
+        /// <summary>
+        /// Gets preset by name.
+        /// </summary>
+        /// <param name="name"></param>
+        IVersioningPreset GetVersioningPreset(string name);
 
         /// <summary>
         /// Clears all versioning presets.

@@ -8,9 +8,9 @@ namespace Vernuntii.VersioningPresets
     public interface IHeightConventionRegistry
     {
         /// <summary>
-        /// Data source of height conventions.
+        /// Height convention identifiers.
         /// </summary>
-        IReadOnlyDictionary<string, IHeightConvention?> HeightConventions { get; }
+        IEnumerable<string?> HeightConventionIdentifiers { get; }
 
         /// <summary>
         /// Adds a height convention associated to a name.
@@ -18,6 +18,12 @@ namespace Vernuntii.VersioningPresets
         /// <param name="name"></param>
         /// <param name="heightConvention"></param>
         void AddHeightConvention(string name, IHeightConvention? heightConvention);
+
+        /// <summary>
+        /// Gets the height convention by name.
+        /// </summary>
+        /// <param name="name"></param>
+        IHeightConvention? GetHeightConvention(string name);
 
         /// <summary>
         /// Clears all height conventions.

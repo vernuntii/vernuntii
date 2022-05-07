@@ -11,9 +11,9 @@
         public readonly static TruthyMessageIndicator Default = new TruthyMessageIndicator();
 
         /// <inheritdoc/>
-        public string IndicatorName { get; } = "Truthy";
-
-        /// <inheritdoc/>
         public bool IsMessageIndicating(string? message, VersionPart partToIndicate) => true;
+
+        bool IEquatable<IMessageIndicator>.Equals(IMessageIndicator? other) =>
+            other is TruthyMessageIndicator;
     }
 }

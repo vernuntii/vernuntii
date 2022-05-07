@@ -8,9 +8,9 @@ namespace Vernuntii.VersioningPresets
     public interface IMessageConventionRegistry
     {
         /// <summary>
-        /// Data source of message conventions.
+        /// Message convention identifiers.
         /// </summary>
-        IReadOnlyDictionary<string, IMessageConvention?> MessageConventions { get; }
+        IEnumerable<string> MessageConventionIdentifiers { get; }
 
         /// <summary>
         /// Adds a message convention associated to a name.
@@ -18,6 +18,12 @@ namespace Vernuntii.VersioningPresets
         /// <param name="name"></param>
         /// <param name="messageConvention"></param>
         void AddMessageConvention(string name, IMessageConvention? messageConvention);
+
+        /// <summary>
+        /// Gets the message convention by name.
+        /// </summary>
+        /// <param name="name"></param>
+        IMessageConvention? GetMessageConvention(string name);
 
         /// <summary>
         /// Clears all message conventions.

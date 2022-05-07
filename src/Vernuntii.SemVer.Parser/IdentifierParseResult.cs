@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Vernuntii.SemVer.Parser
+﻿namespace Vernuntii.SemVer.Parser
 {
     /// <summary>
     /// Contains helper functions for <see cref="IdentifierParseResult{T}"/>.
@@ -21,7 +19,7 @@ namespace Vernuntii.SemVer.Parser
     /// <summary>
     /// Represents the parse result.
     /// </summary>
-    public sealed class IdentifierParseResult<T> : IIdentifierParseResult<T>
+    public sealed class IdentifierParseResult<T> : IIdentifierParseResult<T>, INullableIdentifierParseResult<T>, INotNullableIdentifierParseResult<T>
     {
         /// <summary>
         /// Parse result with invalid state <see cref="IdentifierParseResultState.Null"/>.

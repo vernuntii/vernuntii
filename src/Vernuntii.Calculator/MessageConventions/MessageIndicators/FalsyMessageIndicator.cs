@@ -11,9 +11,9 @@
         public readonly static FalsyMessageIndicator Default = new FalsyMessageIndicator();
 
         /// <inheritdoc/>
-        public string IndicatorName { get; } = "Falsy";
-
-        /// <inheritdoc/>
         public bool IsMessageIndicating(string? message, VersionPart partToIndicate) => false;
+
+        bool IEquatable<IMessageIndicator>.Equals(IMessageIndicator? other) =>
+            other is FalsyMessageIndicator;
     }
 }

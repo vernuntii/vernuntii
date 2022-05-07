@@ -16,6 +16,10 @@
         /// <summary>
         /// Increment depending on Conventional Commits message.
         /// </summary>
-        ConventionalCommits
+        ConventionalCommits,
+        /// <summary>
+        /// Default message conventions is <see cref="Continous"/>.
+        /// </summary>
+        Default
     }
 }

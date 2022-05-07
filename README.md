@@ -29,7 +29,7 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
 
 - .NET 6.0 Runtime
 - Git
-- A repositry with at least one commit :smiley:
+- A repository with at least one commit :smiley:
 
 > :warning: Make sure the repository is not shallowed!
 

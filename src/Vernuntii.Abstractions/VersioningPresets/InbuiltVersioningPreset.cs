@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.MessageVersioning
+﻿using Vernuntii.MessageVersioning;
+
+namespace Vernuntii.VersioningPresets
 {
     /// <summary>
     /// The inbuilt presets.

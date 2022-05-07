@@ -7,11 +7,16 @@ namespace Vernuntii.MessageConventions
     /// </summary>
     public record MessageConvention : IMessageConvention
     {
-        private static bool Equals(IEnumerable<IMessageIndicator>? x, IEnumerable<IMessageIndicator>? y) =>
+        /// <summary>
+        /// An empty instance that does not have a single message indicator.
+        /// </summary>
+        public readonly static MessageConvention Empty = new MessageConvention();
+
+        private static bool SequenceEqual(IEnumerable<IMessageIndicator>? x, IEnumerable<IMessageIndicator>? y) =>
             ReferenceEquals(x, y)
             || x is not null
                 && y is not null
-                && x.SequenceEqual(y, MessageIndicatorNameComparer.Default);
+                && x.SequenceEqual(y);
 
         private static int GetHashCode(IEnumerable<IMessageIndicator>? enumerable)
         {
@@ -22,7 +27,7 @@ namespace Vernuntii.MessageConventions
             var hashCode = new HashCode();
 
             foreach (var indicator in enumerable) {
-                hashCode.Add(MessageIndicatorNameComparer.Default.GetHashCode(indicator));
+                hashCode.Add(indicator);
             }
 
             return hashCode.ToHashCode();
@@ -37,12 +42,34 @@ namespace Vernuntii.MessageConventions
         /// <inheritdoc/>
         public IReadOnlyCollection<IMessageIndicator>? PatchIndicators { get; init; }
 
+        /// <summary>
+        /// Creates an instance of this type.
+        /// </summary>
+        public MessageConvention()
+        {
+        }
+
+        /// <summary>
+        /// Creates a shallow copy of <paramref name="messageConvention"/>.
+        /// </summary>
+        /// <param name="messageConvention"></param>
+        public MessageConvention(IMessageConvention messageConvention)
+        {
+            MajorIndicators = messageConvention.MajorIndicators;
+            MinorIndicators = messageConvention.MinorIndicators;
+            PatchIndicators = messageConvention.PatchIndicators;
+        }
+
         /// <inheritdoc/>
-        public bool Equals(IMessageConvention? other) =>
+        public virtual bool Equals(MessageConvention? other) =>
+            ((IMessageConvention)this).Equals(other);
+
+        /// <inheritdoc/>
+        bool IEquatable<IMessageConvention>.Equals(IMessageConvention? other) =>
             other is not null
-            && Equals(MajorIndicators, other.MajorIndicators)
-            && Equals(MinorIndicators, other.MinorIndicators)
-            && Equals(PatchIndicators, other.PatchIndicators);
+            && SequenceEqual(MajorIndicators, other.MajorIndicators)
+            && SequenceEqual(MinorIndicators, other.MinorIndicators)
+            && SequenceEqual(PatchIndicators, other.PatchIndicators);
 
         /// <inheritdoc/>
         public override int GetHashCode()

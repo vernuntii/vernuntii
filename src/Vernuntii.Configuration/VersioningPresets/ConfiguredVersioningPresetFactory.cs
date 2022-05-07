@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Vernuntii.Configuration;
+using Vernuntii.Extensions;
 using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.MessageVersioning;
@@ -6,36 +8,40 @@ using Vernuntii.MessageVersioning;
 namespace Vernuntii.VersioningPresets
 {
     /// <summary>
-    /// A factory for <see cref="VersioningPresetExtension"/>.
+    /// A factory for <see cref="IVersioningPreset"/>.
     /// </summary>
-    public class VersioningPresetExtensionFactory : IVersioningPresetExtensionFactory
+    public class ConfiguredVersioningPresetFactory : IConfiguredVersioningPresetFactory
     {
         /// <summary>
         /// The "VersioningMode"-key.
         /// </summary>
-        public const string VersioningModeKey = "VersioningMode";
+        public const string DefaultVersioningModeKey = "VersioningMode";
 
-        private readonly IVersioningPresetManager _presetManager;
+        /// <summary>
+        /// The versioning preset manager containing everything related to versioning presets.
+        /// </summary>
+        protected IVersioningPresetManager PresetManager { get; }
+
+        private readonly IConfiguredMessageConventionFactory _messageConventionFactory;
 
         /// <summary>
         /// Creates an type of this type.
         /// </summary>
         /// <param name="presetManager"></param>
-        public VersioningPresetExtensionFactory(IVersioningPresetManager presetManager) =>
-            _presetManager = presetManager;
+        /// <param name="messageConventionFactory"></param>
+        public ConfiguredVersioningPresetFactory(IVersioningPresetManager presetManager, IConfiguredMessageConventionFactory messageConventionFactory)
+        {
+            PresetManager = presetManager;
+            _messageConventionFactory = messageConventionFactory;
+        }
 
         /// <inheritdoc/>
-        public IVersioningPresetExtension Create(IConfiguration branchConfiguration)
+        public IVersioningPreset Create(IDefaultConfigurationSectionProvider sectionProvider)
         {
-            var versioningModeSection = branchConfiguration.GetSection(VersioningModeKey);
+            var versioningModeSection = sectionProvider.GetSection();
 
-            // 'VersioningMode:' also results into empty string.
-            if (!versioningModeSection.Exists() || versioningModeSection.Value != null) {
-                var versioningMode = branchConfiguration.GetValue(VersioningModeKey, nameof(InbuiltVersioningPreset.Default));
-
-                return new VersioningPresetExtension {
-                    VersioningPreset = _presetManager.GetVersioningPreset(versioningMode)
-                };
+            if (versioningModeSection.HavingValue()) {
+                return PresetManager.GetVersioningPreset(versioningModeSection.Value ?? nameof(InbuiltVersioningPreset.Default));
             }
 
             var versioningModeObject = new VersioningModeObject();
@@ -52,29 +58,24 @@ namespace Vernuntii.VersioningPresets
             IVersioningPreset basePreset;
 
             if (versioningModeObject.Preset != null) {
-                basePreset = _presetManager.GetVersioningPreset(versioningModeObject.Preset);
+                basePreset = PresetManager.GetVersioningPreset(versioningModeObject.Preset);
             } else {
-                basePreset = _presetManager.GetVersioningPreset(InbuiltVersioningPreset.Manual);
+                basePreset = PresetManager.GetVersioningPreset(nameof(InbuiltVersioningPreset.Manual));
             }
 
-            IMessageConvention? messageConvention;
-
-            if (versioningModeObject.MessageConvention != null) {
-                messageConvention = _presetManager.GetMessageConvention(versioningModeObject.MessageConvention);
-            } else {
-                messageConvention = basePreset.MessageConvention;
-            }
+            var havingMessageConvention = _messageConventionFactory.TryCreate(
+                versioningModeSection.GetSectionProvider(ConfiguredMessageConventionFactory.DefaultMessageConventionKey), out var messageConvention);
 
             IHeightConvention? heightConvention = basePreset.HeightConvention;
             var versionIncrementMode = versioningModeObject.IncrementMode ?? basePreset.IncrementMode;
             var rightShiftWhenZeroMajor = versioningModeObject.RightShiftWhenZeroMajor;
 
-            return new VersioningPresetExtension(new VersioningPreset() {
+            return new VersioningPreset() {
                 IncrementMode = versionIncrementMode,
-                MessageConvention = messageConvention,
+                MessageConvention = havingMessageConvention ? messageConvention : basePreset.MessageConvention,
                 HeightConvention = heightConvention,
                 RightShiftWhenZeroMajor = rightShiftWhenZeroMajor
-            });
+            };
         }
 
         internal class VersioningModeObject

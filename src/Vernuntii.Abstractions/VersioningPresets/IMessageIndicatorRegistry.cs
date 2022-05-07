@@ -8,9 +8,9 @@ namespace Vernuntii.VersioningPresets
     public interface IMessageIndicatorRegistry
     {
         /// <summary>
-        /// Data source of message indicators.
+        /// Message indicator identifiers.
         /// </summary>
-        IReadOnlyDictionary<string, IMessageIndicator> MessageIndicators { get; }
+        IEnumerable<string> MessageIndicatorIdentifiers { get; }
 
         /// <summary>
         /// Adds a message indicator associated to a name.
@@ -18,6 +18,12 @@ namespace Vernuntii.VersioningPresets
         /// <param name="name"></param>
         /// <param name="messageIndicator"></param>
         void AddMessageIndicator(string name, IMessageIndicator messageIndicator);
+
+        /// <summary>
+        /// Gets the message indicator by name.
+        /// </summary>
+        /// <param name="name"></param>
+        IMessageIndicator GetMessageIndicator(string name);
 
         /// <summary>
         /// Clears all message indicators.

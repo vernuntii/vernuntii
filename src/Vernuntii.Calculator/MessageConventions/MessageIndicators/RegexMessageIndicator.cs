@@ -3,24 +3,23 @@
 namespace Vernuntii.MessageConventions.MessageIndicators
 {
     /// <summary>
-    /// Message indicator using Regular Expressions.
+    /// Message indicator depending on RegEx patterns.
     /// </summary>
-    public abstract class RegexMessageIndicator : MessageIndicator
+    public record class RegexMessageIndicator : RegexMessageIndicatorBase
     {
-        /// <inheritdoc/>
-        protected abstract Regex MajorRegex { get; }
-        /// <inheritdoc/>
-        protected abstract Regex MinorRegex { get; }
-        /// <inheritdoc/>
-        protected abstract Regex PatchRegex { get; }
+        /// <summary>
+        /// The default instance.
+        /// </summary>
+        public readonly static RegexMessageIndicator Default = new RegexMessageIndicator();
 
         /// <inheritdoc/>
-        protected override bool IsMessageIndicatingMajor(string message) => MajorRegex.IsMatch(message);
+        public override string IndicatorName => "Regex";
 
         /// <inheritdoc/>
-        protected override bool IsMessageIndicatingMinor(string message) => MinorRegex.IsMatch(message);
-
+        public override Regex? MajorRegex { get; init; }
         /// <inheritdoc/>
-        protected override bool IsMessageIndicatingPatch(string message) => PatchRegex.IsMatch(message);
+        public override Regex? MinorRegex { get; init; }
+        /// <inheritdoc/>
+        public override Regex? PatchRegex { get; init; }
     }
 }

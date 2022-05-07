@@ -1,7 +1,6 @@
 ﻿using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.MessageConventions.MessageIndicators;
-using Vernuntii.MessageVersioning;
 
 namespace Vernuntii.VersioningPresets
 {
@@ -38,20 +37,20 @@ namespace Vernuntii.VersioningPresets
         }
 
         /// <inheritdoc/>
-        public IReadOnlyDictionary<string, IVersioningPreset> VersioningPresets =>
-            _versioningPresets;
+        public IEnumerable<string> VersioningPresetIdentifiers =>
+            _versioningPresets.Keys;
 
         /// <inheritdoc/>
-        public IReadOnlyDictionary<string, IMessageConvention?> MessageConventions =>
-            _messageConventions;
+        public IEnumerable<string> MessageConventionIdentifiers =>
+            _messageConventions.Keys;
 
         /// <inheritdoc/>
-        public IReadOnlyDictionary<string, IHeightConvention?> HeightConventions =>
-            _heightConventions;
+        public IEnumerable<string> HeightConventionIdentifiers =>
+            _heightConventions.Keys;
 
         /// <inheritdoc/>
-        public IReadOnlyDictionary<string, IMessageIndicator> MessageIndicators =>
-            _messageIndicators;
+        public IEnumerable<string> MessageIndicatorIdentifiers =>
+            _messageIndicators.Keys;
 
         private Dictionary<string, IVersioningPreset> _versioningPresets = new Dictionary<string, IVersioningPreset>();
         private Dictionary<string, IMessageConvention?> _messageConventions = new Dictionary<string, IMessageConvention?>();
@@ -89,10 +88,20 @@ namespace Vernuntii.VersioningPresets
         }
 
         /// <inheritdoc/>
-        public void AddPreset(string name, IVersioningPreset preset)
+        public void AddVersioningPreset(string name, IVersioningPreset preset)
         {
             EnsureNotExistingPreset(name);
             _versioningPresets.Add(name, preset);
+        }
+
+        /// <inheritdoc/>
+        public IVersioningPreset GetVersioningPreset(string name)
+        {
+            if (!_versioningPresets.TryGetValue(name, out var value)) {
+                throw new VersioningPresetMissingException($"Versioning preset was missing: \"{value}\"");
+            }
+
+            return value;
         }
 
         /// <inheritdoc/>
@@ -103,6 +112,16 @@ namespace Vernuntii.VersioningPresets
         }
 
         /// <inheritdoc/>
+        public IMessageConvention? GetMessageConvention(string name)
+        {
+            if (!_messageConventions.TryGetValue(name, out var value)) {
+                throw new MessageConventionMissingException($"Message convention was missing: \"{value}\"");
+            }
+
+            return value;
+        }
+
+        /// <inheritdoc/>
         public void AddHeightConvention(string name, IHeightConvention? heightConvention)
         {
             EnsureNotExistingPreset(name);
@@ -110,8 +129,28 @@ namespace Vernuntii.VersioningPresets
         }
 
         /// <inheritdoc/>
+        public IHeightConvention? GetHeightConvention(string name)
+        {
+            if (!_heightConventions.TryGetValue(name, out var value)) {
+                throw new MessageConventionMissingException($"Height convention was missing: \"{value}\"");
+            }
+
+            return value;
+        }
+
+        /// <inheritdoc/>
         public void AddMessageIndicator(string name, IMessageIndicator messageIndicator) =>
             _messageIndicators.Add(name, messageIndicator);
+
+        /// <inheritdoc/>
+        public IMessageIndicator GetMessageIndicator(string name)
+        {
+            if (!_messageIndicators.TryGetValue(name, out var value)) {
+                throw new MessageConventionMissingException($"Message indicator was missing: \"{value}\"");
+            }
+
+            return value;
+        }
 
         /// <inheritdoc/>
         public void ClearVersioningPresets() => _versioningPresets.Clear();

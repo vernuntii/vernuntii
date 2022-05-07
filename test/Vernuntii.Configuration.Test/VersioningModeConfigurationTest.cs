@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.Extensions;
 using Vernuntii.Extensions.BranchCases;
+using Vernuntii.MessageConventions;
 using Vernuntii.MessageVersioning;
 using Vernuntii.VersioningPresets;
 using Xunit;
@@ -18,7 +19,10 @@ namespace Vernuntii.Configuration
 
         private static AnyPath Workspace = FilesystemDir / "versioning-mode";
         private static IVersioningPresetManager presetManager = VersioningPresetManager.CreateDefault();
-        private static VersioningPresetExtensionFactory presetExtensionFactory = new VersioningPresetExtensionFactory(presetManager);
+
+        private static ConfiguredVersioningPresetFactory presetExtensionFactory = new ConfiguredVersioningPresetFactory(
+            presetManager,
+            new ConfiguredMessageConventionFactory(presetManager));
 
         private static IServiceCollection CreateBranchCasesProviderServices(string fileName)
         {
@@ -52,11 +56,9 @@ namespace Vernuntii.Configuration
         {
             foreach (var value in CreateBranchCasesProvider(VersioningModeStringFileName).BranchCases.Values) {
                 yield return new object[] {
-                     new VersioningPresetExtension(
-                         presetManager.GetVersioningPreset(value
-                             .GetConfigurationExtension()
-                             .GetValue<string>(VersioningPresetExtensionFactory.VersioningModeKey))),
-                     value.GetVersioningModeExtension()
+                     presetManager.GetVersioningPreset(value.GetConfigurationExtension().GetValue<string>(ConfiguredVersioningPresetFactory.DefaultVersioningModeKey)
+                        ?? nameof(InbuiltVersioningPreset.Default)),
+                     value.GetVersioningPresetExtension()
                  };
             }
         }
@@ -64,8 +66,8 @@ namespace Vernuntii.Configuration
         [Theory]
         [MemberData(nameof(VersioningModeStringShouldMatchPresetGenerator))]
         public void VersioningModeStringShouldMatchPreset(
-            IVersioningPresetExtension expectedExtensionOptions,
-            IVersioningPresetExtension assumedExtensionOptions) =>
+            IVersioningPreset expectedExtensionOptions,
+            IVersioningPreset assumedExtensionOptions) =>
             Assert.Equal(expectedExtensionOptions, assumedExtensionOptions);
 
         public static IEnumerable<object[]> InvalidVersioningModeObjectShouldThrowGenerator()
@@ -82,16 +84,16 @@ namespace Vernuntii.Configuration
                  () => CreateVersioningModeExtension(branchCases["OnlyIncrementMode"])
              };
 
-            static IVersioningPresetExtension CreateVersioningModeExtension(IBranchCase branchCase) => branchCase
+            static IVersioningPreset CreateVersioningModeExtension(IBranchCase branchCase) => branchCase
                 .TryCreateVersioningPresetExtension(presetExtensionFactory)
-                .GetVersioningModeExtension();
+                .GetVersioningPresetExtension();
         }
 
         [Theory]
         [MemberData(nameof(InvalidVersioningModeObjectShouldThrowGenerator))]
         public void InvalidVersioningModeObjectShouldThrow(
             string expectedArgumentExceptionFieldName,
-            Func<IVersioningPresetExtension> presetExtensionFactory)
+            Func<IVersioningPreset> presetExtensionFactory)
         {
             var error = Record.Exception(presetExtensionFactory);
             var argumentException = Assert.IsType<ArgumentException>(error);
@@ -103,17 +105,17 @@ namespace Vernuntii.Configuration
             var branchCases = CreateBranchCasesProvider(VersioningModeObjectValidFileName).NestedBranchCases;
 
             yield return new object[] {
-                 new VersioningPresetExtension(VersioningPreset.ConventionalCommitsDelivery),
-                 branchCases["OnlyPreset"].GetVersioningModeExtension()
+                 VersioningPreset.ConventionalCommitsDelivery,
+                 branchCases["OnlyPreset"].GetVersioningPresetExtension()
              };
 
             {
                 yield return new object[] {
-                     new VersioningPresetExtension(VersioningPreset.Manual with {
+                     VersioningPreset.Manual with {
                          MessageConvention = VersioningPreset.ConventionalCommitsDelivery.MessageConvention,
                          IncrementMode = VersionIncrementMode.Successive
-                     }),
-                     branchCases["Mixing"].GetVersioningModeExtension()
+                     },
+                     branchCases["Mixing"].GetVersioningPresetExtension()
                  };
             }
         }
@@ -121,8 +123,8 @@ namespace Vernuntii.Configuration
         [Theory]
         [MemberData(nameof(ValidVersioningModeObjectShouldMatchGenerator))]
         public void ValidVersioningModeObjectShouldMatch(
-            IVersioningPresetExtension expectedExtensionOptions,
-            IVersioningPresetExtension assumedExtensionOptions) =>
+            IVersioningPreset expectedExtensionOptions,
+            IVersioningPreset assumedExtensionOptions) =>
             Assert.Equal(expectedExtensionOptions, assumedExtensionOptions);
     }
 }

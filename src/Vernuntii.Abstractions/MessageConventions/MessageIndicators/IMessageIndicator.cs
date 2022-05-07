@@ -3,13 +3,8 @@
     /// <summary>
     /// Message indicator.
     /// </summary>
-    public interface IMessageIndicator
+    public interface IMessageIndicator : IEquatable<IMessageIndicator>
     {
-        /// <summary>
-        /// The name of indicator.
-        /// </summary>
-        string IndicatorName { get; }
-
         /// <summary>
         /// Indicates a message for a version part.
         /// </summary>

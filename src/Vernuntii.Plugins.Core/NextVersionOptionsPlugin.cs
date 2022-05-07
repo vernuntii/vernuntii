@@ -30,7 +30,7 @@ namespace Vernuntii.PluginSystem
             var versioningPresetsPlugin = FirstPlugin<IVersioningPresetsPlugin>();
 
             _overrideVersioningModeOption = new Option<string?>(new[] { "--override-versioning-mode" })
-                .AddCompletions(_ => versioningPresetsPlugin.PresetManager.VersioningPresets.Keys);
+                .AddCompletions(_ => versioningPresetsPlugin.PresetManager.VersioningPresetIdentifiers);
 
             FirstPlugin<ICommandLinePlugin>().RootCommand.Add(_overrideVersioningModeOption);
         }

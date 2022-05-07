@@ -14,7 +14,7 @@
         void Add(string name, IVersioningPreset preset, VersioningPresetIncludes includes = VersioningPresetIncludes.Preset);
 
         /// <summary>
-        /// Clears all versioning presets, message conventions and height conventions.
+        /// Clears all versioning presets, message conventions, message indicators and height conventions.
         /// </summary>
         void Clear();
     }

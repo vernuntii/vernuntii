@@ -62,7 +62,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
         }
 
         /// <inheritdoc/>
-        public IIdentifierParseResult<uint?> TryParseNumericIdentifier(string? numericIdentifier) =>
+        public INotNullableIdentifierParseResult<uint?> TryParseNumericIdentifier(string? numericIdentifier) =>
             TryParseIdentifier<uint?>(numericIdentifier, TryParseNonEmptyNumericIdentifier);
     }
 }

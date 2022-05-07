@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Vernuntii.Configuration;
 using Vernuntii.MessageVersioning;
 using Vernuntii.VersioningPresets;
 
@@ -82,28 +83,28 @@ namespace Vernuntii.Extensions.BranchCases
         #region VersioningModeExtension
 
         /// <summary>
-        /// Binds configuration to new or existing instance of type <see cref="VersioningPresetExtension"/>.
+        /// Binds configuration to new or existing instance of type <see cref="IVersioningPreset"/>.
         /// </summary>
         /// <param name="branchCaseArguments"></param>
-        /// <param name="presetExtensionFactory"></param>
+        /// <param name="presetFactory"></param>
         /// <param name="branchConfiguration"></param>
-        public static IBranchCase TryCreateVersioningPresetExtension(this IBranchCase branchCaseArguments, IVersioningPresetExtensionFactory presetExtensionFactory, IConfiguration? branchConfiguration = null)
+        public static IBranchCase TryCreateVersioningPresetExtension(this IBranchCase branchCaseArguments, IConfiguredVersioningPresetFactory presetFactory, IConfiguration? branchConfiguration = null)
         {
             branchConfiguration ??= branchCaseArguments.GetConfigurationExtension();
 
             _ = branchCaseArguments.GetExtensionOrCreate(
-                VersioningPresetExtension.ExtensionName,
-                () => presetExtensionFactory.Create(branchConfiguration));
+                nameof(IVersioningPreset),
+                () => presetFactory.Create(branchConfiguration.GetSectionProvider(ConfiguredVersioningPresetFactory.DefaultVersioningModeKey)));
 
             return branchCaseArguments;
         }
 
         /// <summary>
-        /// Gets the instance of <see cref="VersioningPresetExtension"/> from <see cref="IBranchCase.Extensions"/>.
+        /// Gets the instance of <see cref="IVersioningPreset"/> from <see cref="IBranchCase.Extensions"/>.
         /// </summary>
         /// <param name="branchCaseArguments"></param>
-        public static IVersioningPresetExtension GetVersioningModeExtension(this IBranchCase branchCaseArguments) =>
-            branchCaseArguments.GetExtension<IVersioningPresetExtension>(VersioningPresetExtension.ExtensionName);
+        public static IVersioningPreset GetVersioningPresetExtension(this IBranchCase branchCaseArguments) =>
+            branchCaseArguments.GetExtension<IVersioningPreset>(nameof(IVersioningPreset));
 
         internal class VersioningModeObject
         {

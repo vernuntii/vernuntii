@@ -3,7 +3,7 @@
     /// <summary>
     /// Message indicator.
     /// </summary>
-    public abstract class MessageIndicator : IMessageIndicator
+    public abstract record MessageIndicatorBase : IMessageIndicator, IEquatable<MessageIndicatorBase>
     {
         /// <inheritdoc/>
         public abstract string IndicatorName { get; }
@@ -34,5 +34,18 @@
             VersionPart.Patch => IsMessageIndicatingPatch(message),
             _ => false
         };
+
+        /// <inheritdoc/>
+        public virtual bool Equals(MessageIndicatorBase? other) =>
+            ((IMessageIndicator)this).Equals(other);
+
+        bool IEquatable<IMessageIndicator>.Equals(IMessageIndicator? other) =>
+            other is MessageIndicatorBase otherIndiactor
+            ? MessageIndicatorBaseEqualityComparer.Default.Equals(this, otherIndiactor)
+            : false;
+
+        /// <inheritdoc/>
+        public override int GetHashCode() =>
+            MessageIndicatorBaseEqualityComparer.Default.GetHashCode(this);
     }
 }
