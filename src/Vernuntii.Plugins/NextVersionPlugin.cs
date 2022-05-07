@@ -1,5 +1,7 @@
 ﻿using System.CommandLine;
+using System.Diagnostics;
 using System.Globalization;
+using Autofac.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -157,8 +159,19 @@ namespace Vernuntii.PluginSystem
 
                 return ExitCodeOnSuccess ?? (int)ExitCode.Success;
             } catch (Exception error) {
+                UnwrapError(ref error);
                 _logger.LogCritical(error, $"{nameof(Vernuntii)} stopped due to an exception.");
                 return (int)ExitCode.Failure;
+
+                // Unwraps error to make the actual error more valuable for casual users.
+                [Conditional("RELEASE")]
+                static void UnwrapError(ref Exception error)
+                {
+                    if (error is DependencyResolutionException dependencyResolutionException
+                        && dependencyResolutionException.InnerException is not null) {
+                        error = dependencyResolutionException.InnerException;
+                    }
+                }
             }
         }
 

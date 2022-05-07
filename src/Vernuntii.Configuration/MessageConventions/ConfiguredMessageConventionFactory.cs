@@ -14,7 +14,7 @@ namespace Vernuntii.MessageConventions
         /// <summary>
         /// The "MessageConvention"-key.
         /// </summary>
-        public const string DefaultMessageConventionKey = nameof(MessageConventionObject.MessageConvention);
+        public const string DefaultMessageConventionKey = "MessageConvention";
 
         /// <summary>
         /// The default key for major indicators.
@@ -104,8 +104,8 @@ namespace Vernuntii.MessageConventions
 
             IMessageConvention? baseMessageConvention;
 
-            if (messageConventionObject.MessageConvention != null) {
-                baseMessageConvention = PresetManager.GetMessageConvention(messageConventionObject.MessageConvention);
+            if (messageConventionObject.Base != null) {
+                baseMessageConvention = PresetManager.GetMessageConvention(messageConventionObject.Base);
             } else {
                 baseMessageConvention = null;
             }
@@ -136,7 +136,7 @@ namespace Vernuntii.MessageConventions
 
         internal class MessageConventionObject
         {
-            public string? MessageConvention { get; set; }
+            public string? Base { get; set; }
         }
 
         internal class MessageIndicatorObject

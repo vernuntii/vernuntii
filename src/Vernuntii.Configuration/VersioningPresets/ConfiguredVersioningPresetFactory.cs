@@ -16,6 +16,10 @@ namespace Vernuntii.VersioningPresets
         /// The "VersioningMode"-key.
         /// </summary>
         public const string DefaultVersioningModeKey = "VersioningMode";
+        /// <summary>
+        /// The default preset key.
+        /// </summary>
+        public const string DefaultPresetKey = nameof(VersioningModeObject.Preset);
 
         /// <summary>
         /// The versioning preset manager containing everything related to versioning presets.
@@ -47,12 +51,9 @@ namespace Vernuntii.VersioningPresets
             var versioningModeObject = new VersioningModeObject();
             versioningModeSection.Bind(versioningModeObject);
 
-            if (versioningModeObject.MessageConvention == null && versioningModeObject.Preset == null) {
-                throw new ArgumentException($"Field \"{nameof(versioningModeObject.MessageConvention)}\" is null." +
-                    $" Either set it or specifiy the field \"{nameof(versioningModeObject.Preset)}\".");
-            } else if (versioningModeObject.IncrementMode == null && versioningModeObject.Preset == null) {
+            if (versioningModeObject.IncrementMode == null && versioningModeObject.Preset == null) {
                 throw new ArgumentException($"Field \"{nameof(versioningModeObject.IncrementMode)}\" is null." +
-                    $" Either set it or specifiy the field \"{nameof(versioningModeObject.Preset)}\".");
+                    $" Either set it or specifiy the field \"{DefaultPresetKey}\".");
             }
 
             IVersioningPreset basePreset;
@@ -65,6 +66,11 @@ namespace Vernuntii.VersioningPresets
 
             var havingMessageConvention = _messageConventionFactory.TryCreate(
                 versioningModeSection.GetSectionProvider(ConfiguredMessageConventionFactory.DefaultMessageConventionKey), out var messageConvention);
+
+            if (!havingMessageConvention && versioningModeObject.Preset == null) {
+                throw new ArgumentException($"Field \"{ConfiguredMessageConventionFactory.DefaultMessageConventionKey}\" is null." +
+                    $" Either set it or specifiy the field \"{nameof(versioningModeObject.Preset)}\".");
+            }
 
             IHeightConvention? heightConvention = basePreset.HeightConvention;
             var versionIncrementMode = versioningModeObject.IncrementMode ?? basePreset.IncrementMode;
@@ -82,7 +88,6 @@ namespace Vernuntii.VersioningPresets
         {
             public VersionIncrementMode? IncrementMode { get; set; }
             public string? Preset { get; set; }
-            public string? MessageConvention { get; set; }
             public bool RightShiftWhenZeroMajor { get; set; }
         }
     }
