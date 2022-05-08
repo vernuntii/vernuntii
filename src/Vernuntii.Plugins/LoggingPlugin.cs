@@ -1,7 +1,12 @@
 ﻿using System.CommandLine;
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
+using Serilog.Expressions;
+using Serilog.Templates;
+using Serilog.Templates.Themes;
 using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.PluginSystem
@@ -14,7 +19,7 @@ namespace Vernuntii.PluginSystem
         /// <inheritdoc/>
         public override int? Order => -2000;
 
-        private Serilog.Core.Logger _logger = null!;
+        private Logger _logger = null!;
         private ILoggerFactory _loggerFactory = null!;
         private Action<ILoggingBuilder> _loggerBinder = null!;
 
@@ -49,16 +54,33 @@ namespace Vernuntii.PluginSystem
         private LogEventLevel? _verbosity;
 
         /// <inheritdoc/>
+        protected override ValueTask OnRegistrationAsync(RegistrationContext registrationContext)
+        {
+            SerilogPastTime.InitializeLastMoment();
+            return ValueTask.CompletedTask;
+        }
+
+        /// <inheritdoc/>
         protected override void OnCompletedRegistration() =>
             Plugins.First<ICommandLinePlugin>().Registered += plugin => plugin.RootCommand.Add(verbosityOption);
 
         private void EnableLoggingInfrastructure()
         {
+            var pastTimeResolver = new StaticMemberNameResolver(typeof(SerilogPastTime));
+            var verbosity = _verbosity ?? LogEventLevel.Fatal;
+
+            var expressionTemplate = verbosity == LogEventLevel.Verbose
+                ? "[{@l:u3}+{PastTime()}] {@m}\n{@x}"
+                : "[{@l:u3}] {@m}\n{@x}";
+
             _logger = new LoggerConfiguration()
-                .MinimumLevel.Is(_verbosity ?? LogEventLevel.Fatal)
+                .MinimumLevel.Is(verbosity)
+                // We want to ouput log to STDERROR
                 .WriteTo.Console(
-                    outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}",
-                    // We want to ouput log to STDERROR
+                    // "[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+                    formatter: new ExpressionTemplate(expressionTemplate,
+                        nameResolver: pastTimeResolver,
+                        theme: TemplateTheme.Code),
                     standardErrorFromLevel: LogEventLevel.Verbose)
                 .CreateLogger();
 
@@ -97,6 +119,30 @@ namespace Vernuntii.PluginSystem
             }
 
             _logger.Dispose();
+        }
+
+        private static class SerilogPastTime
+        {
+            private static DateTime? _lastMoment;
+
+            public static LogEventPropertyValue? PastTime()
+            {
+                if (!_lastMoment.HasValue) {
+                    throw new InvalidOperationException("You must specify the last moment");
+                }
+
+                var now = DateTime.UtcNow;
+                var diff = DateTime.UtcNow - _lastMoment.Value;
+                _lastMoment = now;
+                return new ScalarValue($"{Math.Floor(diff.TotalSeconds)}.{diff.ToString("ff", CultureInfo.InvariantCulture)}");
+            }
+
+            public static void InitializeLastMoment()
+            {
+                if (!_lastMoment.HasValue) {
+                    _lastMoment = DateTime.UtcNow;
+                }
+            }
         }
     }
 }

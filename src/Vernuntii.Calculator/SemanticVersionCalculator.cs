@@ -63,7 +63,7 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
             // 1. Template should be a static expression
 #pragma warning disable CA2254
             _logger.LogInformation(new EventId(3), _logVersionTransformationTemplate +
-                $" (RightShifted = {{RightShifted}}, {debugMessage.FormatString})", arguments.ToArray());
+                $" (Right shifted = {{RightShifted}}, {debugMessage.FormatString})", arguments.ToArray());
 #pragma warning restore CA2254
         } else {
             _logVersionTransformation(_logger, fromVersion, toVersion, rightShifted, null);

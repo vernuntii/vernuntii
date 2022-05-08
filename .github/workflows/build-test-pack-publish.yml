@@ -34,7 +34,7 @@ on:
           If dry run is enabled tag won't be pushed and packages are not pushed either.
 
 env:
-  VERNUNTII_VERBOSITY: Verbose
+  VERNUNTII_VERBOSITY: Debug
   MSBUILD_VERBOSITY: Normal
   MSBUILD_CONFIGURATION: Release
   CACHE_ID: GITHUB_VERSION_CACHE
