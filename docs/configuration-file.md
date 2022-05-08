@@ -5,14 +5,12 @@ The configuration file is the heart of Vernuntii. By defining properties you cha
 - [Configuration file](#configuration-file)
 - [Auto-discovery](#auto-discovery)
 - [Git plugin: Branches](#git-plugin-branches)
-  - [Usage](#usage)
-  - [Types](#types)
+  - [Schema](#schema)
   - [Defaults](#defaults)
 - [Git plugin: Versioning mode](#git-plugin-versioning-mode)
-  - [Usage](#usage-1)
-  - [Types](#types-1)
+  - [Schema](#schema-1)
     - [Message Indicator: `Regex`](#message-indicator-regex)
-      - [Schema](#schema)
+      - [Schema](#schema-2)
       - [Example](#example)
   - [Defaults](#defaults-1)
   - [Examples](#examples)
@@ -33,7 +31,7 @@ Depending on integration you use the following working directory and therefore d
 
 The git plugin allows you to define branches where their rules does not affect each other.
 
-## Usage
+## Schema
 
 ```yaml
 # The git directory to use
@@ -81,8 +79,6 @@ Branches:
   - ...
 ```
 
-## Types
-
 - `<if-branch>`
   - Can be the the full branch name or a part of it
     - main (head)
@@ -112,7 +108,11 @@ These defaults are automatically applied.
 GitDirectory: (the location where this configuration file has been found)
 StartVersion: (latest version)
 
-# Below properties are available in "Branches" too.
+###################################################################
+# Reminder: The below properties are available in "Branches" too. #
+###################################################################
+
+VersioningMode: Default # 'Default' resolves internally to 'ContinousDelivery'
 SinceCommit: (latest version)
 
 PreRelease: (short name of current branch, e.g. main)
@@ -131,7 +131,7 @@ SearchPreReleaseEscapes: (if not specified then it inherits <pre-release-escapes
 
 The versioning mode allows you to choose one of the many available version strategies to calculate the next version.
 
-## Usage
+## Schema
 
 ```yaml
 # The versioning mode defined by string
@@ -183,11 +183,9 @@ Branches:
     VersioningMode: (same as above)
 ```
 
-## Types
-
-- `<preset>` 
-  - `Default`: same as `ContinousDelivery`
-  - `ContinousDelivery` (default)
+- `<preset>`
+  - `Default`: resolves internally to `ContinousDelivery`
+  - `ContinousDelivery`
     - `<message-convention>`
       - Major indicator: `Falsy`
       - Minor indicator: `Falsy`
@@ -226,9 +224,9 @@ Branches:
   - `Falsy`: always indicates that a <ins>message does not increment</ins> the version
   - `Truthy`: always indicates that a <ins>message does increment</ins> the version
   - `ConventionalCommits`
-    - Major indicator: `^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)`
-    - Minor indicator: `^(feat)(\\([\\w\\s-]*\\))?:`
-    - Patch indicator: `^(fix)(\\([\\w\\s-]*\\))?:`
+    - If used as major indicator: `^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)`
+    - If used as minor indicator: `^(feat)(\\([\\w\\s-]*\\))?:`
+    - If used as patch indicator: `^(fix)(\\([\\w\\s-]*\\))?:`
   - [`Regex`](#message-indicator-regex): indicates a version increment if the message could be matched against the regular expression
 - `<increment-mode>`
   - `None`: does not increment anything
@@ -244,7 +242,7 @@ Branches:
 
 ```yaml
 Name: Regex # Required!
-Pattern: <pattern:string> # A valid regular expression.
+Pattern: <pattern:string> # Must be a valid regular expression.
 ```
 
 #### Example
@@ -256,7 +254,7 @@ VersioningMode:
     ...
     PatchIndicators:
       - Name: Regex 
-        Pattern: `^(feat)(\\([\\w\\s-]*\\))?:` # Imitates minor indicator of "ConventionalCommits".
+        Pattern: ^(fix)(\\([\\w\\s-]*\\))?: # Imitates patch indicator of "ConventionalCommits".
 ```
 
 ## Defaults
@@ -283,10 +281,11 @@ If `MessageConvention` is defined as object its default is:
 VersioningMode:
   ...
   MessageConvention: 
-    Base: (not set) # So preset won't be inherited!
+    Base: (not set) # Preset from "VersioningMode" won't be inherited!
     MajorIndicators: (not set)
     MinorIndicators: (not set)
     PatchIndicators: (not set)
+```
 
 If `Base` is set in `MessageConvention`:
 
