@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -128,9 +129,9 @@ namespace Vernuntii.Console.MSBuild
                     cacheLastAccessRetentionTime: CacheLastAccessRetentionTime,
                     emptyCaches: EmptyCaches);
 
-                Major = version.Major.ToString();
-                Minor = version.Major.ToString();
-                Patch = version.Major.ToString();
+                Major = version.Major?.ToString(CultureInfo.InvariantCulture);
+                Minor = version.Major?.ToString(CultureInfo.InvariantCulture);
+                Patch = version.Major?.ToString(CultureInfo.InvariantCulture);
                 Version = version.Version;
                 PreRelease = version.PreRelease;
                 HyphenPreRelease = version.HyphenPreRelease;

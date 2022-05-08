@@ -68,7 +68,7 @@
       <VersionSuffix>$(Vernuntii_PreRelease)$(Vernuntii_PlusBuild)</VersionSuffix>
       <PackageVersion>$(Vernuntii_SemanticVersion)</PackageVersion>
       <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(Vernuntii_Version).0</AssemblyVersion>
-      <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(Vernuntii_Version)$(Vernuntii_HyphenPreRelease)+$(Vernuntii_BranchName)</InformationalVersion>
+      <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(Vernuntii_Version)$(Vernuntii_HyphenPreRelease)+$(Vernuntii_CommitSha.Substring(0,7))</InformationalVersion>
       <FileVersion Condition="'$(FileVersion)' == ''">$(Vernuntii_Version).0</FileVersion>
     </PropertyGroup>
 

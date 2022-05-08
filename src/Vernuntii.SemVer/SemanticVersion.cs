@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Vernuntii.SemVer.Parser;
 using static Vernuntii.SemVer.SemanticVersionBuilder;
 
