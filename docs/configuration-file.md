@@ -4,16 +4,25 @@ The configuration file is the heart of Vernuntii. By defining properties you cha
 
 - [Configuration file](#configuration-file)
 - [Auto-discovery](#auto-discovery)
-- [Git plugin: Branches](#git-plugin-branches)
+- [Git plugin → Branches](#git-plugin--branches)
   - [Schema](#schema)
-  - [Defaults](#defaults)
-- [Git plugin: Versioning mode](#git-plugin-versioning-mode)
+  - [Schema → `<if-branch>`](#schema--if-branch)
+  - [Schema → `<branch>`](#schema--branch)
+  - [Schema → `<pre-release-escapes>`](#schema--pre-release-escapes)
+  - [Schema → `<search-pre-release-escapes>`](#schema--search-pre-release-escapes)
+  - [Schema → Defaults](#schema--defaults)
+- [Git plugin → Versioning mode](#git-plugin--versioning-mode)
   - [Schema](#schema-1)
-    - [Message Indicator: `Regex`](#message-indicator-regex)
-      - [Schema](#schema-2)
-      - [Example](#example)
-  - [Defaults](#defaults-1)
-  - [Examples](#examples)
+  - [Schema → `<preset>`](#schema--preset)
+  - [Schema → `<message-convention>`](#schema--message-convention)
+  - [Schema → `<message-indicator>`](#schema--message-indicator)
+  - [Schema → `<message-indicator>` → `Regex`](#schema--message-indicator--regex)
+    - [Schema](#schema-2)
+    - [Example](#example)
+  - [Schema → `<increment-mode>`](#schema--increment-mode)
+  - [Schema → `<right-shift-when-zero-major>`](#schema--right-shift-when-zero-major)
+  - [Schema → Defaults](#schema--defaults-1)
+  - [Schema → Examples](#schema--examples)
 
 # Auto-discovery
 
@@ -27,7 +36,7 @@ Depending on integration you use the following working directory and therefore d
 - MSBuild Integration: root directory of project that has the MSBuild integration installed
 - GitHub Actions (`vernuntii/actions/execute`): current working directory at the time where the action was called
 
-# Git plugin: Branches
+# Git plugin → Branches
 
 The git plugin allows you to define branches where their rules does not affect each other.
 
@@ -79,28 +88,35 @@ Branches:
   - ...
 ```
 
-- `<if-branch>`
-  - Can be the the full branch name or a part of it
-    - main (head)
-    - heads/main (head)
-    - refs/heads/main (head)
-    - origin/main (remote) 
-    - remotes/origin/main (remote)
-    - refs/remotes/origin/main (remote)
-  - `<if-branch>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
-    - `/feature-.*/`: all branches starting with `feature-`
-    - If multiple branches are selected an exception is thrown, so use this feature with caution
-  - You can specify `HEAD` when you want to <ins>match detached HEAD</ins>.
-- `<branch>`
+## Schema → `<if-branch>`
+
+- Can be the the full branch name or a part of it
+  - main (head)
+  - heads/main (head)
+  - refs/heads/main (head)
+  - origin/main (remote) 
+  - remotes/origin/main (remote)
+  - refs/remotes/origin/main (remote)
+- `<if-branch>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
+  - `/feature-.*/`: all branches starting with `feature-`
+  - If multiple branches are selected an exception is thrown, so use this feature with caution
+- You can specify `HEAD` when you want to <ins>match detached HEAD</ins>.
+
+## Schema → `<branch>`
+
   - If not specified the branch is the one evaluated from `IfBranch`
   - It must be a valid branch name (see `<if-branch>`), but
   - RegEx is NOT allowed (change my mind. :D)
-- `<pre-release-escapes>`
-  - `<pattern>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
-- `<search-pre-release-escapes>`
+
+## Schema → `<pre-release-escapes>`
+
   - `<pattern>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
 
-## Defaults
+## Schema → `<search-pre-release-escapes>`
+
+  - `<pattern>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
+
+## Schema → Defaults
 
 These defaults are automatically applied.
 
@@ -127,7 +143,7 @@ SearchPreRelease: (if not specified then it inherits <pre-release>)
 SearchPreReleaseEscapes: (if not specified then it inherits <pre-release-escapes>)
 ```
 
-# Git plugin: Versioning mode
+# Git plugin → Versioning mode
 
 The versioning mode allows you to choose one of the many available version strategies to calculate the next version.
 
@@ -166,9 +182,9 @@ VersioningMode:
     # Or set "MajorIndicators", "MinorIndicators" or "PatchIndicators"  from list
     MajorIndicators:
       # List item can be string
-      - <message-indicator:string> (required)
+      - <message-indicator:string>
       # List item can be object
-      - Name: <message-indicator:string> (required)
+      - Name: <message-indicator:string>
         <additional-data>: ... (some message indicator require addtional data)
 
     MinorIndicators: ... (same as above)
@@ -183,69 +199,73 @@ Branches:
     VersioningMode: (same as above)
 ```
 
-- `<preset>`
-  - `Default`: resolves internally to `ContinousDelivery`
-  - `ContinousDelivery`
-    - `<message-convention>`
-      - Major indicator: `Falsy`
-      - Minor indicator: `Falsy`
-      - Patch indicator: `Truthy`
-    - `<increment-mode>`: `Consecutive`
-    - `<right-shift-when-zero-major>`: `false`
-  - `ContinousDeployment`
-    - `<message-convention>`
-      - Major indicator: `Falsy`
-      - Minor indicator: `Falsy`
-      - Patch indicator: `Truthy`
-    - `<increment-mode>`: `Successive`
-    - `<right-shift-when-zero-major>`: `false`
-  - `ConventionalCommitsDelivery`
-    - `<message-convention>`
-      - Major indicator: `ConventionalCommits`
-      - Minor indicator: `ConventionalCommits`
-      - Patch indicator: `ConventionalCommits`
-    - `<increment-mode>`: `Consecutive`
-  - `ConventionalCommitsDeployment`
-    - `<message-convention>`: same as `ConventionalCommitsDelivery`
-    - `<increment-mode>`: `Successive`
-    - `<right-shift-when-zero-major>`: `false`
-  - `Manual`
-    - `<message-convention>`
-      - Major indicator: never
-      - Minor indicator: never
-      - Patch indicator: never
-    - `<increment-mode>`: `None`
-    - `<right-shift-when-zero-major>`: `false`
-- `<message-convention>`
-  - `Manual`: same as `<message-convention>` of preset `Manual`.
-  - `Continous`: same as `<message-convention>` of preset `Continous*`.
-  - `ConventionalCommits`: same as `<message-convention>` of `ConventionalCommits*`.
-- `<message-indicator>`
-  - `Falsy`: always indicates that a <ins>message does not increment</ins> the version
-  - `Truthy`: always indicates that a <ins>message does increment</ins> the version
-  - `ConventionalCommits`
-    - If used as major indicator: `^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)`
-    - If used as minor indicator: `^(feat)(\\([\\w\\s-]*\\))?:`
-    - If used as patch indicator: `^(fix)(\\([\\w\\s-]*\\))?:`
-  - [`Regex`](#message-indicator-regex): indicates a version increment if the message could be matched against the regular expression
-- `<increment-mode>`
-  - `None`: does not increment anything
-  - `Consecutive`: increment only the most significant version number once if a message indicates that it increments the version
-  - `Successive`: increment most significant version number as often as messages indicate to increment the version
-- `<right-shift-when-zero-major>`
-  - `true`: does right shift version when latest version has zero major, so next major becomes next minor, next minor becomes next patch
-  - `false`: does not right shift version when latest version has zero major
+## Schema → `<preset>`
 
-### Message Indicator: `Regex`
+Available values for `<preset>`:
 
-#### Schema
+- `Default`: resolves internally to `ContinousDelivery`
+- `ContinousDelivery`
+  - `<message-convention>`
+    - Major indicator: `Falsy`
+    - Minor indicator: `Falsy`
+    - Patch indicator: `Truthy`
+  - `<increment-mode>`: `Consecutive`
+  - `<right-shift-when-zero-major>`: `false`
+- `ContinousDeployment`
+  - `<message-convention>`
+    - Major indicator: `Falsy`
+    - Minor indicator: `Falsy`
+    - Patch indicator: `Truthy`
+  - `<increment-mode>`: `Successive`
+  - `<right-shift-when-zero-major>`: `false`
+- `ConventionalCommitsDelivery`
+  - `<message-convention>`
+    - Major indicator: `ConventionalCommits`
+    - Minor indicator: `ConventionalCommits`
+    - Patch indicator: `ConventionalCommits`
+  - `<increment-mode>`: `Consecutive`
+- `ConventionalCommitsDeployment`
+  - `<message-convention>`: same as `ConventionalCommitsDelivery`
+  - `<increment-mode>`: `Successive`
+  - `<right-shift-when-zero-major>`: `false`
+- `Manual`
+  - `<message-convention>`
+    - Major indicator: never
+    - Minor indicator: never
+    - Patch indicator: never
+  - `<increment-mode>`: `None`
+  - `<right-shift-when-zero-major>`: `false`
+
+## Schema → `<message-convention>`
+
+Available values for `<message-convention>`:
+
+- `Manual`: same as `<message-convention>` of preset `Manual`.
+- `Continous`: same as `<message-convention>` of preset `Continous*`.
+- `ConventionalCommits`: same as `<message-convention>` of preset `ConventionalCommits*`.
+
+## Schema → `<message-indicator>`
+
+Available values for `<message-indicator>`:
+
+- `Falsy`: indicates that every message <ins>does not increment</ins> the version
+- `Truthy`: indicates that every message <ins>does increment</ins> the version
+- `ConventionalCommits`
+  - If used as major indicator: `^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)`
+  - If used as minor indicator: `^(feat)(\\([\\w\\s-]*\\))?:`
+  - If used as patch indicator: `^(fix)(\\([\\w\\s-]*\\))?:`
+- [`Regex`](#schema--message-indicator--regex): indicates a version increment if the message could be matched against the regular expression
+
+## Schema → `<message-indicator>` → `Regex`
+
+### Schema
 
 ```yaml
 Name: Regex # Required!
 Pattern: <pattern:string> # Must be a valid regular expression.
 ```
 
-#### Example
+### Example
 
 ```yaml
 VersioningMode:
@@ -257,7 +277,18 @@ VersioningMode:
         Pattern: ^(fix)(\\([\\w\\s-]*\\))?: # Imitates patch indicator of "ConventionalCommits".
 ```
 
-## Defaults
+## Schema → `<increment-mode>`
+
+- `None`: does not increment anything
+- `Consecutive`: increment only the most significant version number once if a message indicates that it increments the version
+- `Successive`: increment most significant version number as often as messages indicate to increment the version
+  
+## Schema → `<right-shift-when-zero-major>`
+
+- `true`: does right shift version when latest version has zero major, so next major becomes next minor, next minor becomes next patch
+- `false`: does not right shift version when latest version has zero major
+
+## Schema → Defaults
 
 If `VersioningMode` is not set its default is:
 
@@ -303,7 +334,7 @@ VersioningMode:
     PatchIndicators: (Base.PatchIndicators if "PatchIndicators" is not set by user)
 ```
 
-## Examples
+## Schema → Examples
 
 Versioning mode one-liner.
 
