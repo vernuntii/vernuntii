@@ -29,7 +29,7 @@ namespace Vernuntii.VersioningPresets
         private readonly IConfiguredMessageConventionFactory _messageConventionFactory;
 
         /// <summary>
-        /// Creates an type of this type.
+        /// Creates a type of this type.
         /// </summary>
         /// <param name="presetManager"></param>
         /// <param name="messageConventionFactory"></param>

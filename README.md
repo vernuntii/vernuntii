@@ -31,7 +31,7 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
 - Git
 - A repository with at least one commit :smiley:
 
-> :warning: Make sure the repository is not shallowed!
+> Please make sure the repository is not shallowed!
 
 #### Use case #1
 
