@@ -1,6 +1,5 @@
 ﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
-using Vernuntii.MessageVersioning;
 using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.PluginSystem
@@ -30,7 +29,7 @@ namespace Vernuntii.PluginSystem
             var versioningPresetsPlugin = FirstPlugin<IVersioningPresetsPlugin>();
 
             _overrideVersioningModeOption = new Option<string?>(new[] { "--override-versioning-mode" })
-                .AddCompletions(_ => versioningPresetsPlugin.PresetManager.VersioningPresetIdentifiers);
+                .AddCompletions(_ => versioningPresetsPlugin.PresetManager.VersioningPresets.Names);
 
             FirstPlugin<ICommandLinePlugin>().RootCommand.Add(_overrideVersioningModeOption);
         }

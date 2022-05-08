@@ -48,38 +48,50 @@ namespace Vernuntii.MessageConventions
         /// Tries to create indicators.
         /// </summary>
         /// <param name="indicatorsSection"></param>
+        /// <param name="versionPart"></param>
         /// <param name="indicators"></param>
         /// <returns><see langword="true"/> if message indicators has been created</returns>
-        protected bool TryCreateIndicators(IConfigurationSection indicatorsSection, out IReadOnlyCollection<IMessageIndicator>? indicators)
+        protected bool TryCreateIndicators(IConfigurationSection indicatorsSection, VersionPart versionPart, out IReadOnlyCollection<IMessageIndicator>? indicators)
         {
-            if (indicatorsSection.HavingValue()) {
-                if (indicatorsSection.Value != null) {
-                    indicators = new[] { PresetManager.GetMessageIndicator(indicatorsSection.Value) };
-                    return true;
-                }
-
+            if (indicatorsSection.NotExisting()) {
                 indicators = null;
                 return false;
             }
 
-            var indicatorObjectList = indicatorsSection.Get<List<MessageIndicatorObject>?>();
-
-            if (indicatorObjectList is null) {
-                indicators = null;
+            if (indicatorsSection.HavingValue()) {
+                indicators = new[] { PresetManager.MessageIndicators.GetItem(indicatorsSection.Value) };
                 return true;
             }
 
             var indicatorList = new List<IMessageIndicator>();
 
-            if (indicatorObjectList.Count == 0) {
-                goto exitTruthy;
+            foreach (var indicatorSection in indicatorsSection.GetChildren()) {
+                string? indicatorName;
+
+                if (indicatorSection.HavingValue()) {
+                    indicatorName = indicatorSection.Value;
+                } else {
+                    var indicatorObject = indicatorSection.Get<MessageIndicatorObject>();
+                    indicatorName = indicatorObject.Name;
+                }
+
+                if (string.IsNullOrEmpty(indicatorName)) {
+                    throw new ConfigurationValidationException("Message indicator name is not specified");
+                }
+
+                if (PresetManager.MessageIndicators.ContainsName(indicatorName)) {
+                    indicatorList.Add(PresetManager.MessageIndicators.GetItem(indicatorName));
+                } else {
+                    if (!PresetManager.ConfiguredMessageIndicatorFactories.ContainsName(indicatorName)) {
+                        // message indicator nor factory exists
+                        throw new ConfigurationValidationException($"The message indicator \"{indicatorName}\" does not exist");
+                    }
+
+                    var configuredMessageIndicatorFactory = PresetManager.ConfiguredMessageIndicatorFactories.GetItem(indicatorName);
+                    indicatorList.Add(configuredMessageIndicatorFactory.Create(indicatorSection, indicatorName, versionPart));
+                }
             }
 
-            foreach (var indicatorObject in indicatorObjectList) {
-
-            }
-
-            exitTruthy:
             indicators = indicatorList;
             return true;
         }
@@ -95,7 +107,7 @@ namespace Vernuntii.MessageConventions
             }
 
             if (messageConventionSection.HavingValue()) {
-                messageConvention = PresetManager.GetMessageConvention(messageConventionSection.Value ?? nameof(InbuiltMessageConvention.Default));
+                messageConvention = PresetManager.MessageConventions.GetItem(messageConventionSection.Value ?? nameof(InbuiltMessageConvention.Default));
                 return true;
             }
 
@@ -105,14 +117,14 @@ namespace Vernuntii.MessageConventions
             IMessageConvention? baseMessageConvention;
 
             if (messageConventionObject.Base != null) {
-                baseMessageConvention = PresetManager.GetMessageConvention(messageConventionObject.Base);
+                baseMessageConvention = PresetManager.MessageConventions.GetItem(messageConventionObject.Base);
             } else {
                 baseMessageConvention = null;
             }
 
-            var havingMajorIndicators = TryCreateIndicators(messageConventionSection.GetSection(DefaultMajorIndicatorsKey), out var majorIndicators);
-            var havingMinorIndicators = TryCreateIndicators(messageConventionSection.GetSection(DefaultMinorIndicatorsKey), out var minorIndicators);
-            var havingPatchIndicators = TryCreateIndicators(messageConventionSection.GetSection(DefaultPatchIndicatorsKey), out var patchIndicators);
+            var havingMajorIndicators = TryCreateIndicators(messageConventionSection.GetSection(DefaultMajorIndicatorsKey), VersionPart.Major, out var majorIndicators);
+            var havingMinorIndicators = TryCreateIndicators(messageConventionSection.GetSection(DefaultMinorIndicatorsKey), VersionPart.Minor, out var minorIndicators);
+            var havingPatchIndicators = TryCreateIndicators(messageConventionSection.GetSection(DefaultPatchIndicatorsKey), VersionPart.Patch, out var patchIndicators);
 
             if (majorIndicators is null
                 && minorIndicators is null

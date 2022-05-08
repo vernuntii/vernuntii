@@ -1,0 +1,7 @@
+﻿Branches:
+  - IfBranch: MissingName
+    VersioningMode:
+      IncrementMode: None
+      MessageConvention:
+        MajorIndicators:
+          - Pattern: "test"

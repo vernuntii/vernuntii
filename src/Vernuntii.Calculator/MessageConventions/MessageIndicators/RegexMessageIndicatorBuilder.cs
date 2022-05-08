@@ -33,15 +33,15 @@ namespace Vernuntii.MessageConventions.MessageIndicators
         /// </summary>
         /// <exception cref="ArgumentNullException"></exception>
         public RegexMessageIndicatorBuilder() =>
-            _baseRegexIndiactor = RegexMessageIndicator.Default;
+            _baseRegexIndiactor = RegexMessageIndicator.Empty;
 
         /// <summary>
         /// With major RegEx.
         /// </summary>
-        /// <param name="majorRegex"></param>
-        public RegexMessageIndicatorBuilder MajorRegex(Regex? majorRegex)
+        /// <param name="regex"></param>
+        public RegexMessageIndicatorBuilder MajorRegex(Regex? regex)
         {
-            _majorRegex = majorRegex;
+            _majorRegex = regex;
             _withMajorRegex = true;
             return this;
         }
@@ -49,10 +49,10 @@ namespace Vernuntii.MessageConventions.MessageIndicators
         /// <summary>
         /// With minor RegEx.
         /// </summary>
-        /// <param name="minorRegex"></param>
-        public RegexMessageIndicatorBuilder MinorRegex(Regex? minorRegex)
+        /// <param name="regex"></param>
+        public RegexMessageIndicatorBuilder MinorRegex(Regex? regex)
         {
-            _minorRegex = minorRegex;
+            _minorRegex = regex;
             _withMinorRegex = true;
             return this;
         }
@@ -60,10 +60,10 @@ namespace Vernuntii.MessageConventions.MessageIndicators
         /// <summary>
         /// With patch RegEx.
         /// </summary>
-        /// <param name="patchRegex"></param>
-        public RegexMessageIndicatorBuilder PatchRegex(Regex? patchRegex)
+        /// <param name="regex"></param>
+        public RegexMessageIndicatorBuilder PatchRegex(Regex? regex)
         {
-            _patchRegex = patchRegex;
+            _patchRegex = regex;
             _withPatchRegex = true;
             return this;
         }

@@ -1,0 +1,15 @@
+﻿Branches:
+  - IfBranch: RegexObject
+    VersioningMode:
+      IncrementMode: None
+      MessageConvention:
+        MajorIndicators:
+          - Name: Regex
+            Pattern: test
+
+  - IfBranch: NameAsItem
+    VersioningMode:
+      IncrementMode: None
+      MessageConvention:
+        MajorIndicators:
+          - ConventionalCommits

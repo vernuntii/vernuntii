@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>Vernuntii.Configuration</RootNamespace>
+    <RootNamespace>Vernuntii</RootNamespace>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -27,7 +27,23 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Vernuntii.Autofac\Vernuntii.Autofac.csproj" />
+    <ProjectReference Include="..\..\src\Vernuntii.Plugins\Vernuntii.Plugins.csproj" />
     <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="filesystem\message-indicators\list-invalid.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="filesystem\message-indicators\list-valid.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="filesystem\message-indicators\string-invalid.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="filesystem\message-indicators\string-valid.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

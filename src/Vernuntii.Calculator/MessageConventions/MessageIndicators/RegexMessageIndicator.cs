@@ -10,7 +10,7 @@ namespace Vernuntii.MessageConventions.MessageIndicators
         /// <summary>
         /// The default instance.
         /// </summary>
-        public readonly static RegexMessageIndicator Default = new RegexMessageIndicator();
+        public readonly static RegexMessageIndicator Empty = new RegexMessageIndicator();
 
         /// <inheritdoc/>
         public override string IndicatorName => "Regex";

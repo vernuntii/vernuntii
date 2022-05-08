@@ -8,7 +8,7 @@ namespace Vernuntii.VersioningPresets
     public interface IConfiguredVersioningPresetFactory
     {
         /// <summary>
-        /// A factory for <see cref="IVersioningPreset"/>.
+        /// Creates a versioning preset from configuration section.
         /// </summary>
         /// <param name="sectionProvider"></param>
         IVersioningPreset Create(IDefaultConfigurationSectionProvider sectionProvider);

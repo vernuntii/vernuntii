@@ -1,62 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Vernuntii.Extensions;
 using Vernuntii.Extensions.BranchCases;
-using Vernuntii.MessageConventions;
 using Vernuntii.MessageVersioning;
 using Vernuntii.VersioningPresets;
 using Xunit;
+using static Vernuntii.Extensions.ServiceCollectionFixture;
 
 namespace Vernuntii.Configuration
 {
     public class VersioningModeConfigurationTest
     {
-        private const string VersioningModeStringFileName = "String.yml";
-        private const string VersioningModeObjectInvalidFileName = "ObjectInvalid.yml";
-        private const string VersioningModeObjectValidFileName = "ObjectValid.yml";
-
-        private static AnyPath Workspace = FilesystemDir / "versioning-mode";
-        private static IVersioningPresetManager presetManager = VersioningPresetManager.CreateDefault();
-
-        private static ConfiguredVersioningPresetFactory presetExtensionFactory = new ConfiguredVersioningPresetFactory(
-            presetManager,
-            new ConfiguredMessageConventionFactory(presetManager));
-
-        private static IServiceCollection CreateBranchCasesProviderServices(string fileName)
-        {
-            var services = new ServiceCollection()
-                .AddLogging()
-                .AddOptions()
-                .ConfigureVernuntii(features => features
-                    .ConfigureGit(features => features
-                        .UseConfigurationDefaults(ConfigurationFixture.Default.FindYamlConfigurationFile(Workspace, fileName))));
-
-            services.AddSingleton(presetManager);
-            return services;
-        }
-
-        private static IBranchCasesProvider CreateBranchCasesProvider(IServiceCollection services) =>
-            services.BuildLifetimeScopedServiceProvider().CreateScope().ServiceProvider.GetRequiredService<IBranchCasesProvider>();
-
-        private static IBranchCasesProvider CreateBranchCasesProvider(string fileName)
-        {
-            var services = CreateBranchCasesProviderServices(fileName);
-
-            services.ConfigureVernuntii(features => features
-                .ConfigureGit(features => features
-                    .ConfigureBranchCases(branchCases => branchCases
-                        .TryCreateVersioningPresetExtension())));
-
-            return CreateBranchCasesProvider(services);
-        }
+        private const string VersioningModeStringFileName = "string.yml";
+        private const string VersioningModeObjectInvalidFileName = "object-invalid.yml";
+        private const string VersioningModeObjectValidFileName = "object-valid.yml";
 
         public static IEnumerable<object[]> VersioningModeStringShouldMatchPresetGenerator()
         {
-            foreach (var value in CreateBranchCasesProvider(VersioningModeStringFileName).BranchCases.Values) {
+            foreach (var value in CreateBranchCasesProvider(VersioningModeDir, VersioningModeStringFileName, tryCreateVersioningPresetExtension: true).BranchCases.Values) {
                 yield return new object[] {
-                     presetManager.GetVersioningPreset(value.GetConfigurationExtension().GetValue<string>(ConfiguredVersioningPresetFactory.DefaultVersioningModeKey)
+                     DefaultPresetManager.VersioningPresets.GetItem(value.GetConfigurationExtension().GetValue<string>(ConfiguredVersioningPresetFactory.DefaultVersioningModeKey)
                         ?? nameof(InbuiltVersioningPreset.Default)),
                      value.GetVersioningPresetExtension()
                  };
@@ -72,7 +35,7 @@ namespace Vernuntii.Configuration
 
         public static IEnumerable<object[]> InvalidVersioningModeObjectShouldThrowGenerator()
         {
-            var branchCases = CreateBranchCasesProvider(CreateBranchCasesProviderServices(VersioningModeObjectInvalidFileName)).NestedBranchCases;
+            var branchCases = CreateBranchCasesProvider(VersioningModeDir, VersioningModeObjectInvalidFileName).NestedBranchCases;
 
             yield return new object[] {
                  nameof(BranchCaseExtensions.VersioningModeObject.IncrementMode),
@@ -85,7 +48,7 @@ namespace Vernuntii.Configuration
              };
 
             static IVersioningPreset CreateVersioningModeExtension(IBranchCase branchCase) => branchCase
-                .TryCreateVersioningPresetExtension(presetExtensionFactory)
+                .TryCreateVersioningPresetExtension(DefaultConfiguredVersioningPresetFactory)
                 .GetVersioningPresetExtension();
         }
 
@@ -96,13 +59,13 @@ namespace Vernuntii.Configuration
             Func<IVersioningPreset> presetExtensionFactory)
         {
             var error = Record.Exception(presetExtensionFactory);
-            var argumentException = Assert.IsType<ArgumentException>(error);
-            Assert.Contains(expectedArgumentExceptionFieldName, argumentException.Message);
+            var argumentException = Assert.IsType<ConfigurationValidationException>(error);
+            Assert.Contains(expectedArgumentExceptionFieldName, argumentException.Message, StringComparison.Ordinal);
         }
 
         public static IEnumerable<object[]> ValidVersioningModeObjectShouldMatchGenerator()
         {
-            var branchCases = CreateBranchCasesProvider(VersioningModeObjectValidFileName).NestedBranchCases;
+            var branchCases = CreateBranchCasesProvider(VersioningModeDir, VersioningModeObjectValidFileName, tryCreateVersioningPresetExtension: true).NestedBranchCases;
 
             yield return new object[] {
                  VersioningPreset.ConventionalCommitsDelivery,

@@ -11,12 +11,12 @@ namespace Vernuntii.Extensions
         /// Checking if section does not exist and does have a value.
         /// </summary>
         /// <param name="configurationSection"></param>
-        /// <returns><see langword="true"/> if section does not exist and does have a value.</returns>
+        /// <returns><see langword="true"/> if section does not exist and has a value.</returns>
         public static bool HavingValue(this IConfigurationSection? configurationSection) =>
             configurationSection == null || !configurationSection.Exists() || configurationSection.Value != null;
 
         /// <summary>
-        /// Checking if section does not exist and does have a value.
+        /// Checking if section does not exist and does not have a value.
         /// </summary>
         /// <param name="configurationSection"></param>
         /// <returns><see langword="true"/> if section does not exist and does have a value.</returns>

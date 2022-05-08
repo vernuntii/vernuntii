@@ -45,30 +45,30 @@ namespace Vernuntii.VersioningPresets
             var versioningModeSection = sectionProvider.GetSection();
 
             if (versioningModeSection.HavingValue()) {
-                return PresetManager.GetVersioningPreset(versioningModeSection.Value ?? nameof(InbuiltVersioningPreset.Default));
+                return PresetManager.VersioningPresets.GetItem(versioningModeSection.Value ?? nameof(InbuiltVersioningPreset.Default));
             }
 
             var versioningModeObject = new VersioningModeObject();
             versioningModeSection.Bind(versioningModeObject);
 
             if (versioningModeObject.IncrementMode == null && versioningModeObject.Preset == null) {
-                throw new ArgumentException($"Field \"{nameof(versioningModeObject.IncrementMode)}\" is null." +
+                throw new ConfigurationValidationException($"Field \"{nameof(versioningModeObject.IncrementMode)}\" is null." +
                     $" Either set it or specifiy the field \"{DefaultPresetKey}\".");
             }
 
             IVersioningPreset basePreset;
 
             if (versioningModeObject.Preset != null) {
-                basePreset = PresetManager.GetVersioningPreset(versioningModeObject.Preset);
+                basePreset = PresetManager.VersioningPresets.GetItem(versioningModeObject.Preset);
             } else {
-                basePreset = PresetManager.GetVersioningPreset(nameof(InbuiltVersioningPreset.Manual));
+                basePreset = PresetManager.VersioningPresets.GetItem(nameof(InbuiltVersioningPreset.Manual));
             }
 
             var havingMessageConvention = _messageConventionFactory.TryCreate(
                 versioningModeSection.GetSectionProvider(ConfiguredMessageConventionFactory.DefaultMessageConventionKey), out var messageConvention);
 
             if (!havingMessageConvention && versioningModeObject.Preset == null) {
-                throw new ArgumentException($"Field \"{ConfiguredMessageConventionFactory.DefaultMessageConventionKey}\" is null." +
+                throw new ConfigurationValidationException($"Field \"{ConfiguredMessageConventionFactory.DefaultMessageConventionKey}\" is null." +
                     $" Either set it or specifiy the field \"{nameof(versioningModeObject.Preset)}\".");
             }
 

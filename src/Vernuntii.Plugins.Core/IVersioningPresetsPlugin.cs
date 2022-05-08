@@ -8,7 +8,7 @@ namespace Vernuntii.PluginSystem
     public interface IVersioningPresetsPlugin : IPlugin
     {
         /// <summary>
-        /// The compendium of presets.
+        /// Manages the presets and others.
         /// </summary>
         IVersioningPresetManager PresetManager { get; }
     }

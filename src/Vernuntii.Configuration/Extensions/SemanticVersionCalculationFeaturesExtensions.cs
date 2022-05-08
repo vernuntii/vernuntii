@@ -19,7 +19,7 @@ namespace Vernuntii.Extensions
         {
             features.Services.AddOptions<SemanticVersionCalculationOptions>()
                 .Configure<IVersioningPresetRegistry>((options, registry) =>
-                    options.VersioningPreset = registry.GetVersioningPreset(versioningModePreset));
+                    options.VersioningPreset = registry.GetItem(versioningModePreset));
 
             return features;
         }

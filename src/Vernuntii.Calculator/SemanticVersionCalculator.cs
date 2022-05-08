@@ -33,7 +33,7 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
         _logVersionTransformation = LoggerMessage.Define<ISemanticVersion, ISemanticVersion, bool>(
             LogLevel.Information,
             new EventId(2, "TransformedVersion"),
-            _logVersionTransformationTemplate + " (RightShifted = {RightShifted})");
+            _logVersionTransformationTemplate + " (Right shifted = {RightShifted})");
 
         _logVersionPostTransformation = LoggerMessage.Define<ISemanticVersion, ISemanticVersion>(
             LogLevel.Information,

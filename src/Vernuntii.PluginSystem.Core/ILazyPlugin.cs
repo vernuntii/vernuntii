@@ -15,7 +15,10 @@
     public interface ILazyPlugin<TPlugin> where TPlugin : IPlugin
     {
         /// <summary>
-        /// Event when plugin is registered.
+        /// Event when plugin is registered. When adding delegate after
+        /// registration phase the delegate gets fired immediatelly.
+        /// After registration phase the delegates won't be cached
+        /// and existing delegates are cleared.
         /// </summary>
         event PluginRegistered<TPlugin>? Registered;
 

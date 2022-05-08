@@ -6,10 +6,6 @@
     public enum InbuiltMessageIndicator
     {
         /// <summary>
-        /// Message indicator depending on Conventional Commits.
-        /// </summary>
-        ConventionalCommits,
-        /// <summary>
         /// Always indicates false.
         /// </summary>
         Falsy,
@@ -17,5 +13,9 @@
         /// Always indicates true.
         /// </summary>
         Truthy,
+        /// <summary>
+        /// Message indicator depending on Conventional Commits.
+        /// </summary>
+        ConventionalCommits,
     }
 }

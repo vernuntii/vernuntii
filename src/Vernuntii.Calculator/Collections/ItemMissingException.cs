@@ -1,37 +1,37 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Vernuntii.VersioningPresets
+namespace Vernuntii.Collections
 {
     /// <summary>
-    /// Versioning preset was missing.
+    /// Item was missing.
     /// </summary>
-    public class MessageIndicatorMissingException : Exception
+    public class ItemMissingException : Exception
     {
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        public MessageIndicatorMissingException()
+        public ItemMissingException()
         {
         }
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        public MessageIndicatorMissingException(string? message) : base(message)
+        public ItemMissingException(string? message) : base(message)
         {
         }
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        public MessageIndicatorMissingException(string? message, Exception? innerException) : base(message, innerException)
+        public ItemMissingException(string? message, Exception? innerException) : base(message, innerException)
         {
         }
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        protected MessageIndicatorMissingException(SerializationInfo info, StreamingContext context) : base(info, context)
+        protected ItemMissingException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }

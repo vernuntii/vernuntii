@@ -247,7 +247,6 @@ Vernuntii uses [Vernuntii.SemVer.Parser][vernuntii-semver-parser-nuget] to parse
 
 This is my work list. :slightly_smiling_face:
 
-- Allow configuring the message indicators of a message convention
 - Allow configuring the height convention
 - Allow setting initial or explicit version prefix
 - Allow additional custom prefixes that differ from `v`

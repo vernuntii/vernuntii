@@ -1,0 +1,11 @@
+﻿Branches:
+  - IfBranch: RegexShouldBeObject
+    VersioningMode:
+      IncrementMode: None
+      MessageConvention:
+        MajorIndicators: Regex
+  - IfBranch: StringThatDoesNotExist
+    VersioningMode:
+      IncrementMode: None
+      MessageConvention:
+        MajorIndicators: AnyStringThatIsNotInbuilt

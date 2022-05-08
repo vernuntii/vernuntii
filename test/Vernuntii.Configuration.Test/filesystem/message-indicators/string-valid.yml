@@ -1,0 +1,16 @@
+﻿Branches:
+  - IfBranch: MajorIndicators
+    VersioningMode:
+      IncrementMode: None
+      MessageConvention:
+        MajorIndicators: Falsy
+  - IfBranch: MinorIndicators
+    VersioningMode:
+      IncrementMode: None
+      MessageConvention:
+        MinorIndicators: Truthy
+  - IfBranch: PatchIndicators
+    VersioningMode:
+      IncrementMode: None
+      MessageConvention:
+        PatchIndicators: ConventionalCommits

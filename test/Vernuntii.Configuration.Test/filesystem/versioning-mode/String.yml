@@ -1,4 +1,4 @@
-﻿# Implicit test: not specified 'VersioningMode' -> default versioning mode
+﻿# default branch: implicit test: not specified "VersioningMode" should lead to default
 Branches:
   - IfBranch: "ContinousDelivery"
     VersioningMode: "ContinousDelivery"
