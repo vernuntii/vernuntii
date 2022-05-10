@@ -49,10 +49,16 @@ namespace Vernuntii.Git
             GitCommand.SetConfig(name: name, value: value);
 
         public void Commit(string? message = null, bool allowEmpty = false, bool allowEmptyMessage = false) =>
-            GitCommand.Commit(message: message, allowEmpty: allowEmpty, allowEmptyMessage: allowEmptyMessage);
+            GitCommand.Commit(
+                message: message,
+                allowEmpty: allowEmpty,
+                allowEmptyMessage: allowEmptyMessage);
 
         public void TagLightweight(string tagName, string? commit = default) =>
-            GitCommand.TagLightweight(tagName: tagName, commit: commit);
+            GitCommand.TagLightweight(tagName, commit: commit);
+
+        public void Checkout(string branchName) =>
+            GitCommand.Checkout(branchName);
 
         protected virtual void Dispose(bool disposing)
         {

@@ -74,5 +74,12 @@
             args.Append($" {url} {(Quote)WorkingDirectory}");
             ExecuteCommandThenSucceed(args);
         }
+
+        public void Checkout(Quote branchName)
+        {
+            var args = CultureStringBuilder.Invariant();
+            args.Append($"checkout {branchName}");
+            ExecuteCommandThenSucceed(args);
+        }
     }
 }

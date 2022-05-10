@@ -81,7 +81,7 @@ namespace Vernuntii.Git.Command
         {
             foreach (var line in ExecuteCommandThenReadLines("branch --all --format=\"%(objectname) %(refname) %(refname:short)\"")) {
                 if (!string.IsNullOrWhiteSpace(line)) {
-                    if (line.Contains("HEAD detached at head", StringComparison.Ordinal)) {
+                    if (line.Contains("HEAD detached at", StringComparison.Ordinal)) {
                         yield return new Branch(line.Substring(0, line.IndexOf(' ', StringComparison.Ordinal)), "HEAD", "HEAD", "HEAD");
                         continue;
                     }
