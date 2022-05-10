@@ -38,17 +38,17 @@ namespace Vernuntii.Configuration
             var branchCases = CreateBranchCasesProvider(VersioningModeDir, VersioningModeObjectInvalidFileName).NestedBranchCases;
 
             yield return new object[] {
-                 nameof(BranchCaseExtensions.VersioningModeObject.IncrementMode),
+                 nameof(IVersioningPreset.IncrementMode),
                  () => CreateVersioningModeExtension(branchCases["OnlyConvention"])
              };
 
             yield return new object[] {
-                 nameof(BranchCaseExtensions.VersioningModeObject.MessageConvention),
+                 nameof(IVersioningPreset.MessageConvention),
                  () => CreateVersioningModeExtension(branchCases["OnlyIncrementMode"])
              };
 
             static IVersioningPreset CreateVersioningModeExtension(IBranchCase branchCase) => branchCase
-                .TryCreateVersioningPresetExtension(DefaultConfiguredVersioningPresetFactory)
+                .SetVersioningPresetExtensionFactory(DefaultConfiguredVersioningPresetFactory)
                 .GetVersioningPresetExtension();
         }
 

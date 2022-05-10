@@ -22,7 +22,7 @@ namespace Vernuntii.Extensions
         /// </summary>
         /// <param name="configurator"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static IFileShadowedConfigurationProviderBuilderConfigurer UseGitDefaults(this IFileShadowedConfigurationProviderBuilderConfigurer configurator)
+        public static IFileShadowedConfigurationProviderBuilderConfigurer AddGitDefaults(this IFileShadowedConfigurationProviderBuilderConfigurer configurator)
         {
             var fileContainingDirectory = configurator.FileInfo.Directory ?? throw new ArgumentException("File is not in an existing directory");
             configurator.AddShadow(new GitDirectoryCorrectionConfigurationProvider(fileContainingDirectory, configurator.RootConfigurationProvider));

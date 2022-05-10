@@ -16,7 +16,7 @@ namespace Vernuntii.Extensions.BranchCases
             features.Services.ConfigureVernuntii(vernuntii => vernuntii
                 .ConfigureGit(features => features
                     .ConfigureBranchCases(branchCases => branchCases
-                        .ForEach<IConfiguredVersioningPresetFactory>((branchCase, presetFactory) => branchCase.TryCreateVersioningPresetExtension(presetFactory)))));
+                        .ForEach<IConfiguredVersioningPresetFactory>((branchCase, presetFactory) => branchCase.SetVersioningPresetExtensionFactory(presetFactory)))));
 
             return features;
         }

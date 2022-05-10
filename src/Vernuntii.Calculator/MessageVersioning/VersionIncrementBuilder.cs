@@ -14,26 +14,26 @@ namespace Vernuntii.MessageVersioning
             var messageConvention = versioningPreset.MessageConvention;
 
             bool isMessageIncrementingMajor = messageConvention.IsMessageIndicatingMajor(messageContent);
+            bool isMessageIncrementingMinor = false;
+            bool isMessageIncrementingPatch = false;
 
-            bool isMessageIncrementingMinor = isMessageIncrementingMajor
-                ? false
-                : messageConvention.IsMessageIndicatingMinor(messageContent);
-
-            bool isMessageIncrementingPatch = isMessageIncrementingMajor || isMessageIncrementingMinor
-                ? false
-                : messageConvention.IsMessageIndicatingPatch(messageContent);
-
-            if (context.VersionCalculationOptions.CanRightShiftVersion) {
-                if (isMessageIncrementingMajor) {
+            if (isMessageIncrementingMajor) {
+                if (context.CanFlowDownstreamMajor) {
                     isMessageIncrementingMajor = false;
                     isMessageIncrementingMinor = true;
-                    context.IsVersionIndicationRightShifted = true;
-                } else if (isMessageIncrementingMinor) {
-                    isMessageIncrementingMinor = false;
-                    isMessageIncrementingPatch = true;
-                    context.IsVersionIndicationRightShifted = true;
+                    context.IsVersionDownstreamFlowed = true;
+                }
+            } else {
+                isMessageIncrementingMinor = messageConvention.IsMessageIndicatingMinor(messageContent);
+
+                if (isMessageIncrementingMinor) {
+                    if (context.CanFlowDownstreamMinor) {
+                        isMessageIncrementingMinor = false;
+                        isMessageIncrementingPatch = true;
+                        context.IsVersionDownstreamFlowed = true;
+                    }
                 } else {
-                    // Patch remains as it is.
+                    isMessageIncrementingPatch = messageConvention.IsMessageIndicatingPatch(messageContent);
                 }
             }
 

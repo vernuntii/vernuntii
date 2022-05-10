@@ -1,6 +1,5 @@
 ﻿using Vernuntii.HeightConventions.Transformation;
 using Vernuntii.SemVer;
-using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.MessageVersioning
 {
@@ -60,16 +59,33 @@ namespace Vernuntii.MessageVersioning
         public HeightConventionTransformer HeightIdentifierTransformer { get; }
 
         /// <summary>
-        /// <see langword="true"/> if indicator of next version has been right shifted.
-        /// See <see cref="IVersioningPreset.RightShiftWhenZeroMajor"/> for more details.
+        /// <see langword="true"/> if major of current version is zero and versioning preset allows right shifting.
         /// </summary>
-        internal bool IsVersionIndicationRightShifted { get; set; }
+        public bool CanFlowDownstreamMajor => _canFlowDownstreamMajor ??=
+            VersionCalculationOptions.VersioningPreset.IncrementFlow.Condition == VersionIncrementFlows.VersionIncrementFlowCondition.ZeroMajor
+            && VersionCalculationOptions.StartVersion.Major == 0
+            && VersionCalculationOptions.VersioningPreset.IncrementFlow.MajorFlow == VersionIncrementFlows.VersionIncrementFlowMode.Downstream;
+
+        /// <summary>
+        /// <see langword="true"/> if minor of current version is zero and versioning preset allows right shifting.
+        /// </summary>
+        public bool CanFlowDownstreamMinor => _canFlowDownstreamMinor ??=
+            VersionCalculationOptions.VersioningPreset.IncrementFlow.Condition == VersionIncrementFlows.VersionIncrementFlowCondition.ZeroMajor
+            && VersionCalculationOptions.StartVersion.Major == 0
+            && VersionCalculationOptions.VersioningPreset.IncrementFlow.MinorFlow == VersionIncrementFlows.VersionIncrementFlowMode.Downstream;
+
+        /// <summary>
+        /// <see langword="true"/> if indicator of next version has been right shifted. For debug and test puposes.
+        /// </summary>
+        internal bool IsVersionDownstreamFlowed { get; set; }
 
         private ISemanticVersion? _currentVersion;
         private bool? _doesCurrentVersionContainsMajorIncrement;
         private bool? _doesCurrentVersionContainsMinorIncrement;
         private bool? _doesCurrentVersionContainsPatchIncrement;
         private VersionHeightInformations? _doesCurrentVersionContainsHeightIncrement;
+        private bool? _canFlowDownstreamMajor;
+        private bool? _canFlowDownstreamMinor;
 
         /// <summary>
         /// Creates an instance of this type.

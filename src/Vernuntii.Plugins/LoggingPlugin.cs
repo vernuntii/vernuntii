@@ -1,6 +1,8 @@
 ﻿using System.CommandLine;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -16,11 +18,13 @@ namespace Vernuntii.PluginSystem
     /// </summary>
     public class LoggingPlugin : Plugin, ILoggingPlugin
     {
+        private event Action<ILoggingPlugin>? _enabledLoggingInfrastructureEvent;
+
         /// <inheritdoc/>
         public override int? Order => -2000;
 
         private Logger _logger = null!;
-        private ILoggerFactory _loggerFactory = null!;
+        private ILoggerFactory? _loggerFactory;
         private Action<ILoggingBuilder> _loggerBinder = null!;
 
         /* If option is not specified, then do not log.
@@ -53,21 +57,35 @@ namespace Vernuntii.PluginSystem
 
         private LogEventLevel? _verbosity;
 
+        /// <summary>
+        /// Creates an instance of this type and enables the debug logging infrastructure.
+        /// </summary>
+        public LoggingPlugin() =>
+            EnableDebugLoggingInfrastructure();
+
+        [Conditional("DEBUG")]
+        private void EnableDebugLoggingInfrastructure() =>
+            EnableLoggingInfrastructure(publishEvents: false, overrideVerbosity: LogEventLevel.Verbose);
+
         /// <inheritdoc/>
-        protected override ValueTask OnRegistrationAsync(RegistrationContext registrationContext)
+        protected override void OnCompletedRegistration()
         {
             SerilogPastTime.InitializeLastMoment();
-            return ValueTask.CompletedTask;
+            Plugins.First<ICommandLinePlugin>().Registered += plugin => plugin.RootCommand.Add(verbosityOption);
         }
 
-        /// <inheritdoc/>
-        protected override void OnCompletedRegistration() =>
-            Plugins.First<ICommandLinePlugin>().Registered += plugin => plugin.RootCommand.Add(verbosityOption);
-
-        private void EnableLoggingInfrastructure()
+        private void DestroyCurrentEnableLogginInfrastructure()
         {
+            _loggerFactory?.Dispose();
+            _logger?.Dispose();
+        }
+
+        private void EnableLoggingInfrastructure(bool publishEvents, LogEventLevel? overrideVerbosity = null)
+        {
+            DestroyCurrentEnableLogginInfrastructure();
+
             var pastTimeResolver = new StaticMemberNameResolver(typeof(SerilogPastTime));
-            var verbosity = _verbosity ?? LogEventLevel.Fatal;
+            var verbosity = overrideVerbosity ?? _verbosity ?? LogEventLevel.Fatal;
 
             var expressionTemplate = verbosity == LogEventLevel.Verbose
                 ? "[{@l:u3}+{PastTime()}] {@m}\n{@x}"
@@ -86,7 +104,18 @@ namespace Vernuntii.PluginSystem
 
             _loggerBinder = builder => builder.AddSerilog(_logger);
             _loggerFactory = LoggerFactory.Create(builder => _loggerBinder(builder));
-            Events.Publish(LoggingEvents.EnabledLoggingInfrastructure, this);
+
+            if (publishEvents) {
+                Events.Publish(LoggingEvents.EnabledLoggingInfrastructure, this);
+
+                if (_enabledLoggingInfrastructureEvent != null) {
+                    _enabledLoggingInfrastructureEvent.Invoke(this);
+
+                    foreach (var handler in _enabledLoggingInfrastructureEvent.GetInvocationList()) {
+                        _enabledLoggingInfrastructureEvent -= (Action<ILoggingPlugin>)handler;
+                    }
+                }
+            }
         }
 
         /// <inheritdoc/>
@@ -95,16 +124,18 @@ namespace Vernuntii.PluginSystem
             Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult =>
                 _verbosity = parseResult.GetValueForOption(verbosityOption));
 
-            Events.SubscribeOnce(LoggingEvents.EnableLoggingInfrastructure, EnableLoggingInfrastructure);
+            Events.SubscribeOnce(
+                LoggingEvents.EnableLoggingInfrastructure,
+                () => EnableLoggingInfrastructure(publishEvents: true));
         }
 
         /// <inheritdoc/>
         public ILogger<T> CreateLogger<T>() =>
-            _loggerFactory.CreateLogger<T>();
+            _loggerFactory?.CreateLogger<T>() ?? new LazyLogger<T>(_enabledLoggingInfrastructureEvent);
 
         /// <inheritdoc/>
         public Microsoft.Extensions.Logging.ILogger CreateLogger(string category) =>
-            _loggerFactory.CreateLogger(category);
+            _loggerFactory?.CreateLogger(category) ?? new LazyLogger(category, _enabledLoggingInfrastructureEvent);
 
         /// <inheritdoc/>
         public void Bind(ILoggingBuilder builder) => _loggerBinder(builder);
@@ -118,31 +149,72 @@ namespace Vernuntii.PluginSystem
                 return;
             }
 
-            _logger.Dispose();
+            DestroyCurrentEnableLogginInfrastructure();
         }
 
         private static class SerilogPastTime
         {
-            private static DateTime? _lastMoment;
+            private static Stopwatch? _lastMoment;
 
             public static LogEventPropertyValue? PastTime()
             {
-                if (!_lastMoment.HasValue) {
+                if (_lastMoment is null) {
                     throw new InvalidOperationException("You must specify the last moment");
                 }
 
-                var now = DateTime.UtcNow;
-                var diff = DateTime.UtcNow - _lastMoment.Value;
-                _lastMoment = now;
-                return new ScalarValue($"{Math.Floor(diff.TotalSeconds)}.{diff.ToString("ff", CultureInfo.InvariantCulture)}");
+                var elapsedTime = _lastMoment.Elapsed;
+                _lastMoment.Reset();
+                _lastMoment.Start();
+                return new ScalarValue($"{Math.Floor(elapsedTime.TotalSeconds)}.{elapsedTime.ToString("ff", CultureInfo.InvariantCulture)}");
             }
 
             public static void InitializeLastMoment()
             {
-                if (!_lastMoment.HasValue) {
-                    _lastMoment = DateTime.UtcNow;
+                if (_lastMoment is null) {
+                    _lastMoment = new Stopwatch();
+                    _lastMoment.Start();
                 }
             }
+        }
+
+        private class LazyLogger : Microsoft.Extensions.Logging.ILogger
+        {
+            private Microsoft.Extensions.Logging.ILogger _logger = NullLogger.Instance;
+
+            public LazyLogger(string category, Action<ILoggingPlugin>? whenEnabledLoggingInfrastructure) =>
+                whenEnabledLoggingInfrastructure += loggingPlugin => _logger = loggingPlugin.CreateLogger(category);
+
+            IDisposable Microsoft.Extensions.Logging.ILogger.BeginScope<TState>(TState state) => _logger.BeginScope(state);
+
+            bool Microsoft.Extensions.Logging.ILogger.IsEnabled(LogLevel logLevel) => _logger.IsEnabled(logLevel);
+
+            void Microsoft.Extensions.Logging.ILogger.Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter) =>
+                _logger.Log(logLevel, eventId, state, exception, formatter);
+        }
+
+        private class LazyLogger<T> : ILogger<T>
+        {
+            private ILogger<T> _logger = NullLogger<T>.Instance;
+
+            public LazyLogger(Action<LoggingPlugin>? whenEnabledLoggingInfrastructure) =>
+                whenEnabledLoggingInfrastructure += loggingPlugin => _logger = loggingPlugin.CreateLogger<T>();
+
+            IDisposable Microsoft.Extensions.Logging.ILogger.BeginScope<TState>(TState state) => _logger.BeginScope(state);
+
+            bool Microsoft.Extensions.Logging.ILogger.IsEnabled(LogLevel logLevel) => _logger.IsEnabled(logLevel);
+
+            void Microsoft.Extensions.Logging.ILogger.Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter) =>
+                _logger.Log(logLevel, eventId, state, exception, formatter);
         }
     }
 }

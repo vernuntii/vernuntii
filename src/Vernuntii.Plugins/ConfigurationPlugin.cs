@@ -49,15 +49,19 @@ namespace Vernuntii.PluginSystem
                    .AddConventionalYamlFileFinder()
                    .AddConventionalJsonFileFinder();
 
+                var configPathOrCurrentDirectory = _configPath ?? Directory.GetCurrentDirectory();
+                _logger.LogTrace("Search configuration file (Start = {ConfigPath})", configPathOrCurrentDirectory);
+
+                // Allow non existent configuration file because defaults are applied.
                 _ = configurationBuilder.TryAddFileOrFirstConventionalFile(
-                       _configPath ?? Directory.GetCurrentDirectory(),
+                       configPathOrCurrentDirectory,
                        new[] {
                                 YamlConfigurationFileDefaults.YmlFileName,
                                 YamlConfigurationFileDefaults.YamlFileName,
                                 JsonConfigurationFileDefaults.JsonFileName
                        },
                        out var addedFilePath,
-                       configurator => configurator.UseGitDefaults());
+                       configurator => configurator.AddGitDefaults());
 
                 Configuration = configurationBuilder.Build();
                 _logger.LogInformation("Use configuration file: {ConfigurationFilePath}", addedFilePath);

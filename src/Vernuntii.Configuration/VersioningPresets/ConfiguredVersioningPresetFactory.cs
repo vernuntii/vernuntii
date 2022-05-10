@@ -4,6 +4,7 @@ using Vernuntii.Extensions;
 using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.MessageVersioning;
+using Vernuntii.VersionIncrementFlows;
 
 namespace Vernuntii.VersioningPresets
 {
@@ -27,16 +28,22 @@ namespace Vernuntii.VersioningPresets
         protected IVersioningPresetManager PresetManager { get; }
 
         private readonly IConfiguredMessageConventionFactory _messageConventionFactory;
+        private readonly IConfiguredVersionIncrementFlowFactory _incrementFlowFactory;
 
         /// <summary>
         /// Creates a type of this type.
         /// </summary>
         /// <param name="presetManager"></param>
         /// <param name="messageConventionFactory"></param>
-        public ConfiguredVersioningPresetFactory(IVersioningPresetManager presetManager, IConfiguredMessageConventionFactory messageConventionFactory)
+        /// <param name="incrementFlowFactory"></param>
+        public ConfiguredVersioningPresetFactory(
+            IVersioningPresetManager presetManager,
+            IConfiguredMessageConventionFactory messageConventionFactory,
+            IConfiguredVersionIncrementFlowFactory incrementFlowFactory)
         {
             PresetManager = presetManager;
             _messageConventionFactory = messageConventionFactory;
+            _incrementFlowFactory = incrementFlowFactory;
         }
 
         /// <inheritdoc/>
@@ -44,8 +51,8 @@ namespace Vernuntii.VersioningPresets
         {
             var versioningModeSection = sectionProvider.GetSection();
 
-            if (versioningModeSection.HavingValue()) {
-                return PresetManager.VersioningPresets.GetItem(versioningModeSection.Value ?? nameof(InbuiltVersioningPreset.Default));
+            if (versioningModeSection.NotExistingOrValue(out var sectionValue)) {
+                return PresetManager.VersioningPresets.GetItem(sectionValue ?? nameof(InbuiltVersioningPreset.Default));
             }
 
             var versioningModeObject = new VersioningModeObject();
@@ -64,23 +71,31 @@ namespace Vernuntii.VersioningPresets
                 basePreset = PresetManager.VersioningPresets.GetItem(nameof(InbuiltVersioningPreset.Manual));
             }
 
-            var havingMessageConvention = _messageConventionFactory.TryCreate(
-                versioningModeSection.GetSectionProvider(ConfiguredMessageConventionFactory.DefaultMessageConventionKey), out var messageConvention);
+            if (!_incrementFlowFactory.TryCreate(
+                versioningModeSection.GetSectionProvider(ConfiguredVersionIncrementFlowFactory.DefaultIncrementFlowKey),
+                out var incrementFlow)) {
+                incrementFlow = basePreset.IncrementFlow;
+            }
 
-            if (!havingMessageConvention && versioningModeObject.Preset == null) {
-                throw new ConfigurationValidationException($"Field \"{ConfiguredMessageConventionFactory.DefaultMessageConventionKey}\" is null." +
-                    $" Either set it or specifiy the field \"{nameof(versioningModeObject.Preset)}\".");
+            if (!_messageConventionFactory.TryCreate(
+                versioningModeSection.GetSectionProvider(ConfiguredMessageConventionFactory.DefaultMessageConventionKey),
+                out var messageConvention)) {
+                if (versioningModeObject.Preset == null) {
+                    throw new ConfigurationValidationException($"Field \"{ConfiguredMessageConventionFactory.DefaultMessageConventionKey}\" is null." +
+                        $" Either set it or specifiy the field \"{nameof(versioningModeObject.Preset)}\".");
+                }
+
+                messageConvention = basePreset.MessageConvention;
             }
 
             IHeightConvention? heightConvention = basePreset.HeightConvention;
             var versionIncrementMode = versioningModeObject.IncrementMode ?? basePreset.IncrementMode;
-            var rightShiftWhenZeroMajor = versioningModeObject.RightShiftWhenZeroMajor;
 
             return new VersioningPreset() {
                 IncrementMode = versionIncrementMode,
-                MessageConvention = havingMessageConvention ? messageConvention : basePreset.MessageConvention,
+                IncrementFlow = incrementFlow,
+                MessageConvention = messageConvention,
                 HeightConvention = heightConvention,
-                RightShiftWhenZeroMajor = rightShiftWhenZeroMajor
             };
         }
 
@@ -88,7 +103,6 @@ namespace Vernuntii.VersioningPresets
         {
             public VersionIncrementMode? IncrementMode { get; set; }
             public string? Preset { get; set; }
-            public bool RightShiftWhenZeroMajor { get; set; }
         }
     }
 }

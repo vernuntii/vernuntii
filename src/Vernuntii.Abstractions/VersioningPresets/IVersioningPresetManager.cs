@@ -1,6 +1,7 @@
 ﻿using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.MessageConventions.MessageIndicators;
+using Vernuntii.VersionIncrementFlows;
 
 namespace Vernuntii.VersioningPresets
 {
@@ -15,6 +16,11 @@ namespace Vernuntii.VersioningPresets
         IVersioningPresetRegistry VersioningPresets { get; }
 
         /// <summary>
+        /// Registry for version increment flows.
+        /// </summary>
+        IVersionIncrementFlowRegistry IncrementFlows { get; }
+
+        /// <summary>
         /// Registry for message conventions.
         /// </summary>
         IMessageConventionRegistry MessageConventions { get; }
@@ -25,7 +31,7 @@ namespace Vernuntii.VersioningPresets
         IMessageIndicatorRegistry MessageIndicators { get; }
 
         /// <summary>
-        /// Registry for message indicators.
+        /// Registry for message indicators each crafted from a configuration.
         /// </summary>
         IConfiguredMessageIndicatorFactoryRegistry ConfiguredMessageIndicatorFactories { get; }
 

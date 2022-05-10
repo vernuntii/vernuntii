@@ -155,7 +155,7 @@ namespace Vernuntii.PluginSystem
                     .UsePresentationView(_presentationView)
                     .BuildString();
 
-                System.Console.WriteLine(formattedVersion);
+                System.Console.Write(formattedVersion);
 
                 return ExitCodeOnSuccess ?? (int)ExitCode.Success;
             } catch (Exception error) {

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Vernuntii.Configuration;
-using Vernuntii.MessageVersioning;
 using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.Extensions.BranchCases
@@ -11,29 +10,7 @@ namespace Vernuntii.Extensions.BranchCases
     public static class BranchCaseExtensions
     {
         /// <summary>
-        /// Gets property or creates it.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="branchCaseArguments"></param>
-        /// <param name="extensionName"></param>
-        /// <returns>The existing or created property.</returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public static T GetExtensionOrCreate<T>(this IBranchCase branchCaseArguments, string extensionName)
-            where T : new()
-        {
-            if (!branchCaseArguments.Extensions.TryGetValue(extensionName, out var propertyObject)) {
-                var newProperty = new T();
-                branchCaseArguments.Extensions.Add(extensionName, newProperty);
-                return newProperty;
-            } else if (propertyObject is T property) {
-                return property;
-            } else {
-                throw new InvalidOperationException($"The existing property is of type {propertyObject.GetType().FullName} but {typeof(T).FullName} was expected");
-            }
-        }
-
-        /// <summary>
-        /// Gets property or creates it.
+        /// Sets extension factory that is used when getting the extension the first time.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="branchCaseArguments"></param>
@@ -41,18 +18,15 @@ namespace Vernuntii.Extensions.BranchCases
         /// <param name="extensionFactory"></param>
         /// <returns>The existing or created property.</returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static T GetExtensionOrCreate<T>(this IBranchCase branchCaseArguments, string extensionName, Func<T> extensionFactory)
+        public static IBranchCase SetExtensionFactory<T>(this IBranchCase branchCaseArguments, string extensionName, Func<T> extensionFactory)
             where T : notnull
         {
-            if (!branchCaseArguments.Extensions.TryGetValue(extensionName, out var propertyObject)) {
-                var newProperty = extensionFactory();
-                branchCaseArguments.Extensions.Add(extensionName, newProperty);
-                return newProperty;
-            } else if (propertyObject is T property) {
-                return property;
-            } else {
-                throw new InvalidOperationException($"The existing property is of type {propertyObject.GetType().FullName} but {typeof(T).FullName} was expected");
+            if (branchCaseArguments.Extensions.ContainsKey(extensionName)) {
+                throw new InvalidOperationException($"Extenion \"{extensionName}\" has been already created");
             }
+
+            branchCaseArguments.Extensions.Add(extensionName, extensionFactory);
+            return branchCaseArguments;
         }
 
         /// <summary>
@@ -64,11 +38,17 @@ namespace Vernuntii.Extensions.BranchCases
         /// <exception cref="InvalidOperationException"></exception>
         public static T GetExtension<T>(this IBranchCase branchCaseArguments, string extensionName)
         {
-            if (branchCaseArguments.Extensions.TryGetValue(extensionName, out var extensionObject) && extensionObject is T extension) {
-                return extension;
-            } else {
-                throw new InvalidOperationException($"The existing \"{extensionName}\" of type {typeof(T).FullName} was expected");
+            if (branchCaseArguments.Extensions.TryGetValue(extensionName, out var extensionObject)) {
+                if (extensionObject is T extension) {
+                    return extension;
+                } else if (extensionObject is Func<T> extensionFactory) {
+                    extension = extensionFactory();
+                    branchCaseArguments.Extensions[extensionName] = extension;
+                    return extension;
+                }
             }
+
+            throw new InvalidOperationException($"The existing \"{extensionName}\" of type {typeof(T).FullName} was expected");
         }
 
         /// <summary>
@@ -88,11 +68,11 @@ namespace Vernuntii.Extensions.BranchCases
         /// <param name="branchCaseArguments"></param>
         /// <param name="presetFactory"></param>
         /// <param name="branchConfiguration"></param>
-        public static IBranchCase TryCreateVersioningPresetExtension(this IBranchCase branchCaseArguments, IConfiguredVersioningPresetFactory presetFactory, IConfiguration? branchConfiguration = null)
+        public static IBranchCase SetVersioningPresetExtensionFactory(this IBranchCase branchCaseArguments, IConfiguredVersioningPresetFactory presetFactory, IConfiguration? branchConfiguration = null)
         {
             branchConfiguration ??= branchCaseArguments.GetConfigurationExtension();
 
-            _ = branchCaseArguments.GetExtensionOrCreate(
+            branchCaseArguments.SetExtensionFactory(
                 nameof(IVersioningPreset),
                 () => presetFactory.Create(branchConfiguration.GetSectionProvider(ConfiguredVersioningPresetFactory.DefaultVersioningModeKey)));
 
@@ -105,14 +85,6 @@ namespace Vernuntii.Extensions.BranchCases
         /// <param name="branchCaseArguments"></param>
         public static IVersioningPreset GetVersioningPresetExtension(this IBranchCase branchCaseArguments) =>
             branchCaseArguments.GetExtension<IVersioningPreset>(nameof(IVersioningPreset));
-
-        internal class VersioningModeObject
-        {
-            public VersionIncrementMode? IncrementMode { get; set; }
-            public string? Preset { get; set; }
-            public bool RightShiftWhenZeroMajor { get; set; }
-            public string? MessageConvention { get; set; }
-        }
 
         #endregion
     }

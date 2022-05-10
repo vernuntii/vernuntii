@@ -1,4 +1,5 @@
-﻿using Vernuntii.PluginSystem;
+﻿using Microsoft.Extensions.Logging;
+using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Console;
@@ -20,7 +21,11 @@ public static class ConsoleProgram
 
         await plugins.RegisterAsync<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
         await plugins.RegisterAsync<ICommandLinePlugin, CommandLinePlugin>();
-        await plugins.RegisterAsync<ILoggingPlugin, LoggingPlugin>();
+
+        var loggerPlugin = new LoggingPlugin();
+        await plugins.RegisterAsync<ILoggingPlugin>(loggerPlugin);
+        ILogger logger = loggerPlugin.CreateLogger(nameof(ConsoleProgram));
+
         await plugins.RegisterAsync<IConfigurationPlugin, ConfigurationPlugin>();
         await plugins.RegisterAsync<IGitPlugin, GitPlugin>();
         await plugins.RegisterAsync<INextVersionPlugin, NextVersionPlugin>();
@@ -36,23 +41,32 @@ public static class ConsoleProgram
 
         var pluginExecutor = new PluginExecutor(plugins, pluginEvents);
         await pluginExecutor.ExecuteAsync();
+        logger.LogTrace("Executing plugins");
 
         int exitCode = (int)ExitCode.NotExecuted;
         using var exitCodeSubscription = pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, i => exitCode = i);
 
         pluginEvents.Publish(CommandLineEvents.SetCommandLineArgs, args);
+        logger.LogTrace("Set command-line arguments");
+
         pluginEvents.Publish(CommandLineEvents.ParseCommandLineArgs);
+        logger.LogTrace("Parse command-line arguments");
 
-        if (exitCode == (int)ExitCode.NotExecuted) {
-            pluginEvents.Publish(LoggingEvents.EnableLoggingInfrastructure);
-            pluginEvents.Publish(ConfigurationEvents.CreateConfiguration);
-            pluginEvents.Publish(CommandLineEvents.InvokeRootCommand);
-        }
+        pluginEvents.Publish(LoggingEvents.EnableLoggingInfrastructure);
+        logger.LogTrace("Enable logging infrastructure");
 
+        pluginEvents.Publish(ConfigurationEvents.CreateConfiguration);
+        logger.LogTrace("Create configuration");
+
+        pluginEvents.Publish(CommandLineEvents.InvokeRootCommand);
+        logger.LogTrace("Invoke command-line root command");
+
+        logger.LogTrace("Destroying plugins");
         await pluginExecutor.DestroyAsync();
+        logger.LogTrace("Destroyed plugins");
 
         if (exitCode == (int)ExitCode.NotExecuted) {
-            throw new InvalidOperationException("The command line plugin was not running");
+            throw new InvalidOperationException("The command line was not running");
         }
 
         return exitCode;

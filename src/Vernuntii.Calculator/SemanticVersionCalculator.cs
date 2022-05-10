@@ -15,7 +15,7 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
 
     private readonly ILogger _logger;
     private readonly Action<ILogger, ISemanticVersion, Exception?> _logInitialVersion;
-    private readonly Action<ILogger, ISemanticVersion, ISemanticVersion, bool, Exception?> _logVersionTransformation;
+    private readonly Action<ILogger, ISemanticVersion, ISemanticVersion, Exception?> _logVersionTransformation;
     private readonly Action<ILogger, ISemanticVersion, ISemanticVersion, Exception?> _logVersionPostTransformation;
     private readonly Action<ILogger, int, int, int, Exception?> _logMessageCountHavingProcessed;
 
@@ -30,10 +30,10 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
             new EventId(1, "StartVersion"),
             "Use start version {InitialVersion} for next transformation");
 
-        _logVersionTransformation = LoggerMessage.Define<ISemanticVersion, ISemanticVersion, bool>(
+        _logVersionTransformation = LoggerMessage.Define<ISemanticVersion, ISemanticVersion>(
             LogLevel.Information,
             new EventId(2, "TransformedVersion"),
-            _logVersionTransformationTemplate + " (Right shifted = {RightShifted})");
+            _logVersionTransformationTemplate);
 
         _logVersionPostTransformation = LoggerMessage.Define<ISemanticVersion, ISemanticVersion>(
             LogLevel.Information,
@@ -51,22 +51,22 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
     private void LogInitialVersion(ISemanticVersion initialVersion) =>
         _logInitialVersion(_logger, initialVersion, null);
 
-    private void LogVersionTransformation(IMessage message, ISemanticVersion fromVersion, ISemanticVersion toVersion, bool rightShifted)
+    private void LogVersionTransformation(IMessage message, ISemanticVersion fromVersion, ISemanticVersion toVersion)
     {
         if (message is IMessageProvidingDebugMessage messageProvidingDebugMessage && messageProvidingDebugMessage.DebugMessageFactory != null) {
             var debugMessage = messageProvidingDebugMessage.DebugMessageFactory();
 
-            var arguments = new List<object>() { fromVersion, toVersion, rightShifted };
+            var arguments = new List<object>() { fromVersion, toVersion };
             arguments.AddRange(debugMessage.Arguments);
 
             // Disable:
             // 1. Template should be a static expression
 #pragma warning disable CA2254
             _logger.LogInformation(new EventId(3), _logVersionTransformationTemplate +
-                $" (Right shifted = {{RightShifted}}, {debugMessage.FormatString})", arguments.ToArray());
+                $" ({debugMessage.FormatString})", arguments.ToArray());
 #pragma warning restore CA2254
         } else {
-            _logVersionTransformation(_logger, fromVersion, toVersion, rightShifted, null);
+            _logVersionTransformation(_logger, fromVersion, toVersion, null);
         }
     }
 
@@ -106,10 +106,11 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
                 var preflightVersion = versionIncrementBuilder.BuildIncrement(message, versioningContext).TransformVersion(nextVersion);
 
                 if (ReferenceEquals(preflightVersion, nextVersion) || preflightVersion.Equals(nextVersion)) {
+                    // Version is unchanged.
                     continue;
                 }
 
-                LogVersionTransformation(message, nextVersion, preflightVersion, versioningContext.IsVersionIndicationRightShifted);
+                LogVersionTransformation(message, nextVersion, preflightVersion);
                 nextVersion = preflightVersion;
                 messageInvolvedIntoTransformationCounter++;
 

@@ -3,6 +3,7 @@ using Vernuntii.Configuration;
 using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.MessageConventions.MessageIndicators;
+using Vernuntii.VersionIncrementFlows;
 
 namespace Vernuntii.VersioningPresets
 {
@@ -13,6 +14,8 @@ namespace Vernuntii.VersioningPresets
     {
         /// <inheritdoc/>
         public IVersioningPresetRegistry VersioningPresets => _manager;
+        /// <inheritdoc/>
+        public IVersionIncrementFlowRegistry IncrementFlows => _manager;
         /// <inheritdoc/>
         public IMessageConventionRegistry MessageConventions => _manager;
         /// <inheritdoc/>
@@ -37,6 +40,7 @@ namespace Vernuntii.VersioningPresets
         public void Clear()
         {
             VersioningPresets.ClearItems();
+            IncrementFlows.ClearItems();
             MessageConventions.ClearItems();
             HeightConventions.ClearItems();
             MessageIndicators.ClearItems();
@@ -44,28 +48,32 @@ namespace Vernuntii.VersioningPresets
 
         private class Manager :
             IVersioningPresetRegistry,
+            IVersionIncrementFlowRegistry,
             IMessageConventionRegistry,
             IMessageIndicatorRegistry,
             IConfiguredMessageIndicatorFactoryRegistry,
             IHeightConventionRegistry
         {
             private NamedItemRegistry<IVersioningPreset> _versioningPresets = new NamedItemRegistry<IVersioningPreset>();
-            private NamedItemRegistry<IMessageConvention?> _messageConventions = new NamedItemRegistry<IMessageConvention?>();
+            private NamedItemRegistry<IVersionIncrementFlow> _incrementFlows = new NamedItemRegistry<IVersionIncrementFlow>();
+            private NamedItemRegistry<IMessageConvention> _messageConventions = new NamedItemRegistry<IMessageConvention>();
             private NamedItemRegistry<IMessageIndicator> _messageIndicators = new NamedItemRegistry<IMessageIndicator>();
             private NamedItemRegistry<IConfiguredMessageIndicatorFactory> _configuredMessageIndicatorFactories = new NamedItemRegistry<IConfiguredMessageIndicatorFactory>();
-            private NamedItemRegistry<IHeightConvention?> _heightConventions = new NamedItemRegistry<IHeightConvention?>();
+            private NamedItemRegistry<IHeightConvention> _heightConventions = new NamedItemRegistry<IHeightConvention>();
 
             IEnumerable<string> INamedItemRegistry<IVersioningPreset>.Names => _versioningPresets.Names;
-            IEnumerable<string> INamedItemRegistry<IMessageConvention?>.Names => _messageConventions.Names;
+            IEnumerable<string> INamedItemRegistry<IVersionIncrementFlow>.Names => _incrementFlows.Names;
+            IEnumerable<string> INamedItemRegistry<IMessageConvention>.Names => _messageConventions.Names;
             IEnumerable<string> INamedItemRegistry<IMessageIndicator>.Names => _messageIndicators.Names;
             IEnumerable<string> INamedItemRegistry<IConfiguredMessageIndicatorFactory>.Names => _configuredMessageIndicatorFactories.Names;
-            IEnumerable<string> INamedItemRegistry<IHeightConvention?>.Names => _heightConventions.Names;
+            IEnumerable<string> INamedItemRegistry<IHeightConvention>.Names => _heightConventions.Names;
 
             IEnumerable<IVersioningPreset> INamedItemRegistry<IVersioningPreset>.Items => _versioningPresets.Items;
-            IEnumerable<IMessageConvention?> INamedItemRegistry<IMessageConvention?>.Items => _messageConventions.Items;
+            IEnumerable<IVersionIncrementFlow> INamedItemRegistry<IVersionIncrementFlow>.Items => _incrementFlows.Items;
+            IEnumerable<IMessageConvention> INamedItemRegistry<IMessageConvention>.Items => _messageConventions.Items;
             IEnumerable<IMessageIndicator> INamedItemRegistry<IMessageIndicator>.Items => _messageIndicators.Items;
             IEnumerable<IConfiguredMessageIndicatorFactory> INamedItemRegistry<IConfiguredMessageIndicatorFactory>.Items => _configuredMessageIndicatorFactories.Items;
-            IEnumerable<IHeightConvention?> INamedItemRegistry<IHeightConvention?>.Items => _heightConventions.Items;
+            IEnumerable<IHeightConvention> INamedItemRegistry<IHeightConvention>.Items => _heightConventions.Items;
 
             private void EnsureNotReservedPresetName(string name)
             {
@@ -97,21 +105,27 @@ namespace Vernuntii.VersioningPresets
                 }
 
                 if (includes.HasFlag(VersioningPresetMappings.MessageConvention)) {
-                    ((INamedItemRegistry<IMessageConvention?>)this).AddItem(name, preset.MessageConvention);
+                    ((INamedItemRegistry<IMessageConvention>)this).AddItem(name, preset.MessageConvention);
                 }
 
                 if (includes.HasFlag(VersioningPresetMappings.HeightConvention)) {
-                    ((INamedItemRegistry<IHeightConvention?>)this).AddItem(name, preset.HeightConvention);
+                    ((INamedItemRegistry<IHeightConvention>)this).AddItem(name, preset.HeightConvention);
                 }
             }
 
-            void INamedItemRegistry<IVersioningPreset>.AddItem(string name, IVersioningPreset itme)
+            void INamedItemRegistry<IVersioningPreset>.AddItem(string name, IVersioningPreset item)
             {
                 EnsureNotReservedPresetName(name);
-                _versioningPresets.AddItem(name, itme);
+                _versioningPresets.AddItem(name, item);
             }
 
-            void INamedItemRegistry<IMessageConvention?>.AddItem(string name, IMessageConvention? item)
+            void INamedItemRegistry<IVersionIncrementFlow>.AddItem(string name, IVersionIncrementFlow item)
+            {
+                EnsureNotReservedPresetName(name);
+                _incrementFlows.AddItem(name, item);
+            }
+
+            void INamedItemRegistry<IMessageConvention>.AddItem(string name, IMessageConvention item)
             {
                 EnsureNotReservedPresetName(name);
                 _messageConventions.AddItem(name, item);
@@ -129,7 +143,7 @@ namespace Vernuntii.VersioningPresets
                 _configuredMessageIndicatorFactories.AddItem(name, item);
             }
 
-            void INamedItemRegistry<IHeightConvention?>.AddItem(string name, IHeightConvention? item)
+            void INamedItemRegistry<IHeightConvention>.AddItem(string name, IHeightConvention item)
             {
                 EnsureNotReservedPresetName(name);
                 _heightConventions.AddItem(name, item);
@@ -137,13 +151,15 @@ namespace Vernuntii.VersioningPresets
 
             bool INamedItemRegistry<IVersioningPreset>.ContainsName(string name) => _versioningPresets.ContainsName(name);
 
-            bool INamedItemRegistry<IMessageConvention?>.ContainsName(string name) => _messageConventions.ContainsName(name);
+            bool INamedItemRegistry<IVersionIncrementFlow>.ContainsName(string name) => _incrementFlows.ContainsName(name);
+
+            bool INamedItemRegistry<IMessageConvention>.ContainsName(string name) => _messageConventions.ContainsName(name);
 
             bool INamedItemRegistry<IMessageIndicator>.ContainsName(string name) => _messageIndicators.ContainsName(name);
 
             bool INamedItemRegistry<IConfiguredMessageIndicatorFactory>.ContainsName(string name) => _configuredMessageIndicatorFactories.ContainsName(name);
 
-            bool INamedItemRegistry<IHeightConvention?>.ContainsName(string name) => _heightConventions.ContainsName(name);
+            bool INamedItemRegistry<IHeightConvention>.ContainsName(string name) => _heightConventions.ContainsName(name);
 
             IVersioningPreset INamedItemRegistry<IVersioningPreset>.GetItem(string name)
             {
@@ -154,7 +170,16 @@ namespace Vernuntii.VersioningPresets
                 return value;
             }
 
-            IMessageConvention? INamedItemRegistry<IMessageConvention?>.GetItem(string name)
+            IVersionIncrementFlow INamedItemRegistry<IVersionIncrementFlow>.GetItem(string name)
+            {
+                if (!_incrementFlows.NamedItems.TryGetValue(name, out var value)) {
+                    throw new ItemMissingException($"Increment flow was missing: \"{name}\"");
+                }
+
+                return value;
+            }
+
+            IMessageConvention INamedItemRegistry<IMessageConvention>.GetItem(string name)
             {
                 if (!_messageConventions.NamedItems.TryGetValue(name, out var value)) {
                     throw new ItemMissingException($"Message convention was missing: \"{name}\"");
@@ -187,7 +212,7 @@ namespace Vernuntii.VersioningPresets
                 return value;
             }
 
-            IHeightConvention? INamedItemRegistry<IHeightConvention?>.GetItem(string name)
+            IHeightConvention INamedItemRegistry<IHeightConvention>.GetItem(string name)
             {
                 if (!_heightConventions.NamedItems.TryGetValue(name, out var value)) {
                     throw new ItemMissingException($"Height convention was missing: \"{name}\"");
@@ -198,13 +223,15 @@ namespace Vernuntii.VersioningPresets
 
             void INamedItemRegistry<IVersioningPreset>.ClearItems() => _versioningPresets.ClearItems();
 
-            void INamedItemRegistry<IMessageConvention?>.ClearItems() => _messageConventions.ClearItems();
+            void INamedItemRegistry<IVersionIncrementFlow>.ClearItems() => _incrementFlows.ClearItems();
+
+            void INamedItemRegistry<IMessageConvention>.ClearItems() => _messageConventions.ClearItems();
 
             void INamedItemRegistry<IMessageIndicator>.ClearItems() => _messageIndicators.ClearItems();
 
             void INamedItemRegistry<IConfiguredMessageIndicatorFactory>.ClearItems() => _configuredMessageIndicatorFactories.ClearItems();
 
-            void INamedItemRegistry<IHeightConvention?>.ClearItems() => _heightConventions.ClearItems();
+            void INamedItemRegistry<IHeightConvention>.ClearItems() => _heightConventions.ClearItems();
         }
     }
 }

@@ -3,6 +3,7 @@ using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.PluginSystem
@@ -18,6 +19,10 @@ namespace Vernuntii.PluginSystem
         private static VersioningPresetManager CreateDefault()
         {
             var presets = new VersioningPresetManager();
+
+            // Adds version increment flows.
+            presets.IncrementFlows.AddItem(nameof(InbuiltVersionIncrementFlow.None), VersionIncrementFlow.None);
+            presets.IncrementFlows.AddItem(nameof(InbuiltVersionIncrementFlow.ZeroMajorDownstream), VersionIncrementFlow.ZeroMajorDownstream);
 
             // Adds presets including message conventions and height conventions.
             presets.VersioningPresets.AddItem(nameof(InbuiltVersioningPreset.Default), VersioningPreset.Default);

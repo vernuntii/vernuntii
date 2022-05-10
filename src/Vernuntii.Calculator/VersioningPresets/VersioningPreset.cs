@@ -3,6 +3,7 @@ using Vernuntii.HeightConventions.Rules;
 using Vernuntii.MessageVersioning;
 using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.MessageConventions;
+using Vernuntii.VersionIncrementFlows;
 
 namespace Vernuntii.VersioningPresets
 {
@@ -90,16 +91,29 @@ namespace Vernuntii.VersioningPresets
         };
 
         /// <inheritdoc/>
-        public VersionIncrementMode IncrementMode { get; init; }
+        public VersionIncrementMode IncrementMode { get; init; } = VersionIncrementMode.None;
 
         /// <inheritdoc/>
-        public bool RightShiftWhenZeroMajor { get; init; }
+        public IVersionIncrementFlow IncrementFlow {
+            get => _incrementFlow;
+            init => _incrementFlow = value ?? throw new ArgumentNullException(nameof(value));
+        }
 
         /// <inheritdoc/>
-        public IMessageConvention? MessageConvention { get; init; }
+        public IMessageConvention MessageConvention {
+            get => _messageConvention;
+            init => _messageConvention = value ?? throw new ArgumentNullException(nameof(value));
+        }
 
         /// <inheritdoc/>
-        public IHeightConvention? HeightConvention { get; init; }
+        public IHeightConvention HeightConvention {
+            get => _heightConvention;
+            init => _heightConvention = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        private IVersionIncrementFlow _incrementFlow = VersionIncrementFlow.None;
+        private IMessageConvention _messageConvention = MessageConventions.MessageConvention.None;
+        private IHeightConvention _heightConvention = HeightConventions.HeightConvention.None;
 
         /// <summary>
         /// Creates an instance of this type.
@@ -115,6 +129,7 @@ namespace Vernuntii.VersioningPresets
         public VersioningPreset(IVersioningPreset versioningPreset)
         {
             IncrementMode = versioningPreset.IncrementMode;
+            IncrementFlow = versioningPreset.IncrementFlow;
             MessageConvention = versioningPreset.MessageConvention;
             HeightConvention = versioningPreset.HeightConvention;
         }
@@ -123,7 +138,7 @@ namespace Vernuntii.VersioningPresets
         public bool Equals(IVersioningPreset? other) =>
             other is not null
             && Equals(IncrementMode, other.IncrementMode)
-            && RightShiftWhenZeroMajor == other.RightShiftWhenZeroMajor
+            && Equals(IncrementFlow, other.IncrementFlow)
             && Equals(MessageConvention, other.MessageConvention)
             && Equals(HeightConvention, other.HeightConvention);
 
@@ -136,7 +151,9 @@ namespace Vernuntii.VersioningPresets
         {
             var hashCode = new HashCode();
             hashCode.Add(IncrementMode);
+            hashCode.Add(IncrementFlow);
             hashCode.Add(MessageConvention);
+            hashCode.Add(HeightConvention);
             return hashCode.ToHashCode();
         }
     }

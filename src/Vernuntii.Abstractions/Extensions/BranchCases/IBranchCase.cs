@@ -10,7 +10,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// <summary>
         /// Extension interface for various additional features.
         /// </summary>
-        IDictionary<string, object> Extensions { get; }
+        IDictionary<string, object?> Extensions { get; }
 
         /// <summary>
         /// The arguments in this instance are used if active branch is equals to this value.

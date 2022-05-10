@@ -31,6 +31,7 @@ namespace Vernuntii.Git
                LogLevel.Information,
                new EventId(1, "InitialVersion"),
                "Search latest version (Branch = {BranchName}, Since-commit = {SinceCommit}, Search pre-release = {SearchPreRelease})");
+
             _options = options;
             _commitVersionsAccessor = commitVersionsAccessor ?? throw new ArgumentNullException(nameof(commitVersionsAccessor));
             _commitsAccessor = commitsAccessor ?? throw new ArgumentNullException(nameof(commitsAccessor));

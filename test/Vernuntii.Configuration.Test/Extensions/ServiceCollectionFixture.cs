@@ -5,6 +5,7 @@ using Vernuntii.Configuration;
 using Vernuntii.Extensions.BranchCases;
 using Vernuntii.MessageConventions;
 using Vernuntii.PluginSystem;
+using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.Extensions
@@ -14,10 +15,12 @@ namespace Vernuntii.Extensions
         public readonly static VersioningPresetsPlugin DefaultVersioningPresetsPlugin = new VersioningPresetsPlugin();
         public readonly static IVersioningPresetManager DefaultPresetManager = DefaultVersioningPresetsPlugin.PresetManager;
         public readonly static ConfiguredMessageConventionFactory DefaultConfiguredMessageConventionFactory = new ConfiguredMessageConventionFactory(DefaultPresetManager);
+        public readonly static ConfiguredVersionIncrementFlowFactory DefaultConfiguredIncrementFlowFactory = new ConfiguredVersionIncrementFlowFactory(DefaultPresetManager);
 
         public readonly static ConfiguredVersioningPresetFactory DefaultConfiguredVersioningPresetFactory = new ConfiguredVersioningPresetFactory(
             DefaultPresetManager,
-            DefaultConfiguredMessageConventionFactory);
+            DefaultConfiguredMessageConventionFactory,
+            DefaultConfiguredIncrementFlowFactory);
 
         public static IServiceCollection ConfigureServiceCollection(
             IServiceCollection services,

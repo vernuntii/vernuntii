@@ -21,7 +21,11 @@ namespace Vernuntii.Configuration
         public void MessageIndicatorObjectShouldThrowDueToMissingName()
         {
             var branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsListInvalidFileName).NestedBranchCases["MissingName"];
-            var error = Record.Exception(() => branchCase.TryCreateVersioningPresetExtension(DefaultConfiguredVersioningPresetFactory));
+
+            var error = Record.Exception(() => branchCase
+                .SetVersioningPresetExtensionFactory(DefaultConfiguredVersioningPresetFactory)
+                .GetVersioningPresetExtension());
+
             var configurationValidationError = Assert.IsType<ConfigurationValidationException>(error);
             Assert.Contains("indicator name", error.Message, System.StringComparison.Ordinal);
         }
@@ -35,7 +39,7 @@ namespace Vernuntii.Configuration
                 tryCreateVersioningPresetExtension: true).NestedBranchCases["NameAsItem"];
 
             var expectedVersioningPreset = VersioningPreset.Manual with {
-                MessageConvention = MessageConvention.Empty with {
+                MessageConvention = MessageConvention.None with {
                     MajorIndicators = new[] {
                         ConventionalCommitsMessageIndicator.Default
                     }
@@ -54,7 +58,7 @@ namespace Vernuntii.Configuration
                 tryCreateVersioningPresetExtension: true).NestedBranchCases["RegexObject"];
 
             var expectedVersioningPreset = VersioningPreset.Manual with {
-                MessageConvention = MessageConvention.Empty with {
+                MessageConvention = MessageConvention.None with {
                     MajorIndicators = new[] {
                         RegexMessageIndicator.Empty.With.MajorRegex("test").ToIndicator()
                     }
@@ -68,14 +72,19 @@ namespace Vernuntii.Configuration
         public void RegexMessageIndicatorStringShouldThrow()
         {
             var branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringInvalidFileName).NestedBranchCases["RegexShouldBeObject"];
-            Assert.IsType<ConfigurationValidationException>(Record.Exception(() => branchCase.TryCreateVersioningPresetExtension(DefaultConfiguredVersioningPresetFactory)));
+
+            Assert.IsType<ConfigurationValidationException>(Record.Exception(() => branchCase
+                .SetVersioningPresetExtensionFactory(DefaultConfiguredVersioningPresetFactory)
+                .GetVersioningPresetExtension()));
         }
 
         [Fact]
         public void NotInbuiltMessageIndicatorStringShouldThrow()
         {
             var branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringInvalidFileName).NestedBranchCases["StringThatDoesNotExist"];
-            Assert.IsType<ItemMissingException>(Record.Exception(() => branchCase.TryCreateVersioningPresetExtension(DefaultConfiguredVersioningPresetFactory)));
+            Assert.IsType<ItemMissingException>(Record.Exception(() => branchCase
+                .SetVersioningPresetExtensionFactory(DefaultConfiguredVersioningPresetFactory)
+                .GetVersioningPresetExtension()));
         }
 
         public static IEnumerable<object[]> ValidMessageIndicatorStringShouldMatchGenerator()
@@ -84,7 +93,7 @@ namespace Vernuntii.Configuration
 
             yield return new object[] {
                  VersioningPreset.Manual with {
-                    MessageConvention = MessageConvention.Empty with {
+                    MessageConvention = MessageConvention.None with {
                         MajorIndicators = new [] { FalsyMessageIndicator.Default }
                     }
                  },
@@ -93,7 +102,7 @@ namespace Vernuntii.Configuration
 
             yield return new object[] {
                  VersioningPreset.Manual with {
-                    MessageConvention = MessageConvention.Empty with {
+                    MessageConvention = MessageConvention.None with {
                         MinorIndicators = new [] { TruthyMessageIndicator.Default }
                     }
                  },
@@ -102,7 +111,7 @@ namespace Vernuntii.Configuration
 
             yield return new object[] {
                  VersioningPreset.Manual with {
-                    MessageConvention = MessageConvention.Empty with {
+                    MessageConvention = MessageConvention.None with {
                         PatchIndicators = new [] { ConventionalCommitsMessageIndicator.Default }
                     }
                  },

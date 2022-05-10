@@ -2,7 +2,7 @@
   "profiles": {
     "Vernuntii.Console.GlobalTool": {
       "commandName": "Project",
-      "commandLineArgs": "--empty-caches --verbosity Verbose --override-post-pre-release \"\""
+      "commandLineArgs": "--config-path \"C:\\repos\\vernuntii\\vernuntii\\vernuntii.yml\" --empty-caches --verbosity Verbose --override-post-pre-release \"\""
     }
   }
 }

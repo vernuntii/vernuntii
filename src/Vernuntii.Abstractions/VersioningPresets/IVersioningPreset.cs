@@ -1,6 +1,7 @@
 ﻿using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.MessageVersioning;
+using Vernuntii.VersionIncrementFlows;
 
 namespace Vernuntii.VersioningPresets
 {
@@ -10,25 +11,23 @@ namespace Vernuntii.VersioningPresets
     public interface IVersioningPreset : IEquatable<IVersioningPreset>
     {
         /// <summary>
-        /// Increment mode.
+        /// Describes whether the version does increment.
         /// </summary>
         VersionIncrementMode IncrementMode { get; }
 
         /// <summary>
-        /// <see langword="true"/> means when actual version has zero major and
-        /// next version is indicating major, then instead minor is indicated.
-        /// The same applies for minor. Patch indicates patch and won't shift.
+        /// Describes how an increment of a version part may flow to another version.
         /// </summary>
-        bool RightShiftWhenZeroMajor { get; }
+        IVersionIncrementFlow IncrementFlow { get; }
 
         /// <summary>
         /// Message convention.
         /// </summary>
-        IMessageConvention? MessageConvention { get; }
+        IMessageConvention MessageConvention { get; }
 
         /// <summary>
         /// Height convention.
         /// </summary>
-        IHeightConvention? HeightConvention { get; }
+        IHeightConvention HeightConvention { get; }
     }
 }

@@ -4,12 +4,13 @@ using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.MessagesProviders;
 using Vernuntii.MessageVersioning;
 using Vernuntii.SemVer;
+using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersionTransformers;
 using Xunit;
 
 namespace Vernuntii.VersioningPresets
 {
-    public class RightShiftWhenZeroMajorTests
+    public class FlowDownstreamWhenZeroMajorTests
     {
         private static IEnumerable<object[]> BuildIncrementShouldTransformVersionsGenerator()
         {
@@ -34,14 +35,14 @@ namespace Vernuntii.VersioningPresets
 
         [Theory]
         [MemberData(nameof(BuildIncrementShouldTransformVersionsGenerator))]
-        public void BuildIncrementShouldTransformVersions(ISemanticVersion startVersion, bool expectedRightShift, ISemanticVersion expectedVersion)
+        public void BuildIncrementShouldTransformVersions(ISemanticVersion startVersion, bool expectedDownstreamFlow, ISemanticVersion expectedVersion)
         {
             var preset = new VersioningPreset() {
                 IncrementMode = VersionIncrementMode.Successive,
                 MessageConvention = new MessageConvention() {
                     MajorIndicators = new[] { TruthyMessageIndicator.Default }
                 },
-                RightShiftWhenZeroMajor = true,
+                IncrementFlow = VersionIncrementFlow.ZeroMajorDownstream,
             };
 
             var builder = new VersionIncrementBuilder();
@@ -52,7 +53,7 @@ namespace Vernuntii.VersioningPresets
             });
 
             var nextVersion = builder.BuildIncrement(new Message(), context).TransformVersion(startVersion);
-            Assert.Equal(expectedRightShift, context.IsVersionIndicationRightShifted);
+            Assert.Equal(expectedDownstreamFlow, context.IsVersionDownstreamFlowed);
             Assert.Equal(expectedVersion, nextVersion);
         }
     }

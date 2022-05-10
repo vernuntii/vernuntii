@@ -4,24 +4,34 @@ The configuration file is the heart of Vernuntii. By defining properties you cha
 
 - [Configuration file](#configuration-file)
 - [Auto-discovery](#auto-discovery)
+- [Git plugin → Global properties](#git-plugin--global-properties)
+  - [Schema → `<git-directory>`](#schema--git-directory)
+    - [Defaults](#defaults)
+  - [Schema → `<start-version>`](#schema--start-version)
+    - [Defaults](#defaults-1)
 - [Git plugin → Branches](#git-plugin--branches)
-  - [Schema](#schema)
   - [Schema → `<if-branch>`](#schema--if-branch)
   - [Schema → `<branch>`](#schema--branch)
+  - [Schema → `<since-commit>`](#schema--since-commit)
+  - [Schema → `VersioningMode`](#schema--versioningmode)
+  - [Schema → `<pre-release>`](#schema--pre-release)
   - [Schema → `<pre-release-escapes>`](#schema--pre-release-escapes)
+  - [Schema → `<search-pre-release>`](#schema--search-pre-release)
   - [Schema → `<search-pre-release-escapes>`](#schema--search-pre-release-escapes)
   - [Schema → Defaults](#schema--defaults)
-- [Git plugin → Versioning mode](#git-plugin--versioning-mode)
-  - [Schema](#schema-1)
-  - [Schema → `<preset>`](#schema--preset)
-  - [Schema → `<message-convention>`](#schema--message-convention)
-  - [Schema → `<message-indicator>`](#schema--message-indicator)
-  - [Schema → `<message-indicator>` → `Regex`](#schema--message-indicator--regex)
-    - [Schema](#schema-2)
-    - [Example](#example)
+- [Git plugin → Branches → Versioning mode](#git-plugin--branches--versioning-mode)
+  - [Schema → `<preset:string>`](#schema--presetstring)
+  - [Schema -> `<preset:object>`](#schema---presetobject)
+  - [Schema → `<message-convention:string>`](#schema--message-conventionstring)
+  - [Schema → `<message-convention:object>`](#schema--message-conventionobject)
+  - [Schema → `<message-indicator:string>`](#schema--message-indicatorstring)
+  - [Schema → `<message-indicator:object>` → `Regex`](#schema--message-indicatorobject--regex)
+    - [Examples](#examples)
   - [Schema → `<increment-mode>`](#schema--increment-mode)
-  - [Schema → `<right-shift-when-zero-major>`](#schema--right-shift-when-zero-major)
-  - [Schema → Defaults](#schema--defaults-1)
+  - [Schema → `<increment-flow:string>`](#schema--increment-flowstring)
+  - [Schema → `<increment-flow:object>`](#schema--increment-flowobject)
+  - [Schema → `<increment-flow-condition:string>`](#schema--increment-flow-conditionstring)
+  - [Schema → `<increment-flow-mode:string>`](#schema--increment-flow-modestring)
   - [Schema → Examples](#schema--examples)
 
 # Auto-discovery
@@ -36,56 +46,55 @@ Depending on integration you use the following working directory and therefore d
 - MSBuild Integration: root directory of project that has the MSBuild integration installed
 - GitHub Actions (`vernuntii/actions/execute`): current working directory at the time where the action was called
 
-# Git plugin → Branches
+# Git plugin → Global properties
 
-The git plugin allows you to define branches where their rules does not affect each other.
-
-## Schema
+## Schema → `<git-directory>`
 
 ```yaml
 # The git directory to use
 GitDirectory: <git-branch:string> (optional)
+```
 
+### Defaults
+
+```yaml
+GitDirectory: (the location where this configuration file has been found)
+```
+
+## Schema → `<start-version>`
+
+```yaml
 # The start version when not a single version exist
 StartVersion: <start-version:string> (optional)
+```
 
-#########################################################
-# The below properties are available in "Branches" too. #
-#########################################################
+### Defaults
 
-VersioningMode: (explained down below of this document)
+```yaml
+StartVersion: (latest commit version or if not found "0.1.0-main.0" where "main" is active branch name as long as not configured otherwise)
+```
 
-# The branch reading the commits from.
-Branch: <branch-name:string> (optional)
+# Git plugin → Branches
 
-# The since-commit where to start reading from.
-SinceCommit: <since-commit:string> (optional)
+The git plugin allows you to define branches where their rules. They do not affect each other. 
 
-# The pre-release is used for pre-search or post-transformation.
-# Used only in pre-search if "SearchPreRelease" is
-# null.
-PreRelease: <pre-release:string> (optional, inheritable)
+When I talk about branches, then I talk always about _branch cases_. A branch case by definition of Vernuntii is a ruleset of how Vernuntii should behave on this or that branch.
 
-# Pre-release escapes.
-PreReleaseEscapes: <pre-release-escapes:object> (optional, inheritable)
-  - Pattern: <pattern:string> (optional)
-    Replacement: <replacement:string> (optional)
-  - ...
+```
+Branches:
+  - IfBranch: ... # other branch case
+```
 
-# The pre-release is used for pre-search.
-# If null or empty non-pre-release versions are included in
-# search.
-# If specified then all non-release AND version with this
-# pre-release are included in search.
-SearchPreRelease: <search-pre-release:string> (optional, inheritable)
 
-# Search pre-release escapes.
-SearchPreReleaseEscapes: <search-pre-release-escapes:object> (same as <pre-release-escapes>)
+There is <ins>always</ins> a **default branch case**. It does apply when a branch case is not found for the current branch you are active right now. The default branch case can be customized at the root of the configuration.
+
+> As you maybe can think of, `<if-branch>` is not available in the default branch case.
+
+```
+# Set here the properties for the default branch case!
 
 Branches:
-  - IfBranch: <if-branch:string> (required)
-    ... (same as above)
-  - ...
+  - IfBranch: ... # other branch case
 ```
 
 ## Schema → `<if-branch>`
@@ -104,26 +113,72 @@ Branches:
 
 ## Schema → `<branch>`
 
-  - If not specified the branch is the one evaluated from `IfBranch`
-  - It must be a valid branch name (see `<if-branch>`), but
-  - RegEx is NOT allowed (change my mind. :D)
+```yaml
+# The branch reading the commits from.
+Branch: <branch-name:string> (optional)
+```
+
+- If not specified the branch is the one evaluated from `IfBranch`
+- It must be a valid branch name (see `<if-branch>`), but
+- RegEx is NOT allowed (change my mind. :D)
+
+## Schema → `<since-commit>`
+
+```yaml
+# The since-commit where to start reading from.
+SinceCommit: <since-commit:string> (optional)
+```
+
+## Schema → `VersioningMode`
+
+The schema for [`VersioningMode`](#git-plugin--branches--versioning-mode) deserves its own section.
+
+## Schema → `<pre-release>`
+
+```yaml
+# The pre-release is used for pre-search or post-transformation.
+# Used only in pre-search if "SearchPreRelease" is
+# null.
+PreRelease: <pre-release:string> (optional, inheritable)
+```
 
 ## Schema → `<pre-release-escapes>`
 
-  - `<pattern>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
+```yaml
+# Pre-release escapes.
+PreReleaseEscapes: <pre-release-escapes:object> (optional, inheritable)
+  - Pattern: <pattern:string> (optional)
+    Replacement: <replacement:string> (optional)
+  - ...
+```
+
+- `<pattern>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
+
+## Schema → `<search-pre-release>`
+
+```yaml
+# The pre-release is used for pre-search.
+# If null or empty non-pre-release versions are included in
+# search.
+# If specified then all non-release AND version with this
+# pre-release are included in search.
+SearchPreRelease: <search-pre-release:string> (optional)
+```
 
 ## Schema → `<search-pre-release-escapes>`
 
-  - `<pattern>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
+```yaml
+# Search pre-release escapes.
+SearchPreReleaseEscapes: <search-pre-release-escapes:object> (same as <pre-release-escapes>)
+```
+
+- `<pattern>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
 
 ## Schema → Defaults
 
 These defaults are automatically applied.
 
 ```yaml
-GitDirectory: (the location where this configuration file has been found)
-StartVersion: (latest version)
-
 ###################################################################
 # Reminder: The below properties are available in "Branches" too. #
 ###################################################################
@@ -143,23 +198,95 @@ SearchPreRelease: (if not specified then it inherits <pre-release>)
 SearchPreReleaseEscapes: (if not specified then it inherits <pre-release-escapes>)
 ```
 
-# Git plugin → Versioning mode
+# Git plugin → Branches → Versioning mode
 
-The versioning mode allows you to choose one of the many available version strategies to calculate the next version.
+The versioning mode allows you to choose one of the many available version strategies to calculate the next version. You can define `VersioningMode` also in every branch.
 
-## Schema
+```yaml
+Branches:
+  - IfBranch: <if-branch>
+    VersioningMode: (same as above)
+```
+
+## Schema → `<preset:string>`
 
 ```yaml
 # The versioning mode defined by string
 VersioningMode: <preset:string> (optional)
+```
 
+Available values for `<preset:string>`:
+
+- `Default`: resolves internally to `ContinousDelivery`
+- `ContinousDelivery`
+  - `<message-convention>`
+    - Major indicator: `Falsy`
+    - Minor indicator: `Falsy`
+    - Patch indicator: `Truthy`
+  - `<increment-mode>`: `Consecutive`
+  - `<increment-flow>`: `None`
+- `ContinousDeployment`
+  - `<message-convention>`: same as `ContinousDelivery`
+  - `<increment-mode>`: `Successive`
+  - `<increment-flow>`: `None`
+- `ConventionalCommitsDelivery`
+  - `<message-convention>`: `ConventionalCommits`
+  - `<increment-mode>`: `Consecutive`
+  - `<increment-flow>`: `None`
+- `ConventionalCommitsDeployment`
+  - `<message-convention>`: same as `ConventionalCommitsDelivery`
+  - `<increment-mode>`: `Successive`
+  - `<increment-flow>`: `None`
+- `Manual`
+  - `<message-convention>`: `Falsy`
+  - `<increment-mode>`: `None`
+  - `<increment-flow>`: `None`
+
+If `VersioningMode` is not set its default is:
+
+```yaml
+VersioningMode: Default # 'Default' resolves internally to 'ContinousDelivery'
+```
+
+## Schema -> `<preset:object>`
+
+```yaml
 # More detailed
 VersioningMode:
   Preset: <preset:string> (optional)
   MessageConvention: <message-convention:string> (optional if <preset> is set)
   IncrementMode: <increment-mode:string> (optional if <preset> is set)
   RightShiftWhenZeroMajor: <right-shift-when-zero-major:boolean> (optional)
+```
 
+If `VersioningMode` is defined as object its default is:
+
+```yaml
+VersioningMode:
+  Preset: (not set)
+  MessageConvention: (not set)
+  IncrementMode: (not set)
+  RightShiftWhenZeroMajor: false
+```
+
+## Schema → `<message-convention:string>`
+
+```yaml
+# More detailed
+VersioningMode:
+  ...
+  MessageConvention: <message-convention:string> (optional if <preset> is set)
+```
+
+Available values for `<message-convention:string>`:
+
+- `Manual`: same as `<message-convention>` of preset `Manual`.
+- `Continous`: same as `<message-convention>` of preset `Continous*`.
+- `ConventionalCommits`: same as `<message-convention>` of preset `ConventionalCommits*`.
+
+## Schema → `<message-convention:object>`
+
+```yaml
 # With custom message convention where indicators are short-cutted by string
 VersioningMode:
   ...
@@ -183,127 +310,14 @@ VersioningMode:
     MajorIndicators:
       # List item can be string
       - <message-indicator:string>
+
       # List item can be object
+      - <message-indicator:object>
       - Name: <message-indicator:string>
         <additional-data>: ... (some message indicator require addtional data)
 
     MinorIndicators: ... (same as above)
     PatchIndicators: ... (same as above)
-```
-
-You can define `VersioningMode` also in every branch.
-
-```yaml
-Branches:
-  - IfBranch: <if-branch>
-    VersioningMode: (same as above)
-```
-
-## Schema → `<preset>`
-
-Available values for `<preset>`:
-
-- `Default`: resolves internally to `ContinousDelivery`
-- `ContinousDelivery`
-  - `<message-convention>`
-    - Major indicator: `Falsy`
-    - Minor indicator: `Falsy`
-    - Patch indicator: `Truthy`
-  - `<increment-mode>`: `Consecutive`
-  - `<right-shift-when-zero-major>`: `false`
-- `ContinousDeployment`
-  - `<message-convention>`
-    - Major indicator: `Falsy`
-    - Minor indicator: `Falsy`
-    - Patch indicator: `Truthy`
-  - `<increment-mode>`: `Successive`
-  - `<right-shift-when-zero-major>`: `false`
-- `ConventionalCommitsDelivery`
-  - `<message-convention>`
-    - Major indicator: `ConventionalCommits`
-    - Minor indicator: `ConventionalCommits`
-    - Patch indicator: `ConventionalCommits`
-  - `<increment-mode>`: `Consecutive`
-- `ConventionalCommitsDeployment`
-  - `<message-convention>`: same as `ConventionalCommitsDelivery`
-  - `<increment-mode>`: `Successive`
-  - `<right-shift-when-zero-major>`: `false`
-- `Manual`
-  - `<message-convention>`
-    - Major indicator: never
-    - Minor indicator: never
-    - Patch indicator: never
-  - `<increment-mode>`: `None`
-  - `<right-shift-when-zero-major>`: `false`
-
-## Schema → `<message-convention>`
-
-Available values for `<message-convention>`:
-
-- `Manual`: same as `<message-convention>` of preset `Manual`.
-- `Continous`: same as `<message-convention>` of preset `Continous*`.
-- `ConventionalCommits`: same as `<message-convention>` of preset `ConventionalCommits*`.
-
-## Schema → `<message-indicator>`
-
-Available values for `<message-indicator>`:
-
-- `Falsy`: indicates that every message <ins>does not increment</ins> the version
-- `Truthy`: indicates that every message <ins>does increment</ins> the version
-- `ConventionalCommits`
-  - If used as major indicator: `^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)`
-  - If used as minor indicator: `^(feat)(\\([\\w\\s-]*\\))?:`
-  - If used as patch indicator: `^(fix)(\\([\\w\\s-]*\\))?:`
-- [`Regex`](#schema--message-indicator--regex): indicates a version increment if the message could be matched against the regular expression
-
-## Schema → `<message-indicator>` → `Regex`
-
-### Schema
-
-```yaml
-Name: Regex # Required!
-Pattern: <pattern:string> # Must be a valid regular expression.
-```
-
-### Example
-
-```yaml
-VersioningMode:
-  ...
-  MessageConvention:
-    ...
-    PatchIndicators:
-      - Name: Regex 
-        Pattern: ^(fix)(\\([\\w\\s-]*\\))?: # Imitates patch indicator of "ConventionalCommits".
-```
-
-## Schema → `<increment-mode>`
-
-- `None`: does not increment anything
-- `Consecutive`: increment only the most significant version number once if a message indicates that it increments the version
-- `Successive`: increment most significant version number as often as messages indicate to increment the version
-  
-## Schema → `<right-shift-when-zero-major>`
-
-- `true`: does right shift version when latest version has zero major, so next major becomes next minor, next minor becomes next patch
-- `false`: does not right shift version when latest version has zero major
-
-## Schema → Defaults
-
-If `VersioningMode` is not set its default is:
-
-```yaml
-VersioningMode: Default # 'Default' resolves internally to 'ContinousDelivery'
-```
-
-If `VersioningMode` is defined as object its default is:
-
-```yaml
-VersioningMode:
-  Preset: (not set)
-  MessageConvention: (not set)
-  IncrementMode: (not set)
-  RightShiftWhenZeroMajor: false
 ```
 
 If `MessageConvention` is defined as object its default is:
@@ -333,6 +347,76 @@ VersioningMode:
     MinorIndicators: (Base.MinorIndicators if "MinorIndicators" is not set by user)
     PatchIndicators: (Base.PatchIndicators if "PatchIndicators" is not set by user)
 ```
+
+## Schema → `<message-indicator:string>`
+
+Available values for `<message-indicator:string>`:
+
+- `Falsy`: indicates that every message <ins>does not increment</ins> the version
+- `Truthy`: indicates that every message <ins>does increment</ins> the version
+- `ConventionalCommits`
+  - If used as major indicator: `^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)`
+  - If used as minor indicator: `^(feat)(\\([\\w\\s-]*\\))?:`
+  - If used as patch indicator: `^(fix)(\\([\\w\\s-]*\\))?:`
+- [`Regex`](#schema--message-indicator--regex): indicates a version increment if the message could be matched against the regular expression
+
+## Schema → `<message-indicator:object>` → `Regex`
+
+```yaml
+Name: Regex # Required!
+Pattern: <pattern:string> # Must be a valid regular expression.
+```
+
+### Examples
+
+```yaml
+VersioningMode:
+  ...
+  MessageConvention:
+    ...
+    PatchIndicators:
+      - Name: Regex 
+        Pattern: ^(fix)(\\([\\w\\s-]*\\))?: # Imitates patch indicator of "ConventionalCommits".
+```
+
+## Schema → `<increment-mode>`
+
+Available values for `<increment-mode:string>`:
+
+- `None`: does not increment anything
+- `Consecutive`: increment only the most significant version number once if a message indicates that it increments the version
+- `Successive`: increment most significant version number as often as messages indicate to increment the version
+  
+## Schema → `<increment-flow:string>`
+
+Available values for `<increment-flow:string>`:
+
+- `None`: does not lead into a flow of any version part at any circumstances
+- `ZeroMajorDownstream`: does right shift version when latest version has zero major, so next major becomes next minor, next minor becomes next patch
+
+## Schema → `<increment-flow:object>`
+
+```yaml
+VersioningMode:
+  IncrementFlow:
+    Condition: <increment-flow-condition:string> (optional)
+    MajorFlow: <increment-flow-mode:string> (optional)
+    MinorFlow: <increment-flow-mode:string> (optional)
+```
+
+## Schema → `<increment-flow-condition:string>`
+
+Available values for `<increment-flow-condition:string>`:
+
+- `Never`: a condition that does not lead into a flow of any version part at any circumstances
+- `ZeroMajor`: a condition that is met when major version is `0`
+
+## Schema → `<increment-flow-mode:string>`
+
+Available values for `<increment-flow-mode:string>`:
+
+- `None`: do not flow
+- `Downstream`: affected version part flows one position downstream (e.g. when specified in `MajorFlow`: instead major increments, minor increments now)
 
 ## Schema → Examples
 

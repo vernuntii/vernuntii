@@ -1,4 +1,6 @@
 VersioningMode:
   Preset: ConventionalCommitsDelivery
-  RightShiftWhenZeroMajor: true
+  IncrementFlow: 
+    Condition: ZeroMajor
+    MajorFlow: Downstream
 PreRelease: alpha

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Configuration;
 using Vernuntii.Configuration;
 using Vernuntii.Extensions;
 using Vernuntii.MessageConventions.MessageIndicators;
@@ -58,8 +59,8 @@ namespace Vernuntii.MessageConventions
                 return false;
             }
 
-            if (indicatorsSection.HavingValue()) {
-                indicators = new[] { PresetManager.MessageIndicators.GetItem(indicatorsSection.Value) };
+            if (indicatorsSection.Value(out var sectionValue)) {
+                indicators = new[] { PresetManager.MessageIndicators.GetItem(sectionValue) };
                 return true;
             }
 
@@ -68,9 +69,7 @@ namespace Vernuntii.MessageConventions
             foreach (var indicatorSection in indicatorsSection.GetChildren()) {
                 string? indicatorName;
 
-                if (indicatorSection.HavingValue()) {
-                    indicatorName = indicatorSection.Value;
-                } else {
+                if (!indicatorSection.Value(out indicatorName)) {
                     var indicatorObject = indicatorSection.Get<MessageIndicatorObject>();
                     indicatorName = indicatorObject.Name;
                 }
@@ -97,7 +96,7 @@ namespace Vernuntii.MessageConventions
         }
 
         /// <inheritdoc/>
-        public bool TryCreate(IDefaultConfigurationSectionProvider sectionProvider, out IMessageConvention? messageConvention)
+        public bool TryCreate(IDefaultConfigurationSectionProvider sectionProvider, [NotNullWhen(true)] out IMessageConvention? messageConvention)
         {
             var messageConventionSection = sectionProvider.GetSection();
 
@@ -106,20 +105,20 @@ namespace Vernuntii.MessageConventions
                 return false;
             }
 
-            if (messageConventionSection.HavingValue()) {
-                messageConvention = PresetManager.MessageConventions.GetItem(messageConventionSection.Value ?? nameof(InbuiltMessageConvention.Default));
+            if (messageConventionSection.Value(out var sectionValue)) {
+                messageConvention = PresetManager.MessageConventions.GetItem(sectionValue ?? nameof(InbuiltMessageConvention.Default));
                 return true;
             }
 
             var messageConventionObject = new MessageConventionObject();
             messageConventionSection.Bind(messageConventionObject);
 
-            IMessageConvention? baseMessageConvention;
+            IMessageConvention baseMessageConvention;
 
             if (messageConventionObject.Base != null) {
                 baseMessageConvention = PresetManager.MessageConventions.GetItem(messageConventionObject.Base);
             } else {
-                baseMessageConvention = null;
+                baseMessageConvention = MessageConvention.None;
             }
 
             var havingMajorIndicators = TryCreateIndicators(messageConventionSection.GetSection(DefaultMajorIndicatorsKey), VersionPart.Major, out var majorIndicators);
@@ -133,14 +132,10 @@ namespace Vernuntii.MessageConventions
                 return true;
             }
 
-            var emptyOrShallowMessageConvention = baseMessageConvention is null
-                ? MessageConvention.Empty
-                : new MessageConvention(baseMessageConvention);
-
-            messageConvention = emptyOrShallowMessageConvention with {
-                MajorIndicators = havingMajorIndicators ? majorIndicators : emptyOrShallowMessageConvention.MajorIndicators,
-                MinorIndicators = havingMinorIndicators ? minorIndicators : emptyOrShallowMessageConvention.MinorIndicators,
-                PatchIndicators = havingPatchIndicators ? patchIndicators : emptyOrShallowMessageConvention.PatchIndicators
+            messageConvention = new MessageConvention(baseMessageConvention) with {
+                MajorIndicators = havingMajorIndicators ? majorIndicators : baseMessageConvention.MajorIndicators,
+                MinorIndicators = havingMinorIndicators ? minorIndicators : baseMessageConvention.MinorIndicators,
+                PatchIndicators = havingPatchIndicators ? patchIndicators : baseMessageConvention.PatchIndicators
             };
 
             return true;

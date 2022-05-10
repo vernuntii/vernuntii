@@ -7,6 +7,9 @@ namespace Vernuntii.MessageConventions.MessageIndicators
     /// </summary>
     public record ConventionalCommitsMessageIndicator : RegexMessageIndicatorBase
     {
+        private static Regex SinglelineRegex(string pattern) =>
+            new Regex(pattern, RegexOptions.Singleline);
+
         /// <summary>
         /// Default instance of type this type.
         /// </summary>
@@ -16,10 +19,10 @@ namespace Vernuntii.MessageConventions.MessageIndicators
         public override string IndicatorName { get; } = nameof(InbuiltMessageIndicator.ConventionalCommits);
 
         /// <inheritdoc/>
-        public override Regex? MajorRegex { get; init; } = new Regex(@"^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)");
+        public override Regex? MajorRegex { get; init; } = SinglelineRegex(/* language=regex */@"^(feat)(\([\w\s-]*\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\s.+)");
         /// <inheritdoc/>
-        public override Regex? MinorRegex { get; init; } = new Regex(@"^(feat)(\\([\\w\\s-]*\\))?:");
+        public override Regex? MinorRegex { get; init; } = SinglelineRegex(/* language=regex */@"^(feat)(\([\w\s-]*\))?:");
         /// <inheritdoc/>
-        public override Regex? PatchRegex { get; init; } = new Regex(@"^(fix)(\\([\\w\\s-]*\\))?:");
+        public override Regex? PatchRegex { get; init; } = SinglelineRegex(/* language=regex */@"^(fix)(\([\w\s-]*\))?:");
     }
 }

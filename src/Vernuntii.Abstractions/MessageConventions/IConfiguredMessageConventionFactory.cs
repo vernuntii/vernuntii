@@ -1,4 +1,5 @@
-﻿using Vernuntii.Configuration;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vernuntii.Configuration;
 
 namespace Vernuntii.MessageConventions
 {
@@ -12,6 +13,6 @@ namespace Vernuntii.MessageConventions
         /// </summary>
         /// <param name="sectionProvider"></param>
         /// <param name="messageConvention"></param>
-        bool TryCreate(IDefaultConfigurationSectionProvider sectionProvider, out IMessageConvention? messageConvention);
+        bool TryCreate(IDefaultConfigurationSectionProvider sectionProvider, [NotNullWhen(true)] out IMessageConvention? messageConvention);
     }
 }

@@ -12,7 +12,7 @@ namespace Vernuntii.Extensions.BranchCases
             : new List<RegexEscape>(escapes.Select(escape => new RegexEscape(escape)));
 
         /// <inheritdoc />
-        public IDictionary<string, object> Extensions { get; } = new Dictionary<string, object>();
+        public IDictionary<string, object?> Extensions { get; } = new Dictionary<string, object?>();
 
         /// <inheritdoc />
         public string? IfBranch { get; init; }

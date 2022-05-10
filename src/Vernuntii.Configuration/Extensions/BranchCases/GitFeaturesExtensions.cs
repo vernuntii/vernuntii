@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vernuntii.MessageConventions;
+using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.Extensions.BranchCases
@@ -31,6 +32,7 @@ namespace Vernuntii.Extensions.BranchCases
             IEnumerable<IConfiguration> branchCaseSections,
             Action<IBranchCase>? configureBranchCase = null)
         {
+            features.Services.TryAddSingleton<IConfiguredVersionIncrementFlowFactory, ConfiguredVersionIncrementFlowFactory>();
             features.Services.TryAddSingleton<IConfiguredMessageConventionFactory, ConfiguredMessageConventionFactory>();
             features.Services.TryAddSingleton<IConfiguredVersioningPresetFactory, ConfiguredVersioningPresetFactory>();
             return features.AddBranchCases(branchCaseSections.Select(configuration => CreateBranchCaseArguments(configuration, configureBranchCase)));
