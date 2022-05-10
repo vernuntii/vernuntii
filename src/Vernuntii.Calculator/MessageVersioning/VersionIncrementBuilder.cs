@@ -1,4 +1,5 @@
-﻿using Vernuntii.HeightConventions;
+﻿using System.Runtime.CompilerServices;
+using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.MessagesProviders;
 using Vernuntii.VersionTransformers;
@@ -47,23 +48,31 @@ namespace Vernuntii.MessageVersioning
             if (incrementMode != VersionIncrementMode.None) {
                 var allowIncrementBecauseReleaseOrDisabledHeight = !isPostVersionPreRelease || !isHeightConventionApplicable;
 
-                if (isMessageIncrementingMajor
-                    // and if version core is reserved we want to increment at least once
-                    && ((startVersionCoreAlreadyReleased && !context.DoesCurrentVersionContainsMajorIncrement)
-                        // or 
-                        || (allowIncrementBecauseReleaseOrDisabledHeight
-                            && (allowUnlimitedIncrements || !context.DoesCurrentVersionContainsMajorIncrement)))) {
+                if (CanIncrementVersion(
+                    isMessageIncrementingVersion: isMessageIncrementingMajor,
+                    doesCurrentVersionContainsIncrement: context.DoesCurrentVersionContainsMajorIncrement)) {
                     yield return NextMajorVersionTransformer.Default;
-                } else if (isMessageIncrementingMinor
-                    && ((startVersionCoreAlreadyReleased && !context.DoesCurrentVersionContainsMinorIncrement)
-                        || (allowIncrementBecauseReleaseOrDisabledHeight
-                            && (allowUnlimitedIncrements || !context.DoesCurrentVersionContainsMinorIncrement)))) {
+                } else if (CanIncrementVersion(
+                    isMessageIncrementingVersion: isMessageIncrementingMinor,
+                    doesCurrentVersionContainsIncrement: context.DoesCurrentVersionContainsMinorIncrement)) {
                     yield return NextMinorVersionTransformer.Default;
-                } else if (isMessageIncrementingPatch
-                    && ((startVersionCoreAlreadyReleased && !context.DoesCurrentVersionContainsPatchIncrement)
-                        || (allowIncrementBecauseReleaseOrDisabledHeight
-                            && (allowUnlimitedIncrements || !context.DoesCurrentVersionContainsPatchIncrement)))) {
+                } else if (CanIncrementVersion(
+                    isMessageIncrementingVersion: isMessageIncrementingPatch,
+                    doesCurrentVersionContainsIncrement: context.DoesCurrentVersionContainsPatchIncrement)) {
                     yield return NextPatchVersionTransformer.Default;
+                }
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                bool CanIncrementVersion(
+                    bool isMessageIncrementingVersion,
+                    bool doesCurrentVersionContainsIncrement)
+                {
+                    return isMessageIncrementingVersion
+                        // and if version core is reserved we want to increment at least once
+                        && ((startVersionCoreAlreadyReleased && !doesCurrentVersionContainsIncrement)
+                            // or 
+                            || (allowIncrementBecauseReleaseOrDisabledHeight
+                                && (allowUnlimitedIncrements || !doesCurrentVersionContainsIncrement)));
                 }
             }
 
