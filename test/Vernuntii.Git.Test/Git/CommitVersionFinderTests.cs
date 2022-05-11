@@ -1,17 +1,25 @@
-﻿using Vernuntii.SemVer;
+﻿using System.Collections.Generic;
+using Vernuntii.SemVer;
 using Xunit;
 
 namespace Vernuntii.Git
 {
     public class CommitVersionFinderTests
     {
-        [Fact]
-        public void FindCommitVersionShouldFindLatestVersion()
+        private static IEnumerable<object[]> FindCommitVersionShouldFindLatestVersionGenerator()
+        {
+            yield return new[] { "0.0.1", "0.1.0" };
+            yield return new[] { "0.1.0", "0.0.1" };
+        }
+
+        [Theory]
+        [MemberData(nameof(FindCommitVersionShouldFindLatestVersionGenerator))]
+        public void FindCommitVersionShouldFindLatestVersion(string firstTag, string secondTag)
         {
             using var repository = new TemporaryRepository(DefaultTemporaryRepositoryLogger);
             repository.CommitEmpty();
-            repository.TagLightweight("0.0.1");
-            repository.TagLightweight("0.1.0");
+            repository.TagLightweight(firstTag);
+            repository.TagLightweight(secondTag);
 
             var version = new CommitVersionFinder(new CommitVersionFinderOptions(), repository, repository, DefaultCommitVersionFinderLogger)
                 .FindCommitVersion(new CommitVersionFindingOptions());

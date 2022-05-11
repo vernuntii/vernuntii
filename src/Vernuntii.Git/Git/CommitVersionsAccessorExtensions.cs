@@ -1,5 +1,4 @@
 ﻿using Vernuntii.SemVer;
-using Vernuntii.Extensions;
 
 namespace Vernuntii.Git
 {
@@ -14,6 +13,15 @@ namespace Vernuntii.Git
         /// <param name="commitVersionAccessor"></param>
         /// <param name="version"></param>
         public static bool HasCommitVersion(this ICommitVersionsAccessor commitVersionAccessor, ISemanticVersion version) =>
-            commitVersionAccessor.GetCommitVersions().BinarySearch(version, SemanticVersionComparer.VersionReleaseBuild) != -1;
+            commitVersionAccessor.GetCommitVersions().Contains(version);
+
+        /// <summary>
+        /// Checks if version exists.
+        /// </summary>
+        /// <param name="commitVersionAccessor"></param>
+        /// <param name="version"></param>
+        /// <param name="comparer"></param>
+        public static bool HasCommitVersion(this ICommitVersionsAccessor commitVersionAccessor, ISemanticVersion version, IEqualityComparer<ISemanticVersion> comparer) =>
+            commitVersionAccessor.GetCommitVersions().Contains(version, comparer);
     }
 }

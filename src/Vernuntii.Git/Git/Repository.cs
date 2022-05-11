@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Vernuntii.Git.Command;
-using Teronis.Collections.Synchronization;
 using Teronis.IO;
 using Vernuntii.SemVer;
 
@@ -21,7 +20,7 @@ namespace Vernuntii.Git
         private readonly ILogger<Repository> _logger;
         private GitCommand? _gitCommand;
         private Branches? _branches;
-        private readonly SynchronizableCollection<CommitVersion> _commitVersions;
+        private readonly HashSet<CommitVersion> _commitVersions;
         private readonly Action<ILogger, string, Exception?> _logGitDirectory;
         private readonly Action<ILogger, string, Exception?> _logBranches;
 
@@ -45,7 +44,7 @@ namespace Vernuntii.Git
                 new EventId(1),
                 "Loaded branches: {Branches}");
 
-            _commitVersions = new SynchronizableCollection<CommitVersion>(SemanticVersionComparer.VersionReleaseBuild, descended: false);
+            _commitVersions = new HashSet<CommitVersion>(SemanticVersionComparer.VersionReleaseBuild);
         }
 
         internal virtual Func<string, GitCommand> CreateCommandFactory() => gitDirectory => {
@@ -108,20 +107,16 @@ namespace Vernuntii.Git
             GitCommand.GetCommitTags();
 
         /// <inheritdoc/>
-        public IReadOnlyList<ICommitVersion> GetCommitVersions()
+        public IReadOnlyCollection<ICommitVersion> GetCommitVersions()
         {
             if (!areCommitVersionsInitialized) {
-                _commitVersions.SynchronizeCollection(ParseCommitTags(GetCommitTags()));
-                areCommitVersionsInitialized = true;
-
-                static IEnumerable<CommitVersion> ParseCommitTags(IEnumerable<ICommitTag> commitTags)
-                {
-                    foreach (var commitTag in commitTags) {
-                        if (SemanticVersion.TryParse(commitTag.TagName, out var version)) {
-                            yield return new CommitVersion(version, commitTag.CommitSha);
-                        }
+                foreach (var commitTag in GetCommitTags()) {
+                    if (SemanticVersion.TryParse(commitTag.TagName, out var version)) {
+                        _commitVersions.Add(new CommitVersion(version, commitTag.CommitSha));
                     }
                 }
+
+                areCommitVersionsInitialized = true;
             }
 
             return _commitVersions;

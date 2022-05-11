@@ -9,7 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Experimental.Collections" Version="1.0.6-e190117-3" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
-    <PackageReference Include="Teronis.NetStandard.Collections.Synchronization" Version="0.1.8-alpha.223" />
     <PackageReference Include="Teronis.NetStandard.Core" Version="0.1.8-alpha.223" />
   </ItemGroup>
 
