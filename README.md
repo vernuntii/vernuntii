@@ -7,10 +7,10 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
 <!-- omit in toc -->
 ### Vernuntii key facts on a glance
 
-- Calculates version with [adaptivity](#version-adaptivity) in mind
+- Calculates version with [adaptivity][self-version-adaptivity] in mind
 - Optional [configuration file][configuration-file] (but recommended)
   - Either json or yaml
-- In-built [versioning modes](./docs/configuration-file.md#versioning-mode)
+- In-built [versioning modes][configuration-versioning-modes]
   - Possiblity to override increment mode, message convention and more
 - Git plugin
   - Reads commits and tags, so it:
@@ -43,11 +43,11 @@ Using only [MSBuild Integration][msbuild-nuget-package-docs] because
 
 #### Use case #2
 
-Using [MSBuild Integration][msbuild-nuget-package-docs] with [GitHub actions](#github-actions) because
+Using [MSBuild Integration][msbuild-nuget-package-docs] with [GitHub actions][self-github-actions] because
 
 - You would like to automate the git tag creation
 - You want to define a GitHub workflow with the intention to publish versionized packages:
-  1. You define a step that uses [`vernuntii/actions/execute@main`](#github-actions) to have access to the calculated next version
+  1. You define a step that uses [`vernuntii/actions/execute@main`][self-github-actions] to have access to the calculated next version
   3. You define a step that pushes the versionized packages to your package registry (e.g. NuGet)
   4. You define a step that creates a git tag with the next version and pushes it back to your repository
 
@@ -81,7 +81,7 @@ We also assume we are in the branch `main`. Now we move on to the logic.
 2. If the current commit *does not* have one SemVer-compatible version then the next version is about to be calculated, so we take a look to `git log` and go from current commit backwards and search for the latest version.
 3. If the latest version has been found, then this version serves as start version, otherwise the default version `0.1.0-main.0` is assumed and next bullet points are skipped.
 4. If a pre-release is given then as `ContinousDelivery` indicates, we assume a human triggered release workflow or in other words: we only need the next version when the program is in an actual delivery state. So we once <ins>increment height by one</ins>. If the height was `0`, then it won't exceed `1` in this calculation. Why height and not patch? Because of the word "Continous". Yes, the program in a delivery state and we just want continously calculate the next version but without soil the version core, so we increment the height.
-5. If a pre-release is not given then as `ContinousDelivery` indicates, we once <ins>increment the patch by one</ins>. If the patch was `0`, then it won't exceed `1` in this calculation. Why patch? Because a change in version core signalizes a *new release*. Why only patch? First of all, there are different [versioning modes](./docs/configuration-file.md#versioning-mode) but `ContinousDelivery` is one of the more feasible workflows that are easy introducable, so if you want for example introduce a minor or major release, you would have to adjust the versioning preset to apply <ins>your convention</ins> that affects not only patch anymore or you create a tag that reflects the next minor or major release and [vernuntii will just consider it](#version-adaptivity) in next version calculation.
+5. If a pre-release is not given then as `ContinousDelivery` indicates, we once <ins>increment the patch by one</ins>. If the patch was `0`, then it won't exceed `1` in this calculation. Why patch? Because a change in version core signalizes a *new release*. Why only patch? First of all, there are different [versioning modes][configuration-versioning-modes] but `ContinousDelivery` is one of the more feasible workflows that are easy introducable, so if you want for example introduce a minor or major release, you would have to adjust the versioning preset to apply <ins>your convention</ins> that affects not only patch anymore or you create a tag that reflects the next minor or major release and [vernuntii will just consider it][self-version-adaptivity] in next version calculation.
 
 <!-- omit in toc -->
 # Table of contents
@@ -140,7 +140,7 @@ One drawback of being adaptive is that the latest or next version is not determi
 
 ## Vernuntii installers
 
-A Vernuntii installer is another term for getting the bare metal binaries to execute Vernuntii directly. For example the .NET CLI package is used in [GitHub actions](#github-actions) integration.
+A Vernuntii installer is another term for getting the bare metal binaries to execute Vernuntii directly. For example the .NET CLI package is used in [GitHub actions][self-github-actions] integration.
 
 ### .NET CLI package
 
@@ -210,7 +210,7 @@ From the following set of **optional properties** you can choose to change the b
 
 ### GitHub actions
 
-The following [GitHub actions][github-actions] are available.
+The following [GitHub actions][vernuntii-actions] are available.
 
 - `vernuntii/actions/install/dotnet-tool@main`
   - Using this GitHub action makes the global command "vernuntii" available
@@ -257,13 +257,16 @@ This is my work list. :slightly_smiling_face:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+[self-version-adaptivity]: #version-adaptivity
+[self-github-actions]: #github-actions
 [msbuild-nuget-package]: https://www.nuget.org/packages/Vernuntii.Console.MSBuild
 [msbuild-nuget-package-badge]: https://img.shields.io/nuget/v/Vernuntii.Console.MSBuild
 [msbuild-nuget-package-docs]: #msbuild-package
 [globaltool-nuget-package]: https://www.nuget.org/packages/Vernuntii.Console.GlobalTool
 [globaltool-nuget-package-badge]: https://img.shields.io/nuget/v/Vernuntii.Console.GlobalTool
-[github-actions]: https://github.com/vernuntii/actions
+[vernuntii-actions]: https://github.com/vernuntii/actions
 [configuration-file]: ./docs/configuration-file.md
+[configuration-versioning-modes]: ./docs/configuration-file.md#git-plugin--branches--versioning-mode
 [semver-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer
 [semver-parser-nuget-package]: https://www.nuget.org/packages/Vernuntii.SemVer.Parser
 [vernuntii-semver-parser-readme]: ./src/Vernuntii.SemVer.Parser

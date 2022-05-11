@@ -1,50 +1,60 @@
+<!-- omit in toc -->
 # Configuration file
 
 The configuration file is the heart of Vernuntii. By defining properties you change fundamentally the behvaiour of Vernuntii.
 
-- [Configuration file](#configuration-file)
-- [Auto-discovery](#auto-discovery)
-- [Git plugin → Global properties](#git-plugin--global-properties)
-  - [Schema → `<git-directory>`](#schema--git-directory)
-    - [Defaults](#defaults)
-  - [Schema → `<start-version>`](#schema--start-version)
-    - [Defaults](#defaults-1)
-- [Git plugin → Branches](#git-plugin--branches)
-  - [Schema → `<if-branch>`](#schema--if-branch)
-  - [Schema → `<branch>`](#schema--branch)
-  - [Schema → `<since-commit>`](#schema--since-commit)
-  - [Schema → `VersioningMode`](#schema--versioningmode)
-  - [Schema → `<pre-release>`](#schema--pre-release)
-  - [Schema → `<pre-release-escapes>`](#schema--pre-release-escapes)
-  - [Schema → `<search-pre-release>`](#schema--search-pre-release)
-  - [Schema → `<search-pre-release-escapes>`](#schema--search-pre-release-escapes)
-  - [Schema → Defaults](#schema--defaults)
-- [Git plugin → Branches → Versioning mode](#git-plugin--branches--versioning-mode)
-  - [Schema → `<preset:string>`](#schema--presetstring)
-  - [Schema -> `<preset:object>`](#schema---presetobject)
-  - [Schema → `<message-convention:string>`](#schema--message-conventionstring)
-  - [Schema → `<message-convention:object>`](#schema--message-conventionobject)
-  - [Schema → `<message-indicator:string>`](#schema--message-indicatorstring)
-  - [Schema → `<message-indicator:object>` → `Regex`](#schema--message-indicatorobject--regex)
-    - [Examples](#examples)
-  - [Schema → `<increment-mode>`](#schema--increment-mode)
-  - [Schema → `<increment-flow:string>`](#schema--increment-flowstring)
-  - [Schema → `<increment-flow:object>`](#schema--increment-flowobject)
-  - [Schema → `<increment-flow-condition:string>`](#schema--increment-flow-conditionstring)
-  - [Schema → `<increment-flow-mode:string>`](#schema--increment-flow-modestring)
-  - [Schema → Examples](#schema--examples)
-
-# Auto-discovery
+## Auto-discovery
 
 The configuration file will be auto-discovered when the file name meets the following rules:
 
 - Has the **file name** `vernuntii`
 - Ends with `.json`, `.yaml` or `.yml`
 
+So available filenames and formats are `vernuntii.json`, `vernuntii.yaml` and `vernuntii.yml` (recommended).
+
 Depending on integration you use the following working directory and therefore default location to start the searching from:
 
 - MSBuild Integration: root directory of project that has the MSBuild integration installed
 - GitHub Actions (`vernuntii/actions/execute`): current working directory at the time where the action was called
+
+<!-- omit in toc -->
+# Table of contents
+
+- [Git plugin → Global properties](#git-plugin--global-properties)
+  - [Schema → `<git-directory>`](#schema--git-directory)
+    - [Default values](#default-values)
+  - [Schema → `<start-version>`](#schema--start-version)
+    - [Default values](#default-values-1)
+- [Git plugin → Branches](#git-plugin--branches)
+  - [Schema → `<if-branch:string>`](#schema--if-branchstring)
+    - [Examples](#examples)
+  - [Schema → `<branch:string>`](#schema--branchstring)
+    - [Default values](#default-values-2)
+  - [Schema → `<since-commit:string>`](#schema--since-commitstring)
+    - [Default values](#default-values-3)
+  - [Schema → `<preset>`](#schema--preset)
+  - [Schema → `<pre-release:string>`](#schema--pre-releasestring)
+    - [Default values](#default-values-4)
+  - [Schema → `<pre-release-escapes:list>`](#schema--pre-release-escapeslist)
+    - [Default values](#default-values-5)
+  - [Schema → `<search-pre-release:string>`](#schema--search-pre-releasestring)
+    - [Default values](#default-values-6)
+  - [Schema → `<search-pre-release-escapes:list>`](#schema--search-pre-release-escapeslist)
+    - [Default values](#default-values-7)
+- [Git plugin → Branches → Versioning mode](#git-plugin--branches--versioning-mode)
+  - [Schema → `<preset:string>`](#schema--presetstring)
+  - [Schema → `<preset:object>`](#schema--presetobject)
+  - [Schema → `<message-convention:string>`](#schema--message-conventionstring)
+  - [Schema → `<message-convention:object>`](#schema--message-conventionobject)
+  - [Schema → `<message-indicator:string>`](#schema--message-indicatorstring)
+  - [Schema → `<message-indicator:object>` → `Regex`](#schema--message-indicatorobject--regex)
+    - [Examples](#examples-1)
+  - [Schema → `<increment-mode:string>`](#schema--increment-modestring)
+  - [Schema → `<increment-flow:string>`](#schema--increment-flowstring)
+  - [Schema → `<increment-flow:object>`](#schema--increment-flowobject)
+  - [Schema → `<increment-flow-condition:string>`](#schema--increment-flow-conditionstring)
+  - [Schema → `<increment-flow-mode:string>`](#schema--increment-flow-modestring)
+  - [Examples](#examples-2)
 
 # Git plugin → Global properties
 
@@ -55,7 +65,7 @@ Depending on integration you use the following working directory and therefore d
 GitDirectory: <git-branch:string> (optional)
 ```
 
-### Defaults
+### Default values
 
 ```yaml
 GitDirectory: (the location where this configuration file has been found)
@@ -68,7 +78,7 @@ GitDirectory: (the location where this configuration file has been found)
 StartVersion: <start-version:string> (optional)
 ```
 
-### Defaults
+### Default values
 
 ```yaml
 StartVersion: (latest commit version or if not found "0.1.0-main.0" where "main" is active branch name as long as not configured otherwise)
@@ -76,42 +86,52 @@ StartVersion: (latest commit version or if not found "0.1.0-main.0" where "main"
 
 # Git plugin → Branches
 
-The git plugin allows you to define branches where their rules. They do not affect each other. 
+The git plugin allows you to define branches where their rules not affect each other. 
 
 When I talk about branches, then I talk always about _branch cases_. A branch case by definition of Vernuntii is a ruleset of how Vernuntii should behave on this or that branch.
 
-```
-Branches:
-  - IfBranch: ... # other branch case
-```
-
-
 There is <ins>always</ins> a **default branch case**. It does apply when a branch case is not found for the current branch you are active right now. The default branch case can be customized at the root of the configuration.
 
-> As you maybe can think of, `<if-branch>` is not available in the default branch case.
-
 ```
+# /vernuntii.yml
 # Set here the properties for the default branch case!
-
-Branches:
-  - IfBranch: ... # other branch case
 ```
 
-## Schema → `<if-branch>`
+> [`<if-branch>`](#schema--if-branch) is not available in the default branch case.
 
-- Can be the the full branch name or a part of it
+## Schema → `<if-branch:string>`
+
+```yaml
+# The branch case is used if active branch is equals to <if-branch>.
+# If current active branch is matching <if-branch> than the settings
+# specified in default branch case are used.
+IfBranch: <if-branch:string> (required)
+```
+
+Available values for `<if-branch:string>`:
+
+- Full branch name or a part of it
   - main (head)
   - heads/main (head)
   - refs/heads/main (head)
-  - origin/main (remote) 
+  - origin/main (remote)
   - remotes/origin/main (remote)
   - refs/remotes/origin/main (remote)
 - `<if-branch>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
   - `/feature-.*/`: all branches starting with `feature-`
   - If multiple branches are selected an exception is thrown, so use this feature with caution
-- You can specify `HEAD` when you want to <ins>match detached HEAD</ins>.
+- `HEAD` when you want to match the _detached HEAD_.
 
-## Schema → `<branch>`
+### Examples
+
+```
+# /vernuntii.yml
+
+Branches:
+  - IfBranch: develop # branch case for develop branch
+```
+
+## Schema → `<branch:string>`
 
 ```yaml
 # The branch reading the commits from.
@@ -120,41 +140,68 @@ Branch: <branch-name:string> (optional)
 
 - If not specified the branch is the one evaluated from `IfBranch`
 - It must be a valid branch name (see `<if-branch>`), but
-- RegEx is NOT allowed (change my mind. :D)
+- RegEx is NOT allowed
 
-## Schema → `<since-commit>`
+### Default values
+
+```yaml
+Branch: (the branch evaluated from `<if-branch-string>`)
+```
+
+## Schema → `<since-commit:string>`
 
 ```yaml
 # The since-commit where to start reading from.
 SinceCommit: <since-commit:string> (optional)
 ```
 
-## Schema → `VersioningMode`
+### Default values
 
-The schema for [`VersioningMode`](#git-plugin--branches--versioning-mode) deserves its own section.
+```yaml
+SinceCommit: (latest commit version)
+```
 
-## Schema → `<pre-release>`
+## Schema → `<preset>`
+
+The schema for [`<preset>`](#git-plugin--branches--versioning-mode) deserves its own section.
+
+## Schema → `<pre-release:string>`
 
 ```yaml
 # The pre-release is used for pre-search or post-transformation.
 # Used only in pre-search if "SearchPreRelease" is
 # null.
-PreRelease: <pre-release:string> (optional, inheritable)
+PreRelease: <pre-release:string> (optional)
 ```
 
-## Schema → `<pre-release-escapes>`
+### Default values
+
+```yaml
+PreRelease: (short name of current branch, e.g. main)
+```
+
+## Schema → `<pre-release-escapes:list>`
 
 ```yaml
 # Pre-release escapes.
-PreReleaseEscapes: <pre-release-escapes:object> (optional, inheritable)
+PreReleaseEscapes:
   - Pattern: <pattern:string> (optional)
     Replacement: <replacement:string> (optional)
-  - ...
 ```
 
 - `<pattern>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
 
-## Schema → `<search-pre-release>`
+### Default values
+
+```yaml
+PreReleaseEscapes:
+  - Pattern: /[A-Z]/
+    Replacement: (lower)
+  - Pattern: ///
+    Replaceent: '-'
+```
+
+## Schema → `<search-pre-release:string>`
 
 ```yaml
 # The pre-release is used for pre-search.
@@ -165,82 +212,73 @@ PreReleaseEscapes: <pre-release-escapes:object> (optional, inheritable)
 SearchPreRelease: <search-pre-release:string> (optional)
 ```
 
-## Schema → `<search-pre-release-escapes>`
+### Default values
+
+```yaml
+SearchPreRelease: (if not specified then it inherits <pre-release>)
+```
+
+## Schema → `<search-pre-release-escapes:list>`
 
 ```yaml
 # Search pre-release escapes.
-SearchPreReleaseEscapes: <search-pre-release-escapes:object> (same as <pre-release-escapes>)
+SearchPreReleaseEscapes: (see <pre-release-escapes:list>)
 ```
 
-- `<pattern>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
+- `<pattern:string>` is recognized as **regular expression** when it begins with '/' and ends with another '/'
 
-## Schema → Defaults
-
-These defaults are automatically applied.
+### Default values
 
 ```yaml
-###################################################################
-# Reminder: The below properties are available in "Branches" too. #
-###################################################################
-
-VersioningMode: Default # 'Default' resolves internally to 'ContinousDelivery'
-SinceCommit: (latest version)
-
-PreRelease: (short name of current branch, e.g. main)
-
-PreReleaseEscapes:
-  - Pattern: /[A-Z]/
-    Replacement: (lower)
-  - Pattern: ///
-    Replaceent: '-'
-
-SearchPreRelease: (if not specified then it inherits <pre-release>)
-SearchPreReleaseEscapes: (if not specified then it inherits <pre-release-escapes>)
+SearchPreReleaseEscapes: (if not specified it inherits <pre-release-escapes:list>)
 ```
 
 # Git plugin → Branches → Versioning mode
 
-The versioning mode allows you to choose one of the many available version strategies to calculate the next version. You can define `VersioningMode` also in every branch.
+The versioning mode allows you to choose one of the many available version strategies to calculate the next version.
+
+```yaml
+VersioningMode: <preset:string> or <preset:object> # see schema below
+```
+
+You can define `VersioningMode` also in every branch:
 
 ```yaml
 Branches:
-  - IfBranch: <if-branch>
-    VersioningMode: (same as above)
+  - IfBranch: <if-branch:string>
+    VersioningMode: <preset:string> or <preset:object> # see schema below
 ```
 
 ## Schema → `<preset:string>`
 
 ```yaml
 # The versioning mode defined by string
-VersioningMode: <preset:string> (optional)
+VersioningMode: <preset:string> or <preset:object> (optional)
 ```
 
 Available values for `<preset:string>`:
 
 - `Default`: resolves internally to `ContinousDelivery`
 - `ContinousDelivery`
-  - `<message-convention>`
-    - Major indicator: `Falsy`
-    - Minor indicator: `Falsy`
-    - Patch indicator: `Truthy`
-  - `<increment-mode>`: `Consecutive`
-  - `<increment-flow>`: `None`
+  - `MessageConvention`: `Continous` (see [`<message-convention:string>`][message-convention-string])
+  - `IncrementMode`: `Consecutive` (see [`<increment-mode:string>`][increment-mode-string])
+  - `IncrementFlow`: `None` (see [`<increment-flow:string>`][increment-flow-string])
 - `ContinousDeployment`
-  - `<message-convention>`: same as `ContinousDelivery`
-  - `<increment-mode>`: `Successive`
-  - `<increment-flow>`: `None`
+  - `MessageConvention`: `Continous` (see [`<message-convention:string>`][message-convention-string])
+  - `IncrementMode`: `Successive` (see [`<increment-mode:string>`][increment-mode-string])
+  - `IncrementFlow`: `None` (see [`<increment-flow:string>`][increment-flow-string])
 - `ConventionalCommitsDelivery`
-  - `<message-convention>`: `ConventionalCommits`
-  - `<increment-mode>`: `Consecutive`
-  - `<increment-flow>`: `None`
+  - `MessageConvention`: `ConventionalCommits` (see [`<message-convention:string>`][message-convention-string])
+  - `IncrementMode`: `Consecutive` (see [`<increment-mode:string>`][increment-mode-string])
+  - `IncrementFlow`: `None` (see [`<increment-flow:string>`][increment-flow-string])
 - `ConventionalCommitsDeployment`
-  - `<message-convention>`: same as `ConventionalCommitsDelivery`
-  - `<increment-mode>`: `Successive`
-  - `<increment-flow>`: `None`
+  - `MessageConvention`: `ConventionalCommits` (see [`<message-convention:string>`][message-convention-string])
+  - `IncrementMode`: `Successive` (see [`<increment-mode:string>`][increment-mode-string])
+  - `IncrementFlow`: `None` (see [`<increment-flow:string>`][increment-flow-string])
 - `Manual`
-  - `<message-convention>`: `Falsy`
-  - `<increment-mode>`: `None`
-  - `<increment-flow>`: `None`
+  - `MessageConvention`: `Falsy` (see [`<message-convention:string>`][message-convention-string])
+  - `IncrementMode`: `None` (see [`<increment-mode:string>`][increment-mode-string])
+  - `IncrementFlow`: `None` (see [`<increment-flow:string>`][increment-flow-string])
 
 If `VersioningMode` is not set its default is:
 
@@ -248,25 +286,25 @@ If `VersioningMode` is not set its default is:
 VersioningMode: Default # 'Default' resolves internally to 'ContinousDelivery'
 ```
 
-## Schema -> `<preset:object>`
+## Schema → `<preset:object>`
 
 ```yaml
 # More detailed
 VersioningMode:
   Preset: <preset:string> (optional)
-  MessageConvention: <message-convention:string> (optional if <preset> is set)
-  IncrementMode: <increment-mode:string> (optional if <preset> is set)
-  RightShiftWhenZeroMajor: <right-shift-when-zero-major:boolean> (optional)
+  MessageConvention: <message-convention:string> or <message-convention:object> (optional if "Preset" is set)
+  IncrementMode: <increment-mode:string> (optional if "Preset" is set)
+  IncrementFlow: <increment-flow:string> or <increment-flow:object> (optional)
 ```
 
 If `VersioningMode` is defined as object its default is:
 
 ```yaml
 VersioningMode:
-  Preset: (not set)
-  MessageConvention: (not set)
-  IncrementMode: (not set)
-  RightShiftWhenZeroMajor: false
+  Preset: Manual
+  MessageConvention: None (inherited from "Preset")
+  IncrementMode: None (inherited from "Preset")
+  IncrementFlow: None (inherited from "Preset")
 ```
 
 ## Schema → `<message-convention:string>`
@@ -282,7 +320,13 @@ Available values for `<message-convention:string>`:
 
 - `Manual`: same as `<message-convention>` of preset `Manual`.
 - `Continous`: same as `<message-convention>` of preset `Continous*`.
-- `ConventionalCommits`: same as `<message-convention>` of preset `ConventionalCommits*`.
+  - Major indicator: `Falsy` (see [`<message-indicator:string>`][message-indicator-string])
+  - Minor indicator: `Falsy` (see [`<message-indicator:string>`][message-indicator-string])
+  - Patch indicator: `Truthy` (see [`<message-indicator:string>`][message-indicator-string])
+- `ConventionalCommits`:
+  - Major indicator: `ConventionalCommits` (see [`<message-indicator:string>`][message-indicator-string])
+  - Minor indicator: `ConventionalCommits` (see [`<message-indicator:string>`][message-indicator-string])
+  - Patch indicator: `ConventionalCommits` (see [`<message-indicator:string>`][message-indicator-string])
 
 ## Schema → `<message-convention:object>`
 
@@ -295,7 +339,7 @@ VersioningMode:
     # and extend only a part of an already existing one.
     Base: <message-convention:string> (optional)
 
-    # All logic of how "MajorIndicators" can be defined also applies to
+    # All logic of how "MajorIndicators" can be defined does also apply to
     # - "MinorIndicators" 
     # - "PatchIndicators"
 
@@ -326,10 +370,10 @@ If `MessageConvention` is defined as object its default is:
 VersioningMode:
   ...
   MessageConvention: 
-    Base: (not set) # Preset from "VersioningMode" won't be inherited!
-    MajorIndicators: (not set)
-    MinorIndicators: (not set)
-    PatchIndicators: (not set)
+    Base: None
+    MajorIndicators: (inherited from "Base")
+    MinorIndicators: (inherited from "Base")
+    PatchIndicators: (inherited from "Base")
 ```
 
 If `Base` is set in `MessageConvention`:
@@ -342,10 +386,10 @@ VersioningMode:
     # - "MajorIndicators",
     # - "MajorIndicators" or 
     # - "MajorIndicators" if any of them are not set by user
-    Base: <message-convention>
-    MajorIndicators: (Base.MajorIndicators if "MajorIndicators" is not set by user)
-    MinorIndicators: (Base.MinorIndicators if "MinorIndicators" is not set by user)
-    PatchIndicators: (Base.PatchIndicators if "PatchIndicators" is not set by user)
+    Base: <message-convention:string>
+    MajorIndicators: (inherited from "Base")
+    MinorIndicators: (inherited from "Base")
+    PatchIndicators: (inherited from "Base")
 ```
 
 ## Schema → `<message-indicator:string>`
@@ -355,9 +399,9 @@ Available values for `<message-indicator:string>`:
 - `Falsy`: indicates that every message <ins>does not increment</ins> the version
 - `Truthy`: indicates that every message <ins>does increment</ins> the version
 - `ConventionalCommits`
-  - If used as major indicator: `^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)`
-  - If used as minor indicator: `^(feat)(\\([\\w\\s-]*\\))?:`
-  - If used as patch indicator: `^(fix)(\\([\\w\\s-]*\\))?:`
+  - If used as major indicator: `^(feat)(\([\w\s-]*\))?(!:|:.*\n\n((.+\n)+\n)?BREAKING CHANGE:\s.+)`
+  - If used as minor indicator: `^(feat)(\([\w\s-]*\))?:`
+  - If used as patch indicator: `^(fix)(\([\w\s-]*\))?:`
 - [`Regex`](#schema--message-indicator--regex): indicates a version increment if the message could be matched against the regular expression
 
 ## Schema → `<message-indicator:object>` → `Regex`
@@ -376,10 +420,10 @@ VersioningMode:
     ...
     PatchIndicators:
       - Name: Regex 
-        Pattern: ^(fix)(\\([\\w\\s-]*\\))?: # Imitates patch indicator of "ConventionalCommits".
+        Pattern: '^(fix)(\([\w\s-]*\))?:' # Imitates patch indicator of "ConventionalCommits".
 ```
 
-## Schema → `<increment-mode>`
+## Schema → `<increment-mode:string>`
 
 Available values for `<increment-mode:string>`:
 
@@ -392,7 +436,13 @@ Available values for `<increment-mode:string>`:
 Available values for `<increment-flow:string>`:
 
 - `None`: does not lead into a flow of any version part at any circumstances
+  - `Condition`: `Never` (see [`<increment-flow-condition:string>`][increment-flow-condition-string])
+  - `MajorFlow`: `None` (see [`<increment-flow-mode:string>`][increment-flow-mode-string])
+  - `MinorFlow`: `None` (see [`<increment-flow-mode:string>`][increment-flow-mode-string])
 - `ZeroMajorDownstream`: does right shift version when latest version has zero major, so next major becomes next minor, next minor becomes next patch
+  - `Condition`: `ZeroMajor` (see [`<increment-flow-condition:string>`][increment-flow-condition-string])
+  - `MajorFlow`: `Downstream` (see [`<increment-flow-mode:string>`][increment-flow-mode-string])
+  - `MinorFlow`: `Downstream` (see [`<increment-flow-mode:string>`][increment-flow-mode-string])
 
 ## Schema → `<increment-flow:object>`
 
@@ -418,7 +468,7 @@ Available values for `<increment-flow-mode:string>`:
 - `None`: do not flow
 - `Downstream`: affected version part flows one position downstream (e.g. when specified in `MajorFlow`: instead major increments, minor increments now)
 
-## Schema → Examples
+## Examples
 
 Versioning mode one-liner.
 
@@ -433,7 +483,13 @@ VersioningMode:
   Preset: ConventionalCommitsDelivery
   MessageConvention: Continous # Overwrites "MessageConvention" of preset
   IncrementMode: Successive # Overwrites "IncrementMode" of preset
-  RightShiftWhenZeroMajor: true
+
+  # When a major is about to be incremented it won't, instead the minor is incremented. This does not trigger minor flow.
+  # When a minor is about to be incremented it won't, instead the patch is incremented.
+  IncrementFlow:
+    Condition: ZeroMajor
+    MajorFlow: Downstream
+    MinorFlow: Downstream
 ```
 
 Custom message convention in branch develop.
@@ -447,7 +503,14 @@ Branches:
         MajorIndicators: Falsy # Ok, we want major to never increment.
         MinorIndicators:
           - Name: Regex
-            Pattern: ^(feat)(\\([\\w\\s-]*\\))?: # Let's imitate minor indicator of "ConventionalCommits".
+            Pattern: '^(feat)(\([\w\s-]*\))?:' # Let's imitate minor indicator of "ConventionalCommits".
         PatchIndicators:
           - Truthy # When major or patch didn't indicate anything already then I want at least to increment patch!
 ```
+
+[message-convention-string]: #schema--message-conventionstring
+[increment-mode-string]: #schema--increment-modestring
+[increment-flow-string]: #schema--increment-flowstring
+[message-indicator-string]: #schema--message-indicatorstring
+[increment-flow-condition-string]: #schema--increment-flow-conditionstring
+[increment-flow-mode-string]: #schema--increment-flow-modestring
