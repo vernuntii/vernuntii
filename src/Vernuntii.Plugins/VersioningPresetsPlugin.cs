@@ -20,17 +20,17 @@ namespace Vernuntii.PluginSystem
         {
             var presets = new VersioningPresetManager();
 
+            // Adds presets including message conventions and height conventions.
+            presets.Add(nameof(InbuiltVersioningPreset.Default), VersioningPreset.Default);
+            presets.Add(nameof(InbuiltVersioningPreset.Manual), VersioningPreset.Manual);
+            presets.Add(nameof(InbuiltVersioningPreset.ContinousDelivery), VersioningPreset.ContinousDelivery);
+            presets.Add(nameof(InbuiltVersioningPreset.ContinousDeployment), VersioningPreset.ContinousDeployment);
+            presets.Add(nameof(InbuiltVersioningPreset.ConventionalCommitsDelivery), VersioningPreset.ConventionalCommitsDelivery);
+            presets.Add(nameof(InbuiltVersioningPreset.ConventionalCommitsDeployment), VersioningPreset.ConventionalCommitsDeployment);
+
             // Adds version increment flows.
             presets.IncrementFlows.AddItem(nameof(InbuiltVersionIncrementFlow.None), VersionIncrementFlow.None);
             presets.IncrementFlows.AddItem(nameof(InbuiltVersionIncrementFlow.ZeroMajorDownstream), VersionIncrementFlow.ZeroMajorDownstream);
-
-            // Adds presets including message conventions and height conventions.
-            presets.VersioningPresets.AddItem(nameof(InbuiltVersioningPreset.Default), VersioningPreset.Default);
-            presets.VersioningPresets.AddItem(nameof(InbuiltVersioningPreset.Manual), VersioningPreset.Manual);
-            presets.VersioningPresets.AddItem(nameof(InbuiltVersioningPreset.ContinousDelivery), VersioningPreset.ContinousDelivery);
-            presets.VersioningPresets.AddItem(nameof(InbuiltVersioningPreset.ContinousDeployment), VersioningPreset.ContinousDeployment);
-            presets.VersioningPresets.AddItem(nameof(InbuiltVersioningPreset.ConventionalCommitsDelivery), VersioningPreset.ConventionalCommitsDelivery);
-            presets.VersioningPresets.AddItem(nameof(InbuiltVersioningPreset.ConventionalCommitsDeployment), VersioningPreset.ConventionalCommitsDeployment);
 
             // Add message conventions.
             presets.MessageConventions.AddItem(nameof(InbuiltMessageConvention.Continous), VersioningPreset.ContinousDelivery.MessageConvention);
@@ -43,6 +43,9 @@ namespace Vernuntii.PluginSystem
 
             // Add configured message indicator factories.
             presets.ConfiguredMessageIndicatorFactories.AddItem(nameof(InbuiltConfiguredMessageIndicatorFactory.Regex), ConfiguredRegexMessageIndicatorFactory.Default);
+
+            presets.HeightConventions.AddItem(nameof(InbuiltHeightConvention.None), HeightConvention.None);
+            presets.HeightConventions.AddItem(nameof(InbuiltHeightConvention.InPreReleaseAfterFirstDot), HeightConvention.InPreReleaseAfterFirstDot);
 
             return presets;
         }

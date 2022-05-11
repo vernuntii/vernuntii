@@ -10,16 +10,20 @@
         /// </summary>
         VersioningPreset = 1,
         /// <summary>
+        /// Preset maps increment flow.
+        /// </summary>
+        IncrementFlow = 2,
+        /// <summary>
         /// Preset maps message convention.
         /// </summary>
-        MessageConvention = 2,
+        MessageConvention = 4,
         /// <summary>
         /// Preset maps height convention.
         /// </summary>
-        HeightConvention = 4,
+        HeightConvention = 8,
         /// <summary>
         /// Preset maps everything.
         /// </summary>
-        Everything = VersioningPreset | MessageConvention | HeightConvention
+        Everything = VersioningPreset | IncrementFlow | MessageConvention | HeightConvention
     }
 }

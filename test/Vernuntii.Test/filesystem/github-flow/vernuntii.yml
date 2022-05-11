@@ -1,5 +1,0 @@
-GitDirectory: ./
-VersioningMode: ConventionalCommitsMainline
-PreReleaseEscapes:
-    - Pattern: /
-      Replacement: .

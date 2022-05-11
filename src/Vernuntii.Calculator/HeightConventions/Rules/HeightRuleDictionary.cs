@@ -17,7 +17,7 @@ namespace Vernuntii.HeightConventions.Rules
         /// <summary>
         /// Default rules for one dotted string.
         /// </summary>
-        public readonly static HeightRuleDictionary BehindFirstDotRules = new HeightRuleDictionary(new[] {
+        public readonly static HeightRuleDictionary AfterFirstDotRules = new HeightRuleDictionary(new[] {
             new HeightRule(0, "{}."),
             new HeightRule(1, "{0}.{y}")
         });

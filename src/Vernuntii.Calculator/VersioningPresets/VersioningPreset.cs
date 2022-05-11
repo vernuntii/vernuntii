@@ -19,10 +19,6 @@ namespace Vernuntii.VersioningPresets
         /// </summary>
         public readonly static VersioningPreset Manual = new VersioningPreset();
 
-        private readonly static HeightConvention OneDottedPreReleaseHeightConvention = new HeightConvention(HeightIdentifierPosition.PreRelease) {
-            Rules = HeightRuleDictionary.BehindFirstDotRules
-        };
-
         /// <summary>
         /// Continous delivery preset consisting of
         /// <br/> - <see cref="FalsyMessageIndicator"/> for major and minor,
@@ -36,7 +32,7 @@ namespace Vernuntii.VersioningPresets
                 MinorIndicators = new[] { FalsyMessageIndicator.Default },
                 PatchIndicators = new[] { TruthyMessageIndicator.Default }
             },
-            HeightConvention = OneDottedPreReleaseHeightConvention
+            HeightConvention = HeightConventions.HeightConvention.InPreReleaseAfterFirstDot
         };
 
         /// <summary>
@@ -57,7 +53,7 @@ namespace Vernuntii.VersioningPresets
                 MinorIndicators = new[] { FalsyMessageIndicator.Default },
                 PatchIndicators = new[] { TruthyMessageIndicator.Default }
             },
-            HeightConvention = OneDottedPreReleaseHeightConvention
+            HeightConvention = HeightConventions.HeightConvention.InPreReleaseAfterFirstDot
         };
 
         /// <summary>
@@ -72,7 +68,7 @@ namespace Vernuntii.VersioningPresets
                 MinorIndicators = new[] { ConventionalCommitsMessageIndicator.Default },
                 PatchIndicators = new[] { ConventionalCommitsMessageIndicator.Default }
             },
-            HeightConvention = OneDottedPreReleaseHeightConvention
+            HeightConvention = HeightConventions.HeightConvention.InPreReleaseAfterFirstDot
         };
 
         /// <summary>
@@ -87,7 +83,7 @@ namespace Vernuntii.VersioningPresets
                 MinorIndicators = new[] { ConventionalCommitsMessageIndicator.Default },
                 PatchIndicators = new[] { ConventionalCommitsMessageIndicator.Default }
             },
-            HeightConvention = OneDottedPreReleaseHeightConvention
+            HeightConvention = HeightConventions.HeightConvention.InPreReleaseAfterFirstDot
         };
 
         /// <inheritdoc/>

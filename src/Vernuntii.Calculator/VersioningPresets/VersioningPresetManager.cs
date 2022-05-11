@@ -34,7 +34,7 @@ namespace Vernuntii.VersioningPresets
         /// <param name="preset"></param>
         /// <param name="mappings"></param>
         public void Add(string name, IVersioningPreset preset, VersioningPresetMappings mappings = VersioningPresetMappings.Everything) =>
-            _manager.Add(name, preset, includes: mappings);
+            _manager.Add(name, preset, mappings: mappings);
 
         /// <inheritdoc/>
         public void Clear()
@@ -82,6 +82,27 @@ namespace Vernuntii.VersioningPresets
                 }
             }
 
+            private void EnsureNotReservedIncrementFlowName(string name)
+            {
+                if (_incrementFlows.NamedItems.ContainsKey(name)) {
+                    throw new ArgumentException($"A increment flow with the name \"{name}\" already exists");
+                }
+            }
+
+            private void EnsureNotReservedMessageConventionName(string name)
+            {
+                if (_messageConventions.NamedItems.ContainsKey(name)) {
+                    throw new ArgumentException($"A message convention with the name \"{name}\" already exists");
+                }
+            }
+
+            private void EnsureNotReservedHeightConventionName(string name)
+            {
+                if (_heightConventions.NamedItems.ContainsKey(name)) {
+                    throw new ArgumentException($"A height convention with the name \"{name}\" already exists");
+                }
+            }
+
             private void EnsureNotReservedMessageIndicatorName(string name)
             {
                 if (_messageIndicators.NamedItems.ContainsKey(name)
@@ -95,21 +116,44 @@ namespace Vernuntii.VersioningPresets
             /// </summary>
             /// <param name="name"></param>
             /// <param name="preset"></param>
-            /// <param name="includes"></param>
-            public void Add(string name, IVersioningPreset preset, VersioningPresetMappings includes = VersioningPresetMappings.Everything)
+            /// <param name="mappings"></param>
+            public void Add(string name, IVersioningPreset preset, VersioningPresetMappings mappings = VersioningPresetMappings.Everything)
             {
-                EnsureNotReservedPresetName(name);
+                var mapVersioningPreset = mappings.HasFlag(VersioningPresetMappings.VersioningPreset);
+                var mapIncrementFlow = mappings.HasFlag(VersioningPresetMappings.IncrementFlow);
+                var mapMessageConvention = mappings.HasFlag(VersioningPresetMappings.MessageConvention);
+                var mapHeightConvention = mappings.HasFlag(VersioningPresetMappings.HeightConvention);
 
-                if (includes.HasFlag(VersioningPresetMappings.Everything)) {
-                    ((INamedItemRegistry<IVersioningPreset>)this).AddItem(name, preset);
+                if (mapVersioningPreset) {
+                    EnsureNotReservedPresetName(name);
                 }
 
-                if (includes.HasFlag(VersioningPresetMappings.MessageConvention)) {
-                    ((INamedItemRegistry<IMessageConvention>)this).AddItem(name, preset.MessageConvention);
+                if (mapIncrementFlow) {
+                    EnsureNotReservedIncrementFlowName(name);
                 }
 
-                if (includes.HasFlag(VersioningPresetMappings.HeightConvention)) {
-                    ((INamedItemRegistry<IHeightConvention>)this).AddItem(name, preset.HeightConvention);
+                if (mapMessageConvention) {
+                    EnsureNotReservedMessageConventionName(name);
+                }
+
+                if (mapHeightConvention) {
+                    EnsureNotReservedHeightConventionName(name);
+                }
+
+                if (mapVersioningPreset) {
+                    _versioningPresets.AddItem(name, preset);
+                }
+
+                if (mapIncrementFlow) {
+                    _incrementFlows.AddItem(name, preset.IncrementFlow);
+                }
+
+                if (mapMessageConvention) {
+                    _messageConventions.AddItem(name, preset.MessageConvention);
+                }
+
+                if (mapHeightConvention) {
+                    _heightConventions.AddItem(name, preset.HeightConvention);
                 }
             }
 
@@ -122,12 +166,14 @@ namespace Vernuntii.VersioningPresets
             void INamedItemRegistry<IVersionIncrementFlow>.AddItem(string name, IVersionIncrementFlow item)
             {
                 EnsureNotReservedPresetName(name);
+                EnsureNotReservedIncrementFlowName(name);
                 _incrementFlows.AddItem(name, item);
             }
 
             void INamedItemRegistry<IMessageConvention>.AddItem(string name, IMessageConvention item)
             {
                 EnsureNotReservedPresetName(name);
+                EnsureNotReservedMessageConventionName(name);
                 _messageConventions.AddItem(name, item);
             }
 
@@ -146,6 +192,7 @@ namespace Vernuntii.VersioningPresets
             void INamedItemRegistry<IHeightConvention>.AddItem(string name, IHeightConvention item)
             {
                 EnsureNotReservedPresetName(name);
+                EnsureNotReservedHeightConventionName(name);
                 _heightConventions.AddItem(name, item);
             }
 
