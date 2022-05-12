@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Reflection;
 using System.Text;
+using Teronis.Text;
 
 namespace Vernuntii.VersionPresentation.Serializers
 {
@@ -18,9 +19,10 @@ namespace Vernuntii.VersionPresentation.Serializers
                 .Where(property => property.CanRead);
 
             var stringBuilder = new StringBuilder();
+            var stringSeparator = new StringSeparator(Environment.NewLine);
 
             if (presentationKind == SemanticVersionPresentationKind.Value) {
-                stringBuilder.AppendLine(CultureInfo.InvariantCulture, $"{versionPresentation}");
+                stringBuilder.Append(CultureInfo.InvariantCulture, $"{versionPresentation}");
             } else {
                 foreach (var property in properties) {
                     var value = property.GetValue(versionPresentation);
@@ -29,7 +31,8 @@ namespace Vernuntii.VersionPresentation.Serializers
                         continue;
                     }
 
-                    stringBuilder.AppendLine(CultureInfo.InvariantCulture, $"{property.Name}={value}");
+                    stringBuilder.Append(CultureInfo.InvariantCulture, $"{property.Name}={value}");
+                    stringSeparator.SetSeparator(stringBuilder);
                 }
             }
 
