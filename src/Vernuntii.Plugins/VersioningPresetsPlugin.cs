@@ -20,7 +20,7 @@ namespace Vernuntii.PluginSystem
         {
             var presets = new VersioningPresetManager();
 
-            // Adds presets including message conventions and height conventions.
+            // Adds presets. Maps also to increment flows, message conventions and height conventions.
             presets.Add(nameof(InbuiltVersioningPreset.Default), VersioningPreset.Default);
             presets.Add(nameof(InbuiltVersioningPreset.Manual), VersioningPreset.Manual);
             presets.Add(nameof(InbuiltVersioningPreset.ContinousDelivery), VersioningPreset.ContinousDelivery);

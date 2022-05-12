@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.HeightConventions.Rules
+﻿namespace Vernuntii.HeightConventions
 {
     internal class HeightRule : IHeightRule
     {

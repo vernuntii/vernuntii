@@ -3,7 +3,7 @@
     /// <summary>
     /// Indicating what versioning preset does map.
     /// </summary>
-    public enum VersioningPresetMappings
+    public enum VersioningPresetMap
     {
         /// <summary>
         /// Preset maps itself.

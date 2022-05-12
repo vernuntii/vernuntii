@@ -1,6 +1,4 @@
-﻿using Vernuntii.HeightConventions.Rules;
-
-namespace Vernuntii.HeightConventions
+﻿namespace Vernuntii.HeightConventions
 {
     /// <summary>
     /// Height convention.
@@ -11,13 +9,20 @@ namespace Vernuntii.HeightConventions
         /// Position of height.
         /// </summary>
         HeightIdentifierPosition Position { get; }
+
         /// <summary>
         /// Height rules.
         /// </summary>
         IHeightRuleDictionary? Rules { get; }
+
         /// <summary>
         /// The start height when no height could be estimated.
         /// </summary>
-        uint StartHeight { get; }
+        uint InitialHeight { get; }
+
+        /// <summary>
+        /// <see langword="true"/> hides the initial height.
+        /// </summary>
+        bool HideInitialHeight { get; }
     }
 }

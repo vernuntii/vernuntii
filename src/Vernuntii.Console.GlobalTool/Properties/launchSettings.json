@@ -2,7 +2,7 @@
   "profiles": {
     "Vernuntii.Console.GlobalTool": {
       "commandName": "Project",
-      "commandLineArgs": "--config-path \"C:\\repos\\rabot\\nethermind\\deploy\\src\\vernuntii.yml\" --empty-caches --verbosity Debug"
+      "commandLineArgs": "--verbosity Verbose --config-path \"C:\\repos\\rabot\" --empty-caches"
     }
   }
 }

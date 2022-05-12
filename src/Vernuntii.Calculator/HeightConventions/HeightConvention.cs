@@ -1,6 +1,5 @@
 ﻿using Vernuntii.Collections;
 using Vernuntii.Extensions;
-using Vernuntii.HeightConventions.Rules;
 
 namespace Vernuntii.HeightConventions
 {
@@ -26,7 +25,9 @@ namespace Vernuntii.HeightConventions
         /// <inheritdoc/>
         public IHeightRuleDictionary? Rules { get; init; }
         /// <inheritdoc/>
-        public uint StartHeight { get; init; }
+        public uint InitialHeight { get; init; }
+        /// <inheritdoc/>
+        public bool HideInitialHeight { get; init; }
 
         /// <summary>
         /// Creates instance of this type.
@@ -43,7 +44,7 @@ namespace Vernuntii.HeightConventions
                 || (Rules is not null
                     && other.Rules is not null
                     && Rules.SequenceEqual(other.Rules, KeyValuePairEqualityComparer<int, IHeightRule>.Default)))
-            && StartHeight == other.StartHeight;
+            && InitialHeight == other.InitialHeight;
 
         /// <inheritdoc/>
         public bool Equals(HeightConvention? other) =>
@@ -59,7 +60,7 @@ namespace Vernuntii.HeightConventions
                 hashCode.AddEnumerable(Rules, KeyValuePairEqualityComparer<int, IHeightRule>.Default);
             }
 
-            hashCode.Add(StartHeight);
+            hashCode.Add(InitialHeight);
             return hashCode.ToHashCode();
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.HeightConventions.Rules
+﻿namespace Vernuntii.HeightConventions
 {
     /// <summary>
     /// Represents a build height rule.

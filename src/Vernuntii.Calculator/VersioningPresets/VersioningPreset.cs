@@ -1,5 +1,4 @@
 ﻿using Vernuntii.HeightConventions;
-using Vernuntii.HeightConventions.Rules;
 using Vernuntii.MessageVersioning;
 using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.MessageConventions;

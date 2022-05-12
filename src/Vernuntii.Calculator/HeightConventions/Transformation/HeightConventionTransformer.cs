@@ -1,5 +1,4 @@
-﻿using Vernuntii.HeightConventions.Rules;
-using Vernuntii.SemVer;
+﻿using Vernuntii.SemVer;
 
 namespace Vernuntii.HeightConventions.Transformation
 {
@@ -77,28 +76,26 @@ namespace Vernuntii.HeightConventions.Transformation
                 string? result = null;
 
                 if (placeholderParseResult.PlaceholderType == HeightPlaceholderType.Empty) {
-                    EnsureEitherExpandingOrTemplating();
-
                     if (HasEmptyPlaceholder()) {
-                        throw new NotSupportedException("Only one empty identifier (e.g. \"{y}.\") is allowed to increase total identifiers by one");
+                        throw new NotSupportedException("Only one empty identifier (e.g. \"{y}.\") is allowed in expansion");
                     }
 
                     emptyPlaceholderCounter++;
+                    EnsureEitherExpandingOrTemplating();
                 } else if (placeholderParseResult.PlaceholderType == HeightPlaceholderType.Identifiers) {
                     IncreaseAssumedDots(dots);
                     result = dottedIdentifier;
                 } else if (placeholderParseResult.PlaceholderType == HeightPlaceholderType.IdentifierIndex) {
                     result = dotSplittedIdentifiers[(int)placeholderParseResult.Content!];
                 } else if (placeholderParseResult.PlaceholderType == HeightPlaceholderType.Height) {
-                    EnsureEitherExpandingOrTemplating();
-
                     if (IsHeightIndicated()) {
-                        throw new NotSupportedException("Only one height indicator is allowed");
+                        throw new NotSupportedException("Only one height indicator is allowed when templating");
                     }
 
                     assumedHeightIndex = i;
-                    // We now that height can be empty or even malformed.
+                    EnsureEitherExpandingOrTemplating();
                     assumedIdentifiers[i] = dotSplittedIdentifiers[i];
+                    // We know that height can be empty or even malformed.
                     continue;
                 } else {
                     throw new InvalidOperationException("Bad placeholder type");
@@ -113,7 +110,7 @@ namespace Vernuntii.HeightConventions.Transformation
 
             if (!IsHeightIndicated()) {
                 if (!usedDots.Add(dots)) {
-                    throw new InvalidOperationException($"Cyclic dependency detected with dots: {dots}");
+                    throw new InvalidOperationException($"Cyclic dependency detected (Dots = {dots})");
                 }
 
                 dotSplittedIdentifiers = assumedIdentifiers;
@@ -128,7 +125,7 @@ namespace Vernuntii.HeightConventions.Transformation
             void EnsureEitherExpandingOrTemplating()
             {
                 if (HasEmptyPlaceholder() && IsHeightIndicated()) {
-                    throw new InvalidOperationException("");
+                    throw new InvalidOperationException("The height indicator cannot be used when expanding");
                 }
             }
 
@@ -138,7 +135,7 @@ namespace Vernuntii.HeightConventions.Transformation
                 var tooManyDots = assumedDots - 1 - dots;
 
                 if (tooManyDots > 0) {
-                    throw new InvalidOperationException($"You can only increase total identifiers by one");
+                    throw new InvalidOperationException($"You can only expand by a total of one identifier");
                 }
             }
         }

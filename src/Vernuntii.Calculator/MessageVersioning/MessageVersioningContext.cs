@@ -130,16 +130,16 @@ namespace Vernuntii.MessageVersioning
         private VersionHeightInformations CurrentVersionContainsHeightIncrement()
         {
             var startVersionTransformResult = HeightIdentifierTransformer.Transform(VersionCalculationOptions.StartVersion);
-            var currentVersionTransformrResult = HeightIdentifierTransformer.Transform(CurrentVersion);
+            var currentVersionTransformResult = HeightIdentifierTransformer.Transform(CurrentVersion);
             var versionNumberParser = CurrentVersion.GetParserOrStrict().VersionParser;
 
-            _ = currentVersionTransformrResult.TryParseHeight(versionNumberParser, out var currentVersionHeight);
+            _ = currentVersionTransformResult.TryParseHeight(versionNumberParser, out var currentVersionHeight);
             _ = startVersionTransformResult.TryParseHeight(versionNumberParser, out var startVersionHeight);
 
             var currentVersionContainsHeightIncrement = (currentVersionHeight.HasValue && !startVersionHeight.HasValue)
                 || currentVersionHeight > startVersionHeight;
 
-            return new VersionHeightInformations(currentVersionTransformrResult, currentVersionHeight, currentVersionContainsHeightIncrement);
+            return new VersionHeightInformations(currentVersionTransformResult, currentVersionHeight, currentVersionContainsHeightIncrement);
         }
 
         private void ResetCurrentVersionContainingInformations()

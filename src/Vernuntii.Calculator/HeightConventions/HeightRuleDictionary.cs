@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Collections.Extensions;
 
-namespace Vernuntii.HeightConventions.Rules
+namespace Vernuntii.HeightConventions
 {
     /// <summary>
     /// Contains instances of <see cref="IHeightRule"/>.

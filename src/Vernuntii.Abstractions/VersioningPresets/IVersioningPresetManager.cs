@@ -46,7 +46,7 @@ namespace Vernuntii.VersioningPresets
         /// <param name="name"></param>
         /// <param name="preset"></param>
         /// <param name="mappings"></param>
-        void Add(string name, IVersioningPreset preset, VersioningPresetMappings mappings = VersioningPresetMappings.Everything);
+        void Add(string name, IVersioningPreset preset, VersioningPresetMap mappings = VersioningPresetMap.Everything);
 
         /// <summary>
         /// Clears all versioning presets, message conventions, message indicators and height conventions.

@@ -28,12 +28,12 @@ namespace Vernuntii.VersioningPresets
         private Manager _manager = new Manager();
 
         /// <summary>
-        /// Adds a preset with name and what it actually includes.
+        /// Adds a preset with name and what it can actually map.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="preset"></param>
         /// <param name="mappings"></param>
-        public void Add(string name, IVersioningPreset preset, VersioningPresetMappings mappings = VersioningPresetMappings.Everything) =>
+        public void Add(string name, IVersioningPreset preset, VersioningPresetMap mappings = VersioningPresetMap.Everything) =>
             _manager.Add(name, preset, mappings: mappings);
 
         /// <inheritdoc/>
@@ -117,12 +117,12 @@ namespace Vernuntii.VersioningPresets
             /// <param name="name"></param>
             /// <param name="preset"></param>
             /// <param name="mappings"></param>
-            public void Add(string name, IVersioningPreset preset, VersioningPresetMappings mappings = VersioningPresetMappings.Everything)
+            public void Add(string name, IVersioningPreset preset, VersioningPresetMap mappings = VersioningPresetMap.Everything)
             {
-                var mapVersioningPreset = mappings.HasFlag(VersioningPresetMappings.VersioningPreset);
-                var mapIncrementFlow = mappings.HasFlag(VersioningPresetMappings.IncrementFlow);
-                var mapMessageConvention = mappings.HasFlag(VersioningPresetMappings.MessageConvention);
-                var mapHeightConvention = mappings.HasFlag(VersioningPresetMappings.HeightConvention);
+                var mapVersioningPreset = mappings.HasFlag(VersioningPresetMap.VersioningPreset);
+                var mapIncrementFlow = mappings.HasFlag(VersioningPresetMap.IncrementFlow);
+                var mapMessageConvention = mappings.HasFlag(VersioningPresetMap.MessageConvention);
+                var mapHeightConvention = mappings.HasFlag(VersioningPresetMap.HeightConvention);
 
                 if (mapVersioningPreset) {
                     EnsureNotReservedPresetName(name);
