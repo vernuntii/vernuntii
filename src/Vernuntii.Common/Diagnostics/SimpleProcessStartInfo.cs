@@ -1,7 +1,10 @@
 ﻿using System.Diagnostics;
 
-namespace Vernuntii.Git.Diagnostics
+namespace Vernuntii.Diagnostics
 {
+    /// <summary>
+    /// The start info of a process.
+    /// </summary>
     internal class SimpleProcessStartInfo
     {
         internal ProcessStartInfo ProcessStartInfo;

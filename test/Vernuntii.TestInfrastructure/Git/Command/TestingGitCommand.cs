@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.Git.Command
+﻿using Vernuntii.Text;
+
+namespace Vernuntii.Git.Command
 {
     internal class TestingGitCommand : GitCommand
     {

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Vernuntii.Git.Diagnostics;
+using Vernuntii.Diagnostics;
+using Vernuntii.Text;
 
 namespace Vernuntii.Git.Command
 {

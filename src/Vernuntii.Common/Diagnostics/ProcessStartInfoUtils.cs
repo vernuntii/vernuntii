@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Text;
 
-namespace Vernuntii.Git.Diagnostics
+namespace Vernuntii.Diagnostics
 {
     internal static class ProcessStartInfoUtils
     {

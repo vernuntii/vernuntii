@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Vernuntii.Git.Diagnostics
+namespace Vernuntii.Diagnostics
 {
     [Serializable]
     internal class ProcessNotSpawnedException : Exception

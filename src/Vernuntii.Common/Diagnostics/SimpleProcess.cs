@@ -3,8 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Teronis.Extensions;
 
-namespace Vernuntii.Git.Diagnostics
+namespace Vernuntii.Diagnostics
 {
+    /// <summary>
+    /// Represents the aquivalent of <see cref="Process"/>
+    /// </summary>
     internal class SimpleProcess : IDisposable, ISimpleProcess
     {
         #region factory methods
@@ -238,7 +241,7 @@ namespace Vernuntii.Git.Diagnostics
         {
         }
 
-        private static Exception CreateProcessNotStartedException() => (Exception)new ProcessNotSpawnedException();
+        private static Exception CreateProcessNotStartedException() => new ProcessNotSpawnedException();
 
         /// <summary>Starts the process.</summary>
         /// <exception cref="InvalidOperationException">Process already created.</exception>

@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.Git.Diagnostics
+﻿namespace Vernuntii.Diagnostics
 {
     internal class NonZeroExitCodeException : Exception
     {
@@ -18,18 +18,18 @@
         {
         }
 
-        public NonZeroExitCodeException(int exitCode) => this.ExitCode = exitCode;
+        public NonZeroExitCodeException(int exitCode) => ExitCode = exitCode;
 
         public NonZeroExitCodeException(int exitCode, string? message)
           : base(message)
         {
-            this.ExitCode = exitCode;
+            ExitCode = exitCode;
         }
 
         public NonZeroExitCodeException(int exitCode, string? message, Exception? innerException)
           : base(message, innerException)
         {
-            this.ExitCode = exitCode;
+            ExitCode = exitCode;
         }
     }
 }

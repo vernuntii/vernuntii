@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.Git.Diagnostics
+﻿namespace Vernuntii.Diagnostics
 {
     internal class SimpleAsyncProcess : SimpleProcess, ISimpleAsyncProcess, IDisposable
     {

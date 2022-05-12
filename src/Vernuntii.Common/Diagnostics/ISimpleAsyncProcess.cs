@@ -1,15 +1,13 @@
-﻿using System;
-
-namespace Vernuntii.Git.Diagnostics
+﻿namespace Vernuntii.Diagnostics
 {
-    internal interface ISimpleProcess : IDisposable
+    internal interface ISimpleAsyncProcess : IDisposable
     {
         string? CommandEchoPrefix { get; }
         bool EchoCommand { get; }
         bool HasProcessStarted { get; }
 
         void Start();
-        int WaitForExit();
+        Task<int> WaitForExitAsync();
         void Kill();
     }
 }

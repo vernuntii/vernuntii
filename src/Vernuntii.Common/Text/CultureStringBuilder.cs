@@ -2,22 +2,37 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Vernuntii.Git.Command
+namespace Vernuntii.Text
 {
-    internal readonly struct CultureStringBuilder
+    /// <summary>
+    /// A string builder that is culture aware.
+    /// </summary>
+    public readonly struct CultureStringBuilder
     {
+        /// <summary>
+        /// Creates a string builder with <see cref="CultureInfo.InvariantCulture"/> as default.
+        /// </summary>
         public static CultureStringBuilder Invariant() =>
             new CultureStringBuilder(CultureInfo.InvariantCulture);
 
         private readonly StringBuilder _stringBuilder;
         private readonly CultureInfo _culture;
 
+        /// <summary>
+        /// Creates an instance of this type.
+        /// </summary>
+        /// <param name="stringBuilder"></param>
+        /// <param name="culture"></param>
         public CultureStringBuilder(StringBuilder stringBuilder, CultureInfo culture)
         {
             _stringBuilder = stringBuilder;
             _culture = culture;
         }
 
+        /// <summary>
+        /// Creates an instance of this type including a new <see cref="StringBuilder"/>.
+        /// </summary>
+        /// <param name="culture"></param>
         public CultureStringBuilder(CultureInfo culture)
         {
             _stringBuilder = new StringBuilder();
@@ -47,9 +62,11 @@ namespace Vernuntii.Git.Command
         public override string ToString() =>
             _stringBuilder.ToString();
 
+        /// <inheritdoc/>
         public static implicit operator StringBuilder(CultureStringBuilder stringBuilder) =>
             stringBuilder._stringBuilder;
 
+        /// <inheritdoc/>
         public static implicit operator string(CultureStringBuilder stringBuilder) =>
             stringBuilder.ToString();
     }
