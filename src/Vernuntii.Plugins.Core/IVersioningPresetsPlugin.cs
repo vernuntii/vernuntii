@@ -1,6 +1,7 @@
-﻿using Vernuntii.VersioningPresets;
+﻿using Vernuntii.PluginSystem;
+using Vernuntii.VersioningPresets;
 
-namespace Vernuntii.PluginSystem
+namespace Vernuntii.Plugins
 {
     /// <summary>
     /// A plugin to manage versioning presets.

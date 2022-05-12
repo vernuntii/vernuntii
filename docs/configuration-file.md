@@ -8,14 +8,12 @@ The configuration file is the heart of Vernuntii. By defining properties you cha
 The configuration file will be auto-discovered when the file name meets the following rules:
 
 - Has the **file name** `vernuntii`
-- Ends with `.json`, `.yaml` or `.yml`
+- Ends with `.json`, `.yaml` or `.yml` (recommended) using their respective file format
 
-So available filenames and formats are `vernuntii.json`, `vernuntii.yaml` and `vernuntii.yml` (recommended).
+Depending on integration the following working directory is assumed where the search for the configuration file is beginning and is going upwards until the root (`C:\` or `/`):
 
-Depending on integration you use the following working directory and therefore default location to start the searching from:
-
-- MSBuild Integration: root directory of project that has the MSBuild integration installed
-- GitHub Actions (`vernuntii/actions/execute`): current working directory at the time where the action was called
+- MSBuild Integration: directory of project that has the MSBuild integration installed
+- GitHub Actions (`vernuntii/actions/execute`): current working directory at the time where the action is called
 
 <!-- omit in toc -->
 # Table of contents

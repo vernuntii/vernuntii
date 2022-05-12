@@ -1,8 +1,10 @@
 ﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using Vernuntii.Plugins.Events;
+using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 
-namespace Vernuntii.PluginSystem
+namespace Vernuntii.Plugins
 {
     /// <summary>
     /// A plugin that contains shared options for <see cref="INextVersionPlugin"/>

@@ -9,9 +9,11 @@ using Serilog.Events;
 using Serilog.Expressions;
 using Serilog.Templates;
 using Serilog.Templates.Themes;
+using Vernuntii.Plugins.Events;
+using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 
-namespace Vernuntii.PluginSystem
+namespace Vernuntii.Plugins
 {
     /// <summary>
     /// This plugin implements logging capabilities.

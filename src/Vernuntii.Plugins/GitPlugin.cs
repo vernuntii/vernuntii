@@ -5,9 +5,11 @@ using Vernuntii.Console;
 using Vernuntii.Extensions;
 using Vernuntii.Extensions.BranchCases;
 using Vernuntii.Git;
+using Vernuntii.Plugins.Events;
+using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 
-namespace Vernuntii.PluginSystem;
+namespace Vernuntii.Plugins;
 
 /// <summary>
 /// The git plugin.

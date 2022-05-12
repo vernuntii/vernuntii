@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.PluginSystem.Events
+﻿using Vernuntii.PluginSystem.Events;
+
+namespace Vernuntii.Plugins.Events
 {
     /// <summary>
     /// Events for <see cref="ILoggingPlugin"/>.

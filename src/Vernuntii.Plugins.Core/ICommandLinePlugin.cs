@@ -1,7 +1,8 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Builder;
+using Vernuntii.PluginSystem;
 
-namespace Vernuntii.PluginSystem;
+namespace Vernuntii.Plugins;
 
 /// <summary>
 /// The commandline plugin.

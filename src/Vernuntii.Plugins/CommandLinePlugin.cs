@@ -3,9 +3,11 @@ using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
+using Vernuntii.Plugins.Events;
+using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 
-namespace Vernuntii.PluginSystem
+namespace Vernuntii.Plugins
 {
     /// <summary>
     /// The commandline plugin

@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vernuntii.Configuration;
 using Vernuntii.Extensions.BranchCases;
 using Vernuntii.MessageConventions;
-using Vernuntii.PluginSystem;
+using Vernuntii.Plugins;
 using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersioningPresets;
 

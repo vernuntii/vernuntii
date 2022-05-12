@@ -7,7 +7,7 @@ using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersioningPresets;
 using Xunit;
 
-namespace Vernuntii.PluginSystem
+namespace Vernuntii.Plugins
 {
     public class VersioningPresetsPluginTests
     {

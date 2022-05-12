@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Vernuntii.PluginSystem</RootNamespace>
+    <RootNamespace>Vernuntii.Plugins</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
@@ -22,7 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" />
     <ProjectReference Include="..\Vernuntii.PluginSystem.Core\Vernuntii.PluginSystem.Core.csproj" />
-    <ProjectReference Include="..\Vernuntii.SemVer\Vernuntii.SemVer.csproj" />
   </ItemGroup>
 
 </Project>

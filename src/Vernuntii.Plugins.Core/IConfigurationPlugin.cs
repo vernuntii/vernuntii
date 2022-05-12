@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Vernuntii.PluginSystem;
 
-namespace Vernuntii.PluginSystem
+namespace Vernuntii.Plugins
 {
     /// <summary>
     /// The plugin provides a global <see cref="IConfiguration"/> instance.

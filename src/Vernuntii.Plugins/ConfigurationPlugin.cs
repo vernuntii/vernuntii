@@ -5,9 +5,11 @@ using Vernuntii.Configuration;
 using Vernuntii.Configuration.Json;
 using Vernuntii.Configuration.Yaml;
 using Vernuntii.Extensions;
+using Vernuntii.Plugins.Events;
+using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 
-namespace Vernuntii.PluginSystem
+namespace Vernuntii.Plugins
 {
     /// <summary>
     /// The plugin provides a global <see cref="IConfiguration"/> instance.

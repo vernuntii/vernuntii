@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using Vernuntii.PluginSystem;
 
-namespace Vernuntii.PluginSystem
+namespace Vernuntii.Plugins
 {
     /// <summary>
     /// This plugin implements logging procedures.

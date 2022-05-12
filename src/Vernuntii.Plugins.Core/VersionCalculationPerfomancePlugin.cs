@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using Microsoft.Extensions.Logging;
+using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 
-namespace Vernuntii
+namespace Vernuntii.Plugins
 {
     /// <summary>
     /// Measures the time the application was alive.

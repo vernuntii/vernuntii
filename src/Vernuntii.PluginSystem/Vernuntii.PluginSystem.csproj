@@ -1,13 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Experimental.Collections" Version="1.0.6-e190117-3" />
-  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.PluginSystem.Core\Vernuntii.PluginSystem.Core.csproj" />

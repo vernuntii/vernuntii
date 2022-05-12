@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using Vernuntii.Plugins;
+using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 

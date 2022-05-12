@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.PluginSystem
+﻿using Vernuntii.PluginSystem;
+
+namespace Vernuntii.Plugins
 {
     /// <summary>
     /// The git plugin.

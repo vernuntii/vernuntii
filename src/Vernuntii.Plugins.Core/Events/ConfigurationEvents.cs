@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Vernuntii.PluginSystem.Events;
 
-namespace Vernuntii.PluginSystem.Events
+namespace Vernuntii.Plugins.Events
 {
     /// <summary>
     /// Events for <see cref="IConfigurationPlugin"/>.

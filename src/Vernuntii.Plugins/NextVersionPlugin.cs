@@ -9,11 +9,13 @@ using Vernuntii.Autofac;
 using Vernuntii.Console;
 using Vernuntii.Extensions;
 using Vernuntii.Extensions.VersionFoundation;
+using Vernuntii.Plugins.Events;
+using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 using Vernuntii.VersionPresentation;
 using Vernuntii.VersionPresentation.Serializers;
 
-namespace Vernuntii.PluginSystem
+namespace Vernuntii.Plugins
 {
     /// <summary>
     /// Plugin that produces the next version and writes it to console.

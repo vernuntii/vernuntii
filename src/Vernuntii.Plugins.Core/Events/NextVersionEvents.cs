@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Vernuntii.PluginSystem.Events;
 using Vernuntii.SemVer;
 
-namespace Vernuntii.PluginSystem.Events
+namespace Vernuntii.Plugins.Events
 {
     /// <summary>
     /// Events for <see cref="INextVersionPlugin"/>.
