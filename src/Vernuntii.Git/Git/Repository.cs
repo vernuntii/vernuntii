@@ -37,7 +37,7 @@ namespace Vernuntii.Git
             _logGitDirectory = LoggerMessage.Define<string>(
                 LogLevel.Information,
                 new EventId(2),
-                @"Use repository directory: {GitDirectory}");
+                "Use repository directory: {GitDirectory}");
 
             _logBranches = LoggerMessage.Define<string>(
                 LogLevel.Debug,
@@ -96,7 +96,7 @@ namespace Vernuntii.Git
                 var path = Path.Combine(directory.FullName, GitFolderOrFileName);
                 return File.Exists(path) || Directory.Exists(path);
             }, new DirectoryInfo(_options.GitDirectory), includeBeginningDirectory: true)
-                ?? throw new InvalidOperationException("Did not find a parent directory containing a .git-directory or .git-file")).FullName;
+                ?? throw new InvalidOperationException("Could not find a parent directory containing a .git-directory or .git-file")).FullName;
 
         /// <inheritdoc/>
         public string GetGitDirectory() =>
@@ -131,17 +131,6 @@ namespace Vernuntii.Git
         {
             var activeBranchName = GitCommand.GetActiveBranchName();
             return Branches[activeBranchName] ?? throw new InvalidOperationException($"Active branch \"{activeBranchName}\" is not retrievable");
-        }
-
-        private record InvalidCommitVersion : CommitVersion
-        {
-            public static readonly InvalidCommitVersion Invalid = new InvalidCommitVersion();
-            public static readonly Type Type = typeof(InvalidCommitVersion);
-
-            private InvalidCommitVersion()
-                : base(string.Empty)
-            {
-            }
         }
 
         /// <inheritdoc/>

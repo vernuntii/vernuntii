@@ -32,11 +32,11 @@ namespace Vernuntii.Git.Command
         public GitReference(string objectName, string referenceName)
         {
             if (string.IsNullOrWhiteSpace(objectName)) {
-                throw new ArgumentException("'objectName' cannot be null or whitespace.", nameof(objectName));
+                throw new ArgumentException($"'{nameof(objectName)}' cannot be null or whitespace.", nameof(objectName));
             }
 
             if (string.IsNullOrWhiteSpace(referenceName)) {
-                throw new ArgumentException("'referenceName' cannot be null or whitespace.", nameof(referenceName));
+                throw new ArgumentException($"'{nameof(referenceName)}' cannot be null or whitespace.", nameof(referenceName));
             }
 
             ObjectName = objectName;
