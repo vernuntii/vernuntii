@@ -4,7 +4,7 @@ namespace Vernuntii.SemVer.Parser.Slicing
 {
     public class SemanticVersionSlicerTest
     {
-        private static IEnumerable<object?[]> TrySliceShouldSliceGenerator()
+        public static IEnumerable<object?[]> TrySliceShouldSliceGenerator()
         {
             yield return new object?[] { null, new SliceResult(false) };
             yield return new object?[] { "", new SliceResult(false, "", "") };

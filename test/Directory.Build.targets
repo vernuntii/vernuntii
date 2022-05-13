@@ -1,0 +1,25 @@
+<Project>
+
+	<PropertyGroup>
+		<AllowPackageReferenceWithVersion>true</AllowPackageReferenceWithVersion>
+	</PropertyGroup>
+
+	<!-- #region Workaround -->
+	<!-- TODO: Remove this region after https://github.com/microsoft/MSBuildSdks/pull/203 is merged -->
+	<ItemGroup Condition=" '$(AllowPackageReferenceWithVersion)' == 'true' ">
+		<!-- Store package references with version to avoid check -->
+		<_OriginalPackageReferenceWithVersion Include="@(PackageReference->HasMetadata('Version'))" />
+		<PackageReference Remove="@(_OriginalPackageReferenceWithVersion)" />
+	</ItemGroup>
+
+	<Target Name="RestoreOriginalPackageReferenceWithVersion" AfterTargets="CheckPackageReferences" Condition=" '$(AllowPackageReferenceWithVersion)' == 'true' AND @(_OriginalPackageReferenceWithVersion->Count()) > 0 ">
+		<!-- Restore staged package references -->
+		<ItemGroup>
+			<PackageReference Include="@(_OriginalPackageReferenceWithVersion)" />
+		</ItemGroup>
+	</Target>
+	<!-- #endregion -->
+
+	<Sdk Name="Microsoft.Build.CentralPackageVersions" Version="2.0.1" />
+	
+</Project>

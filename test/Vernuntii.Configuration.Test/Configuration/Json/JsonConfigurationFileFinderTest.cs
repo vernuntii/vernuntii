@@ -14,7 +14,7 @@ public class JsonConfigurationFileFinderTest : IClassFixture<ConfigurationFixtur
     public JsonConfigurationFileFinderTest(ConfigurationFixture configurationFixture) =>
         _configurationFixture = configurationFixture;
 
-    private static IEnumerable<object?[]> GenerateJsonConfigurationFileSearchData()
+    public static IEnumerable<object?[]> GenerateJsonConfigurationFileSearchData()
     {
         yield return new object?[] { JsonEmptyDirectory, default(string) };
         yield return new object?[] { JsonEmptyDirectory, JsonConfigurationFileDefaults.JsonFileName };

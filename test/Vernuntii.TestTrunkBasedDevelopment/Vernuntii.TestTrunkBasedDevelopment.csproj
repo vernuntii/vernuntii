@@ -3,10 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Vernuntii</RootNamespace>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Vernuntii.Calculator\Vernuntii.Calculator.csproj" />
+    <ProjectReference Include="..\..\src\Vernuntii.Plugins\Vernuntii.Plugins.csproj" />
   </ItemGroup>
 
 </Project>

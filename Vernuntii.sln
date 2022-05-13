@@ -8,6 +8,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.MSBuild", "src\Vernuntii.Console.MSBuild\Vernuntii.Console.MSBuild.csproj", "{B7701F5E-ED65-4312-A56F-171F1E2B77C8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{06659068-D20B-480F-B1E6-A80EF8E63052}"
+	ProjectSection(SolutionItems) = preProject
+		test\Directory.Build.props = test\Directory.Build.props
+		test\Directory.Build.targets = test\Directory.Build.targets
+		test\Packages.props = test\Packages.props
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Calculator", "src\Vernuntii.Calculator\Vernuntii.Calculator.csproj", "{3D24C67E-91A8-4B2F-A5C1-EC18EB077230}"
 EndProject
@@ -52,6 +57,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Plugins.Test", "test\Vernuntii.Plugins.Test\Vernuntii.Plugins.Test.csproj", "{CD3D7280-88AF-4F78-86F8-8AE40DDCD9C2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Common", "src\Vernuntii.Common\Vernuntii.Common.csproj", "{C0402E89-66C0-4CC6-82F8-2C8D62445407}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.TestTrunkBasedDevelopment", "test\Vernuntii.TestTrunkBasedDevelopment\Vernuntii.TestTrunkBasedDevelopment.csproj", "{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -351,6 +358,18 @@ Global
 		{C0402E89-66C0-4CC6-82F8-2C8D62445407}.Release|x64.Build.0 = Release|Any CPU
 		{C0402E89-66C0-4CC6-82F8-2C8D62445407}.Release|x86.ActiveCfg = Release|Any CPU
 		{C0402E89-66C0-4CC6-82F8-2C8D62445407}.Release|x86.Build.0 = Release|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Debug|x64.Build.0 = Debug|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Debug|x86.Build.0 = Debug|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Release|x64.ActiveCfg = Release|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Release|x64.Build.0 = Release|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Release|x86.ActiveCfg = Release|Any CPU
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -363,6 +382,7 @@ Global
 		{38029887-2EBA-4D0D-BA38-630648346425} = {06659068-D20B-480F-B1E6-A80EF8E63052}
 		{22E7E414-0F08-44CA-A94E-C08D05F0AE54} = {06659068-D20B-480F-B1E6-A80EF8E63052}
 		{CD3D7280-88AF-4F78-86F8-8AE40DDCD9C2} = {06659068-D20B-480F-B1E6-A80EF8E63052}
+		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A} = {06659068-D20B-480F-B1E6-A80EF8E63052}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {77AFFA73-2852-4E5F-9745-04AFF4A74A7D}

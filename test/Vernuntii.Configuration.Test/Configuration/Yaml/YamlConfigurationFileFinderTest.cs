@@ -18,7 +18,7 @@ public class YamlConfigurationFileFinderTest : IClassFixture<ConfigurationFixtur
     public YamlConfigurationFileFinderTest(ConfigurationFixture configurationFixture) =>
         _configurationFixture = configurationFixture;
 
-    private static IEnumerable<object?[]> YamlFileFinderShouldFindFileGenerator()
+    public static IEnumerable<object?[]> YamlFileFinderShouldFindFileGenerator()
     {
         yield return new object?[] { YmlConfigFile, YmlEmptyDirectory, default(string) };
         { /* This superfluous block is required, otherwise I hit false positive in windows defender ._. */ }

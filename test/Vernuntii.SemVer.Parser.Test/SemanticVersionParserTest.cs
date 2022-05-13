@@ -62,7 +62,7 @@ namespace Vernuntii.SemVer.Parser
             yield return new object?[] { parser, "1.1.1+.a", new ParseResult(false, "", 1, 1, 1) };
         }
 
-        private static IEnumerable<object?[]> TryParseShouldParseStrictGenerator()
+        public static IEnumerable<object?[]> TryParseShouldParseStrictGenerator()
         {
             var parser = new SemanticVersionParser();
 
@@ -75,7 +75,7 @@ namespace Vernuntii.SemVer.Parser
             }
         }
 
-        private static IEnumerable<object?[]> TryParseShouldParseEraseGenerator()
+        public static IEnumerable<object?[]> TryParseShouldParseEraseGenerator()
         {
             var parser = SemanticVersionParser.Erase;
 

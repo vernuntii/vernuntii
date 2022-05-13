@@ -12,7 +12,7 @@ namespace Vernuntii.VersioningPresets
 {
     public class FlowDownstreamWhenZeroMajorTests
     {
-        private static IEnumerable<object[]> BuildIncrementShouldTransformVersionsGenerator()
+        public static IEnumerable<object[]> BuildIncrementShouldTransformVersionsGenerator()
         {
             yield return new object[] {
                 SemanticVersion.OnePatch,
