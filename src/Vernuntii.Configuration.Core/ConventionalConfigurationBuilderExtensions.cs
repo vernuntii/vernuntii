@@ -8,7 +8,7 @@ namespace Vernuntii.Configuration
     /// </summary>
     public static class ConventionalConfigurationBuilderExtensions
     {
-        private static HashSet<string> EliminateDuplicate(IEnumerable<string> fileNames) =>
+        private static HashSet<string> EliminateDuplicates(IEnumerable<string> fileNames) =>
             new HashSet<string>(fileNames);
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace Vernuntii.Configuration
             IEnumerable<string> fileNames,
             [NotNullWhen(true)] out string? addedFilePath,
             Action<IFileShadowedConfigurationProviderBuilderConfigurer>? configureProviderBuilder = null) =>
-            builder.TryAddFirstConventionalFileCore(directoryPath, EliminateDuplicate(fileNames), out addedFilePath, configureProviderBuilder);
+            builder.TryAddFirstConventionalFileCore(directoryPath, EliminateDuplicates(fileNames), out addedFilePath, configureProviderBuilder);
 
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -113,7 +113,7 @@ namespace Vernuntii.Configuration
             out string addedFilePath,
             Action<IFileShadowedConfigurationProviderBuilderConfigurer>? configureProviderBuilder = null)
         {
-            var uniqueFileNames = EliminateDuplicate(fileNames);
+            var uniqueFileNames = EliminateDuplicates(fileNames);
 
             if (!builder.TryAddFirstConventionalFileCore(
                 directoryPath,
@@ -150,12 +150,17 @@ namespace Vernuntii.Configuration
                 fileNames = alternativeFileNames;
             } else {
                 directory = Path.GetDirectoryName(fileOrDirectory) ?? throw new ArgumentException("File path didn't include directory path", nameof(fileOrDirectory));
+
+                if (directory == string.Empty) {
+                    directory = Directory.GetCurrentDirectory();
+                }
+
                 var fileName = Path.GetFileName(fileOrDirectory);
                 fileNames = fileName == null ? alternativeFileNames : new[] { fileName };
             }
 
             fileOrDirectory = directory;
-            var uniqueFileNames = EliminateDuplicate(fileNames);
+            var uniqueFileNames = EliminateDuplicates(fileNames);
             alternativeFileNames = uniqueFileNames;
 
             return builder.TryAddFirstConventionalFileCore(

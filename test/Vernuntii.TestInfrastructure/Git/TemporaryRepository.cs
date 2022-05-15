@@ -60,6 +60,15 @@ namespace Vernuntii.Git
         public void Checkout(string branchName) =>
             GitCommand.Checkout(branchName);
 
+        public IReadOnlyCollection<ICommitVersion> GetCommitVersions(bool unsetCache)
+        {
+            if (unsetCache) {
+                UnsetCommitVersions();
+            }
+
+            return GetCommitVersions();
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (_isDisposed) {
@@ -88,7 +97,7 @@ namespace Vernuntii.Git
             _isDisposed = true;
         }
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);

@@ -6,6 +6,7 @@ using Vernuntii.Git;
 using Vernuntii.VersionFoundation;
 using Vernuntii.VersionFoundation.Caching;
 using Teronis;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.Extensions.VersionFoundation
 {
@@ -76,7 +77,7 @@ namespace Vernuntii.Extensions.VersionFoundation
         }
 
         private static bool ShouldUpdateCache(
-            [NotNullWhen(false)] ISemanticVersionFoundation? versionFoundation,
+            [NotNullWhen(false)] ISemanticVersionFoundation<SemanticVersion>? versionFoundation,
             string activeBranchCommitSha,
             bool useLastAccessRetentionTime,
             TimeSpan? lastAccessRetentionTime,

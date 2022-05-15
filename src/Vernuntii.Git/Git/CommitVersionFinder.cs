@@ -78,7 +78,7 @@ namespace Vernuntii.Git
         /// </summary>
         /// <param name="findingOptions"></param>
         /// <returns><inheritdoc/></returns>
-        public ICommitVersion? FindCommitVersion(CommitVersionFindingOptions findingOptions)
+        public IPositonalCommitVersion? FindCommitVersion(CommitVersionFindingOptions findingOptions)
         {
             var branchName = findingOptions.BranchName;
             var sinceCommit = findingOptions.SinceCommit;
@@ -86,6 +86,7 @@ namespace Vernuntii.Git
             LogLatestVersionSearch(branchName, sinceCommit, preReleaseToFind);
 
             var versionByCommitDictionary = GetVersionTags();
+            var currentCommitGap = 0;
 
             foreach (var commit in _commitsAccessor.GetCommits(
                 branchName: findingOptions.BranchName,
@@ -94,12 +95,10 @@ namespace Vernuntii.Git
                 if (versionByCommitDictionary.TryGetValue(commit.Sha, out var version)) {
                     if (_options.PreReleaseMatcher is null) {
                         _logger.LogWarning("A pre-release matcher to find the latest commit version was not found, so fallback has matched the first appearing commit version: {Version}", version);
-                    } else {
-                        if (!_options.PreReleaseMatcher.IsMatch(
-                            preReleaseToFind: preReleaseToFind,
-                            preReleaseCandiate: version.PreRelease)) {
-                            continue;
-                        }
+                    } else if (!_options.PreReleaseMatcher.IsMatch(
+                        preReleaseToFind: preReleaseToFind,
+                        preReleaseCandiate: version.PreRelease)) {
+                        continue;
                     }
 
                     //var isVersionReleaseEmpty = string.IsNullOrEmpty(version.PreRelease);
@@ -114,7 +113,7 @@ namespace Vernuntii.Git
                     //    }
                     //}
 
-                    return new CommitVersion(version, commit.Sha);
+                    return new PositionalCommitVersion(version, commit.Sha, currentCommitGap++);
                 }
             }
 

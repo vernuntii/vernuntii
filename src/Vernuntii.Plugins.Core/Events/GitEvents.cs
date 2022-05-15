@@ -27,5 +27,10 @@ namespace Vernuntii.Plugins.Events
         /// Event when calculation service collection has been configured.
         /// </summary>
         public readonly static SubjectEvent<IServiceCollection> ConfiguredCalculationServices = new SubjectEvent<IServiceCollection>();
+
+        /// <summary>
+        /// Event that clears the cache of the repository.
+        /// </summary>
+        public readonly static SubjectEvent UnsetRepositoryCache = new SubjectEvent();
     }
 }

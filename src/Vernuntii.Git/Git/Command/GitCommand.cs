@@ -20,7 +20,7 @@ namespace Vernuntii.Git.Command
             var actualExitCode = ExecuteCommand(args);
 
             if (actualExitCode != expectedExitCode) {
-                throw new InvalidOperationException($"Git returned unexpected exit code: {expectedExitCode} (Actual = {actualExitCode}, Args = {args})");
+                throw new InvalidOperationException($"Git returned unexpected exit code (Expected = expectedExitCode, Actual = {actualExitCode}, Args = \"{args}\")");
             }
         }
 

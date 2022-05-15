@@ -132,33 +132,14 @@ namespace Vernuntii.Extensions
         /// <summary>
         /// Adds a version cache
         /// </summary>
-        /// <param name="options"></param>
-        public static IGitFeatures AddCommitVersionFindingCache(this IGitFeatures options)
+        /// <param name="features"></param>
+        public static IGitFeatures AddCommitVersionFindingCache(this IGitFeatures features)
         {
-            var services = options.Services;
-
+            var services = features.Services;
             services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<CommitVersionFinderOptions>>().Value);
             services.TryAddSingleton<ICommitVersionFinder, CommitVersionFinder>();
-
-            services.TryAddSingleton(sp => {
-                var commitVersionFinder = sp.GetRequiredService<ICommitVersionFinder>();
-                var findingOptions = sp.GetRequiredService<IOptions<CommitVersionFindingOptions>>().Value;
-                var commitVersion = commitVersionFinder.FindCommitVersion(findingOptions);
-                bool commitVersionCoreAlreadyReleased;
-
-                if (commitVersion != null) {
-                    commitVersionCoreAlreadyReleased = commitVersionFinder.IsVersionCoreReleased(commitVersion);
-                } else {
-                    commitVersionCoreAlreadyReleased = false;
-                }
-
-                return new CommitVersionFindingCache() {
-                    CommitVersion = commitVersion,
-                    CommitVersionCoreAlreadyReleased = commitVersionCoreAlreadyReleased
-                };
-            });
-
-            return options;
+            services.TryAddSingleton<CommitVersionFindingCache>();
+            return features;
         }
 
         /// <summary>
@@ -174,9 +155,7 @@ namespace Vernuntii.Extensions
             features.AddCommitVersionFindingCache();
 
             services.AddOptions<SemanticVersionCalculationOptions>()
-                .Configure<IServiceProvider>((options, sp) => {
-                    var findingCache = sp.GetService<CommitVersionFindingCache>();
-
+                .Configure<CommitVersionFindingCache>((options, findingCache) => {
                     if (findingCache?.CommitVersion != null) {
                         options.StartVersion = findingCache.CommitVersion;
                         options.StartVersionCoreAlreadyReleased = findingCache.CommitVersionCoreAlreadyReleased;

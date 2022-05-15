@@ -20,7 +20,7 @@ namespace Vernuntii.Plugins
         {
             Events.SubscribeOnce(LoggingEvents.EnabledLoggingInfrastructure, plugin => _logger = plugin.CreateLogger<VersionCalculationPerfomancePlugin>());
 
-            Events.SubscribeOnce(NextVersionEvents.CalculatedNextVersion, version =>
+            Events.Subscribe(NextVersionEvents.CalculatedNextVersion, version =>
                 _logger.LogInformation("Loaded version {Version} in {LoadTime}", version, $"{_stopwatch.Elapsed.ToString("s\\.f", CultureInfo.InvariantCulture)}s"));
         }
     }

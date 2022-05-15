@@ -123,7 +123,12 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
 
         LogMessageCountHavingProcessed(messageCounter, messageInvolvedIntoTransformationCounter);
 
-        if (options.CanPostTransform) {
+        // If there are no messages but start version
+        // is a pre-release then we still want to
+        // transform the pre-release.
+        if (options.IsPostTransformerUsable
+            && (messageCounter > 0
+                || options.StartVersion.IsPreRelease)) {
             var currentVersion = nextVersion;
             nextVersion = options.PostTransformer.TransformVersion(nextVersion);
             LogVersionPostTransformation(currentVersion, nextVersion);

@@ -5,12 +5,13 @@ namespace Vernuntii.VersionFoundation
     /// <summary>
     /// The facts of produced semantic version.
     /// </summary>
-    public interface ISemanticVersionFoundation
+    public interface ISemanticVersionFoundation<out TVersion>
+        where TVersion : ISemanticVersion
     {
         /// <summary>
         /// The version.
         /// </summary>
-        SemanticVersion Version { get; }
+        TVersion Version { get; }
         /// <summary>
         /// The branch name.
         /// </summary>

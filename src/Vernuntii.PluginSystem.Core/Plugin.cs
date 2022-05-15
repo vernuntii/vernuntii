@@ -10,6 +10,8 @@ namespace Vernuntii.PluginSystem
         /// <inheritdoc/>
         public virtual int? Order { get; }
 
+        private bool _isDisposed;
+
         /// <summary>
         /// Represents the plugin registry.
         /// </summary>
@@ -26,8 +28,23 @@ namespace Vernuntii.PluginSystem
         private IPluginEventCache? _eventAggregator;
         private List<IDisposable> _disposables = new List<IDisposable>();
 
-        internal void AddDisposable(IDisposable disposable) =>
-            _disposables.Add(disposable);
+        /// <summary>
+        /// Adds a disposable that gets disposed when the plugin gets disposed.
+        /// If the plugin has been already disposed <paramref name="disposable"/>
+        /// gets immediatelly disposed.
+        /// </summary>
+        /// <param name="disposable"></param>
+        protected internal T AddDisposable<T>(T disposable)
+            where T : IDisposable
+        {
+            if (_isDisposed) {
+                disposable.Dispose();
+            } else {
+                _disposables.Add(disposable);
+            }
+
+            return disposable;
+        }
 
         /// <summary>
         /// Called when this plugin gets added. It gives
@@ -96,39 +113,6 @@ namespace Vernuntii.PluginSystem
             return OnEventsAsync();
         }
 
-        ///// <summary>
-        ///// Subscribes to event that gets canceled when the plugin is disposed.
-        ///// </summary>
-        ///// <typeparam name="TEvent"></typeparam>
-        ///// <param name="action"></param>
-        //protected void SubscribeEvent<TEvent>(Action action)
-        //    where TEvent : PubSubEvent, new() =>
-        //    AddDisposable(Events.GetEvent<TEvent>().Subscribe(action));
-
-        ///// <summary>
-        ///// Subscribes to event that gets canceled when the plugin is disposed.
-        ///// </summary>
-        ///// <typeparam name="TEvent"></typeparam>
-        ///// <typeparam name="TPayload"></typeparam>
-        ///// <param name="action"></param>
-        //protected void SubscribeEvent<TEvent, TPayload>(Action<TPayload> action)
-        //    where TEvent : PubSubEvent<TPayload>, new() =>
-        //    AddDisposable(Events.GetEvent<TEvent>().Subscribe(action));
-
-        ///// <summary>
-        ///// Subscribes to event that gets canceled when the plugin is disposed.
-        ///// </summary>
-        ///// <typeparam name="TEvent"></typeparam>
-        ///// <typeparam name="TPayload"></typeparam>
-        ///// <param name="discriminator"></param>
-        ///// <param name="action"></param>
-        ///// <returns>The actual event you can subscribe to.</returns>
-        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Roslynator", "RCS1163:Unused parameter.", Justification = "<Pending>")]
-        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-        //protected void SubscribeEvent<TEvent, TPayload>(PubSubEvent<TEvent, TPayload> discriminator, Action<TPayload> action)
-        //    where TEvent : PubSubEvent<TEvent, TPayload>, new() =>
-        //    AddDisposable(Events.GetEvent<TEvent>().Subscribe(action));
-
         /// <summary>
         /// Called when plugin gets explictly destroyed.
         /// </summary>
@@ -161,6 +145,8 @@ namespace Vernuntii.PluginSystem
             foreach (var disposable in _disposables) {
                 disposable.Dispose();
             }
+
+            _isDisposed = true;
         }
 
         /// <inheritdoc/>
@@ -182,20 +168,5 @@ namespace Vernuntii.PluginSystem
             /// </summary>
             public bool AcceptRegistration { get; set; } = true;
         }
-
-        ///// <summary>
-        ///// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources asynchronously.
-        ///// </summary>
-        ///// <returns>A task that represents the asynchronous dispose operation.</returns>
-        //protected virtual ValueTask DisposeAsyncCore() =>
-        //    ValueTask.CompletedTask;
-
-        ///// <inheritdoc/>
-        //public async ValueTask DisposeAsync()
-        //{
-        //    await DisposeAsyncCore();
-        //    Dispose(disposing: false);
-        //    GC.SuppressFinalize(this);
-        //}
     }
 }

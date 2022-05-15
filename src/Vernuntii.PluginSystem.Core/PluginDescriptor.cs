@@ -10,7 +10,7 @@
         /// </summary>
         /// <typeparam name="TService"></typeparam>
         /// <param name="plugin"></param>
-        public static PluginDescriptor Create<TService>(IPlugin plugin)
+        public static PluginDescriptor Create<TService>(TService plugin)
             where TService : IPlugin =>
             new PluginDescriptor(typeof(TService), plugin);
 

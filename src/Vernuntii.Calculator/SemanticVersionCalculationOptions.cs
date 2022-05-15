@@ -57,7 +57,7 @@ namespace Vernuntii
         /// Indicates whether <see cref="PostTransformer"/> is not null and is capable to tranform.
         /// </summary>
         [MemberNotNullWhen(true, nameof(PostTransformer))]
-        public bool CanPostTransform => PostTransformer is not null && !PostTransformer.DoesNotTransform;
+        public bool IsPostTransformerUsable => PostTransformer.CanTransform();
 
         /// <summary>
         /// Look to the future whether the final version is about to be a release or a pre-release version.

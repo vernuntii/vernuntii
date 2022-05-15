@@ -1,4 +1,5 @@
-﻿using Vernuntii.SemVer;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionTransformers
 {
@@ -7,6 +8,13 @@ namespace Vernuntii.VersionTransformers
     /// </summary>
     public static class SemanticVersionTransformerExtensions
     {
+        /// <summary>
+        /// Checks <paramref name="transformer"/> is not null and can transform.
+        /// </summary>
+        /// <param name="transformer"></param>
+        public static bool CanTransform([NotNullWhen(true)] this ISemanticVersionTransformer? transformer) =>
+            transformer is not null && !transformer.DoesNotTransform;
+
         /// <summary>
         /// Transforms the version.
         /// </summary>

@@ -7,7 +7,7 @@ namespace Vernuntii.VersionFoundation
     /// <summary>
     /// A semantic version foundation.
     /// </summary>
-    public class SemanticVersionFoundation : ISemanticVersionFoundation
+    public class SemanticVersionFoundation : ISemanticVersionFoundation<SemanticVersion>, ISemanticVersionFoundation
     {
         /// <summary>
         /// Creates a semantic version foundation.
@@ -32,6 +32,8 @@ namespace Vernuntii.VersionFoundation
         public DateTime? ExpirationTime { get; }
         /// <inheritdoc/>
         public DateTime? LastAccessTime { get; set; }
+
+        ISemanticVersion ISemanticVersionFoundation<ISemanticVersion>.Version => Version;
 
         /// <summary>
         /// Creates an instance of this.

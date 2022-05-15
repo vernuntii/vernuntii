@@ -11,5 +11,6 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
+		<PackageReference Update="Xunit.Priority" Version="1.1.6" />
 	</ItemGroup>
 </Project>

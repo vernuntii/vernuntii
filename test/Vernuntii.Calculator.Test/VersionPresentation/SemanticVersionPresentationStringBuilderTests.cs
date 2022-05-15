@@ -1,5 +1,4 @@
-﻿using System;
-using Moq;
+﻿using Moq;
 using Vernuntii.SemVer;
 using Vernuntii.VersionFoundation;
 using Vernuntii.VersionPresentation.Serializers;
@@ -20,7 +19,7 @@ namespace Vernuntii.VersionPresentation
             SemanticVersionPresentationView presentationView)
         {
             var foundation = Mock.Of<ISemanticVersionFoundation>(x =>
-                x.Version == SemanticVersion.Zero);
+                x.Version.Equals(SemanticVersion.Zero));
 
             var formattedVersion = new SemanticVersionPresentationStringBuilder(foundation)
                 .UsePresentationKind(presentationKind)

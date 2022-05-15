@@ -100,7 +100,7 @@ namespace Vernuntii.Plugins
         {
             Events.SubscribeOnce(CommandLineEvents.SetCommandLineArgs, args => CommandLineArgs = args);
             Events.SubscribeOnce(CommandLineEvents.ParseCommandLineArgs, ParseCommandLineArgs);
-            Events.SubscribeOnce(CommandLineEvents.InvokeRootCommand, InvokeRootCommand);
+            Events.Subscribe(CommandLineEvents.InvokeRootCommand, InvokeRootCommand);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.PluginSystem.Events;
 using Vernuntii.SemVer;
+using Vernuntii.VersionFoundation;
 
 namespace Vernuntii.Plugins.Events
 {
@@ -37,6 +38,8 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when next version has been calculated.
         /// </summary>
-        public readonly static SubjectEvent<ISemanticVersion> CalculatedNextVersion = new SubjectEvent<ISemanticVersion>();
+        public readonly static SubjectEvent<ISemanticVersionFoundation> CalculatedNextVersion = new SubjectEvent<ISemanticVersionFoundation>();
+
+
     }
 }

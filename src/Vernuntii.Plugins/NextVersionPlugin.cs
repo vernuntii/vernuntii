@@ -104,23 +104,29 @@ namespace Vernuntii.Plugins
         private TimeSpan? _cacheCreationRetentionTime;
         private TimeSpan? _cacheLastAccessRetentionTime;
         private bool _emptyCaches;
+        private LifetimeScopedServiceProvider? _globalServiceProvider;
 
         /// <inheritdoc/>
         protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
             await Plugins.TryRegisterAsync<NextVersionOptionsPlugin>();
 
+        private LifetimeScopedServiceProvider CreateGlobalServiceProvider()
+        {
+            IServiceCollection globalServices = new ServiceCollection();
+            Events.Publish(NextVersionEvents.CreatedGlobalServices, globalServices);
+
+            globalServices.AddLogging(builder => _loggingPlugin.Bind(builder));
+            Events.Publish(NextVersionEvents.ConfiguredGlobalServices, globalServices);
+
+            return AddDisposable(globalServices.BuildLifetimeScopedServiceProvider());
+        }
+
         private int ProduceVersionOutput()
         {
             try {
-                IServiceCollection globalServices = new ServiceCollection();
-                Events.Publish(NextVersionEvents.CreatedGlobalServices, globalServices);
+                _globalServiceProvider ??= CreateGlobalServiceProvider();
 
-                globalServices.AddLogging(builder => _loggingPlugin.Bind(builder));
-                Events.Publish(NextVersionEvents.ConfiguredGlobalServices, globalServices);
-
-                using var globalServiceProvider = globalServices.BuildLifetimeScopedServiceProvider();
-
-                using var calculationServiceProvider = globalServiceProvider.CreateScope(services => {
+                using var calculationServiceProvider = _globalServiceProvider.CreateScope(services => {
                     Events.Publish(NextVersionEvents.CreatedCalculationServices, services);
 
                     services.ConfigureVernuntii(features => features
@@ -149,7 +155,7 @@ namespace Vernuntii.Plugins
                     creationRetentionTime: _cacheCreationRetentionTime,
                     lastAccessRetentionTime: _cacheLastAccessRetentionTime);
 
-                Events.Publish(NextVersionEvents.CalculatedNextVersion, presentationFoundation.Version);
+                Events.Publish(NextVersionEvents.CalculatedNextVersion, presentationFoundation);
 
                 var formattedVersion = new SemanticVersionPresentationStringBuilder(presentationFoundation)
                     .UsePresentationKind(_presentationKind)

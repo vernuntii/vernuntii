@@ -69,7 +69,7 @@ public class GitPlugin : Plugin, IGitPlugin
             Events.Publish(GitEvents.ConfiguredGlobalServices, services);
         });
 
-        Events.SubscribeOnce(NextVersionEvents.ConfiguredCalculationServices, services => {
+        Events.Subscribe(NextVersionEvents.ConfiguredCalculationServices, services => {
             Events.Publish(GitEvents.ConfiguringCalculationServices, services);
 
             services.ConfigureVernuntii(features => features
@@ -96,15 +96,17 @@ public class GitPlugin : Plugin, IGitPlugin
 
         IRepository repository = null!;
 
-        Events.SubscribeOnce(
+        Events.Subscribe(
                 NextVersionEvents.CreatedCalculationServiceProvider,
                 sp => repository = sp.GetRequiredService<IRepository>());
 
-        Events.SubscribeOnce(
-            NextVersionEvents.CalculatedNextVersion, version => {
-                if (_duplicateVersionFails && repository.HasCommitVersion(version)) {
+        Events.Subscribe(
+            NextVersionEvents.CalculatedNextVersion, versionFoundation => {
+                if (_duplicateVersionFails && repository.HasCommitVersion(versionFoundation.Version)) {
                     _nextVersionPlugin.ExitCodeOnSuccess = (int)ExitCode.VersionDuplicate;
                 }
             });
+
+        Events.Subscribe(GitEvents.UnsetRepositoryCache, () => repository?.UnsetCache());
     }
 }

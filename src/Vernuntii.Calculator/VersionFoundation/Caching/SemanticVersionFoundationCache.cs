@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Teronis.IO.FileLocking;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionFoundation.Caching
 {
     internal class SemanticVersionFoundationCache<T> : ISemanticVersionFoundationCache<T>
-        where T : class, ISemanticVersionFoundation
+        where T : class, ISemanticVersionFoundation<SemanticVersion>
     {
         private readonly static FileStreamLocker deleteOnCloseFileLocker = new FileStreamLocker(new DeleteOnCloseLockFileSystem());
 

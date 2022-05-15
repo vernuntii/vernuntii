@@ -15,11 +15,32 @@ namespace Vernuntii.PluginSystem.Events
         /// <param name="eventTemplate"></param>
         /// <param name="onNext"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
+        public static IDisposable Subscribe<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> eventTemplate, Action<TPayload> onNext) =>
+            eventCache.GetEvent(eventTemplate).Subscribe(onNext);
+
+        /// <summary>
+        /// Subscribes an element handler to an observable sequence.
+        /// </summary>
+        /// <param name="eventCache"></param>
+        /// <param name="eventTemplate"></param>
+        /// <param name="onNext"></param>
+        /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
+        public static IDisposable Subscribe(this IEventCache eventCache, SubjectEvent eventTemplate, Action onNext) =>
+            eventCache.GetEvent(eventTemplate).Subscribe(_ => onNext());
+
+        /// <summary>
+        /// Subscribes an element handler to an observable sequence. Once called the element handler gets disposed and won't be called again.
+        /// </summary>
+        /// <typeparam name="TPayload"></typeparam>
+        /// <param name="eventCache"></param>
+        /// <param name="eventTemplate"></param>
+        /// <param name="onNext"></param>
+        /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
         public static IDisposable SubscribeOnce<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> eventTemplate, Action<TPayload> onNext) =>
             eventCache.GetEvent(eventTemplate).Take(1).Subscribe(onNext);
 
         /// <summary>
-        /// Subscribes an element handler to an observable sequence.
+        /// Subscribes an element handler to an observable sequence. Once called the element handler gets disposed and won't be called again.
         /// </summary>
         /// <param name="eventCache"></param>
         /// <param name="eventTemplate"></param>

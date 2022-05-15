@@ -15,7 +15,7 @@ namespace Vernuntii.Git
 
         internal GitCommand GitCommand => _gitCommand ??= CreateCommand();
 
-        private bool areCommitVersionsInitialized;
+        private bool _areCommitVersionsInitialized;
         private RepositoryOptions _options;
         private readonly ILogger<Repository> _logger;
         private GitCommand? _gitCommand;
@@ -106,17 +106,23 @@ namespace Vernuntii.Git
         public IEnumerable<ICommitTag> GetCommitTags() =>
             GitCommand.GetCommitTags();
 
+        internal void UnsetCommitVersions()
+        {
+            _commitVersions.Clear();
+            _areCommitVersionsInitialized = false;
+        }
+
         /// <inheritdoc/>
         public IReadOnlyCollection<ICommitVersion> GetCommitVersions()
         {
-            if (!areCommitVersionsInitialized) {
+            if (!_areCommitVersionsInitialized) {
                 foreach (var commitTag in GetCommitTags()) {
                     if (SemanticVersion.TryParse(commitTag.TagName, out var version)) {
                         _commitVersions.Add(new CommitVersion(version, commitTag.CommitSha));
                     }
                 }
 
-                areCommitVersionsInitialized = true;
+                _areCommitVersionsInitialized = true;
             }
 
             return _commitVersions;
@@ -141,6 +147,15 @@ namespace Vernuntii.Git
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Unsets cache that will lead to reload some data on request.
+        /// </summary>
+        public void UnsetCache()
+        {
+            _branches = null;
+            UnsetCommitVersions();
         }
     }
 }

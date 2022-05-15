@@ -29,10 +29,16 @@ public static class ConsoleToolProgram
     /// <param name="args">arguments</param>
     /// <param name="pluginDescriptors"></param>
     /// <returns>exit code</returns>
-    public static Task<int> RunAsync(string[] args, IEnumerable<PluginDescriptor>? pluginDescriptors = null)
+    public static async Task<int> RunAsync(string[] args, IEnumerable<PluginDescriptor>? pluginDescriptors = null)
     {
         var pluginDescriptor = PluginDescriptor.Create<FileLocationPlugin>();
-        return ConsoleProgram.RunAsync(args, pluginDescriptors?.Prepend(pluginDescriptor) ?? new[] { pluginDescriptor });
+
+        await using var vernuntiiRunner = new VernuntiiRunner() {
+            ConsoleArgs = args,
+            PluginDescriptors = pluginDescriptors?.Prepend(pluginDescriptor) ?? new[] { pluginDescriptor }
+        };
+
+        return await vernuntiiRunner.RunConsoleAsync();
     }
 
     /// <summary>

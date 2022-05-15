@@ -1,0 +1,3 @@
+﻿VersioningMode: ContinousDelivery
+PreRelease: SNAPSHOT
+PreReleaseEscapes:
