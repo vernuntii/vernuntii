@@ -5,7 +5,7 @@ using Vernuntii.SemVer;
 namespace Vernuntii.VersionFoundation.Caching
 {
     internal class SemanticVersionFoundationCache<T> : ISemanticVersionFoundationCache<T>
-        where T : class, ISemanticVersionFoundation<SemanticVersion>
+        where T : class, IVersionFoundation<SemanticVersion>
     {
         private readonly static FileStreamLocker deleteOnCloseFileLocker = new FileStreamLocker(new DeleteOnCloseLockFileSystem());
 

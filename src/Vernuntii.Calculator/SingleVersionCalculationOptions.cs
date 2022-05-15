@@ -11,7 +11,7 @@ namespace Vernuntii
     /// <summary>
     /// The options class for the next version calculation.
     /// </summary>
-    public sealed class SemanticVersionCalculationOptions
+    public sealed class SingleVersionCalculationOptions
     {
         private static ISemanticVersion GetNonNullVersionOrThrow(ISemanticVersion? version) =>
             version ?? throw new ArgumentNullException(nameof(version));

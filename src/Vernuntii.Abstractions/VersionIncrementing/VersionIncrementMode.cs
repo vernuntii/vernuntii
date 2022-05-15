@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.MessageVersioning
+﻿namespace Vernuntii.VersionIncrementing
 {
     /// <summary>
     /// Version increment mode.

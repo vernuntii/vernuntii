@@ -5,7 +5,7 @@ namespace Vernuntii.VersionFoundation
     /// <summary>
     /// The facts of produced semantic version.
     /// </summary>
-    public interface ISemanticVersionFoundation<out TVersion>
+    public interface IVersionFoundation<out TVersion>
         where TVersion : ISemanticVersion
     {
         /// <summary>

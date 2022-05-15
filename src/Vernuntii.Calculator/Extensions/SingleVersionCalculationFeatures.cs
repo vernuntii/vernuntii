@@ -3,11 +3,11 @@ using Vernuntii.Extensions;
 
 namespace Vernuntii
 {
-    internal class SemanticVersionCalculationFeatures : ISemanticVersionCalculationFeatures
+    internal class SingleVersionCalculationFeatures : ISingleVersionCalculationFeatures
     {
         public IServiceCollection Services { get; }
 
-        public SemanticVersionCalculationFeatures(IServiceCollection services) => 
+        public SingleVersionCalculationFeatures(IServiceCollection services) => 
             Services = services;
     }
 }

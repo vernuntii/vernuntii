@@ -1,7 +1,7 @@
 ﻿using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
-using Vernuntii.MessageVersioning;
 using Vernuntii.VersionIncrementFlows;
+using Vernuntii.VersionIncrementing;
 
 namespace Vernuntii.VersioningPresets
 {

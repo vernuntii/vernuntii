@@ -3,9 +3,9 @@
 namespace Vernuntii.Extensions
 {
     /// <summary>
-    /// Configures the extensions of <see cref="SemanticVersionCalculation"/>.
+    /// Configures features of <see cref="SingleVersionCalculator"/>.
     /// </summary>
-    public interface ISemanticVersionCalculationFeatures
+    public interface ISingleVersionCalculatorFeatures
     {
         /// <summary>
         /// The initial services.

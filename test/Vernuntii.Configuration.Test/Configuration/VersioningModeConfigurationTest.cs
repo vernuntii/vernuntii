@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Vernuntii.Extensions.BranchCases;
-using Vernuntii.MessageVersioning;
+using Vernuntii.VersionIncrementing;
 using Vernuntii.VersioningPresets;
 using Xunit;
 using static Vernuntii.Extensions.ServiceCollectionFixture;

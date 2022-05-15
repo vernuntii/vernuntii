@@ -4,7 +4,7 @@ using Vernuntii.VersionTransformers;
 
 namespace Vernuntii.Extensions.Configurers
 {
-    internal class PreReleaseConfigurer : GitConfigurer, IPreReleaseConfigurer, IConfigureOptions<CommitVersionFindingOptions>, IConfigureOptions<SemanticVersionCalculationOptions>
+    internal class PreReleaseConfigurer : GitConfigurer, IPreReleaseConfigurer, IConfigureOptions<CommitVersionFindingOptions>, IConfigureOptions<SingleVersionCalculationOptions>
     {
         private bool _handleSearchPreReleaseIdentifier;
         private string? _searchPreReleaseIdentifier;
@@ -35,7 +35,7 @@ namespace Vernuntii.Extensions.Configurers
             }
         }
 
-        public void Configure(SemanticVersionCalculationOptions options)
+        public void Configure(SingleVersionCalculationOptions options)
         {
             if (_handlePostPreReleaseIdentifier) {
                 options.PostTransformer = new PreReleaseTransformer(_postPreReleaseIdentifier);

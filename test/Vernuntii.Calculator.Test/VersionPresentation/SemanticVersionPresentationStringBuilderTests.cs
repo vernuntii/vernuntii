@@ -18,7 +18,7 @@ namespace Vernuntii.VersionPresentation
             SemanticVersionPresentationKind presentationKind,
             SemanticVersionPresentationView presentationView)
         {
-            var foundation = Mock.Of<ISemanticVersionFoundation>(x =>
+            var foundation = Mock.Of<IVersionFoundation>(x =>
                 x.Version.Equals(SemanticVersion.Zero));
 
             var formattedVersion = new SemanticVersionPresentationStringBuilder(foundation)

@@ -155,11 +155,11 @@ namespace Vernuntii.Console
         /// Runs Vernuntii for getting the next version.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task<ISemanticVersionFoundation> RunAsync()
+        public async Task<IVersionFoundation> RunAsync()
         {
             await PrepareRunCoreOnceAsync();
             EnsureHavingPluginEvents();
-            ISemanticVersionFoundation? versionFoundation = null;
+            IVersionFoundation? versionFoundation = null;
 
             _pluginEvents.SubscribeOnce(
                 NextVersionEvents.CalculatedNextVersion,

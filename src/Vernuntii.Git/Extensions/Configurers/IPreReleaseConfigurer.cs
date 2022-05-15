@@ -24,7 +24,7 @@ namespace Vernuntii.Extensions.Configurers
         void SetSearchPreRelease(string? preRelease);
 
         /// <summary>
-        /// Sets <see cref="SemanticVersionCalculationOptions.PostTransformer"/> to
+        /// Sets <see cref="SingleVersionCalculationOptions.PostTransformer"/> to
         /// <see cref="PreReleaseTransformer"/> with <paramref name="preRelease"/>.
         /// </summary>
         /// <param name="preRelease"></param>

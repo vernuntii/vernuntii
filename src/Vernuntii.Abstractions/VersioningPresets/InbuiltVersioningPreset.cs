@@ -1,4 +1,4 @@
-﻿using Vernuntii.MessageVersioning;
+﻿using Vernuntii.VersionIncrementing;
 
 namespace Vernuntii.VersioningPresets
 {

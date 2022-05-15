@@ -4,11 +4,11 @@ using Vernuntii.MessageConventions;
 using Vernuntii.MessagesProviders;
 using Vernuntii.VersionTransformers;
 
-namespace Vernuntii.MessageVersioning
+namespace Vernuntii.VersionIncrementing
 {
     internal class VersionIncrementBuilder : IVersionIncrementBuilder
     {
-        public IEnumerable<ISemanticVersionTransformer> BuildIncrement(IMessage message, MessageVersioningContext context)
+        public IEnumerable<ISemanticVersionTransformer> BuildIncrement(IMessage message, VersionIncrementContext context)
         {
             var messageContent = message.Content;
             var versioningPreset = context.VersionCalculationOptions.VersioningPreset;
@@ -69,10 +69,10 @@ namespace Vernuntii.MessageVersioning
                 {
                     return isMessageIncrementingVersion
                         // and if version core is reserved we want to increment at least once
-                        && ((startVersionCoreAlreadyReleased && !doesCurrentVersionContainsIncrement)
+                        && (startVersionCoreAlreadyReleased && !doesCurrentVersionContainsIncrement
                             // or 
-                            || (allowIncrementBecauseReleaseOrDisabledHeight
-                                && (allowUnlimitedIncrements || !doesCurrentVersionContainsIncrement)));
+                            || allowIncrementBecauseReleaseOrDisabledHeight
+                                && (allowUnlimitedIncrements || !doesCurrentVersionContainsIncrement));
                 }
             }
 

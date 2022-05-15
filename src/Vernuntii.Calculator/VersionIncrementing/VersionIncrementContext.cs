@@ -1,17 +1,17 @@
 ﻿using Vernuntii.HeightConventions.Transformation;
 using Vernuntii.SemVer;
 
-namespace Vernuntii.MessageVersioning
+namespace Vernuntii.VersionIncrementing
 {
     /// <summary>
     /// Represents the context for <see cref="VersionIncrementBuilder"/>.
     /// </summary>
-    public record MessageVersioningContext
+    public record VersionIncrementContext
     {
         /// <summary>
         /// The options of on-going calculation.
         /// </summary>
-        public SemanticVersionCalculationOptions VersionCalculationOptions { get; }
+        public SingleVersionCalculationOptions VersionCalculationOptions { get; }
 
         /// <summary>
         /// The current version before the next transformation is applied.
@@ -91,7 +91,7 @@ namespace Vernuntii.MessageVersioning
         /// Creates an instance of this type.
         /// </summary>
         /// <param name="versionCalculationOptions"></param>
-        public MessageVersioningContext(SemanticVersionCalculationOptions versionCalculationOptions)
+        public VersionIncrementContext(SingleVersionCalculationOptions versionCalculationOptions)
         {
             VersionCalculationOptions = versionCalculationOptions;
             HeightIdentifierTransformer = versionCalculationOptions.CreateHeightIdentifierTransformer();
@@ -101,7 +101,7 @@ namespace Vernuntii.MessageVersioning
         /// Creates an instance of this type.
         /// </summary>
         /// <param name="context"></param>
-        public MessageVersioningContext(MessageVersioningContext context)
+        public VersionIncrementContext(VersionIncrementContext context)
         {
             VersionCalculationOptions = context.VersionCalculationOptions;
             HeightIdentifierTransformer = context.HeightIdentifierTransformer;
@@ -117,15 +117,15 @@ namespace Vernuntii.MessageVersioning
 
         private bool CurrentVersionContainsMinorIncrement() =>
             DoesCurrentVersionContainsMajorIncrement
-            || (CurrentVersion.Major == VersionCalculationOptions.StartVersion.Major
-                && CurrentVersion.Minor > VersionCalculationOptions.StartVersion.Minor);
+            || CurrentVersion.Major == VersionCalculationOptions.StartVersion.Major
+                && CurrentVersion.Minor > VersionCalculationOptions.StartVersion.Minor;
 
         private bool CurrentVersionContainsPatchIncrement() =>
             DoesCurrentVersionContainsMajorIncrement
             || DoesCurrentVersionContainsMinorIncrement
-            || (CurrentVersion.Major == VersionCalculationOptions.StartVersion.Major
+            || CurrentVersion.Major == VersionCalculationOptions.StartVersion.Major
                 && CurrentVersion.Minor == VersionCalculationOptions.StartVersion.Minor
-                && CurrentVersion.Patch > VersionCalculationOptions.StartVersion.Patch);
+                && CurrentVersion.Patch > VersionCalculationOptions.StartVersion.Patch;
 
         private VersionHeightInformations CurrentVersionContainsHeightIncrement()
         {
@@ -136,7 +136,7 @@ namespace Vernuntii.MessageVersioning
             _ = currentVersionTransformResult.TryParseHeight(versionNumberParser, out var currentVersionHeight);
             _ = startVersionTransformResult.TryParseHeight(versionNumberParser, out var startVersionHeight);
 
-            var currentVersionContainsHeightIncrement = (currentVersionHeight.HasValue && !startVersionHeight.HasValue)
+            var currentVersionContainsHeightIncrement = currentVersionHeight.HasValue && !startVersionHeight.HasValue
                 || currentVersionHeight > startVersionHeight;
 
             return new VersionHeightInformations(currentVersionTransformResult, currentVersionHeight, currentVersionContainsHeightIncrement);

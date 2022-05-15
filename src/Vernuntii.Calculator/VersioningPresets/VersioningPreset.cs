@@ -1,8 +1,8 @@
 ﻿using Vernuntii.HeightConventions;
-using Vernuntii.MessageVersioning;
 using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.MessageConventions;
 using Vernuntii.VersionIncrementFlows;
+using Vernuntii.VersionIncrementing;
 
 namespace Vernuntii.VersioningPresets
 {

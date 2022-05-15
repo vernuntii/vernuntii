@@ -2,11 +2,11 @@
 
 namespace Vernuntii.Extensions
 {
-    internal class SemanticVersionCalculatorFeatures : ISemanticVersionCalculatorFeatures
+    internal class SingleVersionCalculatorFeatures : ISingleVersionCalculatorFeatures
     {
         public IServiceCollection Services { get; }
 
-        public SemanticVersionCalculatorFeatures(IServiceCollection services) =>
+        public SingleVersionCalculatorFeatures(IServiceCollection services) =>
             Services = services;
     }
 }

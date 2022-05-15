@@ -9,11 +9,11 @@ using Vernuntii.VersionTransformers;
 namespace Vernuntii.Extensions
 {
     /// <summary>
-    /// Extension methods for <see cref="ISemanticVersionCalculationFeatures"/>.
+    /// Extension methods for <see cref="ISingleVersionCalculationFeatures"/>.
     /// </summary>
-    public static class SemanticVersionCalculationFeaturesExtensions
+    public static class SingleVersionCalculationFeaturesExtensions
     {
-        private static void SetSemanticVersionCalculationOptionsMessagesProvider(ISemanticVersionCalculationFeatures features) =>
+        private static void SetVersionCalculationOptionsMessagesProvider(ISingleVersionCalculationFeatures features) =>
             features.ConfigureCalculationOptions(options => options
                 .Configure<IMessagesProvider>((options, messagesProvider) => options.MessagesProvider = messagesProvider));
 
@@ -23,8 +23,8 @@ namespace Vernuntii.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="extensions"></param>
         /// <param name="messagesProviderFactory"></param>
-        public static ISemanticVersionCalculationFeatures UseMessagesProvider<T>(
-            this ISemanticVersionCalculationFeatures extensions,
+        public static ISingleVersionCalculationFeatures UseMessagesProvider<T>(
+            this ISingleVersionCalculationFeatures extensions,
             Func<IServiceProvider, T> messagesProviderFactory)
             where T : class, IMessagesProvider
         {
@@ -33,7 +33,7 @@ namespace Vernuntii.Extensions
             }
 
             extensions.Services.TryAddSingleton<IMessagesProvider>(messagesProviderFactory);
-            SetSemanticVersionCalculationOptionsMessagesProvider(extensions);
+            SetVersionCalculationOptionsMessagesProvider(extensions);
             return extensions;
         }
 
@@ -42,41 +42,41 @@ namespace Vernuntii.Extensions
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="extensions"></param>
-        public static ISemanticVersionCalculationFeatures UseMessagesProvider<T>(this ISemanticVersionCalculationFeatures extensions)
+        public static ISingleVersionCalculationFeatures UseMessagesProvider<T>(this ISingleVersionCalculationFeatures extensions)
             where T : class, IMessagesProvider
         {
             extensions.Services.TryAddSingleton<IMessagesProvider, T>();
-            SetSemanticVersionCalculationOptionsMessagesProvider(extensions);
+            SetVersionCalculationOptionsMessagesProvider(extensions);
             return extensions;
         }
 
         /// <summary>
-        /// Configures the instance of <see cref="SemanticVersionCalculationOptions"/>.
+        /// Configures the instance of <see cref="SingleVersionCalculationOptions"/>.
         /// </summary>
         /// <param name="extensions"></param>
         /// <param name="configureOptions"></param>
-        public static ISemanticVersionCalculationFeatures ConfigureCalculationOptions(
-            this ISemanticVersionCalculationFeatures extensions,
-            Action<OptionsBuilder<SemanticVersionCalculationOptions>> configureOptions)
+        public static ISingleVersionCalculationFeatures ConfigureCalculationOptions(
+            this ISingleVersionCalculationFeatures extensions,
+            Action<OptionsBuilder<SingleVersionCalculationOptions>> configureOptions)
         {
             if (configureOptions is null) {
                 throw new ArgumentNullException(nameof(configureOptions));
             }
 
-            configureOptions(extensions.Services.AddOptions<SemanticVersionCalculationOptions>());
+            configureOptions(extensions.Services.AddOptions<SingleVersionCalculationOptions>());
             return extensions;
         }
 
         /// <summary>
-        /// Overrides <see cref="SemanticVersionCalculationOptions.StartVersion"/>.
+        /// Overrides <see cref="SingleVersionCalculationOptions.StartVersion"/>.
         /// </summary>
         /// <param name="features"></param>
         /// <param name="startVersion"></param>
-        public static ISemanticVersionCalculationFeatures OverrideStartVersion(
-            this ISemanticVersionCalculationFeatures features,
+        public static ISingleVersionCalculationFeatures OverrideStartVersion(
+            this ISingleVersionCalculationFeatures features,
             SemanticVersion startVersion)
         {
-            features.Services.AddOptions<SemanticVersionCalculationOptions>()
+            features.Services.AddOptions<SingleVersionCalculationOptions>()
                 .Configure(options => options.StartVersion = startVersion);
 
             return features;
@@ -90,7 +90,7 @@ namespace Vernuntii.Extensions
         /// <param name="features"></param>
         /// <param name="configuration"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static ISemanticVersionCalculationFeatures TryOverrideStartVersion(this ISemanticVersionCalculationFeatures features, IConfiguration configuration)
+        public static ISingleVersionCalculationFeatures TryOverrideStartVersion(this ISingleVersionCalculationFeatures features, IConfiguration configuration)
         {
             var startVersionString = configuration.GetValue(CalculatorConfigurationKeys.StartVersion, string.Empty);
 

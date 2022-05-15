@@ -6,7 +6,7 @@ namespace Vernuntii.VersionPresentation
     internal sealed record SemanticVersionPresentation : ISemanticVersionPresentation
     {
         public static SemanticVersionPresentation Create(
-            ISemanticVersionFoundation presentationFoundation,
+            IVersionFoundation presentationFoundation,
             SemanticVersionPresentationPart presentableParts = SemanticVersionPresentationPart.All)
         {
             var versionPresentation = new SemanticVersionPresentation();

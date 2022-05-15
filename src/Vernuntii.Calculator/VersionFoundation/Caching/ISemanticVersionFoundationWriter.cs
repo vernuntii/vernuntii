@@ -1,7 +1,7 @@
 ﻿namespace Vernuntii.VersionFoundation.Caching
 {
     /// <summary>
-    /// Enables to write an instance of <see cref="ISemanticVersionCalculation"/>.
+    /// Enables to write an instance of <see cref="ISingleVersionCalculation"/>.
     /// </summary>
     public interface ISemanticVersionFoundationWriter<in T> : IDisposable
         where T : class

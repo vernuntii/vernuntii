@@ -23,7 +23,7 @@ namespace Vernuntii.VersionPresentation
         /// </summary>
         public const SemanticVersionPresentationView DefaultPresentationSerializer = SemanticVersionPresentationView.Text;
 
-        private readonly ISemanticVersionFoundation _presentationFoundation;
+        private readonly IVersionFoundation _presentationFoundation;
         private SemanticVersionPresentationKind _presentationKind = DefaultPresentationKind;
         private SemanticVersionPresentationPart _presentationParts = DefaultPresentationPart;
         private SemanticVersionPresentationView _presentationView = DefaultPresentationSerializer;
@@ -37,7 +37,7 @@ namespace Vernuntii.VersionPresentation
         /// </code>
         /// </summary>
         /// <param name="presentationFoundation"></param>
-        public SemanticVersionPresentationStringBuilder(ISemanticVersionFoundation presentationFoundation) =>
+        public SemanticVersionPresentationStringBuilder(IVersionFoundation presentationFoundation) =>
             _presentationFoundation = presentationFoundation ?? throw new ArgumentNullException(nameof(presentationFoundation));
 
         /// <summary>

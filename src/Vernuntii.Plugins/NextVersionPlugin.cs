@@ -59,7 +59,7 @@ namespace Vernuntii.Plugins
 
         private Option<string> _cacheIdOption = new Option<string>(new string[] { CacheIdOptionAlias }) {
             Description = "The non-case-sensitive cache id is used to cache the version informations once and load them on next accesses." +
-                $" If {CacheIdOptionAlias} is not specified it is implicitly the internal cache id: {SemanticVersionFoundationProviderOptions.DefaultInternalCacheId}"
+                $" If {CacheIdOptionAlias} is not specified it is implicitly the internal cache id: {VersionFoundationProviderOptions.DefaultInternalCacheId}"
         };
 
         private Option<TimeSpan?> _cacheCreationRetentionTimeOption = new Option<TimeSpan?>(new string[] { "--cache-creation-retention-time" }, parseArgument: result => {
@@ -71,7 +71,7 @@ namespace Vernuntii.Plugins
         }) {
             Description = "The cache retention time since creation. If the time span since creation is greater than then" +
                 " the at creation specified retention time then the version informations is reloaded. Null or empty means the" +
-                $" default creation retention time of {SemanticVersionFoundationProviderOptions.DefaultCacheCreationRetentionTime.TotalHours}" +
+                $" default creation retention time of {VersionFoundationProviderOptions.DefaultCacheCreationRetentionTime.TotalHours}" +
                 " hours is used.",
             Arity = ArgumentArity.ZeroOrOne
         };
@@ -86,7 +86,7 @@ namespace Vernuntii.Plugins
             Description = "The cache retention time since last access. If the time span since last access is greater than the" +
                 " retention time then the version informations is reloaded. Null or empty means this feature is disabled except" +
                 $" if the cache id is implictly or explictly equals to the internal cache id, then the default last access retention time of" +
-                $" {SemanticVersionFoundationProviderOptions.DefaultInternalCacheLastAccessRetentionTime.ToString("s\\.f", CultureInfo.InvariantCulture)}s" +
+                $" {VersionFoundationProviderOptions.DefaultInternalCacheLastAccessRetentionTime.ToString("s\\.f", CultureInfo.InvariantCulture)}s" +
                 " is used.",
             Arity = ArgumentArity.ZeroOrOne
         };
@@ -130,14 +130,14 @@ namespace Vernuntii.Plugins
                     Events.Publish(NextVersionEvents.CreatedCalculationServices, services);
 
                     services.ConfigureVernuntii(features => features
-                        .AddSemanticVersionCalculator()
-                        .AddSemanticVersionCalculation(features => features
+                        .AddSingleVersionCalculator()
+                        .AddSingleVersionCalculation(features => features
                             .TryOverrideStartVersion(_configuration))
                         .AddSemanticVersionFoundationProvider(options => options.EmptyCaches = _emptyCaches));
 
                     if (_options.ShouldOverrideVersioningMode) {
                         services.ConfigureVernuntii(features => features
-                            .AddSemanticVersionCalculation(features => features
+                            .AddSingleVersionCalculation(features => features
                                 .UseVersioningMode(_options.OverrideVersioningMode)));
                     }
 
@@ -147,7 +147,7 @@ namespace Vernuntii.Plugins
                 Events.Publish(NextVersionEvents.CreatedCalculationServiceProvider, calculationServiceProvider);
 
                 //var repository = globalServiceProvider.GetRequiredService<IRepository>();
-                var presentationFoundationProvider = calculationServiceProvider.GetRequiredService<SemanticVersionFoundationProvider>();
+                var presentationFoundationProvider = calculationServiceProvider.GetRequiredService<VersionFoundationProvider>();
 
                 // get cache or calculate version.
                 var presentationFoundation = presentationFoundationProvider.GetFoundation(

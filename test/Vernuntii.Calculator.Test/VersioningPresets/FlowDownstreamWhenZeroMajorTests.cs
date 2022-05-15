@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using Vernuntii.MessageConventions;
+﻿using Vernuntii.MessageConventions;
 using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.MessagesProviders;
-using Vernuntii.MessageVersioning;
+using Vernuntii.VersionIncrementing;
 using Vernuntii.SemVer;
 using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersionTransformers;
@@ -47,7 +46,7 @@ namespace Vernuntii.VersioningPresets
 
             var builder = new VersionIncrementBuilder();
 
-            var context = new MessageVersioningContext(new SemanticVersionCalculationOptions() {
+            var context = new VersionIncrementContext(new SingleVersionCalculationOptions() {
                 StartVersion = startVersion,
                 VersioningPreset = preset
             });

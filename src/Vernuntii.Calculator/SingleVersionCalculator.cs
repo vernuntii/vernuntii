@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Vernuntii.MessagesProviders;
-using Vernuntii.MessageVersioning;
+using Vernuntii.VersionIncrementing;
 using Vernuntii.SemVer;
 using Vernuntii.VersionTransformers;
 
@@ -9,7 +9,7 @@ namespace Vernuntii;
 /// <summary>
 /// Creates the commit messages reader that has the ability to calculate the next semantic version.
 /// </summary>
-public class SemanticVersionCalculator : ISemanticVersionCalculator
+public class SingleVersionCalculator : ISingleVersionCalculator
 {
     private const string _logVersionTransformationTemplate = "Transformed version from {FromVersion} to {ToVersion}";
 
@@ -23,7 +23,7 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
     /// Default constructor.
     /// </summary>
     /// <param name="logger">A logger (optional)</param>
-    public SemanticVersionCalculator(ILogger<SemanticVersionCalculator> logger)
+    public SingleVersionCalculator(ILogger<SingleVersionCalculator> logger)
     {
         _logInitialVersion = LoggerMessage.Define<ISemanticVersion>(
             LogLevel.Information,
@@ -87,13 +87,13 @@ public class SemanticVersionCalculator : ISemanticVersionCalculator
     /// <inheritdoc/>
     /// </summary>
     /// <param name="options"><inheritdoc/></param>
-    public ISemanticVersion CalculateVersion(SemanticVersionCalculationOptions options)
+    public ISemanticVersion CalculateVersion(SingleVersionCalculationOptions options)
     {
         var nextVersion = options.StartVersion;
         LogInitialVersion(nextVersion);
 
         var versionIncrementBuilder = new VersionIncrementBuilder();
-        var versioningContext = new MessageVersioningContext(options);
+        var versioningContext = new VersionIncrementContext(options);
 
         var messages = options.MessagesProvider?.GetMessages();
         var messageCounter = 0;

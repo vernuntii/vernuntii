@@ -105,7 +105,7 @@ namespace Vernuntii.Extensions
             };
 
             services.AddSingleton<IConfigureOptions<CommitVersionFindingOptions>>(sp => configurerProvider(sp));
-            services.AddSingleton<IConfigureOptions<SemanticVersionCalculationOptions>>(sp => configurerProvider(sp));
+            services.AddSingleton<IConfigureOptions<SingleVersionCalculationOptions>>(sp => configurerProvider(sp));
             return extensions;
         }
 
@@ -120,7 +120,7 @@ namespace Vernuntii.Extensions
             features.Services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<GitCommitMessagesProviderOptions>>().Value);
 
             features.Services.ConfigureVernuntii(features => features
-                .AddSemanticVersionCalculation(features => features
+                .AddSingleVersionCalculation(features => features
                     .UseMessagesProvider(sp => {
                         var repository = sp.GetRequiredService<IRepository>();
                         return ActivatorUtilities.CreateInstance<GitCommitMessagesProvider>(sp, repository);
@@ -143,7 +143,7 @@ namespace Vernuntii.Extensions
         }
 
         /// <summary>
-        /// Sets <see cref="SemanticVersionCalculationOptions.StartVersion"/>
+        /// Sets <see cref="SingleVersionCalculationOptions.StartVersion"/>
         /// to <see cref="CommitVersionFindingCache.CommitVersion"/> if the
         /// latest version has been found and is present in
         /// <see cref="CommitVersionFindingCache"/>.
@@ -154,7 +154,7 @@ namespace Vernuntii.Extensions
             var services = features.Services;
             features.AddCommitVersionFindingCache();
 
-            services.AddOptions<SemanticVersionCalculationOptions>()
+            services.AddOptions<SingleVersionCalculationOptions>()
                 .Configure<CommitVersionFindingCache>((options, findingCache) => {
                     if (findingCache?.CommitVersion != null) {
                         options.StartVersion = findingCache.CommitVersion;

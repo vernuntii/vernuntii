@@ -1,9 +1,9 @@
 ﻿namespace Vernuntii.Extensions.VersionFoundation
 {
     /// <summary>
-    /// The options for <see cref="SemanticVersionFoundationProvider"/>.
+    /// The options for <see cref="VersionFoundationProvider"/>.
     /// </summary>
-    public class SemanticVersionFoundationProviderOptions
+    public class VersionFoundationProviderOptions
     {
         /// <summary>
         /// Default internal cache id.

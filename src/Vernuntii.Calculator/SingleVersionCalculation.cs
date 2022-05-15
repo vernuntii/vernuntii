@@ -5,17 +5,17 @@ namespace Vernuntii
     /// <summary>
     /// Represents a pre-configured calculation of the next version.
     /// </summary>
-    internal class SemanticVersionCalculation : ISemanticVersionCalculation
+    internal class SingleVersionCalculation : ISingleVersionCalculation
     {
-        private readonly ISemanticVersionCalculator _calculator;
-        private SemanticVersionCalculationOptions _calculationOptions;
+        private readonly ISingleVersionCalculator _calculator;
+        private SingleVersionCalculationOptions _calculationOptions;
 
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="calculator"></param>
         /// <param name="calculationOptions"></param>
-        public SemanticVersionCalculation(ISemanticVersionCalculator calculator, SemanticVersionCalculationOptions calculationOptions)
+        public SingleVersionCalculation(ISingleVersionCalculator calculator, SingleVersionCalculationOptions calculationOptions)
         {
             _calculator = calculator;
             _calculationOptions = calculationOptions;

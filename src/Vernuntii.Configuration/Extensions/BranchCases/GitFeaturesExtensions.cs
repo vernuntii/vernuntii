@@ -65,8 +65,8 @@ namespace Vernuntii.Extensions.BranchCases
 
         /// <summary>
         /// Creates versioning mode extension for each branch case and
-        /// configures <see cref="SemanticVersionCalculationOptions"/> to set
-        /// <see cref="SemanticVersionCalculationOptions.VersioningPreset"/>
+        /// configures <see cref="SingleVersionCalculationOptions"/> to set
+        /// <see cref="SingleVersionCalculationOptions.VersioningPreset"/>
         /// from active branch case.
         /// </summary>
         /// <param name="features"></param>
@@ -74,7 +74,7 @@ namespace Vernuntii.Extensions.BranchCases
         {
             features.ConfigureBranchCases(branchCases => branchCases.TryCreateVersioningPresetExtension());
 
-            features.Services.AddOptions<SemanticVersionCalculationOptions>()
+            features.Services.AddOptions<SingleVersionCalculationOptions>()
                 .Configure<IBranchCasesProvider>((options, branchCaseProvider) =>
                     options.VersioningPreset = branchCaseProvider.ActiveBranchCase.GetVersioningPresetExtension());
 

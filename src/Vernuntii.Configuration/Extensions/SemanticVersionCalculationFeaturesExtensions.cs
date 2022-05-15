@@ -4,20 +4,20 @@ using Vernuntii.VersioningPresets;
 namespace Vernuntii.Extensions
 {
     /// <summary>
-    /// Extension methods for <see cref="ISemanticVersionCalculation"/>.
+    /// Extension methods for <see cref="ISingleVersionCalculation"/>.
     /// </summary>
     public static class SemanticVersionCalculationFeaturesExtensions
     {
         /// <summary>
-        /// Configures <see cref="SemanticVersionCalculationOptions"/> to set
-        /// <see cref="SemanticVersionCalculationOptions.VersioningPreset"/>
+        /// Configures <see cref="SingleVersionCalculationOptions"/> to set
+        /// <see cref="SingleVersionCalculationOptions.VersioningPreset"/>
         /// from <paramref name="versioningModePreset"/>.
         /// </summary>
         /// <param name="features"></param>
         /// <param name="versioningModePreset"></param>
-        public static ISemanticVersionCalculationFeatures UseVersioningMode(this ISemanticVersionCalculationFeatures features, string versioningModePreset)
+        public static ISingleVersionCalculationFeatures UseVersioningMode(this ISingleVersionCalculationFeatures features, string versioningModePreset)
         {
-            features.Services.AddOptions<SemanticVersionCalculationOptions>()
+            features.Services.AddOptions<SingleVersionCalculationOptions>()
                 .Configure<IVersioningPresetRegistry>((options, registry) =>
                     options.VersioningPreset = registry.GetItem(versioningModePreset));
 

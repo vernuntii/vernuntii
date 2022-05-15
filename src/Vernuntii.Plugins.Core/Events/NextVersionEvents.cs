@@ -38,7 +38,7 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when next version has been calculated.
         /// </summary>
-        public readonly static SubjectEvent<ISemanticVersionFoundation> CalculatedNextVersion = new SubjectEvent<ISemanticVersionFoundation>();
+        public readonly static SubjectEvent<IVersionFoundation> CalculatedNextVersion = new SubjectEvent<IVersionFoundation>();
 
 
     }

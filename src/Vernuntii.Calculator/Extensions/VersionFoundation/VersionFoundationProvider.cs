@@ -11,9 +11,9 @@ using Vernuntii.SemVer;
 namespace Vernuntii.Extensions.VersionFoundation
 {
     /// <summary>
-    /// Provides an instance of <see cref="ISemanticVersionFoundation"/>.
+    /// Provides an instance of <see cref="IVersionFoundation"/>.
     /// </summary>
-    public class SemanticVersionFoundationProvider
+    public class VersionFoundationProvider
     {
         private static bool IsCacheExpiredSinceLastAccess(DateTime? lastAccessTime, TimeSpan? retentionTime) =>
             lastAccessTime == null || DateTime.UtcNow > lastAccessTime + retentionTime;
@@ -21,11 +21,11 @@ namespace Vernuntii.Extensions.VersionFoundation
         private static bool IsCacheExpiredSinceCreation(DateTime expirationTime) =>
             DateTime.UtcNow > expirationTime;
 
-        private readonly SemanticVersionFoundationProviderOptions _options;
+        private readonly VersionFoundationProviderOptions _options;
         private readonly IRepository _repository;
         private readonly ISemanticVersionFoundationCache<SemanticVersionFoundation> _versionFoundationCache;
-        private readonly SlimLazy<ISemanticVersionCalculation> _lazyCalculation;
-        private readonly ILogger<SemanticVersionFoundationProvider> _logger;
+        private readonly SlimLazy<ISingleVersionCalculation> _lazyCalculation;
+        private readonly ILogger<VersionFoundationProvider> _logger;
         private readonly Action<ILogger, Exception?> _warnInternalCacheIdUsage;
         private readonly Action<ILogger, Exception?> _logCachesEmptied;
         private readonly Action<ILogger, string, Exception?> _logLastAccessUpdated;
@@ -39,12 +39,12 @@ namespace Vernuntii.Extensions.VersionFoundation
         /// <param name="versionFoundationCache"></param>
         /// <param name="lazyCalculation"></param>
         /// <param name="logger"></param>
-        public SemanticVersionFoundationProvider(
-            IOptions<SemanticVersionFoundationProviderOptions> options,
+        public VersionFoundationProvider(
+            IOptions<VersionFoundationProviderOptions> options,
             IRepository repository,
             ISemanticVersionFoundationCache<SemanticVersionFoundation> versionFoundationCache,
-            SlimLazy<ISemanticVersionCalculation> lazyCalculation,
-            ILogger<SemanticVersionFoundationProvider> logger)
+            SlimLazy<ISingleVersionCalculation> lazyCalculation,
+            ILogger<VersionFoundationProvider> logger)
         {
             _options = options.Value;
             _repository = repository;
@@ -77,7 +77,7 @@ namespace Vernuntii.Extensions.VersionFoundation
         }
 
         private static bool ShouldUpdateCache(
-            [NotNullWhen(false)] ISemanticVersionFoundation<SemanticVersion>? versionFoundation,
+            [NotNullWhen(false)] IVersionFoundation<SemanticVersion>? versionFoundation,
             string activeBranchCommitSha,
             bool useLastAccessRetentionTime,
             TimeSpan? lastAccessRetentionTime,
@@ -104,7 +104,7 @@ namespace Vernuntii.Extensions.VersionFoundation
         /// <param name="cacheId">The cache id.</param>
         /// <param name="creationRetentionTime">The cache retention time since creation.</param>
         /// <param name="lastAccessRetentionTime">The cache retention time since last access.</param>
-        public ISemanticVersionFoundation GetFoundation(string? cacheId, TimeSpan? creationRetentionTime, TimeSpan? lastAccessRetentionTime)
+        public IVersionFoundation GetFoundation(string? cacheId, TimeSpan? creationRetentionTime, TimeSpan? lastAccessRetentionTime)
         {
             if (creationRetentionTime == null) {
                 creationRetentionTime = _options.CacheCreationRetentionTime;
