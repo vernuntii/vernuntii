@@ -17,17 +17,17 @@ namespace Vernuntii.Diagnostics
             void appendCommandEchoPrefix()
             {
                 if (commandEchoPrefix != null) {
-                    echoBuilder.Append(CultureInfo.InvariantCulture, $"{commandEchoPrefix}: ");
+                    echoBuilder.Append($"{commandEchoPrefix}: ");
                 }
             }
 
             if (!string.IsNullOrEmpty(startInfo.WorkingDirectory)) {
                 appendCommandEchoPrefix();
-                echoBuilder.Append(CultureInfo.InvariantCulture, $"Working directory: {startInfo.WorkingDirectory}{Environment.NewLine}");
+                echoBuilder.Append($"Working directory: {startInfo.WorkingDirectory}{Environment.NewLine}");
             }
 
             appendCommandEchoPrefix();
-            echoBuilder.Append(CultureInfo.InvariantCulture, $"{startInfo.FileName} {startInfo.Arguments}");
+            echoBuilder.Append($"{startInfo.FileName} {startInfo.Arguments}");
             return echoBuilder.ToString();
         }
     }

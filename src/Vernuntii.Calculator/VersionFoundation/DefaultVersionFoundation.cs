@@ -1,6 +1,6 @@
-﻿using Vernuntii.Git;
+﻿using System.Text.Json.Serialization;
+using Vernuntii.Git;
 using Vernuntii.SemVer;
-using Vernuntii.SemVer.Json.Newtonsoft;
 
 namespace Vernuntii.VersionFoundation
 {
@@ -42,8 +42,7 @@ namespace Vernuntii.VersionFoundation
         /// <param name="branchName"></param>
         /// <param name="commitSha"></param>
         /// <param name="expirationTime"></param>
-        [System.Text.Json.Serialization.JsonConstructor]
-        [Newtonsoft.Json.JsonConstructor]
+        [JsonConstructor]
         public DefaultVersionFoundation(SemanticVersion version, string branchName, string commitSha, DateTime? expirationTime)
         {
             Version = version;

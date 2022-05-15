@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Console
 {
-    internal class SemanticVersionPresentation : IVersionPresentation
+    internal class VersionPresentation : IVersionPresentation
     {
         public uint? Major { get; set; }
         public uint? Minor { get; set; }

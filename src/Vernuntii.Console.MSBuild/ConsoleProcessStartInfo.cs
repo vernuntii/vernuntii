@@ -1,4 +1,4 @@
-﻿using Teronis.Diagnostics;
+﻿using Vernuntii.Diagnostics;
 
 namespace Vernuntii.Console
 {

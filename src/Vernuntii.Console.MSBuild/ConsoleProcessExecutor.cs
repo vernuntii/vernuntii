@@ -2,7 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Build.Utilities;
-using Teronis.Diagnostics;
+using Vernuntii.Diagnostics;
 
 namespace Vernuntii.Console
 {
@@ -17,7 +17,7 @@ namespace Vernuntii.Console
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public SemanticVersionPresentation Execute(
+        public VersionPresentation Execute(
             string? verbosity,
             string configPath,
             string? cacheId,
@@ -29,20 +29,23 @@ namespace Vernuntii.Console
                 throw new ArgumentException("Config path is null or empty");
             }
 
-            var error = new StringBuilder();
-
             var startInfo = new ConsoleProcessStartInfo(_consoleExecutablePath,
                 args: CreateConsoleArguments());
 
-            var output = SimpleProcess.StartAndWaitForExitButReadOutput(
+            var output = SimpleProcess.StartThenWaitForExitThenReadOutput(
                 startInfo,
                 errorReceived: line => {
                     if (!string.IsNullOrWhiteSpace(line)) {
-                        _logger.LogMessage(line);
+                        _logger.LogError(line);
                     }
                 });
 
-            return JsonSerializer.Deserialize<SemanticVersionPresentation>(output) ?? throw new InvalidOperationException();
+            try {
+                return JsonSerializer.Deserialize<VersionPresentation>(output) ?? throw new InvalidOperationException();
+            } catch {
+                _logger.LogError(output);
+                throw;
+            }
 
             string CreateConsoleArguments()
             {

@@ -3,10 +3,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using Vernuntii.SemVer.Json;
 using Teronis.IO.FileLocking;
-using Newtonsoft.Json;
-using SystemJsonSerializer = System.Text.Json.JsonSerializer;
-using NewtonsoftJsonSerializer = Newtonsoft.Json.JsonSerializer;
-using VernuntiiJsonException = Vernuntii.Text.Json.JsonException;
 
 namespace Vernuntii.VersionFoundation.Caching
 {
@@ -15,27 +11,18 @@ namespace Vernuntii.VersionFoundation.Caching
     {
         public readonly static FileStreamLocker FileStreamLocker = new FileStreamLocker(new LockFileSystem());
 
-        private static JsonSerializerOptions SystemJsonSerializerOptions = new JsonSerializerOptions() {
+        private static JsonSerializerOptions SerializerOptions = new JsonSerializerOptions() {
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        private static NewtonsoftJsonSerializer NewtonsoftJsonSerializer = new NewtonsoftJsonSerializer();
-
-        static VersionFoundationFile()
-        {
-            SystemJsonSerializerOptions.Converters.Add(SemVer.Json.System.VersionStringJsonConverter.Default);
-            NewtonsoftJsonSerializer.Converters.Add(SemVer.Json.Newtonsoft.VersionStringJsonConverter.Default);
-        }
+        static VersionFoundationFile() => SerializerOptions.Converters.Add(SemVer.Json.System.VersionStringJsonConverter.Default);
 
         public static T ReadPresentationFoundation(FileStream stream)
         {
             stream.Position = 0;
 
-            using var streamReader = new StreamReader(stream, leaveOpen: true);
-            using var jsonReader = new JsonTextReader(streamReader);
-
-            return NewtonsoftJsonSerializer.Deserialize<T>(jsonReader)
-                ?? throw new VernuntiiJsonException($"A non-null serialized type of {typeof(T).FullName} was expected");
+            return JsonSerializer.Deserialize<T>(stream, SerializerOptions)
+                ?? throw new JsonException($"A non-null serialized type of {typeof(T).FullName} was expected");
         }
 
         private readonly FileStream _stream;
@@ -51,9 +38,10 @@ namespace Vernuntii.VersionFoundation.Caching
         {
             if (_stream.Length != 0) {
                 _stream.SetLength(0);
+                _stream.Flush();
             }
 
-            SystemJsonSerializer.Serialize(_stream, value, SystemJsonSerializerOptions);
+            JsonSerializer.Serialize(_stream, value, SerializerOptions);
         }
 
         public bool TryReadPresentationFoundation([NotNullWhen(true)] out T? value)

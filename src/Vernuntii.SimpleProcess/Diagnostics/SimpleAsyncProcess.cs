@@ -1,11 +1,9 @@
 ﻿namespace Vernuntii.Diagnostics
 {
-    internal class SimpleAsyncProcess : SimpleProcess, ISimpleAsyncProcess, IDisposable
+    internal class SimpleAsyncProcess : SimpleProcess, ISimpleAsyncProcess
     {
         public SimpleAsyncProcess(
           SimpleProcessStartInfo processStartInfo,
-          bool echoCommand = false,
-          string? commandEchoPrefix = null,
           Action<string?>? outputReceived = null,
           bool shouldStreamOutput = false,
           Action<string?>? errorReceived = null,
@@ -13,8 +11,6 @@
           bool shouldThrowOnNonZeroCode = false)
           : base(
                 processStartInfo,
-                echoCommand,
-                commandEchoPrefix,
                 outputReceived,
                 shouldStreamOutput,
                 errorReceived,
@@ -37,7 +33,9 @@
                 ReceiveError(endAsync);
             }
 
+#if NET5_0_OR_GREATER
             await Process.WaitForExitAsync();
+#endif
             await Task.Run(new Action(Process.WaitForExit));
             ThrowOnNonZeroExitCode();
             return Process.ExitCode;

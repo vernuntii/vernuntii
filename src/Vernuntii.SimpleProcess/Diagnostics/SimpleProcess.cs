@@ -1,21 +1,28 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using Teronis.Extensions;
 
 namespace Vernuntii.Diagnostics
 {
     /// <summary>
     /// Represents the aquivalent of <see cref="Process"/>
     /// </summary>
-    internal class SimpleProcess : IDisposable, ISimpleProcess
+    public class SimpleProcess : IDisposable, ISimpleProcess
     {
         #region factory methods
 
+        /// <summary>
+        /// Starts the process and then waits for the exit.
+        /// </summary>
+        /// <param name="startInfo"></param>
+        /// <param name="outputReceived"></param>
+        /// <param name="shouldStreamOutput"></param>
+        /// <param name="errorReceived"></param>
+        /// <param name="shouldStreamError"></param>
+        /// <param name="shouldThrowOnNonZeroCode"></param>
+        /// <returns>The exit code.</returns>
         public static int StartThenWaitForExit(
           SimpleProcessStartInfo startInfo,
-          bool echoCommand = false,
-          string? commandEchoPrefix = null,
           Action<string?>? outputReceived = null,
           bool shouldStreamOutput = false,
           Action<string?>? errorReceived = null,
@@ -24,8 +31,6 @@ namespace Vernuntii.Diagnostics
         {
             using SimpleProcess simpleProcess = new SimpleProcess(
                 startInfo,
-                echoCommand,
-                commandEchoPrefix,
                 outputReceived,
                 shouldStreamOutput,
                 errorReceived,
@@ -36,10 +41,18 @@ namespace Vernuntii.Diagnostics
             return simpleProcess.WaitForExit();
         }
 
+        /// <summary>
+        /// Starts the process and then waits for it exit asynchronously.
+        /// </summary>
+        /// <param name="startInfo"></param>
+        /// <param name="outputReceived"></param>
+        /// <param name="shouldStreamOutput"></param>
+        /// <param name="errorReceived"></param>
+        /// <param name="shouldStreamError"></param>
+        /// <param name="shouldThrowOnNonZeroCode"></param>
+        /// <returns>The exit code.</returns>
         public static async Task<int> StartThenWaitForExitAsync(
           SimpleProcessStartInfo startInfo,
-          bool echoCommand = false,
-          string? commandEchoPrefix = null,
           Action<string?>? outputReceived = null,
           bool shouldStreamOutput = false,
           Action<string?>? errorReceived = null,
@@ -48,8 +61,6 @@ namespace Vernuntii.Diagnostics
         {
             using var process = new SimpleAsyncProcess(
                 startInfo,
-                echoCommand,
-                commandEchoPrefix,
                 outputReceived,
                 shouldStreamOutput,
                 errorReceived,
@@ -60,10 +71,16 @@ namespace Vernuntii.Diagnostics
             return await process.WaitForExitAsync();
         }
 
+        /// <summary>
+        /// Starts the process, waits for the exit and provdes the output the process has made.
+        /// </summary>
+        /// <param name="startInfo"></param>
+        /// <param name="errorReceived"></param>
+        /// <param name="shouldStreamError"></param>
+        /// <param name="shouldThrowOnNonZeroCode"></param>
+        /// <returns>The read output.</returns>
         public static string StartThenWaitForExitThenReadOutput(
           SimpleProcessStartInfo startInfo,
-          bool echoCommand = false,
-          string? commandEchoPrefix = null,
           Action<string?>? errorReceived = null,
           bool shouldStreamError = false,
           bool shouldThrowOnNonZeroCode = false)
@@ -72,8 +89,6 @@ namespace Vernuntii.Diagnostics
 
             using SimpleProcess simpleProcess = new SimpleProcess(
                 startInfo,
-                echoCommand,
-                commandEchoPrefix,
                 output => outputBuilder.Append(output),
                 errorReceived: errorReceived,
                 shouldStreamError: shouldStreamError,
@@ -84,10 +99,16 @@ namespace Vernuntii.Diagnostics
             return outputBuilder.ToString();
         }
 
+        /// <summary>
+        /// Starts the process, waits for the exit and provdes the output the process has made.
+        /// </summary>
+        /// <param name="startInfo"></param>
+        /// <param name="errorReceived"></param>
+        /// <param name="shouldStreamError"></param>
+        /// <param name="shouldThrowOnNonZeroCode"></param>
+        /// <returns>The read output.</returns>
         public static async Task<string> StartThenWaitForExitThenReadOutputAsync(
           SimpleProcessStartInfo startInfo,
-          bool echoCommand = false,
-          string? commandEchoPrefix = null,
           Action<string?>? errorReceived = null,
           bool shouldStreamError = false,
           bool shouldThrowOnNonZeroCode = false)
@@ -96,8 +117,6 @@ namespace Vernuntii.Diagnostics
 
             using var process = new SimpleAsyncProcess(
                 startInfo,
-                echoCommand,
-                commandEchoPrefix,
                 output => outputBuilder.Append(output),
                 errorReceived: errorReceived,
                 shouldStreamError: shouldStreamError,
@@ -114,14 +133,27 @@ namespace Vernuntii.Diagnostics
         private readonly ProcessStartInfo _processStartInfo;
         private bool _isDisposed;
 
-        public bool EchoCommand { get; }
-        public string? CommandEchoPrefix { get; }
+        /// <summary>
+        /// True if process has been started.
+        /// </summary>
         [MemberNotNullWhen(true, "Process")]
-        public bool HasProcessStarted { get; private set; }
+        public bool IsProcessStarted { get; private set; }
+        /// <summary>
+        /// <see langword="true"/> enables streaming the output the process may produce.
+        /// </summary>
         public bool ShouldStreamOutput { get; }
+        /// <summary>
+        /// <see langword="true"/> enables streaming the error the process may produce.
+        /// </summary>
         public bool ShouldStreamError { get; }
+        /// <summary>
+        /// Throw an instance of <see cref="NonZeroExitCodeException"/> in case of a on non-zero exit code.
+        /// </summary>
         public bool ShouldThrowOnNonZeroCode { get; }
 
+        /// <summary>
+        /// The exit code of underlying process.
+        /// </summary>
         public int ExitCode {
             get {
                 EnsureProcessCreated();
@@ -129,15 +161,26 @@ namespace Vernuntii.Diagnostics
             }
         }
 
+        /// <summary>
+        /// The underlying process.
+        /// </summary>
         protected Process? Process { get; private set; }
         private Action<string?>? _outputReceived { get; }
         private Action<string?>? _errorReceived { get; }
 
         // ISSUE: Streaming does not work in Ubuntu.
+        /// <summary>
+        /// Creates an instance of this type.
+        /// </summary>
+        /// <param name="processStartInfo"></param>
+        /// <param name="outputReceived"></param>
+        /// <param name="shouldStreamOutput"></param>
+        /// <param name="errorReceived"></param>
+        /// <param name="shouldStreamError"></param>
+        /// <param name="shouldThrowOnNonZeroCode"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public SimpleProcess(
           SimpleProcessStartInfo processStartInfo,
-          bool echoCommand = false,
-          string? commandEchoPrefix = null,
           Action<string?>? outputReceived = null,
           bool shouldStreamOutput = false,
           Action<string?>? errorReceived = null,
@@ -150,8 +193,6 @@ namespace Vernuntii.Diagnostics
 
             _errorBuilder = new StringBuilder();
             _processStartInfo = processStartInfo.ProcessStartInfo;
-            EchoCommand = echoCommand;
-            CommandEchoPrefix = commandEchoPrefix;
             _outputReceived = outputReceived;
             ShouldStreamOutput = shouldStreamOutput;
             _errorReceived = errorReceived;
@@ -193,15 +234,28 @@ namespace Vernuntii.Diagnostics
             Process.ErrorDataReceived -= OnOutputDataReceived;
         }
 
+        /// <summary>
+        /// Called when the process exited.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected virtual void OnProcessExited(object? sender, EventArgs e) =>
             DettachProcessHandlers();
 
+        /// <summary>
+        /// Called when output received.
+        /// </summary>
+        /// <param name="data"></param>
         protected void ReceiveOutput(string? data) =>
             _outputReceived?.Invoke(data);
 
         private void OnOutputDataReceived(object? sender, DataReceivedEventArgs e) =>
             ReceiveOutput(e.Data);
 
+        /// <summary>
+        /// Called when exception received.
+        /// </summary>
+        /// <param name="data"></param>
         protected void ReceiveError(string? data)
         {
             _errorBuilder?.Append(data);
@@ -228,16 +282,20 @@ namespace Vernuntii.Diagnostics
             AttachProcessHandlers();
         }
 
+        /// <summary>
+        /// Factory method for <see cref="NonZeroExitCodeException"/>.
+        /// </summary>
         protected NonZeroExitCodeException CreateNonZeroExitCodeException()
         {
             EnsureProcessCreated();
             bool isErrorEmpty = _errorBuilder.Length == 0;
-            _errorBuilder.Insert(0, ProcessStartInfoUtils.GetExecutionInfoText(_processStartInfo, CommandEchoPrefix) + (isErrorEmpty ? "" : Environment.NewLine));
+            _errorBuilder.Insert(0, ProcessStartInfoUtils.GetExecutionInfoText(_processStartInfo) + (isErrorEmpty ? "" : Environment.NewLine));
             return new NonZeroExitCodeException(Process.ExitCode, _errorBuilder.ToString());
         }
 
-        /// <summary>When an error occurred during process start.</summary>
-        protected virtual void OnProcessNotStarted(Exception error)
+        /// <summary>When an exception occurred during process start.</summary>
+        /// <param name="exception"></param>
+        protected virtual void OnProcessNotStarted(Exception exception)
         {
         }
 
@@ -251,7 +309,7 @@ namespace Vernuntii.Diagnostics
             bool isProcessStarted;
 
             try {
-                isProcessStarted = Process.Start(EchoCommand, CommandEchoPrefix);
+                isProcessStarted = Process.Start();
             } catch (Exception ex) {
                 OnProcessNotStarted(ex);
                 throw;
@@ -269,7 +327,7 @@ namespace Vernuntii.Diagnostics
                 Process.BeginErrorReadLine();
             }
 
-            HasProcessStarted = true;
+            IsProcessStarted = true;
         }
 
         /// <summary>Ensures process has been created.</summary>
@@ -287,7 +345,7 @@ namespace Vernuntii.Diagnostics
         [MemberNotNull("Process")]
         protected void EnsureProcessStarted()
         {
-            if (!HasProcessStarted) {
+            if (!IsProcessStarted) {
                 throw new InvalidOperationException("Process not started yet.");
             }
         }
@@ -327,12 +385,14 @@ namespace Vernuntii.Diagnostics
             return Process.ExitCode;
         }
 
+        /// <inheritdoc/>
         public void Kill()
         {
             EnsureProcessStarted();
             Process.Kill();
         }
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (_isDisposed) {
@@ -347,6 +407,7 @@ namespace Vernuntii.Diagnostics
             _isDisposed = true;
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             Dispose(true);

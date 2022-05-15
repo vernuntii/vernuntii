@@ -5,7 +5,7 @@ namespace Vernuntii.Diagnostics
     /// <summary>
     /// The start info of a process.
     /// </summary>
-    internal class SimpleProcessStartInfo
+    public class SimpleProcessStartInfo
     {
         internal ProcessStartInfo ProcessStartInfo;
 
@@ -17,6 +17,8 @@ namespace Vernuntii.Diagnostics
         /// <param name="workingDirectory">The working directory is not used to find the executable. Instead, its value applies to the process that is started and only has meaning within the context of the new process.</param>
         public SimpleProcessStartInfo(string name, string? args = null, string? workingDirectory = null)
         {
+            workingDirectory ??= string.Empty;
+
             if (args == null) {
                 ProcessStartInfo = new ProcessStartInfo(name) {
                     WorkingDirectory = workingDirectory

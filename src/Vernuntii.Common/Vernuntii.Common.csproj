@@ -7,8 +7,4 @@
     <RootNamespace>Vernuntii</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Teronis.NetStandard.Core" Version="0.1.8-alpha.223" />
-  </ItemGroup>
-
 </Project>

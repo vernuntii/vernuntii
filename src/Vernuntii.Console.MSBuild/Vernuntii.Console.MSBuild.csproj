@@ -26,7 +26,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.9.0" PrivateAssets="all" />
     <PackageReference Include="System.Text.Json" Version="5.0.1" />
-    <PackageReference Include="Teronis.NetStandard.Core" Version="0.1.8-alpha.223" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,6 +38,7 @@
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
       <AdditionalProperties>TargetFramework=$(ConsoleTargetFramework)</AdditionalProperties>
     </ProjectReference>
+    <ProjectReference Include="..\Vernuntii.SimpleProcess\Vernuntii.SimpleProcess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
