@@ -36,7 +36,9 @@ namespace Vernuntii.Console
                 startInfo,
                 errorReceived: line => {
                     if (!string.IsNullOrWhiteSpace(line)) {
-                        _logger.LogError(line);
+                        // Well, Vernuntii writes logger messages to error stream to
+                        // make an distinction from the actual "next-version"-output.
+                        _logger.LogMessage(line);
                     }
                 });
 
