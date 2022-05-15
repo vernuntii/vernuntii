@@ -3,6 +3,10 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using Vernuntii.SemVer.Json;
 using Teronis.IO.FileLocking;
+using Newtonsoft.Json;
+using SystemJsonSerializer = System.Text.Json.JsonSerializer;
+using NewtonsoftJsonSerializer = Newtonsoft.Json.JsonSerializer;
+using VernuntiiJsonException = Vernuntii.Text.Json.JsonException;
 
 namespace Vernuntii.VersionFoundation.Caching
 {
@@ -11,18 +15,27 @@ namespace Vernuntii.VersionFoundation.Caching
     {
         public readonly static FileStreamLocker FileStreamLocker = new FileStreamLocker(new LockFileSystem());
 
-        private static JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() {
+        private static JsonSerializerOptions SystemJsonSerializerOptions = new JsonSerializerOptions() {
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        static VersionFoundationFile() => JsonSerializerOptions.Converters.Add(new SemanticVersionJsonConverter());
+        private static NewtonsoftJsonSerializer NewtonsoftJsonSerializer = new NewtonsoftJsonSerializer();
+
+        static VersionFoundationFile()
+        {
+            SystemJsonSerializerOptions.Converters.Add(SemVer.Json.System.VersionStringJsonConverter.Default);
+            NewtonsoftJsonSerializer.Converters.Add(SemVer.Json.Newtonsoft.VersionStringJsonConverter.Default);
+        }
 
         public static T ReadPresentationFoundation(FileStream stream)
         {
             stream.Position = 0;
 
-            return JsonSerializer.Deserialize<T>(stream, JsonSerializerOptions)
-                ?? throw new JsonException($"A non-null serialized type of {typeof(T).FullName} was expected");
+            using var streamReader = new StreamReader(stream, leaveOpen: true);
+            using var jsonReader = new JsonTextReader(streamReader);
+
+            return NewtonsoftJsonSerializer.Deserialize<T>(jsonReader)
+                ?? throw new VernuntiiJsonException($"A non-null serialized type of {typeof(T).FullName} was expected");
         }
 
         private readonly FileStream _stream;
@@ -40,7 +53,7 @@ namespace Vernuntii.VersionFoundation.Caching
                 _stream.SetLength(0);
             }
 
-            JsonSerializer.Serialize(_stream, value, JsonSerializerOptions);
+            SystemJsonSerializer.Serialize(_stream, value, SystemJsonSerializerOptions);
         }
 
         public bool TryReadPresentationFoundation([NotNullWhen(true)] out T? value)

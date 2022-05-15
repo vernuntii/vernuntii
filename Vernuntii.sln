@@ -60,6 +60,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Common", "src\Ver
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.TestTrunkBasedDevelopment", "test\Vernuntii.TestTrunkBasedDevelopment\Vernuntii.TestTrunkBasedDevelopment.csproj", "{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.SemVer.Json", "src\Vernuntii.SemVer.Json\Vernuntii.SemVer.Json.csproj", "{74FBCC86-DD61-42C2-915F-68CA30943DEF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -370,6 +372,18 @@ Global
 		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Release|x64.Build.0 = Release|Any CPU
 		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Release|x86.ActiveCfg = Release|Any CPU
 		{038243F6-5C04-4F2A-8A93-64B5D6B49D9A}.Release|x86.Build.0 = Release|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Debug|x64.Build.0 = Debug|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Debug|x86.Build.0 = Debug|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Release|x64.ActiveCfg = Release|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Release|x64.Build.0 = Release|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Release|x86.ActiveCfg = Release|Any CPU
+		{74FBCC86-DD61-42C2-915F-68CA30943DEF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

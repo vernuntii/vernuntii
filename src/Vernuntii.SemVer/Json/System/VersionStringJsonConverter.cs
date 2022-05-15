@@ -1,13 +1,18 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Vernuntii.SemVer.Json
+namespace Vernuntii.SemVer.Json.System
 {
     /// <summary>
     /// Serializer and deserializer for <see cref="SemanticVersion"/>.
     /// </summary>
-    public class SemanticVersionJsonConverter : JsonConverter<SemanticVersion>
+    public class VersionStringJsonConverter : JsonConverter<SemanticVersion>
     {
+        /// <summary>
+        /// Default instance of this type.
+        /// </summary>
+        public readonly static VersionStringJsonConverter Default = new VersionStringJsonConverter();
+
         /// <inheritdoc/>
         public override SemanticVersion? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
