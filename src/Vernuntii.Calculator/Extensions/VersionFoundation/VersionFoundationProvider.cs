@@ -23,7 +23,7 @@ namespace Vernuntii.Extensions.VersionFoundation
 
         private readonly VersionFoundationProviderOptions _options;
         private readonly IRepository _repository;
-        private readonly ISemanticVersionFoundationCache<SemanticVersionFoundation> _versionFoundationCache;
+        private readonly IVersionFoundationCache<DefaultVersionFoundation> _versionFoundationCache;
         private readonly SlimLazy<ISingleVersionCalculation> _lazyCalculation;
         private readonly ILogger<VersionFoundationProvider> _logger;
         private readonly Action<ILogger, Exception?> _warnInternalCacheIdUsage;
@@ -42,7 +42,7 @@ namespace Vernuntii.Extensions.VersionFoundation
         public VersionFoundationProvider(
             IOptions<VersionFoundationProviderOptions> options,
             IRepository repository,
-            ISemanticVersionFoundationCache<SemanticVersionFoundation> versionFoundationCache,
+            IVersionFoundationCache<DefaultVersionFoundation> versionFoundationCache,
             SlimLazy<ISingleVersionCalculation> lazyCalculation,
             ILogger<VersionFoundationProvider> logger)
         {
@@ -111,7 +111,7 @@ namespace Vernuntii.Extensions.VersionFoundation
             }
 
             cacheId = cacheId?.Trim();
-            ISemanticVersionFoundationWriter<SemanticVersionFoundation> presentationFoundationWriter;
+            IVersionFoundationWriter<DefaultVersionFoundation> presentationFoundationWriter;
             var useInternalCache = false;
 
             if (string.Equals(cacheId, _options.InternalCacheId, StringComparison.OrdinalIgnoreCase)) {
@@ -153,7 +153,7 @@ namespace Vernuntii.Extensions.VersionFoundation
                         lastAccessRetentionTime,
                         out var cacheUpdateReason)) {
                     var calculatedVersion = _lazyCalculation.Value.GetVersion();
-                    versionFoundation = SemanticVersionFoundation.Create(calculatedVersion, activeBranch, creationRetentionTime);
+                    versionFoundation = DefaultVersionFoundation.Create(calculatedVersion, activeBranch, creationRetentionTime);
 
                     if (useLastAccessRetentionTime) {
                         versionFoundation.LastAccessTime = DateTime.UtcNow;

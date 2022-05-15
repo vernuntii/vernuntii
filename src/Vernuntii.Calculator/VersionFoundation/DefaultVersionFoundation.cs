@@ -7,7 +7,7 @@ namespace Vernuntii.VersionFoundation
     /// <summary>
     /// A semantic version foundation.
     /// </summary>
-    public class SemanticVersionFoundation : IVersionFoundation<SemanticVersion>, IVersionFoundation
+    public class DefaultVersionFoundation : IVersionFoundation<SemanticVersion>, IVersionFoundation
     {
         /// <summary>
         /// Creates a semantic version foundation.
@@ -15,8 +15,8 @@ namespace Vernuntii.VersionFoundation
         /// <param name="version"></param>
         /// <param name="branch"></param>
         /// <param name="creationRetentionTime">Creation retention time used to sum up with "now" (UTC) that represents the expiration time.</param>
-        public static SemanticVersionFoundation Create(ISemanticVersion version, IBranch branch, TimeSpan? creationRetentionTime) =>
-            new SemanticVersionFoundation(
+        public static DefaultVersionFoundation Create(ISemanticVersion version, IBranch branch, TimeSpan? creationRetentionTime) =>
+            new DefaultVersionFoundation(
                 version,
                 branch.ShortBranchName,
                 branch.CommitSha,
@@ -43,7 +43,7 @@ namespace Vernuntii.VersionFoundation
         /// <param name="commitSha"></param>
         /// <param name="expirationTime"></param>
         [JsonConstructor]
-        public SemanticVersionFoundation(SemanticVersion version, string branchName, string commitSha, DateTime? expirationTime)
+        public DefaultVersionFoundation(SemanticVersion version, string branchName, string commitSha, DateTime? expirationTime)
         {
             Version = version;
             BranchName = branchName;
@@ -58,7 +58,7 @@ namespace Vernuntii.VersionFoundation
         /// <param name="branchName"></param>
         /// <param name="commitSha"></param>
         /// <param name="expirationTime"></param>
-        public SemanticVersionFoundation(ISemanticVersion version, string branchName, string commitSha, DateTime? expirationTime)
+        public DefaultVersionFoundation(ISemanticVersion version, string branchName, string commitSha, DateTime? expirationTime)
             : this(new SemanticVersion(version), branchName, commitSha, expirationTime)
         {
         }

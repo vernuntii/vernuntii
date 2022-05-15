@@ -4,19 +4,19 @@ using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionFoundation.Caching
 {
-    internal class SemanticVersionFoundationCache<T> : ISemanticVersionFoundationCache<T>
+    internal class VersionFoundationCache<T> : IVersionFoundationCache<T>
         where T : class, IVersionFoundation<SemanticVersion>
     {
         private readonly static FileStreamLocker deleteOnCloseFileLocker = new FileStreamLocker(new DeleteOnCloseLockFileSystem());
 
-        public SemanticVersionFoundationCacheOptions _options;
+        public VersionFoundationCacheOptions _options;
 
-        public SemanticVersionFoundationCache(SemanticVersionFoundationCacheOptions options) =>
+        public VersionFoundationCache(VersionFoundationCacheOptions options) =>
             _options = options ?? throw new ArgumentNullException(nameof(options));
 
         private static bool IsCacheExpired(FileStream fileStream)
         {
-            var presentationFoundation = SemanticVersionFoundationFile<T>.ReadPresentationFoundation(fileStream);
+            var presentationFoundation = VersionFoundationFile<T>.ReadPresentationFoundation(fileStream);
             return presentationFoundation.ExpirationTime != null && DateTime.UtcNow > presentationFoundation.ExpirationTime;
         }
 
@@ -32,7 +32,7 @@ namespace Vernuntii.VersionFoundation.Caching
                 }
 
                 try {
-                    using var fileStream = SemanticVersionFoundationFile<T>.FileStreamLocker.TryAcquire(filePath, fileMode: FileMode.Open);
+                    using var fileStream = VersionFoundationFile<T>.FileStreamLocker.TryAcquire(filePath, fileMode: FileMode.Open);
 
                     if (fileStream != null && IsCacheExpired(fileStream)) {
                         // Release file lock.
@@ -65,13 +65,13 @@ namespace Vernuntii.VersionFoundation.Caching
             string gitDirectory,
             string cacheId,
             [NotNullWhen(true)] out T? presentationFoundation,
-            out ISemanticVersionFoundationWriter<T> versionPresentationFoundationWriter)
+            out IVersionFoundationWriter<T> versionPresentationFoundationWriter)
         {
             var cacheDirectoryPath = GetCacheDirectoryPath(gitDirectory);
             Directory.CreateDirectory(cacheDirectoryPath); // Create if not existing.
             var cacheFileName = cacheId + ".json";
             var cacheFilePath = Path.Combine(cacheDirectoryPath, cacheFileName);
-            var file = new SemanticVersionFoundationFile<T>(cacheFilePath, _options.LockAttemptSeconds);
+            var file = new VersionFoundationFile<T>(cacheFilePath, _options.LockAttemptSeconds);
             MaybeDeleteOtherCacheFiles(cacheDirectoryPath, skippableCacheFileName: cacheFileName);
             versionPresentationFoundationWriter = file;
 

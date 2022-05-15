@@ -3,7 +3,7 @@
     /// <summary>
     /// Enables to write an instance of <see cref="ISingleVersionCalculation"/>.
     /// </summary>
-    public interface ISemanticVersionFoundationWriter<in T> : IDisposable
+    public interface IVersionFoundationWriter<in T> : IDisposable
         where T : class
     {
         /// <summary>

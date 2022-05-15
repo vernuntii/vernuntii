@@ -6,7 +6,7 @@ namespace Vernuntii.VersionFoundation.Caching
     /// The cache for the semantic version foundation.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface ISemanticVersionFoundationCache<T>
+    public interface IVersionFoundationCache<T>
         where T : class
     {
         /// <summary>
@@ -27,6 +27,6 @@ namespace Vernuntii.VersionFoundation.Caching
             string gitDirectory,
             string cacheId,
             [NotNullWhen(true)] out T? presentationFoundation,
-            out ISemanticVersionFoundationWriter<T> versionPresentationFoundationWriter);
+            out IVersionFoundationWriter<T> versionPresentationFoundationWriter);
     }
 }

@@ -57,8 +57,8 @@ namespace Vernuntii.Extensions
         {
             var services = features.Services;
             services.AddOptions();
-            services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<SemanticVersionFoundationCacheOptions>>().Value);
-            services.TryAddSingleton<SemanticVersionFoundationCache<SemanticVersionFoundation>>();
+            services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<VersionFoundationCacheOptions>>().Value);
+            services.TryAddSingleton<VersionFoundationCache<DefaultVersionFoundation>>();
             return features;
         }
 
@@ -81,7 +81,7 @@ namespace Vernuntii.Extensions
             }
 
             services.TryAddSingleton(sp => new SlimLazy<ISingleVersionCalculation>(() => sp.GetRequiredService<ISingleVersionCalculation>()));
-            services.TryAddSingleton<ISemanticVersionFoundationCache<SemanticVersionFoundation>, SemanticVersionFoundationCache<SemanticVersionFoundation>>();
+            services.TryAddSingleton<IVersionFoundationCache<DefaultVersionFoundation>, VersionFoundationCache<DefaultVersionFoundation>>();
             services.TryAddSingleton<VersionFoundationProvider>();
 
             return features;

@@ -3,63 +3,63 @@ using Vernuntii.VersionFoundation;
 
 namespace Vernuntii.VersionPresentation
 {
-    internal sealed record SemanticVersionPresentation : ISemanticVersionPresentation
+    internal sealed record VersionPresentation : IVersionPresentation
     {
-        public static SemanticVersionPresentation Create(
+        public static VersionPresentation Create(
             IVersionFoundation presentationFoundation,
-            SemanticVersionPresentationPart presentableParts = SemanticVersionPresentationPart.All)
+            VersionPresentationPart presentableParts = VersionPresentationPart.All)
         {
-            var versionPresentation = new SemanticVersionPresentation();
+            var versionPresentation = new VersionPresentation();
             var version = presentationFoundation.Version;
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.Major)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.Major)) {
                 versionPresentation.Major = version.Major;
             }
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.Minor)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.Minor)) {
                 versionPresentation.Minor = version.Minor;
             }
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.Patch)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.Patch)) {
                 versionPresentation.Patch = version.Patch;
             }
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.Version)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.Version)) {
                 versionPresentation.Version = version.Format(SemanticVersionFormat.Version);
             }
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.PreRelease)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.PreRelease)) {
                 versionPresentation.PreRelease = version.PreRelease;
             }
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.HyphenPreRelease)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.HyphenPreRelease)) {
                 versionPresentation.HyphenPreRelease = version.Format(SemanticVersionFormat.PreRelease);
             }
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.Build)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.Build)) {
                 versionPresentation.Build = version.Build;
             }
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.PlusBuild)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.PlusBuild)) {
                 versionPresentation.PlusBuild = version.Format(SemanticVersionFormat.Build);
             }
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.SemanticVersion)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.SemanticVersion)) {
                 versionPresentation.SemanticVersion = version.Format(SemanticVersionFormat.SemanticVersion);
             }
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.BranchName)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.BranchName)) {
                 versionPresentation.BranchName = presentationFoundation.BranchName;
             }
 
-            if (presentableParts.HasFlag(SemanticVersionPresentationPart.CommitSha)) {
+            if (presentableParts.HasFlag(VersionPresentationPart.CommitSha)) {
                 versionPresentation.CommitSha = presentationFoundation.CommitSha;
             }
 
             return versionPresentation;
         }
 
-        private SemanticVersionPresentation()
+        private VersionPresentation()
         {
         }
 
@@ -76,16 +76,16 @@ namespace Vernuntii.VersionPresentation
         public string? BranchName { get; set; }
         public string? CommitSha { get; set; }
 
-        public object? GetValue(SemanticVersionPresentationPart presentationPart) => presentationPart switch {
-            SemanticVersionPresentationPart.Major => Major,
-            SemanticVersionPresentationPart.Minor => Minor,
-            SemanticVersionPresentationPart.Patch => Patch,
-            SemanticVersionPresentationPart.Version => Version,
-            SemanticVersionPresentationPart.PreRelease => PreRelease,
-            SemanticVersionPresentationPart.HyphenPreRelease => HyphenPreRelease,
-            SemanticVersionPresentationPart.Build => Build,
-            SemanticVersionPresentationPart.PlusBuild => PlusBuild,
-            SemanticVersionPresentationPart.SemanticVersion => SemanticVersion,
+        public object? GetValue(VersionPresentationPart presentationPart) => presentationPart switch {
+            VersionPresentationPart.Major => Major,
+            VersionPresentationPart.Minor => Minor,
+            VersionPresentationPart.Patch => Patch,
+            VersionPresentationPart.Version => Version,
+            VersionPresentationPart.PreRelease => PreRelease,
+            VersionPresentationPart.HyphenPreRelease => HyphenPreRelease,
+            VersionPresentationPart.Build => Build,
+            VersionPresentationPart.PlusBuild => PlusBuild,
+            VersionPresentationPart.SemanticVersion => SemanticVersion,
             _ => throw new NotSupportedException("Presentation part does not represent a value (Have you specified two parts?)")
         };
     }

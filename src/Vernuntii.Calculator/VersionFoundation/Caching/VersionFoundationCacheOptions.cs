@@ -1,9 +1,9 @@
 ﻿namespace Vernuntii.VersionFoundation.Caching
 {
     /// <summary>
-    /// The options for <see cref="SemanticVersionFoundationCache{T}"/>
+    /// The options for <see cref="VersionFoundationCache{T}"/>
     /// </summary>
-    public class SemanticVersionFoundationCacheOptions
+    public class VersionFoundationCacheOptions
     {
         /// <summary>
         /// The cache folder name. Default is "vernuntii_cache".

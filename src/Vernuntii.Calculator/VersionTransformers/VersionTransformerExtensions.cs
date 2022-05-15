@@ -6,13 +6,13 @@ namespace Vernuntii.VersionTransformers
     /// <summary>
     /// Extension methods for 
     /// </summary>
-    public static class SemanticVersionTransformerExtensions
+    public static class VersionTransformerExtensions
     {
         /// <summary>
         /// Checks <paramref name="transformer"/> is not null and can transform.
         /// </summary>
         /// <param name="transformer"></param>
-        public static bool CanTransform([NotNullWhen(true)] this ISemanticVersionTransformer? transformer) =>
+        public static bool CanTransform([NotNullWhen(true)] this IVersionTransformer? transformer) =>
             transformer is not null && !transformer.DoesNotTransform;
 
         /// <summary>
@@ -20,7 +20,7 @@ namespace Vernuntii.VersionTransformers
         /// </summary>
         /// <param name="versionTransformer"></param>
         /// <param name="version"></param>
-        public static ISemanticVersion TransformVersion(this ISemanticVersionTransformer versionTransformer, SemanticVersion version) =>
+        public static ISemanticVersion TransformVersion(this IVersionTransformer versionTransformer, SemanticVersion version) =>
             versionTransformer.TransformVersion(version);
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Vernuntii.VersionTransformers
         /// </summary>
         /// <param name="versionTransformers"></param>
         /// <param name="startVersion"></param>
-        public static ISemanticVersion TransformVersion(this IEnumerable<ISemanticVersionTransformer> versionTransformers, ISemanticVersion startVersion)
+        public static ISemanticVersion TransformVersion(this IEnumerable<IVersionTransformer> versionTransformers, ISemanticVersion startVersion)
         {
             var preflightVersion = startVersion;
 

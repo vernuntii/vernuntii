@@ -5,7 +5,7 @@ namespace Vernuntii.VersionTransformers
     /// <summary>
     /// Implements the ability to calculate the next version.
     /// </summary>
-    public interface ISemanticVersionTransformer
+    public interface IVersionTransformer
     {
         /// <summary>
         /// Indicates that the transformer is actually not transforming.

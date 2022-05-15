@@ -4,7 +4,7 @@
     /// Parts of semantic version presentation.
     /// </summary>
     [Flags]
-    public enum SemanticVersionPresentationPart
+    public enum VersionPresentationPart
     {
         /// <summary>
         /// Major part.

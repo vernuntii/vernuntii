@@ -8,7 +8,7 @@ namespace Vernuntii.VersionIncrementing
 {
     internal class VersionIncrementBuilder : IVersionIncrementBuilder
     {
-        public IEnumerable<ISemanticVersionTransformer> BuildIncrement(IMessage message, VersionIncrementContext context)
+        public IEnumerable<IVersionTransformer> BuildIncrement(IMessage message, VersionIncrementContext context)
         {
             var messageContent = message.Content;
             var versioningPreset = context.VersionCalculationOptions.VersioningPreset;

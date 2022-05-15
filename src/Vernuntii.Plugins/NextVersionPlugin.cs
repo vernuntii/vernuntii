@@ -35,23 +35,23 @@ namespace Vernuntii.Plugins
         const string presentationPartsOptionLongAlias = "--presentation-parts";
 
         const string presentationKindAndPartsHelpText =
-            $" If using \"{nameof(SemanticVersionPresentationKind.Value)}\" only one part of the presentation can be displayed" +
-            $" (e.g. {presentationPartsOptionLongAlias} {nameof(SemanticVersionPresentationPart.Minor)})." +
-            $" If using \"{nameof(SemanticVersionPresentationKind.Complex)}\" one or more parts of the presentation can be displayed" +
-            $" (e.g. {presentationPartsOptionLongAlias} {nameof(SemanticVersionPresentationPart.Minor)},{nameof(SemanticVersionPresentationPart.Major)}).";
+            $" If using \"{nameof(VersionPresentationKind.Value)}\" only one part of the presentation can be displayed" +
+            $" (e.g. {presentationPartsOptionLongAlias} {nameof(VersionPresentationPart.Minor)})." +
+            $" If using \"{nameof(VersionPresentationKind.Complex)}\" one or more parts of the presentation can be displayed" +
+            $" (e.g. {presentationPartsOptionLongAlias} {nameof(VersionPresentationPart.Minor)},{nameof(VersionPresentationPart.Major)}).";
 
-        private Option<SemanticVersionPresentationKind> _presentationKindOption = new Option<SemanticVersionPresentationKind>(new[] { "--presentation-kind" }, () =>
-            SemanticVersionPresentationStringBuilder.DefaultPresentationKind) {
+        private Option<VersionPresentationKind> _presentationKindOption = new Option<VersionPresentationKind>(new[] { "--presentation-kind" }, () =>
+            VersionPresentationStringBuilder.DefaultPresentationKind) {
             Description = "The kind of presentation." + presentationKindAndPartsHelpText
         };
 
-        private Option<SemanticVersionPresentationPart> _presentationPartsOption = new Option<SemanticVersionPresentationPart>(new[] { presentationPartsOptionLongAlias }, () =>
-            SemanticVersionPresentationStringBuilder.DefaultPresentationPart) {
+        private Option<VersionPresentationPart> _presentationPartsOption = new Option<VersionPresentationPart>(new[] { presentationPartsOptionLongAlias }, () =>
+            VersionPresentationStringBuilder.DefaultPresentationPart) {
             Description = "The parts of the presentation to be displayed." + presentationKindAndPartsHelpText
         };
 
-        private Option<SemanticVersionPresentationView> _presentationViewOption = new Option<SemanticVersionPresentationView>(new[] { "--presentation-view" }, () =>
-            SemanticVersionPresentationStringBuilder.DefaultPresentationSerializer) {
+        private Option<VersionPresentationView> _presentationViewOption = new Option<VersionPresentationView>(new[] { "--presentation-view" }, () =>
+            VersionPresentationStringBuilder.DefaultPresentationSerializer) {
             Description = "The view of presentation."
         };
 
@@ -97,9 +97,9 @@ namespace Vernuntii.Plugins
 
         #endregion
 
-        private SemanticVersionPresentationKind _presentationKind;
-        private SemanticVersionPresentationPart _presentationParts;
-        private SemanticVersionPresentationView _presentationView;
+        private VersionPresentationKind _presentationKind;
+        private VersionPresentationPart _presentationParts;
+        private VersionPresentationView _presentationView;
         private string? _cacheId;
         private TimeSpan? _cacheCreationRetentionTime;
         private TimeSpan? _cacheLastAccessRetentionTime;
@@ -157,7 +157,7 @@ namespace Vernuntii.Plugins
 
                 Events.Publish(NextVersionEvents.CalculatedNextVersion, presentationFoundation);
 
-                var formattedVersion = new SemanticVersionPresentationStringBuilder(presentationFoundation)
+                var formattedVersion = new VersionPresentationStringBuilder(presentationFoundation)
                     .UsePresentationKind(_presentationKind)
                     .UsePresentationPart(_presentationParts)
                     .UsePresentationView(_presentationView)

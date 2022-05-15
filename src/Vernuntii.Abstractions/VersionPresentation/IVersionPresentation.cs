@@ -3,7 +3,7 @@
     /// <summary>
     /// The representation of a version.
     /// </summary>
-    public interface ISemanticVersionPresentation
+    public interface IVersionPresentation
     {
         /// <summary>
         /// Major version number.

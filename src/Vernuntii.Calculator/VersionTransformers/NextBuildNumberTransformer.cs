@@ -3,11 +3,11 @@ using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionTransformers
 {
-    internal class NextBuildNumberTransformer : ISemanticVersionTransformer
+    internal class NextBuildNumberTransformer : IVersionTransformer
     {
         public readonly static NextBuildNumberTransformer Default = new NextBuildNumberTransformer();
 
-        bool ISemanticVersionTransformer.DoesNotTransform => false;
+        bool IVersionTransformer.DoesNotTransform => false;
 
         private static int GetBuildNumber(string? build)
         {

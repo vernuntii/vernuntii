@@ -4,14 +4,14 @@ using System.Text.Json.Serialization;
 
 namespace Vernuntii.VersionPresentation.Serializers
 {
-    internal class SemanticVersionPresentationJsonSerializer : ISemanticVersionPresentationSerializer
+    internal class VersionPresentationJsonSerializer : IVersionPresentationSerializer
     {
-        public readonly static SemanticVersionPresentationJsonSerializer Default = new SemanticVersionPresentationJsonSerializer();
+        public readonly static VersionPresentationJsonSerializer Default = new VersionPresentationJsonSerializer();
 
         public string? SerializeSemanticVersion(
-            object versionPresentation, 
-            SemanticVersionPresentationKind presentationKind,
-            SemanticVersionPresentationPart presentationParts) => 
+            object versionPresentation,
+            VersionPresentationKind presentationKind,
+            VersionPresentationPart presentationParts) =>
             JsonSerializer.Serialize(
                 versionPresentation,
                 new JsonSerializerOptions() {

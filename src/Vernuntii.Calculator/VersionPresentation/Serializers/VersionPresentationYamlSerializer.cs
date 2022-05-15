@@ -2,14 +2,14 @@
 
 namespace Vernuntii.VersionPresentation.Serializers
 {
-    internal class SemanticVersionPresentationYamlSerializer : ISemanticVersionPresentationSerializer
+    internal class VersionPresentationYamlSerializer : IVersionPresentationSerializer
     {
-        public readonly static SemanticVersionPresentationYamlSerializer Default = new SemanticVersionPresentationYamlSerializer();
+        public readonly static VersionPresentationYamlSerializer Default = new VersionPresentationYamlSerializer();
 
         public string? SerializeSemanticVersion(
             object versionPresentation, 
-            SemanticVersionPresentationKind presentationKind,
-            SemanticVersionPresentationPart presentationParts) =>
+            VersionPresentationKind presentationKind,
+            VersionPresentationPart presentationParts) =>
             new SerializerBuilder()
                 .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
                 .Build()

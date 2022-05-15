@@ -3,7 +3,7 @@
     /// <summary>
     /// The view of presentation.
     /// </summary>
-    public enum SemanticVersionPresentationView
+    public enum VersionPresentationView
     {
         /// <summary>
         /// Uses textual representation.

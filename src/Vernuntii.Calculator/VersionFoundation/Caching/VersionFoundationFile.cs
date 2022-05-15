@@ -6,7 +6,7 @@ using Teronis.IO.FileLocking;
 
 namespace Vernuntii.VersionFoundation.Caching
 {
-    internal sealed class SemanticVersionFoundationFile<T> : IDisposable, ISemanticVersionFoundationWriter<T>
+    internal sealed class VersionFoundationFile<T> : IDisposable, IVersionFoundationWriter<T>
         where T : class
     {
         public readonly static FileStreamLocker FileStreamLocker = new FileStreamLocker(new LockFileSystem());
@@ -15,7 +15,7 @@ namespace Vernuntii.VersionFoundation.Caching
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        static SemanticVersionFoundationFile() => JsonSerializerOptions.Converters.Add(new SemanticVersionJsonConverter());
+        static VersionFoundationFile() => JsonSerializerOptions.Converters.Add(new SemanticVersionJsonConverter());
 
         public static T ReadPresentationFoundation(FileStream stream)
         {
@@ -27,7 +27,7 @@ namespace Vernuntii.VersionFoundation.Caching
 
         private readonly FileStream _stream;
 
-        public SemanticVersionFoundationFile(string jsonFilePath, int lockTimeout)
+        public VersionFoundationFile(string jsonFilePath, int lockTimeout)
         {
             _stream = FileStreamLocker.WaitUntilAcquired(jsonFilePath, lockTimeout)
                 ?? throw new TimeoutException("Locking the cache file has been aborted due to timeout");

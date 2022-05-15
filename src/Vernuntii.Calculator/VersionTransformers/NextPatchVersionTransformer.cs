@@ -5,14 +5,14 @@ namespace Vernuntii.VersionTransformers
     /// <summary>
     /// Default implementation for incrementing the patch version by one.
     /// </summary>
-    public sealed class NextPatchVersionTransformer : ISemanticVersionTransformer
+    public sealed class NextPatchVersionTransformer : IVersionTransformer
     {
         /// <summary>
         /// Default instance.
         /// </summary>
         public readonly static NextPatchVersionTransformer Default = new NextPatchVersionTransformer();
 
-        bool ISemanticVersionTransformer.DoesNotTransform => false;
+        bool IVersionTransformer.DoesNotTransform => false;
 
         /// <summary>
         /// <inheritdoc/>

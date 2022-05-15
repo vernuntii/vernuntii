@@ -5,6 +5,6 @@ namespace Vernuntii.VersionIncrementing
 {
     internal interface IVersionIncrementBuilder
     {
-        IEnumerable<ISemanticVersionTransformer> BuildIncrement(IMessage message, VersionIncrementContext context);
+        IEnumerable<IVersionTransformer> BuildIncrement(IMessage message, VersionIncrementContext context);
     }
 }

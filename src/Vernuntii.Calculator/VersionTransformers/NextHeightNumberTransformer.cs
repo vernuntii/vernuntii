@@ -6,18 +6,18 @@ using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionTransformers
 {
-    internal class NextHeightNumberTransformer : ISemanticVersionTransformer
+    internal class NextHeightNumberTransformer : IVersionTransformer
     {
         private readonly HeightConventionTransformer? _transformer;
-        //private readonly ISemanticVersionExistenceChecker _versionExistenceChecker;
+        //private readonly IVersionExistenceChecker _versionExistenceChecker;
         private HeightConventionTransformResult? _transformResult;
         private uint? _parsedHeightNumber;
 
-        bool ISemanticVersionTransformer.DoesNotTransform => false;
+        bool IVersionTransformer.DoesNotTransform => false;
 
         public NextHeightNumberTransformer(
             HeightConventionTransformer transformer
-            /*ISemanticVersionExistenceChecker versionExistenceChecker*/)
+            /*IVersionExistenceChecker versionExistenceChecker*/)
         {
             _transformer = transformer ?? throw new ArgumentNullException(nameof(transformer));
             //_versionExistenceChecker = versionExistenceChecker ?? throw new ArgumentNullException(nameof(versionExistenceChecker));
@@ -26,7 +26,7 @@ namespace Vernuntii.VersionTransformers
         internal NextHeightNumberTransformer(
             HeightConventionTransformResult transformResult,
             uint? parsedHeightNumber
-            /*ISemanticVersionExistenceChecker versionExistenceChecker*/)
+            /*IVersionExistenceChecker versionExistenceChecker*/)
         {
             _transformResult = transformResult ?? throw new ArgumentNullException(nameof(transformResult));
             //_versionExistenceChecker = versionExistenceChecker ?? throw new ArgumentNullException(nameof(versionExistenceChecker));

@@ -5,14 +5,14 @@ namespace Vernuntii.VersionTransformers
     /// <summary>
     /// Default implementation for not incrementing the version.
     /// </summary>
-    public sealed class NoneVersionTransformer : ISemanticVersionTransformer
+    public sealed class NoneVersionTransformer : IVersionTransformer
     {
         /// <summary>
         /// Default instance.
         /// </summary>
         public readonly static NoneVersionTransformer Default = new NoneVersionTransformer();
 
-        bool ISemanticVersionTransformer.DoesNotTransform => true;
+        bool IVersionTransformer.DoesNotTransform => true;
 
         /// <summary>
         /// <inheritdoc/>

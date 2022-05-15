@@ -5,14 +5,14 @@ using Teronis.Text;
 
 namespace Vernuntii.VersionPresentation.Serializers
 {
-    internal class SemanticVersionPresentationIniSerializer : ISemanticVersionPresentationSerializer
+    internal class VersionPresentationIniSerializer : IVersionPresentationSerializer
     {
-        public readonly static SemanticVersionPresentationIniSerializer Default = new SemanticVersionPresentationIniSerializer();
+        public readonly static VersionPresentationIniSerializer Default = new VersionPresentationIniSerializer();
 
         public string? SerializeSemanticVersion(
             object versionPresentation,
-            SemanticVersionPresentationKind presentationKind,
-            SemanticVersionPresentationPart presentationParts)
+            VersionPresentationKind presentationKind,
+            VersionPresentationPart presentationParts)
         {
             var properties = versionPresentation.GetType()
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
@@ -21,7 +21,7 @@ namespace Vernuntii.VersionPresentation.Serializers
             var stringBuilder = new StringBuilder();
             var stringSeparator = new StringSeparator(Environment.NewLine);
 
-            if (presentationKind == SemanticVersionPresentationKind.Value) {
+            if (presentationKind == VersionPresentationKind.Value) {
                 stringBuilder.Append(CultureInfo.InvariantCulture, $"{versionPresentation}");
             } else {
                 foreach (var property in properties) {

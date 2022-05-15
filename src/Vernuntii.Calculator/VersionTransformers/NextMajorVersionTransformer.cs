@@ -6,14 +6,14 @@ namespace Vernuntii.VersionTransformers
     /// Default implementation for incrementing the major version by one
     /// and resetting minor and patch version to zero.
     /// </summary>
-    public sealed class NextMajorVersionTransformer : ISemanticVersionTransformer
+    public sealed class NextMajorVersionTransformer : IVersionTransformer
     {
         /// <summary>
         /// Default instance.
         /// </summary>
         public readonly static NextMajorVersionTransformer Default = new NextMajorVersionTransformer();
 
-        bool ISemanticVersionTransformer.DoesNotTransform => false;
+        bool IVersionTransformer.DoesNotTransform => false;
 
         /// <summary>
         /// <inheritdoc/>
