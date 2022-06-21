@@ -57,6 +57,10 @@ namespace Vernuntii.Plugins
             }
 
             var parser = CommandLineBuilderFactory(RootCommand)
+                // This middleware is not called when an parser exception occured before.
+                // This middleware is not called when --help was used.
+                // This middleware gets called TWICE but in the first call it will NEVER
+                // call the root command!
                 .AddMiddleware(
                     (ctx, next) => {
                         var invokeRootCommandHandler = _parseResult is not null;
@@ -73,8 +77,10 @@ namespace Vernuntii.Plugins
 
             var exitCode = parser.Invoke(CommandLineArgs ?? Array.Empty<string>());
 
-            if (_parseResult == null) {
-                // This is also the case when the help text is displayed but that's okay.
+            if (_parseResult is null) {
+                // This is the case when the help text is displayed or a
+                // parser exception occured but that's okay because we only
+                // want to inform about exit code.
                 Events.Publish(CommandLineEvents.InvokedRootCommand, exitCode);
             } else {
                 Events.Publish(CommandLineEvents.ParsedCommandLineArgs, _parseResult);
@@ -91,6 +97,7 @@ namespace Vernuntii.Plugins
                 throw new InvalidOperationException("Root command handler is not set");
             }
 
+            // This calls the middleware again.
             var exitCode = _parseResult.Invoke();
             Events.Publish(CommandLineEvents.InvokedRootCommand, exitCode);
         }

@@ -2,7 +2,10 @@
   "profiles": {
     "Vernuntii.Console.GlobalTool": {
       "commandName": "Project",
-      "commandLineArgs": "--config-path \"C:\\repos\\rabot\" --presentation-kind complex --presentation-view json --presentation-parts all"
+      "commandLineArgs": "--verbosity Verbose --presentation-kind complex --presentation-view json --presentation-parts all --empty-caches",
+      "environmentVariables": {
+        "Verbosity": "Verbose"
+      }
     }
   }
 }

@@ -99,9 +99,14 @@
             _isSealed = true;
 
         /// <inheritdoc/>
-        public ILazyPlugin<T> First<T>()
+        public ILazyPlugin<T> FirstLazy<T>()
             where T : IPlugin =>
             new LazyPlugin<T>(this);
+
+        /// <inheritdoc/>
+        public T First<T>()
+            where T : IPlugin =>
+            FirstLazy<T>().Value;
 
         /// <inheritdoc/>
         public void Dispose() =>

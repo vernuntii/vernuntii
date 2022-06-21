@@ -12,7 +12,6 @@ namespace Vernuntii.Extensions
 
         /// <summary>
         /// Uses <paramref name="configuration"/> through <paramref name="features"/>:
-        /// <br/>- adds repository
         /// <br/>- adds branch cases
         /// </summary>
         /// <param name="features"></param>
@@ -22,7 +21,6 @@ namespace Vernuntii.Extensions
             this IGitFeatures features,
             IConfiguration configuration,
             Action<IBranchCase>? configureBranchCase = null) => features
-                .AddRepository(options => configuration.Bind(options))
                 .AddBranchCases(configuration, configuration.GetSection(BranchesSectionKey).GetChildren(), configureBranchCase);
     }
 }

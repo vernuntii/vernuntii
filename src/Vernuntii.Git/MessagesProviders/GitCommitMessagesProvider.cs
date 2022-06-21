@@ -11,7 +11,7 @@ public class GitCommitMessagesProvider : IMessagesProvider
     private const int MaxDebugCommitMessageLength = 18;
 
     private static LoggerMessageAmendmentFactory CreateDebugMessage(ICommit commit) =>
-        () => new LoggerMessageAmendment("Commit = {CommitSha}, Message = {CommitMessage}", new object[] {
+        () => new LoggerMessageAmendment("Commit = {BranchTip}, Message = {CommitMessage}", new object[] {
             commit.Sha[..7],
             "\"" + (commit.Subject.Length >=MaxDebugCommitMessageLength
                 ? commit.Subject[..MaxDebugCommitMessageLength] + "..."

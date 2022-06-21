@@ -17,7 +17,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" />
+    <ProjectReference Include="..\Vernuntii.Common\Vernuntii.Common.csproj" />
     <ProjectReference Include="..\Vernuntii.SemVer\Vernuntii.SemVer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="VersionCaching\Hashing\" />
   </ItemGroup>
 
 </Project>

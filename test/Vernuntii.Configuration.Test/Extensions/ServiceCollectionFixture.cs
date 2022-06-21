@@ -37,6 +37,7 @@ namespace Vernuntii.Extensions
                 services
                     .ConfigureVernuntii(features => features
                     .ConfigureGit(features => features
+                        .AddRepository()
                         .UseConfigurationDefaults(gitConfiguration)));
             }
 

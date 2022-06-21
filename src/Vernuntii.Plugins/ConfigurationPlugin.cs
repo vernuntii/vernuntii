@@ -18,61 +18,83 @@ namespace Vernuntii.Plugins
     {
         /// <inheritdoc/>
         public override int? Order => -1000;
-
         /// <inheritdoc/>
         public IConfiguration Configuration { get; private set; } = null!;
 
+        /// <inheritdoc/>
+        public string? ConfigFile {
+            get {
+                EnsureConfiguredConfigurationBuilder();
+                return _configFile;
+            }
+
+            private set => _configFile = value;
+        }
+
+        private SharedOptionsPlugin _sharedOptions = null!;
         private ILogger _logger = null!;
+        private IVersionCacheCheckPlugin _cacheCheckPlugin = null!;
+        private bool _isConfigurationBuilderConfigured;
+        private string? _configFile;
 
-        private Option<string?> _configPathOption = new Option<string?>(new[] { "--config-path", "-c" }) {
-            Description = $"The configuration file path. JSON and YAML is allowed. If a directory is specified instead the configuration file" +
-                $" {YamlConfigurationFileDefaults.YmlFileName}, {YamlConfigurationFileDefaults.YamlFileName} or {JsonConfigurationFileDefaults.JsonFileName}" +
-                " (in each upward directory in this exact order) is searched at specified directory and above."
-        };
+        private void EnsureConfiguredConfigurationBuilder()
+        {
+            if (!_isConfigurationBuilderConfigured) {
+                throw new InvalidOperationException("Configuration builder is not yet configured");
+            }
+        }
 
-        private string? _configPath;
+        /// <inheritdoc/>
+        protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
+            await registrationContext.PluginRegistry.TryRegisterAsync<SharedOptionsPlugin>();
 
         /// <inheritdoc/>
         protected override void OnCompletedRegistration()
         {
-            Plugins.First<ICommandLinePlugin>().Registered +=
-                plugin => plugin.RootCommand.Add(_configPathOption);
+            _sharedOptions = Plugins.First<SharedOptionsPlugin>();
+            _logger = Plugins.First<ILoggingPlugin>().CreateLogger<ConfigurationPlugin>();
+            _cacheCheckPlugin = Plugins.First<IVersionCacheCheckPlugin>();
         }
 
         /// <inheritdoc/>
         protected override void OnEvents()
         {
-            Events.SubscribeOnce(
-                CommandLineEvents.ParsedCommandLineArgs,
-                parseResult => _configPath = parseResult.GetValueForOption(_configPathOption));
+            var configurationBuilder = new ConventionalConfigurationBuilder()
+                .AddConventionalYamlFileFinder()
+                .AddConventionalJsonFileFinder();
 
-            Events.SubscribeOnce(ConfigurationEvents.CreateConfiguration, () => {
-                var configurationBuilder = new ConventionalConfigurationBuilder()
-                   .AddConventionalYamlFileFinder()
-                   .AddConventionalJsonFileFinder();
-
-                var configPathOrCurrentDirectory = _configPath ?? Directory.GetCurrentDirectory();
-                _logger.LogTrace("Search configuration file (Start = {ConfigPath})", configPathOrCurrentDirectory);
+            Events.SubscribeOnce(SharedOptionsEvents.ParsedCommandLineArgs, () => {
+                var configPath = _sharedOptions.ConfigPath;
+                _logger.LogTrace("Search configuration file (Start = {ConfigPath})", configPath);
 
                 // Allow non existent configuration file because defaults are applied.
-                _ = configurationBuilder.TryAddFileOrFirstConventionalFile(
-                       configPathOrCurrentDirectory,
+                var foundConfigFile = configurationBuilder.TryAddFileOrFirstConventionalFile(
+                       configPath,
                        new[] {
-                                YamlConfigurationFileDefaults.YmlFileName,
-                                YamlConfigurationFileDefaults.YamlFileName,
-                                JsonConfigurationFileDefaults.JsonFileName
+                           YamlConfigurationFileDefaults.YmlFileName,
+                           YamlConfigurationFileDefaults.YamlFileName,
+                           JsonConfigurationFileDefaults.JsonFileName
                        },
                        out var addedFilePath,
                        configurator => configurator.AddGitDefaults());
 
-                Configuration = configurationBuilder.Build();
-                _logger.LogInformation("Use configuration file: {ConfigurationFilePath}", addedFilePath);
-                Events.Publish(ConfigurationEvents.CreatedConfiguration, Configuration);
+                if (foundConfigFile) {
+                    _sharedOptions.ConfigPath = addedFilePath;
+                }
+
+                _isConfigurationBuilderConfigured = true;
+                Events.Publish(ConfigurationEvents.ConfiguredConfigurationBuilder);
             });
 
             Events.SubscribeOnce(
-                LoggingEvents.EnabledLoggingInfrastructure,
-                plugin => _logger = plugin.CreateLogger<ConfigurationPlugin>());
+                ConfigurationEvents.CreateConfiguration,
+                () => {
+                    var configPathOrCurrentDirectory = _sharedOptions.ConfigPath ?? Directory.GetCurrentDirectory();
+                    Configuration = configurationBuilder.Build();
+                    _logger.LogInformation("Use configuration file: {ConfigurationFilePath}", _sharedOptions.ConfigPath);
+                    Events.Publish(ConfigurationEvents.CreatedConfiguration, Configuration);
+                },
+                () => !_cacheCheckPlugin.IsCacheUpToDate);
         }
     }
 }

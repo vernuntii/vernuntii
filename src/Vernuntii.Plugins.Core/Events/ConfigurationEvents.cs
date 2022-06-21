@@ -9,6 +9,11 @@ namespace Vernuntii.Plugins.Events
     public sealed class ConfigurationEvents
     {
         /// <summary>
+        /// Event is happening when the configuration builder has been configured.
+        /// </summary>
+        public readonly static SubjectEvent ConfiguredConfigurationBuilder = new SubjectEvent();
+
+        /// <summary>
         /// Event is happening when the configuration is getting created.
         /// </summary>
         public readonly static SubjectEvent CreateConfiguration = new SubjectEvent();

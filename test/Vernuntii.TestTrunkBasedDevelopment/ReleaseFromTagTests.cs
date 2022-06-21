@@ -35,8 +35,8 @@ namespace Vernuntii
         {
             _temporaryRepository.CommitEmpty();
 
-            var versionFoundation = await _vernuntii.RunAsync();
-            _temporaryRepository.TagLightweight(versionFoundation.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
+            var versionCache = await _vernuntii.RunAsync();
+            _temporaryRepository.TagLightweight(versionCache.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
 
             var snapshotVersion = _temporaryRepository
                 .GetCommitVersions(unsetCache: true)
@@ -51,8 +51,8 @@ namespace Vernuntii
             _temporaryRepository.CommitEmpty();
             var releaseVersion = "0.1.0";
             _temporaryRepository.TagLightweight(releaseVersion);
-            var versionFoundation = await _vernuntii.RunAsync();
-            Assert.Equal(releaseVersion, versionFoundation.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
+            var versionCache = await _vernuntii.RunAsync();
+            Assert.Equal(releaseVersion, versionCache.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
         }
 
         public void Dispose() => _temporaryRepository.Dispose();

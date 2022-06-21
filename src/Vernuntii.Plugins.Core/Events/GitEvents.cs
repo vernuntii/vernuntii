@@ -9,6 +9,11 @@ namespace Vernuntii.Plugins.Events
     public static class GitEvents
     {
         /// <summary>
+        /// Event when fully qualified git directory has been resolved.
+        /// </summary>
+        public readonly static SubjectEvent<string> ResolvedGitDirectory = new SubjectEvent<string>();
+
+        /// <summary>
         /// Event when global service collection is about to be configured.
         /// </summary>
         public readonly static SubjectEvent<IServiceCollection> ConfiguringGlobalServices = new SubjectEvent<IServiceCollection>();

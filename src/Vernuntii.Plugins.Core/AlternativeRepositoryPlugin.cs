@@ -7,9 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Vernuntii.Plugins
 {
     /// <summary>
-    /// A plugin that registers the custom repository before the official repository
-    /// registration when the event <see cref="GitEvents.ConfiguringGlobalServices"/>
-    /// is called.
+    /// A plugin that registers the custom repository to the <see cref="IGlobalServicesPlugin"/>.
+    /// This happens before the official repository registration.
     /// </summary>
     public class AlternativeRepositoryPlugin : Plugin
     {
@@ -27,7 +26,7 @@ namespace Vernuntii.Plugins
             Repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
         /// <inheritdoc/>
-        protected override void OnEvents() =>
-            Events.SubscribeOnce(GitEvents.ConfiguringGlobalServices, services => services.AddSingleton(Repository));
+        protected override void OnCompletedRegistration() =>
+            Plugins.First<IGlobalServicesPlugin>().AddSingleton(Repository);
     }
 }

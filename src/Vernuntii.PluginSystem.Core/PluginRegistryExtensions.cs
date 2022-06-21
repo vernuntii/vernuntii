@@ -30,10 +30,10 @@
         /// <param name="pluginRegistry"></param>
         public static ValueTask<IPluginRegistration> RegisterAsync<TPlugin>(this IPluginRegistry pluginRegistry)
             where TPlugin : IPlugin, new() =>
-            pluginRegistry.RegisterAsync(typeof(IPlugin), new TPlugin());
+            pluginRegistry.RegisterAsync(typeof(TPlugin), new TPlugin());
 
         /// <summary>
-        /// Registers a plugin.
+        /// Tries to registers a plugin.
         /// </summary>
         /// <param name="pluginRegistry"></param>
         /// <param name="serviceType"></param>
@@ -50,7 +50,7 @@
         }
 
         /// <summary>
-        /// Registers a plugin.
+        /// Tries to registers a plugin.
         /// </summary>
         /// <typeparam name="TService"></typeparam>
         /// <param name="pluginRegistry"></param>
@@ -60,7 +60,7 @@
             pluginRegistry.TryRegisterAsync(typeof(TService), plugin);
 
         /// <summary>
-        /// Registers a plugin.
+        /// Tries to registers a plugin.
         /// </summary>
         /// <param name="pluginRegistry"></param>
         public static ValueTask<IPluginRegistration> TryRegisterAsync<TService, TImplementation>(this IPluginRegistry pluginRegistry)
@@ -69,7 +69,7 @@
             pluginRegistry.TryRegisterAsync(typeof(TService), new TImplementation());
 
         /// <summary>
-        /// Registers a plugin.
+        /// Tries to registers a plugin.
         /// </summary>
         /// <param name="pluginRegistry"></param>
         public static ValueTask<IPluginRegistration> TryRegisterAsync<TPlugin>(this IPluginRegistry pluginRegistry)

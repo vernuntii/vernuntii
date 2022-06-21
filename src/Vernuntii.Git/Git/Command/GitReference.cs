@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Git.Command
 {
-    internal record GitReference
+    internal record GitReference : IGitReference
     {
         public static bool TryParse(string? value, [NotNullWhen(true)] out GitReference? reference)
         {

@@ -6,12 +6,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Autofac;
+using Vernuntii.Caching;
 using Vernuntii.Console;
 using Vernuntii.Extensions;
-using Vernuntii.Extensions.VersionFoundation;
+using Vernuntii.Git;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.VersionCaching;
 using Vernuntii.VersionPresentation;
 using Vernuntii.VersionPresentation.Serializers;
 
@@ -26,7 +28,8 @@ namespace Vernuntii.Plugins
         public int? ExitCodeOnSuccess { get; set; }
 
         private ILoggingPlugin _loggingPlugin = null!;
-        private NextVersionOptionsPlugin _options = null!;
+        private SharedOptionsPlugin _sharedOptions = null!;
+        private IVersionCacheCheckPlugin _versionCacheCheckPlugin = null!;
         private ILogger _logger = null!;
         private IConfiguration _configuration = null!;
 
@@ -55,42 +58,6 @@ namespace Vernuntii.Plugins
             Description = "The view of presentation."
         };
 
-        private const string CacheIdOptionAlias = "--cache-id";
-
-        private Option<string> _cacheIdOption = new Option<string>(new string[] { CacheIdOptionAlias }) {
-            Description = "The non-case-sensitive cache id is used to cache the version informations once and load them on next accesses." +
-                $" If {CacheIdOptionAlias} is not specified it is implicitly the internal cache id: {VersionFoundationProviderOptions.DefaultInternalCacheId}"
-        };
-
-        private Option<TimeSpan?> _cacheCreationRetentionTimeOption = new Option<TimeSpan?>(new string[] { "--cache-creation-retention-time" }, parseArgument: result => {
-            if (result.Tokens.Count == 0 || result.Tokens[0].Value == string.Empty) {
-                return null; // = internal default is taken
-            }
-
-            return TimeSpan.Parse(result.Tokens[0].Value, CultureInfo.InvariantCulture);
-        }) {
-            Description = "The cache retention time since creation. If the time span since creation is greater than then" +
-                " the at creation specified retention time then the version informations is reloaded. Null or empty means the" +
-                $" default creation retention time of {VersionFoundationProviderOptions.DefaultCacheCreationRetentionTime.TotalHours}" +
-                " hours is used.",
-            Arity = ArgumentArity.ZeroOrOne
-        };
-
-        private Option<TimeSpan?> _cacheLastAccessRetentionTimeOption = new Option<TimeSpan?>(new string[] { "--cache-last-access-retention-time" }, parseArgument: result => {
-            if (result.Tokens.Count == 0 || result.Tokens[0].Value == string.Empty) {
-                return null; // = feature won't be used
-            }
-
-            return TimeSpan.Parse(result.Tokens[0].Value, CultureInfo.InvariantCulture);
-        }) {
-            Description = "The cache retention time since last access. If the time span since last access is greater than the" +
-                " retention time then the version informations is reloaded. Null or empty means this feature is disabled except" +
-                $" if the cache id is implictly or explictly equals to the internal cache id, then the default last access retention time of" +
-                $" {VersionFoundationProviderOptions.DefaultInternalCacheLastAccessRetentionTime.ToString("s\\.f", CultureInfo.InvariantCulture)}s" +
-                " is used.",
-            Arity = ArgumentArity.ZeroOrOne
-        };
-
         private Option<bool> _emptyCachesOption = new Option<bool>(new string[] { "--empty-caches" }) {
             Description = "Empties all caches where version informations are stored. This happens before the cache process itself."
         };
@@ -100,64 +67,62 @@ namespace Vernuntii.Plugins
         private VersionPresentationKind _presentationKind;
         private VersionPresentationPart _presentationParts;
         private VersionPresentationView _presentationView;
-        private string? _cacheId;
-        private TimeSpan? _cacheCreationRetentionTime;
-        private TimeSpan? _cacheLastAccessRetentionTime;
         private bool _emptyCaches;
-        private LifetimeScopedServiceProvider? _globalServiceProvider;
+
+        private ILifetimeScopedServiceProvider _globalServiceProvider = null!;
 
         /// <inheritdoc/>
         protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
-            await Plugins.TryRegisterAsync<NextVersionOptionsPlugin>();
+            await registrationContext.PluginRegistry.TryRegisterAsync<SharedOptionsPlugin>();
 
-        private LifetimeScopedServiceProvider CreateGlobalServiceProvider()
+        private ILifetimeScopedServiceProvider CreateCalculationServiceProvider()
         {
-            IServiceCollection globalServices = new ServiceCollection();
-            Events.Publish(NextVersionEvents.CreatedGlobalServices, globalServices);
+            var calculationServiceProvider = _globalServiceProvider.CreateScope(services => {
+                Events.Publish(NextVersionEvents.CreatedCalculationServices, services);
 
-            globalServices.AddLogging(builder => _loggingPlugin.Bind(builder));
-            Events.Publish(NextVersionEvents.ConfiguredGlobalServices, globalServices);
+                services.ConfigureVernuntii(features => features
+                    .AddSingleVersionCalculator()
+                    .AddSingleVersionCalculation(features => features
+                        .TryOverrideStartVersion(_configuration)));
 
-            return AddDisposable(globalServices.BuildLifetimeScopedServiceProvider());
+                if (_sharedOptions.ShouldOverrideVersioningMode) {
+                    services.ConfigureVernuntii(features => features
+                        .AddSingleVersionCalculation(features => features
+                            .UseVersioningMode(_sharedOptions.OverrideVersioningMode)));
+                }
+
+                Events.Publish(NextVersionEvents.ConfiguredCalculationServices, services);
+            });
+
+            Events.Publish(NextVersionEvents.CreatedCalculationServiceProvider, calculationServiceProvider);
+            return calculationServiceProvider;
         }
 
         private int ProduceVersionOutput()
         {
             try {
-                _globalServiceProvider ??= CreateGlobalServiceProvider();
+                IVersionCache versionCache;
 
-                using var calculationServiceProvider = _globalServiceProvider.CreateScope(services => {
-                    Events.Publish(NextVersionEvents.CreatedCalculationServices, services);
+                if (_versionCacheCheckPlugin.IsCacheUpToDate) {
+                    versionCache = _versionCacheCheckPlugin.VersionCache;
+                } else {
+                    using var calculationServiceProvider = CreateCalculationServiceProvider();
+                    var repository = calculationServiceProvider.GetRequiredService<IRepository>();
+                    var versionCalculation = calculationServiceProvider.GetRequiredService<ISingleVersionCalculation>();
+                    var versionCacheManager = calculationServiceProvider.GetRequiredService<IVersionCacheManager>();
 
-                    services.ConfigureVernuntii(features => features
-                        .AddSingleVersionCalculator()
-                        .AddSingleVersionCalculation(features => features
-                            .TryOverrideStartVersion(_configuration))
-                        .AddSemanticVersionFoundationProvider(options => options.EmptyCaches = _emptyCaches));
+                    var newVersion = versionCalculation.GetVersion();
+                    var newBranch = repository.GetActiveBranch();
 
-                    if (_options.ShouldOverrideVersioningMode) {
-                        services.ConfigureVernuntii(features => features
-                            .AddSingleVersionCalculation(features => features
-                                .UseVersioningMode(_options.OverrideVersioningMode)));
-                    }
+                    // get cache or calculate version.
+                    versionCache = versionCacheManager.RecacheCache(
+                        newVersion,
+                        newBranch);
+                }
 
-                    Events.Publish(NextVersionEvents.ConfiguredCalculationServices, services);
-                });
+                Events.Publish(NextVersionEvents.CalculatedNextVersion, versionCache);
 
-                Events.Publish(NextVersionEvents.CreatedCalculationServiceProvider, calculationServiceProvider);
-
-                //var repository = globalServiceProvider.GetRequiredService<IRepository>();
-                var presentationFoundationProvider = calculationServiceProvider.GetRequiredService<VersionFoundationProvider>();
-
-                // get cache or calculate version.
-                var presentationFoundation = presentationFoundationProvider.GetFoundation(
-                    _cacheId,
-                    creationRetentionTime: _cacheCreationRetentionTime,
-                    lastAccessRetentionTime: _cacheLastAccessRetentionTime);
-
-                Events.Publish(NextVersionEvents.CalculatedNextVersion, presentationFoundation);
-
-                var formattedVersion = new VersionPresentationStringBuilder(presentationFoundation)
+                var formattedVersion = new VersionPresentationStringBuilder(versionCache)
                     .UsePresentationKind(_presentationKind)
                     .UsePresentationPart(_presentationParts)
                     .UsePresentationView(_presentationView)
@@ -186,41 +151,47 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnCompletedRegistration()
         {
-            Plugins.First<ICommandLinePlugin>().Registered += plugin => {
+            Plugins.FirstLazy<ICommandLinePlugin>().Registered += plugin => {
                 plugin.SetRootCommandHandler(ProduceVersionOutput);
                 plugin.RootCommand.Add(_presentationKindOption);
                 plugin.RootCommand.Add(_presentationPartsOption);
                 plugin.RootCommand.Add(_presentationViewOption);
-                plugin.RootCommand.Add(_cacheIdOption);
-                plugin.RootCommand.Add(_cacheCreationRetentionTimeOption);
-                plugin.RootCommand.Add(_cacheLastAccessRetentionTimeOption);
                 plugin.RootCommand.Add(_emptyCachesOption);
             };
 
-            _loggingPlugin = Plugins.First<ILoggingPlugin>().Value;
-            _options = Plugins.First<NextVersionOptionsPlugin>().Value;
+            _loggingPlugin = Plugins.First<ILoggingPlugin>();
+            _sharedOptions = Plugins.First<SharedOptionsPlugin>();
+            _versionCacheCheckPlugin = Plugins.First<IVersionCacheCheckPlugin>();
         }
 
         /// <inheritdoc/>
         protected override void OnEvents()
         {
-            Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult => {
-                _presentationKind = parseResult.GetValueForOption(_presentationKindOption);
-                _presentationParts = parseResult.GetValueForOption(_presentationPartsOption);
-                _presentationView = parseResult.GetValueForOption(_presentationViewOption);
-                _cacheId = parseResult.GetValueForOption(_cacheIdOption);
-                _cacheCreationRetentionTime = parseResult.GetValueForOption(_cacheCreationRetentionTimeOption);
-                _cacheLastAccessRetentionTime = parseResult.GetValueForOption(_cacheLastAccessRetentionTimeOption);
-                _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
-            });
-
             Events.SubscribeOnce(
                 LoggingEvents.EnabledLoggingInfrastructure,
                 plugin => _logger = plugin.CreateLogger<NextVersionPlugin>());
 
+            Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult => {
+                _presentationKind = parseResult.GetValueForOption(_presentationKindOption);
+                _presentationParts = parseResult.GetValueForOption(_presentationPartsOption);
+                _presentationView = parseResult.GetValueForOption(_presentationViewOption);
+                _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
+            });
+
             Events.SubscribeOnce(
                 ConfigurationEvents.CreatedConfiguration,
                 configuration => _configuration = configuration);
+
+            Events.SubscribeOnce(
+                GlobalServicesEvents.ConfigureServices,
+                sp => {
+                    Events.Publish(NextVersionEvents.ConfigureGlobalServices, sp);
+                    Events.Publish(NextVersionEvents.ConfiguredGlobalServices, sp);
+                });
+
+            Events.SubscribeOnce(
+                GlobalServicesEvents.CreatedServiceProvider,
+                sp => _globalServiceProvider = sp);
         }
     }
 }

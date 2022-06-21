@@ -5,7 +5,7 @@ namespace Vernuntii.Git
 {
     internal class TemporaryRepository : Repository, IDisposable
     {
-        internal new TestingGitCommand GitCommand => (TestingGitCommand)base.GitCommand;
+        internal new TestingGitCommand GitCommand => (TestingGitCommand)base.GitCommand.UnderlyingCommand;
 
         private readonly TemporaryRepositoryOptions _options;
         private bool _isDisposed;
@@ -22,8 +22,18 @@ namespace Vernuntii.Git
             _options = options;
         }
 
+        public TemporaryRepository(TemporaryRepositoryOptions options)
+            : this(options, DefaultTemporaryRepositoryLogger)
+        {
+        }
+
         public TemporaryRepository(ILogger<TemporaryRepository> logger)
             : this(new TemporaryRepositoryOptions(), logger)
+        {
+        }
+
+        internal TemporaryRepository()
+            : this(DefaultTemporaryRepositoryLogger)
         {
         }
 
@@ -63,6 +73,7 @@ namespace Vernuntii.Git
         public IReadOnlyCollection<ICommitVersion> GetCommitVersions(bool unsetCache)
         {
             if (unsetCache) {
+                base.GitCommand.UnsetCommitTagsCache();
                 UnsetCommitVersions();
             }
 

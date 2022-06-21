@@ -4,7 +4,7 @@ using Vernuntii.Plugins;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
-using Vernuntii.VersionFoundation;
+using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Console
 {
@@ -72,17 +72,22 @@ namespace Vernuntii.Console
             return _pluginExecutor is not null;
         }
 
+        /// <summary>
+        /// Prepares once the program run.
+        /// </summary>
+        /// <returns>A short-circuit exit code indicating to short-circuit the program.</returns>
         [MemberNotNull(nameof(_pluginRegistry))]
-        private async ValueTask PrepareRunCoreOnceAsync()
+        private async ValueTask<ExitCode?> PrepareRunCoreOnceAsync()
         {
             EnsureNotDisposed();
 
             if (_pluginRegistry is not null) {
-                return;
+                return null;
             }
 
             _pluginRegistry = new PluginRegistry();
 
+            await _pluginRegistry.RegisterAsync<IGlobalServicesPlugin, GlobalServicesPlugin>();
             await _pluginRegistry.RegisterAsync<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
             await _pluginRegistry.RegisterAsync<ICommandLinePlugin, CommandLinePlugin>();
 
@@ -92,8 +97,10 @@ namespace Vernuntii.Console
 
             await _pluginRegistry.RegisterAsync<IConfigurationPlugin, ConfigurationPlugin>();
             await _pluginRegistry.RegisterAsync<IGitPlugin, GitPlugin>();
-            await _pluginRegistry.RegisterAsync<INextVersionPlugin, NextVersionPlugin>();
+            await _pluginRegistry.RegisterAsync<IGitCommandPlugin, GitCommandPlugin>();
+            await _pluginRegistry.RegisterAsync<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>();
             await _pluginRegistry.RegisterAsync<VersionCalculationPerfomancePlugin>();
+            await _pluginRegistry.RegisterAsync<INextVersionPlugin, NextVersionPlugin>();
 
             if (PluginDescriptors is not null) {
                 foreach (var pluginDescriptor in PluginDescriptors) {
@@ -103,20 +110,30 @@ namespace Vernuntii.Console
 
             _pluginEvents = new PluginEventCache();
             _pluginExecutor = new PluginExecutor(_pluginRegistry, _pluginEvents);
+            _logger.LogTrace("Execute plugins");
             await _pluginExecutor.ExecuteAsync();
-            _logger.LogTrace("Executing plugins");
 
-            _pluginEvents.Publish(CommandLineEvents.SetCommandLineArgs, ConsoleArgs);
             _logger.LogTrace("Set command-line arguments");
+            _pluginEvents.Publish(CommandLineEvents.SetCommandLineArgs, ConsoleArgs);
 
-            _pluginEvents.Publish(CommandLineEvents.ParseCommandLineArgs);
+            ExitCode? shortCircuitExitCode = null;
+            using var invokedRootCommandSubscripion = _pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, exitCode => shortCircuitExitCode = (ExitCode)exitCode);
             _logger.LogTrace("Parse command-line arguments");
-
+            _pluginEvents.Publish(CommandLineEvents.ParseCommandLineArgs);
             _pluginEvents.Publish(LoggingEvents.EnableLoggingInfrastructure);
-            _logger.LogTrace("Enable logging infrastructure");
+
+            if (shortCircuitExitCode.HasValue) {
+                return shortCircuitExitCode;
+            }
+
+            // Check version cache.
+            _pluginEvents.Publish(VersionCacheCheckEvents.CreateVersionCacheManager);
+            _pluginEvents.Publish(VersionCacheCheckEvents.CheckVersionCache);
 
             _pluginEvents.Publish(ConfigurationEvents.CreateConfiguration);
-            _logger.LogTrace("Create configuration");
+            _pluginEvents.Publish(GlobalServicesEvents.CreateServiceProvider);
+
+            return null;
         }
 
         private int RunCore()
@@ -147,7 +164,12 @@ namespace Vernuntii.Console
         /// </summary>
         public async Task<int> RunConsoleAsync()
         {
-            await PrepareRunCoreOnceAsync();
+            var shortCircuitExitCode = await PrepareRunCoreOnceAsync();
+
+            if (shortCircuitExitCode.HasValue) {
+                return (int)shortCircuitExitCode.Value;
+            }
+
             return RunCore();
         }
 
@@ -155,23 +177,23 @@ namespace Vernuntii.Console
         /// Runs Vernuntii for getting the next version.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task<IVersionFoundation> RunAsync()
+        public async Task<IVersionCache> RunAsync()
         {
             await PrepareRunCoreOnceAsync();
             EnsureHavingPluginEvents();
-            IVersionFoundation? versionFoundation = null;
+            IVersionCache? versionCache = null;
 
             _pluginEvents.SubscribeOnce(
                 NextVersionEvents.CalculatedNextVersion,
-                calculatedVersionFoundation => versionFoundation = calculatedVersionFoundation);
+                calculatedVersionCache => versionCache = calculatedVersionCache);
 
             RunCore();
 
-            if (versionFoundation is null) {
+            if (versionCache is null) {
                 throw new InvalidOperationException("Next version was not calculated");
             }
 
-            return versionFoundation;
+            return versionCache;
         }
 
         private async ValueTask DestroyPluginsAsync()
@@ -194,11 +216,6 @@ namespace Vernuntii.Console
             await DestroyPluginsAsync();
             _pluginRegistry?.Dispose();
             _isDisposed = true;
-        }
-
-        private class ExitCodeReference
-        {
-            public int ExitCode { get; set; }
         }
     }
 }

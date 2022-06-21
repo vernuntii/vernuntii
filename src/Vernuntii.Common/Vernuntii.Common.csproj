@@ -7,4 +7,13 @@
     <RootNamespace>Vernuntii</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="K4os.Hash.xxHash" Version="1.0.7" />
+    <PackageReference Include="Standart.Hash.xxHash" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

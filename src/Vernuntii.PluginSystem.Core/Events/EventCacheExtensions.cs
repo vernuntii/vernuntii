@@ -35,9 +35,29 @@ namespace Vernuntii.PluginSystem.Events
         /// <param name="eventCache"></param>
         /// <param name="eventTemplate"></param>
         /// <param name="onNext"></param>
+        /// <param name="onNextCondition"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
-        public static IDisposable SubscribeOnce<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> eventTemplate, Action<TPayload> onNext) =>
-            eventCache.GetEvent(eventTemplate).Take(1).Subscribe(onNext);
+        public static IOneSignalSubscription SubscribeOnce<TPayload>(
+            this IEventCache eventCache,
+            SubjectEvent<TPayload> eventTemplate,
+            Action<TPayload> onNext,
+            Func<bool>? onNextCondition = null)
+        {
+            var subscription = new OneSignalSubscription();
+
+            subscription.Disposable = eventCache
+                .GetEvent(eventTemplate)
+                .Take(1)
+                .Subscribe(payload => {
+                    subscription.SignaledOnce = true;
+
+                    if (onNextCondition?.Invoke() ?? true) {
+                        onNext(payload);
+                    }
+                });
+
+            return subscription;
+        }
 
         /// <summary>
         /// Subscribes an element handler to an observable sequence. Once called the element handler gets disposed and won't be called again.
@@ -45,9 +65,29 @@ namespace Vernuntii.PluginSystem.Events
         /// <param name="eventCache"></param>
         /// <param name="eventTemplate"></param>
         /// <param name="onNext"></param>
+        /// <param name="onNextCondition"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
-        public static IDisposable SubscribeOnce(this IEventCache eventCache, SubjectEvent eventTemplate, Action onNext) =>
-            eventCache.GetEvent(eventTemplate).Take(1).Subscribe(_ => onNext());
+        public static IOneSignalSubscription SubscribeOnce(
+            this IEventCache eventCache,
+            SubjectEvent eventTemplate,
+            Action onNext,
+            Func<bool>? onNextCondition = null)
+        {
+            var subscription = new OneSignalSubscription();
+
+            subscription.Disposable = eventCache
+                .GetEvent(eventTemplate)
+                .Take(1)
+                .Subscribe(_ => {
+                    subscription.SignaledOnce = true;
+
+                    if (onNextCondition?.Invoke() ?? true) {
+                        onNext();
+                    }
+                });
+
+            return subscription;
+        }
 
         /// <summary>
         /// Publishes an event.

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.PluginSystem.Events;
 using Vernuntii.SemVer;
-using Vernuntii.VersionFoundation;
+using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Plugins.Events
 {
@@ -11,9 +11,9 @@ namespace Vernuntii.Plugins.Events
     public static class NextVersionEvents
     {
         /// <summary>
-        /// Event when global service collection is created.
+        /// Event when global service collection is about to be configured.
         /// </summary>
-        public readonly static SubjectEvent<IServiceCollection> CreatedGlobalServices = new SubjectEvent<IServiceCollection>();
+        public readonly static SubjectEvent<IServiceCollection> ConfigureGlobalServices = new SubjectEvent<IServiceCollection>();
 
         /// <summary>
         /// Event when global service collection has been configured.
@@ -38,7 +38,7 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when next version has been calculated.
         /// </summary>
-        public readonly static SubjectEvent<IVersionFoundation> CalculatedNextVersion = new SubjectEvent<IVersionFoundation>();
+        public readonly static SubjectEvent<IVersionCache> CalculatedNextVersion = new SubjectEvent<IVersionCache>();
 
 
     }

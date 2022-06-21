@@ -1,7 +1,7 @@
 ﻿namespace Vernuntii.PluginSystem
 {
     /// <summary>
-    /// Indicates that an instance is producing plugin registrations.
+    /// Produces plugin registrations.
     /// </summary>
     public interface IPluginRegistrationProducer
     {

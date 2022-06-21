@@ -2,9 +2,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Teronis;
-using Vernuntii.Extensions.VersionFoundation;
-using Vernuntii.VersionFoundation;
-using Vernuntii.VersionFoundation.Caching;
+using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Extensions
 {
@@ -23,8 +21,7 @@ namespace Vernuntii.Extensions
         {
             var services = features.Services;
 
-            if (configureFeatures is not null)
-            {
+            if (configureFeatures is not null) {
                 configureFeatures(new SingleVersionCalculatorFeatures(services));
             }
 
@@ -42,48 +39,13 @@ namespace Vernuntii.Extensions
         {
             var services = features.Services;
 
-            if (configureFeatures is not null)
-            {
+            if (configureFeatures is not null) {
                 var dependencies = new SingleVersionCalculationFeatures(services);
                 configureFeatures(dependencies);
             }
 
             services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<SingleVersionCalculationOptions>>().Value);
             services.TryAddSingleton<ISingleVersionCalculation, SingleVersionCalculation>();
-            return features;
-        }
-
-        internal static IVernuntiiFeatures AddSingleVersionFoundationCache(this IVernuntiiFeatures features)
-        {
-            var services = features.Services;
-            services.AddOptions();
-            services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<VersionFoundationCacheOptions>>().Value);
-            services.TryAddSingleton<VersionFoundationCache<DefaultVersionFoundation>>();
-            return features;
-        }
-
-        /// <summary>
-        /// Adds <see cref="VersionFoundationProvider"/> to services.
-        /// </summary>
-        /// <param name="features"></param>
-        /// <param name="configureOptions"></param>
-        public static IVernuntiiFeatures AddSemanticVersionFoundationProvider(
-            this IVernuntiiFeatures features,
-            Action<VersionFoundationProviderOptions>? configureOptions = null)
-        {
-            features.AddSingleVersionFoundationCache();
-            var services = features.Services;
-            var optionsBuilder = services.AddOptions<VersionFoundationProviderOptions>();
-
-            if (configureOptions != null)
-            {
-                optionsBuilder.Configure(configureOptions);
-            }
-
-            services.TryAddSingleton(sp => new SlimLazy<ISingleVersionCalculation>(() => sp.GetRequiredService<ISingleVersionCalculation>()));
-            services.TryAddSingleton<IVersionFoundationCache<DefaultVersionFoundation>, VersionFoundationCache<DefaultVersionFoundation>>();
-            services.TryAddSingleton<VersionFoundationProvider>();
-
             return features;
         }
     }

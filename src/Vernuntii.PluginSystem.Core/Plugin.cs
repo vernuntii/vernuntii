@@ -15,7 +15,7 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Represents the plugin registry.
         /// </summary>
-        protected internal IPluginRegistry Plugins =>
+        protected internal IReadOnlyPlugins Plugins =>
             _plugins ?? throw new InvalidOperationException($"Method {nameof(OnRegistrationAsync)} was not called yet");
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Vernuntii.PluginSystem
         async ValueTask<bool> IPlugin.OnRegistration(IPluginRegistry pluginRegistry)
         {
             _plugins = pluginRegistry;
-            var registrationContext = new RegistrationContext();
+            var registrationContext = new RegistrationContext(pluginRegistry);
             await OnRegistrationAsync(registrationContext);
             return registrationContext.AcceptRegistration;
         }
@@ -75,15 +75,6 @@ namespace Vernuntii.PluginSystem
         /// </summary>
         protected virtual ValueTask OnCompletedRegistrationAsync() =>
             ValueTask.CompletedTask;
-
-        /// <summary>
-        /// Gets the first plugin of type <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <exception cref="InvalidOperationException"></exception>
-        protected T FirstPlugin<T>()
-            where T : IPlugin =>
-            Plugins.First<T>().Value;
 
         ValueTask IPlugin.OnCompletedRegistration()
         {
@@ -162,11 +153,24 @@ namespace Vernuntii.PluginSystem
         public class RegistrationContext
         {
             /// <summary>
+            /// The plugin registry.
+            /// </summary>
+            public IPluginRegistry PluginRegistry { get; }
+
+            /// <summary>
             /// <see langword="true"/> accepts registration,
             /// <see langword="false"/> prevents registration.
             /// Default is <see langword="true"/>.
             /// </summary>
             public bool AcceptRegistration { get; set; } = true;
+
+            /// <summary>
+            /// Creates an instance of this type.
+            /// </summary>
+            /// <param name="pluginRegistry"></param>
+            /// <exception cref="ArgumentNullException"></exception>
+            public RegistrationContext(IPluginRegistry pluginRegistry) =>
+                PluginRegistry = pluginRegistry ?? throw new ArgumentNullException(nameof(pluginRegistry));
         }
     }
 }

@@ -13,7 +13,6 @@ namespace Vernuntii.Configuration
         {
             if (!Directory.Exists(directoryPath)) {
                 throw new ArgumentException("The directory does not exist", nameof(directoryPath));
-
             }
         }
 

@@ -2,26 +2,25 @@
 using Vernuntii.Git.Command;
 using Teronis.IO;
 using Vernuntii.SemVer;
+using Vernuntii.Caching;
 
 namespace Vernuntii.Git
 {
     /// <inheritdoc/>
     public class Repository : IRepository
     {
-        private const string GitFolderOrFileName = ".git";
-
         /// <inheritdoc/>
         public IBranches Branches => _branches ??= LoadBranches();
 
-        internal GitCommand GitCommand => _gitCommand ??= CreateCommand();
+        internal CachingGitCommand GitCommand => _gitCommand ??= CreateCommand();
 
         private bool _areCommitVersionsInitialized;
         private RepositoryOptions _options;
+        private readonly IMemoryCacheFactory _memoryCacheFactory;
         private readonly ILogger<Repository> _logger;
-        private GitCommand? _gitCommand;
+        private CachingGitCommand? _gitCommand;
         private Branches? _branches;
         private readonly HashSet<CommitVersion> _commitVersions;
-        private readonly Action<ILogger, string, Exception?> _logGitDirectory;
         private readonly Action<ILogger, string, Exception?> _logBranches;
 
         /// <summary>
@@ -32,12 +31,8 @@ namespace Vernuntii.Git
         public Repository(RepositoryOptions options, ILogger<Repository> logger)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _memoryCacheFactory = DefaultMemoryCacheFactory.Default;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            _logGitDirectory = LoggerMessage.Define<string>(
-                LogLevel.Information,
-                new EventId(2),
-                "Use repository directory: {GitDirectory}");
 
             _logBranches = LoggerMessage.Define<string>(
                 LogLevel.Debug,
@@ -47,24 +42,39 @@ namespace Vernuntii.Git
             _commitVersions = new HashSet<CommitVersion>(SemanticVersionComparer.VersionReleaseBuild);
         }
 
-        internal virtual Func<string, GitCommand> CreateCommandFactory() => gitDirectory => {
-            var gitCommand = new GitCommand(gitDirectory);
+        internal void UnsetBranches() => _branches = null;
+
+        internal void UnsetCommitVersions()
+        {
+            _commitVersions.Clear();
+            _areCommitVersionsInitialized = false;
+        }
+
+        internal virtual Func<string, IGitCommand> CreateCommandFactory() => gitWorkingDirectory => {
+            var gitCommand = _options.GitCommandFactory.CreateCommand(gitWorkingDirectory)
+                ?? throw new InvalidOperationException("Git command factory produced null");
 
             if (gitCommand.IsShallowRepository()) {
                 throw new ShallowRepositoryException("Repository is not allowed to be shallow to prevent misbehavior") {
-                    GitDirectory = gitDirectory
+                    GitDirectory = gitWorkingDirectory
                 };
             }
 
             return gitCommand;
         };
 
-        private GitCommand CreateCommand()
+        /// <summary>
+        /// Finds the root directory that contains the .git-directory or the .git-file.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected virtual string GetGitWorkingDirectory() =>
+            _options.GitDirectoryResolver.ResolveGitDirectory(_options.GitDirectory);
+
+        private CachingGitCommand CreateCommand()
         {
             var commandFactory = CreateCommandFactory();
-            var gitDirectory = GetGitRootDirectory();
-            _logGitDirectory(_logger, gitDirectory, null);
-            return commandFactory(gitDirectory);
+            var gitWorkingDirectory = GetGitWorkingDirectory();
+            return new CachingGitCommand(commandFactory(gitWorkingDirectory), _memoryCacheFactory);
         }
 
         private Branches LoadBranches()
@@ -87,30 +97,13 @@ namespace Vernuntii.Git
             _logBranches(_logger, branchesString, null);
         }
 
-        /// <summary>
-        /// Finds the root directory that contains the .git-directory or the .git-file.
-        /// </summary>
-        /// <exception cref="InvalidOperationException"></exception>
-        protected virtual string GetGitRootDirectory() =>
-            (DirectoryUtils.GetDirectoryOfPathAbove(directory => {
-                var path = Path.Combine(directory.FullName, GitFolderOrFileName);
-                return File.Exists(path) || Directory.Exists(path);
-            }, new DirectoryInfo(_options.GitDirectory), includeBeginningDirectory: true)
-                ?? throw new InvalidOperationException("Could not find a parent directory containing a .git-directory or .git-file")).FullName;
-
         /// <inheritdoc/>
         public string GetGitDirectory() =>
-            GitCommand.GetGitDirectory();
+            GitCommand.GetDotGitDirectory();
 
         /// <inheritdoc/>
         public IEnumerable<ICommitTag> GetCommitTags() =>
             GitCommand.GetCommitTags();
-
-        internal void UnsetCommitVersions()
-        {
-            _commitVersions.Clear();
-            _areCommitVersionsInitialized = false;
-        }
 
         /// <inheritdoc/>
         public IReadOnlyCollection<ICommitVersion> GetCommitVersions()
@@ -154,7 +147,8 @@ namespace Vernuntii.Git
         /// </summary>
         public void UnsetCache()
         {
-            _branches = null;
+            _gitCommand?.UnsetCache();
+            UnsetBranches();
             UnsetCommitVersions();
         }
     }

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Vernuntii.SemVer;
+﻿using Vernuntii.SemVer;
 using Xunit;
 
 namespace Vernuntii.Git
@@ -16,7 +15,7 @@ namespace Vernuntii.Git
         [MemberData(nameof(FindCommitVersionShouldFindLatestVersionGenerator))]
         public void FindCommitVersionShouldFindLatestVersion(string firstTag, string secondTag)
         {
-            using var repository = new TemporaryRepository(DefaultTemporaryRepositoryLogger);
+            using var repository = new TemporaryRepository();
             repository.CommitEmpty();
             repository.TagLightweight(firstTag);
             repository.TagLightweight(secondTag);

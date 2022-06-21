@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.Git
+﻿using Vernuntii.Git.Command;
+
+namespace Vernuntii.Git
 {
     /// <summary>
     /// Mutable options class for <see cref="Repository"/>.
@@ -15,6 +17,25 @@
             set => _gitDirectory = value ?? throw new ArgumentNullException(nameof(value), "Git directory cannot be null");
         }
 
+        /// <summary>
+        /// The git directory resolver. It will be used to resolve the actual
+        /// git directory. <see cref="GitDirectory"/> will be the input.
+        /// </summary>
+        public IGitDirectoryResolver GitDirectoryResolver {
+            get => _gitDirectoryResolver;
+            set => _gitDirectoryResolver = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        /// <summary>
+        /// Pre-initialized git command.
+        /// </summary>
+        public IGitCommandFactory GitCommandFactory {
+            get => _gitCommandFactory;
+            set => _gitCommandFactory = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
         private string _gitDirectory = Directory.GetCurrentDirectory();
+        private IGitDirectoryResolver _gitDirectoryResolver = DefaultGitDirectoryResolver.Default;
+        private IGitCommandFactory _gitCommandFactory = DefaultGitCommandFactory.Default;
     }
 }

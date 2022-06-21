@@ -22,7 +22,7 @@ namespace Vernuntii.Configuration.Yaml
         private readonly IFileFinder _fileFinder;
 
         /// <summary>
-        /// Default constructor.
+        /// Instance constructor.
         /// </summary>
         /// <param name="fileFinder"></param>
         /// <exception cref="ArgumentNullException"></exception>

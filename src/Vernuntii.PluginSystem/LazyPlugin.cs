@@ -22,7 +22,7 @@
         private event PluginRegistered<TPlugin>? _registered;
 
         public TPlugin Value {
-            get => _value ?? throw new InvalidOperationException("Plugin was not registered.");
+            get => _value ?? throw new InvalidOperationException($"Plugin of type {typeof(TPlugin)} was not or is not yet registered.");
             private set => _value = value;
         }
 
@@ -32,11 +32,11 @@
         private TPlugin? _value;
         private Type _pluginType = typeof(TPlugin);
 
-        public LazyPlugin(PluginRegistry registry) =>
-            _disposableConsumer = registry.AddPluginRegistrationConsumer(ConsumePluginRegistration);
+        public LazyPlugin(IPluginRegistrationProducer registrationProducer) =>
+            _disposableConsumer = registrationProducer.AddPluginRegistrationConsumer(ConsumePluginRegistration);
 
-        private void InvokeRegistered(PluginRegistered<TPlugin> @delegate) =>
-            @delegate?.Invoke(Value);
+        private void InvokeRegistered(PluginRegistered<TPlugin> onRegistered) =>
+            onRegistered?.Invoke(Value);
 
         private void ConsumePluginRegistration(IPluginRegistration registration)
         {

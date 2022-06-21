@@ -1,16 +1,16 @@
 ﻿using Vernuntii.SemVer;
-using Vernuntii.VersionFoundation;
+using Vernuntii.VersionCaching;
 
 namespace Vernuntii.VersionPresentation
 {
     internal sealed record VersionPresentation : IVersionPresentation
     {
         public static VersionPresentation Create(
-            IVersionFoundation presentationFoundation,
+            IVersionCache presentationCache,
             VersionPresentationPart presentableParts = VersionPresentationPart.All)
         {
             var versionPresentation = new VersionPresentation();
-            var version = presentationFoundation.Version;
+            var version = presentationCache.Version;
 
             if (presentableParts.HasFlag(VersionPresentationPart.Major)) {
                 versionPresentation.Major = version.Major;
@@ -49,11 +49,11 @@ namespace Vernuntii.VersionPresentation
             }
 
             if (presentableParts.HasFlag(VersionPresentationPart.BranchName)) {
-                versionPresentation.BranchName = presentationFoundation.BranchName;
+                versionPresentation.BranchName = presentationCache.BranchName;
             }
 
             if (presentableParts.HasFlag(VersionPresentationPart.CommitSha)) {
-                versionPresentation.CommitSha = presentationFoundation.CommitSha;
+                versionPresentation.CommitSha = presentationCache.BranchTip;
             }
 
             return versionPresentation;

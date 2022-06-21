@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Calculator\Vernuntii.Calculator.csproj" />
     <ProjectReference Include="..\Vernuntii.Common\Vernuntii.Common.csproj" />
+    <ProjectReference Include="..\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj" />
     <ProjectReference Include="..\Vernuntii.SimpleProcess\Vernuntii.SimpleProcess.csproj" />
   </ItemGroup>
 

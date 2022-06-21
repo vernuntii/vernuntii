@@ -1,6 +1,6 @@
 ﻿using Moq;
 using Vernuntii.SemVer;
-using Vernuntii.VersionFoundation;
+using Vernuntii.VersionCaching;
 using Vernuntii.VersionPresentation.Serializers;
 using Xunit;
 
@@ -18,7 +18,7 @@ namespace Vernuntii.VersionPresentation
             VersionPresentationKind presentationKind,
             VersionPresentationView presentationView)
         {
-            var foundation = Mock.Of<IVersionFoundation>(x =>
+            var foundation = Mock.Of<IVersionCache>(x =>
                 x.Version.Equals(SemanticVersion.Zero));
 
             var formattedVersion = new VersionPresentationStringBuilder(foundation)

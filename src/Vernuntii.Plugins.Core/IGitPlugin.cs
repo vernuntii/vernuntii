@@ -1,4 +1,5 @@
-﻿using Vernuntii.PluginSystem;
+﻿using Vernuntii.Plugins.Events;
+using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Plugins
 {
@@ -7,5 +8,10 @@ namespace Vernuntii.Plugins
     /// </summary>
     public interface IGitPlugin : IPlugin
     {
+        /// <summary>
+        /// The git directory. It is available after
+        /// <see cref="ConfigurationEvents.ConfiguredConfigurationBuilder"/>.
+        /// </summary>
+        string GitDirectory { get; }
     }
 }

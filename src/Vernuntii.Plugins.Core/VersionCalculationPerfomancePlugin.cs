@@ -20,8 +20,8 @@ namespace Vernuntii.Plugins
         {
             Events.SubscribeOnce(LoggingEvents.EnabledLoggingInfrastructure, plugin => _logger = plugin.CreateLogger<VersionCalculationPerfomancePlugin>());
 
-            Events.Subscribe(NextVersionEvents.CalculatedNextVersion, versionFoundation =>
-                _logger.LogInformation("Loaded version {Version} in {LoadTime}", versionFoundation.Version, $"{_stopwatch.Elapsed.ToString("s\\.f", CultureInfo.InvariantCulture)}s"));
+            Events.Subscribe(NextVersionEvents.CalculatedNextVersion, versionCache =>
+                _logger.LogInformation("Loaded version {Version} in {LoadTime}", versionCache.Version, $"{_stopwatch.Elapsed.ToString("s\\.f", CultureInfo.InvariantCulture)}s"));
         }
     }
 }

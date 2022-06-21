@@ -19,10 +19,10 @@ namespace Vernuntii.MessageConventions.MessageIndicators
         public override string IndicatorName { get; } = nameof(InbuiltMessageIndicator.ConventionalCommits);
 
         /// <inheritdoc/>
-        public override Regex? MajorRegex { get; init; } = SinglelineRegex(/* language=regex */@"^(feat)(\([\w\s-]*\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\s.+)");
+        public override Regex? MajorRegex { get; init; } = SinglelineRegex(/* language=regex */"""^(feat)(\([\w\s-]*\))?(!:|:.*\n\n((.+\n)+\n)?BREAKING CHANGE:\s.+)""");
         /// <inheritdoc/>
-        public override Regex? MinorRegex { get; init; } = SinglelineRegex(/* language=regex */@"^(feat)(\([\w\s-]*\))?:");
+        public override Regex? MinorRegex { get; init; } = SinglelineRegex(/* language=regex */"""^(feat)(\([\w\s-]*\))?:""");
         /// <inheritdoc/>
-        public override Regex? PatchRegex { get; init; } = SinglelineRegex(/* language=regex */@"^(fix)(\([\w\s-]*\))?:");
+        public override Regex? PatchRegex { get; init; } = SinglelineRegex(/* language=regex */"""^(fix)(\([\w\s-]*\))?:""");
     }
 }

@@ -1,4 +1,4 @@
-﻿using Vernuntii.VersionFoundation;
+﻿using Vernuntii.VersionCaching;
 using Vernuntii.VersionPresentation.Serializers;
 
 namespace Vernuntii.VersionPresentation
@@ -23,7 +23,7 @@ namespace Vernuntii.VersionPresentation
         /// </summary>
         public const VersionPresentationView DefaultPresentationSerializer = VersionPresentationView.Text;
 
-        private readonly IVersionFoundation _presentationFoundation;
+        private readonly IVersionCache _presentationCache;
         private VersionPresentationKind _presentationKind = DefaultPresentationKind;
         private VersionPresentationPart _presentationParts = DefaultPresentationPart;
         private VersionPresentationView _presentationView = DefaultPresentationSerializer;
@@ -36,9 +36,9 @@ namespace Vernuntii.VersionPresentation
         /// <br/><see cref="VersionPresentationView.Text"/>
         /// </code>
         /// </summary>
-        /// <param name="presentationFoundation"></param>
-        public VersionPresentationStringBuilder(IVersionFoundation presentationFoundation) =>
-            _presentationFoundation = presentationFoundation ?? throw new ArgumentNullException(nameof(presentationFoundation));
+        /// <param name="presentationCache"></param>
+        public VersionPresentationStringBuilder(IVersionCache presentationCache) =>
+            _presentationCache = presentationCache ?? throw new ArgumentNullException(nameof(presentationCache));
 
         /// <summary>
         /// Uses presentation kind.
@@ -78,7 +78,7 @@ namespace Vernuntii.VersionPresentation
         /// <exception cref="NotSupportedException"></exception>
         public string? BuildString()
         {
-            var complexVersionPresentation = VersionPresentation.Create(_presentationFoundation, _presentationParts);
+            var complexVersionPresentation = VersionPresentation.Create(_presentationCache, _presentationParts);
             object? versionPresentation;
 
             if (_presentationKind == VersionPresentationKind.Value) {

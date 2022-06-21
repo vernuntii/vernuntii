@@ -1,6 +1,8 @@
 ﻿using System.CommandLine;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Serilog;
@@ -74,6 +76,13 @@ namespace Vernuntii.Plugins
             // but never both.
         }
 
+        /// <inheritdoc/>
+        protected override ValueTask OnRegistrationAsync(RegistrationContext registrationContext)
+        {
+            SerilogPastTime.InitializeLastMoment();
+            return base.OnRegistrationAsync(registrationContext);
+        }
+
         private void EnableLoggingInfrastructureCore(LogEventLevel verbosity)
         {
             var pastTimeResolver = new StaticMemberNameResolver(typeof(SerilogPastTime));
@@ -98,8 +107,16 @@ namespace Vernuntii.Plugins
         }
 
         [Conditional("DEBUG")]
-        private void EnableDebugLoggingInfrastructure() =>
-            EnableLoggingInfrastructureCore(LogEventLevel.Verbose);
+        private void EnableDebugLoggingInfrastructure()
+        {
+            var verbosityString = Environment.GetEnvironmentVariable("Verbosity");
+
+            if (Enum.TryParse<LogEventLevel>(verbosityString, ignoreCase: true, out var verbosity)) {
+                EnableLoggingInfrastructureCore(verbosity);
+            } else {
+                EnableLoggingInfrastructureCore(DefaultVerbosity);
+            }
+        }
 
         [Conditional("RELEASE")]
         private void EnableReleaseLoggingInfrastructure() =>
@@ -108,8 +125,7 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnCompletedRegistration()
         {
-            SerilogPastTime.InitializeLastMoment();
-            Plugins.First<ICommandLinePlugin>().Registered += plugin => plugin.RootCommand.Add(verbosityOption);
+            Plugins.First<ICommandLinePlugin>().RootCommand.Add(verbosityOption);
         }
 
         private void DestroyCurrentEnabledLoggingInfrastructure()
@@ -133,6 +149,8 @@ namespace Vernuntii.Plugins
                     _enabledLoggingInfrastructureEvent -= (Action<ILoggingPlugin>)handler;
                 }
             }
+
+            _logger.Verbose("Enabled logging infrastructure");
         }
 
         /// <inheritdoc/>
@@ -142,6 +160,7 @@ namespace Vernuntii.Plugins
                 _verbosity = parseResult.GetValueForOption(verbosityOption));
 
             Events.SubscribeOnce(LoggingEvents.EnableLoggingInfrastructure, EnableLoggingInfrastructure);
+            Events.SubscribeOnce(GlobalServicesEvents.ConfigureServices, sp => sp.AddLogging(Bind));
         }
 
         /// <inheritdoc/>
@@ -199,6 +218,7 @@ namespace Vernuntii.Plugins
                 return new ScalarValue($"{Math.Floor(elapsedTime.TotalSeconds)}.{elapsedTime.ToString("ff", CultureInfo.InvariantCulture)}");
             }
 
+            [MemberNotNull(nameof(_lastMoment))]
             public static void InitializeLastMoment()
             {
                 if (_lastMoment is null) {
@@ -210,7 +230,7 @@ namespace Vernuntii.Plugins
 
         private class PreEventLogger : Microsoft.Extensions.Logging.ILogger
         {
-            private Microsoft.Extensions.Logging.ILogger _logger = NullLogger.Instance;
+            private Microsoft.Extensions.Logging.ILogger _logger;
 
             public PreEventLogger(Microsoft.Extensions.Logging.ILogger logger, string category, ref Action<ILoggingPlugin>? whenEnabledLoggingInfrastructure)
             {
@@ -233,7 +253,7 @@ namespace Vernuntii.Plugins
 
         private class PreEventLogger<T> : ILogger<T>
         {
-            private ILogger<T> _logger = NullLogger<T>.Instance;
+            private ILogger<T> _logger;
 
             public PreEventLogger(ILogger<T> logger, ref Action<ILoggingPlugin>? whenEnabledLoggingInfrastructure)
             {

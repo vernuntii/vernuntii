@@ -14,7 +14,7 @@ namespace Vernuntii.Configuration.Json
         protected override string[] ProbeableFileExtensions { get; } = new[] { JsonConfigurationFileDefaults.JsonFileExtension };
 
         /// <summary>
-        /// Default constructor.
+        /// Instance constructor.
         /// </summary>
         /// <param name="fileFinder"></param>
         /// <exception cref="ArgumentNullException"></exception>

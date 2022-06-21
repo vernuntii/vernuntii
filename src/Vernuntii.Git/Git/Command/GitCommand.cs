@@ -4,17 +4,37 @@ using Vernuntii.Text;
 
 namespace Vernuntii.Git.Command
 {
-    internal class GitCommand
+    /// <summary>
+    /// The git command with limited capabilities.
+    /// </summary>
+    public class GitCommand : IGitCommand
     {
+        /// <inheritdoc/>
         public string WorkingDirectory { get; }
 
+        /// <summary>
+        /// Creates an instance of this type.
+        /// </summary>
+        /// <param name="workingDirectory"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public GitCommand(string workingDirectory) =>
             WorkingDirectory = workingDirectory ?? throw new ArgumentNullException(nameof(workingDirectory));
 
         private GitProcessStartInfo CreateStartInfo(string? args) => new GitProcessStartInfo(args, WorkingDirectory);
 
+        /// <summary>
+        /// Executes the git command.
+        /// </summary>
+        /// <param name="args">The arguments next to the git-command.</param>
+        /// <returns>The exit code.</returns>
         protected int ExecuteCommand(string args) => SimpleProcess.StartThenWaitForExit(CreateStartInfo(args));
 
+        /// <summary>
+        /// Executes the git command.
+        /// </summary>
+        /// <param name="args">The arguments next to the git-command.</param>
+        /// <param name="expectedExitCode">The expected exit code.</param>
+        /// <exception cref="InvalidOperationException"></exception>
         protected void ExecuteCommandThenSucceed(string args, int expectedExitCode = 0)
         {
             var actualExitCode = ExecuteCommand(args);
@@ -24,9 +44,19 @@ namespace Vernuntii.Git.Command
             }
         }
 
+        /// <summary>
+        /// Executes the git command and then reads the output.
+        /// </summary>
+        /// <param name="args">The arguments next to the git-command.</param>
+        /// <returns>The read output.</returns>
         protected string ExecuteCommandThenReadOutput(string? args) =>
             SimpleProcess.StartThenWaitForExitThenReadOutput(CreateStartInfo(args), shouldThrowOnNonZeroCode: true).TrimEnd();
 
+        /// <summary>
+        /// Executes the command and then reads the outputted lines.
+        /// </summary>
+        /// <param name="args">The arguments next to the git-command.</param>
+        /// <returns>The outputted lines.</returns>
         protected List<string> ExecuteCommandThenReadLines(string? args) => SimpleProcess
             .StartThenWaitForExitThenReadOutput(
                 CreateStartInfo(args),
@@ -34,14 +64,17 @@ namespace Vernuntii.Git.Command
             .Split("\n")
             .ToList();
 
+        /// <inheritdoc/>
         public bool IsHeadDetached() => ExecuteCommand("symbolic-ref -q HEAD") == 1;
 
-        public string GetGitDirectory() => ExecuteCommandThenReadOutput("rev-parse --absolute-git-dir");
+        /// <inheritdoc/>
+        public string GetDotGitDirectory() => ExecuteCommandThenReadOutput("rev-parse --absolute-git-dir");
 
+        /// <inheritdoc/>
         public bool TryResolveReference(
           string? name,
           ShowRefLimit showRefLimit,
-          [NotNullWhen(true)] out GitReference? reference)
+          [NotNullWhen(true)] out IGitReference? reference)
         {
             var lines = ExecuteCommandThenReadLines(BuildArguments());
             lines.RemoveAll(string.IsNullOrWhiteSpace);
@@ -51,7 +84,9 @@ namespace Vernuntii.Git.Command
             }
 
             if (lines.Count == 1) {
-                return GitReference.TryParse(lines[0], out reference);
+                var result = GitReference.TryParse(lines[0], out var gitReference);
+                reference = gitReference;
+                return result;
             }
 
             reference = null;
@@ -76,8 +111,9 @@ namespace Vernuntii.Git.Command
 
         /// <summary>Gets name of active branch.</summary>
         /// <returns>The full reference name.</returns>
-        public string GetActiveBranchName() => ExecuteCommandThenReadOutput("rev-parse --symbolic-full-name HEAD");
+        public virtual string GetActiveBranchName() => ExecuteCommandThenReadOutput("rev-parse --symbolic-full-name HEAD");
 
+        /// <inheritdoc/>
         public IEnumerable<IBranch> GetBranches()
         {
             foreach (var line in ExecuteCommandThenReadLines("branch --all --format=\"%(objectname) %(refname) %(refname:short)\"")) {
@@ -99,7 +135,8 @@ namespace Vernuntii.Git.Command
             }
         }
 
-        public IEnumerable<ICommitTag> GetCommitTags()
+        /// <inheritdoc/>
+        public virtual IEnumerable<ICommitTag> GetCommitTags()
         {
             foreach (var line in ExecuteCommandThenReadLines("tag --format=\"%(if)%(*objectname)%(then)%(*objectname)%(else)%(objectname)%(end) %(refname:short)\"")) {
                 if (string.IsNullOrWhiteSpace(line)) {
@@ -111,7 +148,8 @@ namespace Vernuntii.Git.Command
             }
         }
 
-        public IEnumerable<ICommit> GetCommits(
+        /// <inheritdoc/>
+        public virtual IEnumerable<ICommit> GetCommits(
           string? branchName,
           string? sinceCommit,
           bool reverse)
@@ -151,6 +189,7 @@ namespace Vernuntii.Git.Command
             }
         }
 
+        /// <inheritdoc/>
         public bool IsShallowRepository() =>
             ExecuteCommandThenReadOutput("rev-parse --is-shallow-repository").Equals("true", StringComparison.OrdinalIgnoreCase);
 
