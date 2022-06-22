@@ -94,12 +94,12 @@ namespace Vernuntii.Plugins
             _logger = new LoggerConfiguration()
                 .MinimumLevel.Is(verbosity)
                 // We want to ouput log to STDERROR
-                .WriteTo.Console(
+                .WriteTo.Async(writeTo => writeTo.Console(
                     // "[{Level:u3}] {Message:lj}{NewLine}{Exception}"
                     formatter: new ExpressionTemplate(expressionTemplate,
                         nameResolver: pastTimeResolver,
                         theme: TemplateTheme.Code),
-                    standardErrorFromLevel: LogEventLevel.Verbose)
+                    standardErrorFromLevel: LogEventLevel.Verbose))
                 .CreateLogger();
 
             _loggerBinder = builder => builder.AddSerilog(_logger);

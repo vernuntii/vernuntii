@@ -103,7 +103,6 @@ namespace Vernuntii.Console
 
                 await _pluginRegistry.RegisterAsync<IConfigurationPlugin, ConfigurationPlugin>();
                 await _pluginRegistry.RegisterAsync<IGitPlugin, GitPlugin>();
-                await _pluginRegistry.RegisterAsync<IGitCommandPlugin, GitCommandPlugin>();
                 await _pluginRegistry.RegisterAsync<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>();
                 await _pluginRegistry.RegisterAsync<VersionCalculationPerfomancePlugin>();
                 await _pluginRegistry.RegisterAsync<INextVersionPlugin, NextVersionPlugin>();

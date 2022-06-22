@@ -59,7 +59,9 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         /// Includes initially all inbuilt presets and others.
         /// </summary>
-        public IVersioningPresetManager PresetManager { get; } = CreateDefault();
+        public IVersioningPresetManager PresetManager => _presetManager ??= CreateDefault();
+
+        private IVersioningPresetManager? _presetManager;
 
         /// <summary>
         /// Creates an instance of this instance and poplulates <see cref="PresetManager"/> with defaults.
