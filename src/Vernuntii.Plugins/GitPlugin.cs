@@ -28,33 +28,38 @@ public class GitPlugin : Plugin, IGitPlugin
     /// used instead of the directory of the config path
     /// to resolve the git directory via
     /// <see cref="GitDirectoryResolver"/>.
+    /// Available after <see cref="GitEvents.ResolvedGitWorkingTreeDirectory"/>.
     /// </summary>
+    [AllowNull]
     public string WorkingTreeDirectory {
         get => _workingTreeDirectory ?? throw new InvalidOperationException("Working tree directory is not set");
 
         set {
             EnsureBeingBeforeConfiguredConfigurationBuilderEvent();
+            EnsureUnsetAlternativeRepository();
             _workingTreeDirectory = value;
         }
     }
 
     /// <summary>
     /// If set before <see cref="ConfigurationEvents.ConfiguredConfigurationBuilder"/>
-    /// it will be used for resolving the git directory. Otherwise an exception is
-    /// thrown. The default behaviour is to look for a vernuntii.git-file pointing
-    /// to another location, a .git-folder or a .git-file.
+    /// it will be used for resolving the git directory. If set after that event an exception
+    /// is thrown. The default behaviour is to look for a vernuntii.git-file pointing to
+    /// another location, a .git-folder or a .git-file.
     /// </summary>
     public IGitDirectoryResolver? GitDirectoryResolver {
         get => _gitDirectoryResolver;
 
         set {
             EnsureBeingBeforeConfiguredConfigurationBuilderEvent();
+            EnsureUnsetAlternativeRepository();
             _gitDirectoryResolver = value;
         }
     }
 
     /// <summary>
-    /// The git command that is available after <see cref="GitEvents.ResolvedGitWorkingTreeDirectory"/>.
+    /// The git command.
+    /// Available after <see cref="GitEvents.ResolvedGitWorkingTreeDirectory"/>.
     /// </summary>
     public IGitCommand GitCommand => _gitCommand ?? throw new InvalidOperationException($"The event \"{nameof(GitEvents.ResolvedGitWorkingTreeDirectory)}\" was not yet called");
 
@@ -85,10 +90,37 @@ public class GitPlugin : Plugin, IGitPlugin
         }
     }
 
+    [MemberNotNullWhen(true, nameof(_alternativeRepository), nameof(_alternativeGitCommand))]
+    private bool HavingAlternativeRepository() =>
+        _alternativeRepository is not null && _alternativeGitCommand is not null;
+
+    private void EnsureUnsetAlternativeRepository()
+    {
+        if (HavingAlternativeRepository()) {
+            throw new InvalidOperationException("An alternative repository has been already set");
+        }
+    }
+
+    private void EnsureUnsetWorkingTreeDirectory()
+    {
+        if (_workingTreeDirectory is not null) {
+            throw new InvalidOperationException("The working tree directory is already set");
+        }
+    }
+
+    private void EnsureUnsetGitDirectoryResolver()
+    {
+        if (_gitDirectoryResolver is not null) {
+            throw new InvalidOperationException("The git directory resolver is already set");
+        }
+    }
+
     /// <inheritdoc/>
     public void SetAlternativeRepository(IRepository repository, IGitCommand gitCommand)
     {
         EnsureBeingBeforeConfiguredConfigurationBuilderEvent();
+        EnsureUnsetGitDirectoryResolver();
+        EnsureUnsetWorkingTreeDirectory();
 
         _alternativeRepository = repository ?? throw new ArgumentNullException(nameof(repository));
         _alternativeGitCommand = gitCommand ?? throw new ArgumentNullException(nameof(gitCommand));
@@ -105,10 +137,6 @@ public class GitPlugin : Plugin, IGitPlugin
         _alternativeRepository = null;
         _alternativeGitCommand = null;
     }
-
-    [MemberNotNullWhen(true, nameof(_alternativeRepository), nameof(_alternativeGitCommand))]
-    private bool HavingAlternativeRepository() =>
-        _alternativeRepository is not null && _alternativeGitCommand is not null;
 
     /// <inheritdoc/>
     protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
@@ -129,12 +157,6 @@ public class GitPlugin : Plugin, IGitPlugin
 
     private string ResolveWorkingTreeDirectory()
     {
-        if (HavingAlternativeRepository()) {
-            // prefer alternative
-            return _alternativeGitCommand.WorkingTreeDirectory;
-        }
-
-        // otherwise old-fashion way
         string directoryToResolve;
         var alternativeWorkingTreeDirectory = _workingTreeDirectory;
 
@@ -157,9 +179,15 @@ public class GitPlugin : Plugin, IGitPlugin
         return gitDirectoryResolver.ResolveWorkingTreeDirectory(directoryToResolve);
     }
 
+    private string GetWorkingTreeDirectory() =>
+        HavingAlternativeRepository() switch {
+            true => _alternativeGitCommand.WorkingTreeDirectory,
+            false => ResolveWorkingTreeDirectory()
+        };
+
     private void OnAfterConfiguredConfigurationBuilder()
     {
-        var resolvedWorkingTreeDirectory = ResolveWorkingTreeDirectory();
+        var resolvedWorkingTreeDirectory = GetWorkingTreeDirectory();
 
         _logger.LogInformation("Use repository directory: {_workingTreeDirectory}", resolvedWorkingTreeDirectory);
         _workingTreeDirectory = resolvedWorkingTreeDirectory;
