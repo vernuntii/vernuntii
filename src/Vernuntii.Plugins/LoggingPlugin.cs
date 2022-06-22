@@ -5,12 +5,11 @@ using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
-using Serilog.Expressions;
-using Serilog.Templates;
-using Serilog.Templates.Themes;
+using NLog;
+using NLog.Config;
+using NLog.Extensions.Logging;
+using NLog.Targets;
+using NLog.Targets.Wrappers;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
@@ -22,29 +21,29 @@ namespace Vernuntii.Plugins
     /// </summary>
     public class LoggingPlugin : Plugin, ILoggingPlugin
     {
-        private const LogEventLevel DefaultVerbosity = LogEventLevel.Fatal;
+        private const LogLevel DefaultVerbosity = LogLevel.Fatal;
 
         private event Action<ILoggingPlugin>? _enabledLoggingInfrastructureEvent;
 
         /// <inheritdoc/>
         public override int? Order => -2000;
 
+        private LoggingConfiguration? _loggingConfiguration;
         private Logger _logger = null!;
         private ILoggerFactory _loggerFactory = null!;
         private Action<ILoggingBuilder> _loggerBinder = null!;
-        private bool _isLoggingInfrastructureEnabledByEvent;
 
         /* If option is not specified, then do not log.
          * If value is not specified, then log on information level.
          * If value is specified, then log on specified log level.
          */
-        private Option<LogEventLevel?> verbosityOption = new Option<LogEventLevel?>(new[] { "--verbosity", "-v" }, parseArgument: result => {
+        private Option<LogLevel?> verbosityOption = new Option<LogLevel?>(new[] { "--verbosity", "-v" }, parseArgument: result => {
             if (result.Tokens.Count == 0) {
-                return LogEventLevel.Information;
+                return LogLevel.Information;
             }
 
             try {
-                var argument = new Argument<LogEventLevel>();
+                var argument = new Argument<LogLevel>();
                 var value = argument.Parse(result.Tokens[0].Value).GetValueForArgument(argument);
 
                 if (!Enum.IsDefined(value)) {
@@ -62,7 +61,7 @@ namespace Vernuntii.Plugins
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        private LogEventLevel? _verbosity;
+        private LogLevel? _verbosity;
 
         /// <summary>
         /// Creates an instance of this type and enables the debug logging infrastructure.
@@ -76,34 +75,36 @@ namespace Vernuntii.Plugins
             // but never both.
         }
 
-        /// <inheritdoc/>
-        protected override ValueTask OnRegistrationAsync(RegistrationContext registrationContext)
+        private void ReconfigureLoggingInfrastructure(LogLevel verbosity)
         {
-            SerilogPastTime.InitializeLastMoment();
-            return base.OnRegistrationAsync(registrationContext);
-        }
+            const string coloredConsoleTargetName = nameof(coloredConsoleTargetName);
 
-        private void EnableLoggingInfrastructureCore(LogEventLevel verbosity)
-        {
-            var pastTimeResolver = new StaticMemberNameResolver(typeof(SerilogPastTime));
+            if (_loggingConfiguration is null) {
+                _loggingConfiguration = new LoggingConfiguration();
 
-            var expressionTemplate = verbosity == LogEventLevel.Verbose
-                ? "[{@l:u3}+{PastTime()}] {@m}\n{@x}"
-                : "[{@l:u3}] {@m}\n{@x}";
+                var coloredConsoleTarget = new AsyncTargetWrapper(new ColoredConsoleTarget() { 
+                    StdErr = true
+                });
 
-            _logger = new LoggerConfiguration()
-                .MinimumLevel.Is(verbosity)
-                // We want to ouput log to STDERROR
-                .WriteTo.Async(writeTo => writeTo.Console(
-                    // "[{Level:u3}] {Message:lj}{NewLine}{Exception}"
-                    formatter: new ExpressionTemplate(expressionTemplate,
-                        nameResolver: pastTimeResolver,
-                        theme: TemplateTheme.Code),
-                    standardErrorFromLevel: LogEventLevel.Verbose))
-                .CreateLogger();
+                _loggingConfiguration.AddTarget(coloredConsoleTargetName, coloredConsoleTarget);
+                AddRule();
 
-            _loggerBinder = builder => builder.AddSerilog(_logger);
-            _loggerFactory = LoggerFactory.Create(builder => _loggerBinder(builder));
+                _logger = _loggingConfiguration.LogFactory.GetCurrentClassLogger();
+                _loggerBinder = builder => builder.AddNLog(_loggingConfiguration);
+                _loggerFactory = LoggerFactory.Create(builder => _loggerBinder(builder));
+            } else {
+                _loggingConfiguration.LoggingRules.RemoveAt(0);
+                AddRule();
+                _loggingConfiguration.LogFactory.ReconfigExistingLoggers();
+            }
+
+            void AddRule()
+            {
+                _loggingConfiguration.AddRule(
+                    NLog.LogLevel.FromOrdinal((int)verbosity),
+                    NLog.LogLevel.Off,
+                    coloredConsoleTargetName);
+            }
         }
 
         [Conditional("DEBUG")]
@@ -111,16 +112,16 @@ namespace Vernuntii.Plugins
         {
             var verbosityString = Environment.GetEnvironmentVariable("Verbosity");
 
-            if (Enum.TryParse<LogEventLevel>(verbosityString, ignoreCase: true, out var verbosity)) {
-                EnableLoggingInfrastructureCore(verbosity);
+            if (Enum.TryParse<LogLevel>(verbosityString, ignoreCase: true, out var verbosity)) {
+                ReconfigureLoggingInfrastructure(verbosity);
             } else {
-                EnableLoggingInfrastructureCore(DefaultVerbosity);
+                ReconfigureLoggingInfrastructure(DefaultVerbosity);
             }
         }
 
         [Conditional("RELEASE")]
         private void EnableReleaseLoggingInfrastructure() =>
-            EnableLoggingInfrastructureCore(DefaultVerbosity);
+            ReconfigureLoggingInfrastructure(DefaultVerbosity);
 
         /// <inheritdoc/>
         protected override void OnAfterRegistration()
@@ -128,17 +129,12 @@ namespace Vernuntii.Plugins
             Plugins.First<ICommandLinePlugin>().RootCommand.Add(verbosityOption);
         }
 
-        private void DestroyCurrentEnabledLoggingInfrastructure()
-        {
+        private void DestroyCurrentEnabledLoggingInfrastructure() =>
             _loggerFactory?.Dispose();
-            _logger?.Dispose();
-        }
 
         private void EnableLoggingInfrastructure()
         {
-            DestroyCurrentEnabledLoggingInfrastructure();
-            EnableLoggingInfrastructureCore(_verbosity ?? DefaultVerbosity);
-            _isLoggingInfrastructureEnabledByEvent = true;
+            ReconfigureLoggingInfrastructure(_verbosity ?? DefaultVerbosity);
 
             Events.Publish(LoggingEvents.EnabledLoggingInfrastructure, this);
 
@@ -150,7 +146,7 @@ namespace Vernuntii.Plugins
                 }
             }
 
-            _logger.Verbose("Enabled logging infrastructure");
+            _logger.Trace("Enabled logging infrastructure");
         }
 
         /// <inheritdoc/>
@@ -164,28 +160,12 @@ namespace Vernuntii.Plugins
         }
 
         /// <inheritdoc/>
-        public ILogger<T> CreateLogger<T>()
-        {
-            var logger = _loggerFactory.CreateLogger<T>();
-
-            if (_isLoggingInfrastructureEnabledByEvent) {
-                return logger;
-            } else {
-                return new PreEventLogger<T>(logger, ref _enabledLoggingInfrastructureEvent);
-            }
-        }
+        public ILogger<T> CreateLogger<T>() =>
+            _loggerFactory.CreateLogger<T>();
 
         /// <inheritdoc/>
-        public Microsoft.Extensions.Logging.ILogger CreateLogger(string category)
-        {
-            var logger = _loggerFactory.CreateLogger(category);
-
-            if (_isLoggingInfrastructureEnabledByEvent) {
-                return logger;
-            } else {
-                return new PreEventLogger(logger, category, ref _enabledLoggingInfrastructureEvent);
-            }
-        }
+        public Microsoft.Extensions.Logging.ILogger CreateLogger(string category) =>
+            _loggerFactory.CreateLogger(category);
 
         /// <inheritdoc/>
         public void Bind(ILoggingBuilder builder) => _loggerBinder(builder);
@@ -200,78 +180,6 @@ namespace Vernuntii.Plugins
             }
 
             DestroyCurrentEnabledLoggingInfrastructure();
-        }
-
-        private static class SerilogPastTime
-        {
-            private static Stopwatch? _lastMoment;
-
-            public static LogEventPropertyValue? PastTime()
-            {
-                if (_lastMoment is null) {
-                    throw new InvalidOperationException("You must specify the last moment");
-                }
-
-                var elapsedTime = _lastMoment.Elapsed;
-                _lastMoment.Reset();
-                _lastMoment.Start();
-                return new ScalarValue($"{Math.Floor(elapsedTime.TotalSeconds)}.{elapsedTime.ToString("ff", CultureInfo.InvariantCulture)}");
-            }
-
-            [MemberNotNull(nameof(_lastMoment))]
-            public static void InitializeLastMoment()
-            {
-                if (_lastMoment is null) {
-                    _lastMoment = new Stopwatch();
-                    _lastMoment.Start();
-                }
-            }
-        }
-
-        private class PreEventLogger : Microsoft.Extensions.Logging.ILogger
-        {
-            private Microsoft.Extensions.Logging.ILogger _logger;
-
-            public PreEventLogger(Microsoft.Extensions.Logging.ILogger logger, string category, ref Action<ILoggingPlugin>? whenEnabledLoggingInfrastructure)
-            {
-                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-                whenEnabledLoggingInfrastructure += loggingPlugin => _logger = loggingPlugin.CreateLogger(category);
-            }
-
-            IDisposable Microsoft.Extensions.Logging.ILogger.BeginScope<TState>(TState state) => _logger.BeginScope(state);
-
-            bool Microsoft.Extensions.Logging.ILogger.IsEnabled(LogLevel logLevel) => _logger.IsEnabled(logLevel);
-
-            void Microsoft.Extensions.Logging.ILogger.Log<TState>(
-                LogLevel logLevel,
-                EventId eventId,
-                TState state,
-                Exception? exception,
-                Func<TState, Exception?, string> formatter) =>
-                _logger.Log(logLevel, eventId, state, exception, formatter);
-        }
-
-        private class PreEventLogger<T> : ILogger<T>
-        {
-            private ILogger<T> _logger;
-
-            public PreEventLogger(ILogger<T> logger, ref Action<ILoggingPlugin>? whenEnabledLoggingInfrastructure)
-            {
-                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-                whenEnabledLoggingInfrastructure += loggingPlugin => _logger = loggingPlugin.CreateLogger<T>();
-            }
-
-            IDisposable Microsoft.Extensions.Logging.ILogger.BeginScope<TState>(TState state) => _logger.BeginScope(state);
-
-            bool Microsoft.Extensions.Logging.ILogger.IsEnabled(LogLevel logLevel) => _logger.IsEnabled(logLevel);
-
-            void Microsoft.Extensions.Logging.ILogger.Log<TState>(
-                LogLevel logLevel,
-                EventId eventId,
-                TState state,
-                Exception? exception,
-                Func<TState, Exception?, string> formatter) =>
-                _logger.Log(logLevel, eventId, state, exception, formatter);
         }
     }
 }

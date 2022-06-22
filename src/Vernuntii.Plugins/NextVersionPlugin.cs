@@ -27,6 +27,7 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         public int? ExitCodeOnSuccess { get; set; }
 
+        private Stopwatch _loadingVersionStopwatch = Stopwatch.StartNew();
         private ILoggingPlugin _loggingPlugin = null!;
         private SharedOptionsPlugin _sharedOptions = null!;
         private IVersionCacheCheckPlugin _versionCacheCheckPlugin = null!;
@@ -129,6 +130,7 @@ namespace Vernuntii.Plugins
                     .BuildString();
 
                 System.Console.Write(formattedVersion);
+                _logger.LogInformation("Loaded version {Version} in {LoadTime}", versionCache.Version, $"{_loadingVersionStopwatch.Elapsed.ToString("s\\.f", CultureInfo.InvariantCulture)}s");
 
                 return ExitCodeOnSuccess ?? (int)ExitCode.Success;
             } catch (Exception error) {
@@ -167,6 +169,8 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnEvents()
         {
+            Events.Subscribe(LifecycleEvents.BeforeNextRun, _loadingVersionStopwatch.Restart);
+
             Events.SubscribeOnce(
                 LoggingEvents.EnabledLoggingInfrastructure,
                 plugin => _logger = plugin.CreateLogger<NextVersionPlugin>());
