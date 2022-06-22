@@ -89,13 +89,12 @@ namespace Vernuntii.VersionCaching
 
         /// <inheritdoc/>
         private bool TryGetCache(
-            string cacheId,
             [NotNullWhen(true)] out DefaultVersionCache? versionCache,
-            out IValueWriter<DefaultVersionCache> versionCacheWriter)
+            out IManagedValueWriter<DefaultVersionCache> versionCacheWriter)
         {
             _cacheDirectory.CreateCacheDirectoryIfNotExisting();
 
-            var cacheFileName = cacheId + ".json";
+            var cacheFileName = CacheId + ".data";
             var cacheFilePath = Path.Combine(_cacheDirectory.CacheDirectoryPath, cacheFileName);
             var cacheFile = new JsonFile<DefaultVersionCache>(cacheFilePath, CacheLockAttemptSeconds);
 
@@ -117,29 +116,22 @@ namespace Vernuntii.VersionCaching
             }
         }
 
-        private bool TryGetCache(
-            [NotNullWhen(true)] out DefaultVersionCache? versionCache,
-            out IValueWriter<DefaultVersionCache> versionCacheWriter) =>
-            TryGetCache(
-                 CacheId,
-                 out versionCache,
-                 out versionCacheWriter);
-
-        private bool IsRecacheRequired(
-            [NotNullWhen(false)] out DefaultVersionCache? versionCache,
-            out IValueWriter<DefaultVersionCache> versionCacheWriter,
-            [NotNullWhen(true)] out string? recacheReason)
+        private RecacheIndicator GetRecacheIndicator()
         {
             _ = TryGetCache(
-                out versionCache,
-                out versionCacheWriter);
+                out var versionCache,
+                out var versionCacheWriter);
 
             try {
-                return _recacheIndicator.IsRecacheRequired(
+                return new RecacheIndicator(
                     versionCache,
-                    _useLastAccessRetentionTime,
-                    _lastAccessRetentionTime,
-                    out recacheReason);
+                    versionCacheWriter,
+                    _recacheIndicator.IsRecacheRequired(
+                        versionCache,
+                        _useLastAccessRetentionTime,
+                        _lastAccessRetentionTime,
+                        out var recacheReason),
+                    recacheReason);
             } catch {
                 versionCacheWriter?.Dispose();
                 throw;
@@ -149,25 +141,23 @@ namespace Vernuntii.VersionCaching
         /// <inheritdoc/>
         public bool IsRecacheRequired([NotNullWhen(false)] out IVersionCache? versionCache)
         {
-            var isRecacheRequired = IsRecacheRequired(out var concreteVersionCache, out var versionCacheWriter, out _);
+            using var indicator = GetRecacheIndicator();
 
-            try {
-                if (concreteVersionCache != null && _useLastAccessRetentionTime) {
-                    var newLastAccessTime = DateTime.UtcNow;
-                    concreteVersionCache!.LastAccessTime = newLastAccessTime;
+            if (indicator.IsRecacheRequired(out var concreteVersionCache, out var versionCacheWriter) is var isRecacheRequired
+                && concreteVersionCache != null
+                && _useLastAccessRetentionTime) {
+                var newLastAccessTime = DateTime.UtcNow;
+                concreteVersionCache.LastAccessTime = newLastAccessTime;
 
-                    _logger.LogInformation(
-                        "Updated last access time of version cache to {LastAccessTime} (UTC)",
-                        newLastAccessTime.ToString(@"HH\:mm\:ss", CultureInfo.InvariantCulture));
+                _logger.LogInformation(
+                    "Updated last access time of version cache to {LastAccessTime} (UTC)",
+                    newLastAccessTime.ToString(@"HH\:mm\:ss", CultureInfo.InvariantCulture));
 
-                    versionCacheWriter.WriteValue(concreteVersionCache);
-                }
-
-                versionCache = concreteVersionCache;
-                return isRecacheRequired;
-            } finally {
-                versionCacheWriter.Dispose();
+                versionCacheWriter.Overwrite(concreteVersionCache);
             }
+
+            versionCache = concreteVersionCache;
+            return isRecacheRequired;
         }
 
         /// <inheritdoc/>
@@ -178,29 +168,59 @@ namespace Vernuntii.VersionCaching
             //    _logger.LogInformation("Emptied the caches where the version informations were stored");
             //}
 
-            if (IsRecacheRequired(out var versionCache, out var versionCacheWriter, out var recacheReason)) {
-                try {
-                    if (versionCache != null && _useLastAccessRetentionTime) {
+            using var indicator = GetRecacheIndicator();
 
-                    } else {
-                        versionCache = DefaultVersionCache.Create(newVersion, newBranch, _creationRetentionTime);
+            if (indicator.IsRecacheRequired(out var versionCache, out var versionCacheWriter)) {
+                versionCache = DefaultVersionCache.Create(newVersion, newBranch, _creationRetentionTime);
 
-                        if (_useLastAccessRetentionTime) {
-                            versionCache.LastAccessTime = DateTime.UtcNow;
-                        }
-
-                        versionCacheWriter.WriteValue(versionCache);
-
-                        _logger.LogInformation(
-                            "Updated cache with new version informations (Reason = {UpdateReason})",
-                            recacheReason);
-                    }
-                } finally {
-                    versionCacheWriter.Dispose();
+                if (_useLastAccessRetentionTime) {
+                    versionCache.LastAccessTime = DateTime.UtcNow;
                 }
+
+                versionCacheWriter.Overwrite(versionCache);
+
+                _logger.LogInformation(
+                    "Updated cache with new version informations (Reason = {UpdateReason})",
+                    indicator.RecacheReason);
+
+                return versionCache;
             }
 
             return versionCache;
+        }
+
+        private class RecacheIndicator : IDisposable
+        {
+            private DefaultVersionCache? _versionCache;
+            public string? RecacheReason { get; }
+
+            private bool _isRecacheRequired;
+
+            [MemberNotNullWhen(true, nameof(RecacheReason))]
+            public bool IsRecacheRequired(
+                [NotNullWhen(false)] out DefaultVersionCache? versionCache,
+                out IValueWriter<DefaultVersionCache> versionCacheWriter)
+            {
+                versionCache = _versionCache;
+                versionCacheWriter = _versionCacheWriter;
+                return _isRecacheRequired;
+            }
+
+            private IManagedValueWriter<DefaultVersionCache> _versionCacheWriter;
+
+            public RecacheIndicator(
+                DefaultVersionCache? versionCache,
+                IManagedValueWriter<DefaultVersionCache> disposableVersionCacheWriter,
+                bool isRecacheRequired,
+                string? recacheReason)
+            {
+                _versionCache = versionCache;
+                _versionCacheWriter = disposableVersionCacheWriter ?? throw new ArgumentNullException(nameof(disposableVersionCacheWriter));
+                _isRecacheRequired = isRecacheRequired;
+                RecacheReason = recacheReason;
+            }
+
+            public void Dispose() => _versionCacheWriter.Dispose();
         }
     }
 }

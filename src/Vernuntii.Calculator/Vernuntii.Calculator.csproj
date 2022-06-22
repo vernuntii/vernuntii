@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="VersionCaching\Hashing\**" />
+    <EmbeddedResource Remove="VersionCaching\Hashing\**" />
+    <None Remove="VersionCaching\Hashing\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
@@ -19,10 +25,6 @@
     <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" />
     <ProjectReference Include="..\Vernuntii.Common\Vernuntii.Common.csproj" />
     <ProjectReference Include="..\Vernuntii.SemVer\Vernuntii.SemVer.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="VersionCaching\Hashing\" />
   </ItemGroup>
 
 </Project>

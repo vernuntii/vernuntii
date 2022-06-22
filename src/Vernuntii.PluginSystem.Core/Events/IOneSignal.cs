@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents one signal.
     /// </summary>
-    public interface IOnceSignalable
+    public interface IOneSignal
     {
         /// <summary>
         /// <see langword="true"/> if this object has been signaled once.

@@ -29,7 +29,7 @@ namespace Vernuntii.PluginSystem
             _pluginRegistry.Seal();
 
             foreach (var registration in _pluginRegistry.PluginRegistrations) {
-                await registration.Plugin.OnCompletedRegistration();
+                await registration.Plugin.OnAfterRegistration();
             }
 
             foreach (var registration in _pluginRegistry.PluginRegistrations) {

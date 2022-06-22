@@ -32,7 +32,12 @@ namespace Vernuntii.Console
         private PluginExecutor? _pluginExecutor;
         private ILogger? _logger;
         private string[] _args = Array.Empty<string>();
-        private bool _runOnce;
+
+        [MemberNotNullWhen(true,
+            nameof(_pluginRegistry),
+            nameof(_pluginEvents),
+            nameof(_pluginExecutor))]
+        private bool _runOnce { get; set; }
 
         private void EnsureNotDisposed()
         {
@@ -77,61 +82,63 @@ namespace Vernuntii.Console
         /// </summary>
         /// <returns>A short-circuit exit code indicating to short-circuit the program.</returns>
         [MemberNotNull(nameof(_pluginRegistry))]
-        private async ValueTask<ExitCode?> PrepareRunCoreOnceAsync()
+        private async ValueTask<ExitCode?> PrepareRunOnceAsync()
         {
             EnsureNotDisposed();
 
-            if (_pluginRegistry is not null) {
-                return null;
-            }
-
-            _pluginRegistry = new PluginRegistry();
-
-            await _pluginRegistry.RegisterAsync<IGlobalServicesPlugin, GlobalServicesPlugin>();
-            await _pluginRegistry.RegisterAsync<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
-            await _pluginRegistry.RegisterAsync<ICommandLinePlugin, CommandLinePlugin>();
-
-            var loggerPlugin = new LoggingPlugin();
-            await _pluginRegistry.RegisterAsync<ILoggingPlugin>(loggerPlugin);
-            _logger = loggerPlugin.CreateLogger(nameof(VernuntiiRunner));
-
-            await _pluginRegistry.RegisterAsync<IConfigurationPlugin, ConfigurationPlugin>();
-            await _pluginRegistry.RegisterAsync<IGitPlugin, GitPlugin>();
-            await _pluginRegistry.RegisterAsync<IGitCommandPlugin, GitCommandPlugin>();
-            await _pluginRegistry.RegisterAsync<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>();
-            await _pluginRegistry.RegisterAsync<VersionCalculationPerfomancePlugin>();
-            await _pluginRegistry.RegisterAsync<INextVersionPlugin, NextVersionPlugin>();
-
-            if (PluginDescriptors is not null) {
-                foreach (var pluginDescriptor in PluginDescriptors) {
-                    await _pluginRegistry.RegisterAsync(pluginDescriptor.PluginType, pluginDescriptor.Plugin);
+            if (!_runOnce) {
+                if (_pluginRegistry is not null || _pluginEvents is not null || _pluginExecutor is not null) {
+                    throw new InvalidOperationException("Runner was not prepared correctly");
                 }
+
+                _pluginRegistry = new PluginRegistry();
+
+                await _pluginRegistry.RegisterAsync<IGlobalServicesPlugin, GlobalServicesPlugin>();
+                await _pluginRegistry.RegisterAsync<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
+                await _pluginRegistry.RegisterAsync<ICommandLinePlugin, CommandLinePlugin>();
+
+                var loggerPlugin = new LoggingPlugin();
+                await _pluginRegistry.RegisterAsync<ILoggingPlugin>(loggerPlugin);
+                _logger = loggerPlugin.CreateLogger(nameof(VernuntiiRunner));
+
+                await _pluginRegistry.RegisterAsync<IConfigurationPlugin, ConfigurationPlugin>();
+                await _pluginRegistry.RegisterAsync<IGitPlugin, GitPlugin>();
+                await _pluginRegistry.RegisterAsync<IGitCommandPlugin, GitCommandPlugin>();
+                await _pluginRegistry.RegisterAsync<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>();
+                await _pluginRegistry.RegisterAsync<VersionCalculationPerfomancePlugin>();
+                await _pluginRegistry.RegisterAsync<INextVersionPlugin, NextVersionPlugin>();
+
+                if (PluginDescriptors is not null) {
+                    foreach (var pluginDescriptor in PluginDescriptors) {
+                        await _pluginRegistry.RegisterAsync(pluginDescriptor.PluginType, pluginDescriptor.Plugin);
+                    }
+                }
+
+                _pluginEvents = new PluginEventCache();
+                _pluginExecutor = new PluginExecutor(_pluginRegistry, _pluginEvents);
+                _logger.LogTrace("Execute plugins");
+                await _pluginExecutor.ExecuteAsync();
+
+                _logger.LogTrace("Set command-line arguments");
+                _pluginEvents.Publish(CommandLineEvents.SetCommandLineArgs, ConsoleArgs);
+
+                ExitCode? shortCircuitExitCode = null;
+                using var invokedRootCommandSubscripion = _pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, exitCode => shortCircuitExitCode = (ExitCode)exitCode);
+                _logger.LogTrace("Parse command-line arguments");
+                _pluginEvents.Publish(CommandLineEvents.ParseCommandLineArgs);
+                _pluginEvents.Publish(LoggingEvents.EnableLoggingInfrastructure);
+
+                if (shortCircuitExitCode.HasValue) {
+                    return shortCircuitExitCode;
+                }
+
+                // Check version cache.
+                _pluginEvents.Publish(VersionCacheCheckEvents.CreateVersionCacheManager);
+                _pluginEvents.Publish(VersionCacheCheckEvents.CheckVersionCache);
+
+                _pluginEvents.Publish(ConfigurationEvents.CreateConfiguration);
+                _pluginEvents.Publish(GlobalServicesEvents.CreateServiceProvider);
             }
-
-            _pluginEvents = new PluginEventCache();
-            _pluginExecutor = new PluginExecutor(_pluginRegistry, _pluginEvents);
-            _logger.LogTrace("Execute plugins");
-            await _pluginExecutor.ExecuteAsync();
-
-            _logger.LogTrace("Set command-line arguments");
-            _pluginEvents.Publish(CommandLineEvents.SetCommandLineArgs, ConsoleArgs);
-
-            ExitCode? shortCircuitExitCode = null;
-            using var invokedRootCommandSubscripion = _pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, exitCode => shortCircuitExitCode = (ExitCode)exitCode);
-            _logger.LogTrace("Parse command-line arguments");
-            _pluginEvents.Publish(CommandLineEvents.ParseCommandLineArgs);
-            _pluginEvents.Publish(LoggingEvents.EnableLoggingInfrastructure);
-
-            if (shortCircuitExitCode.HasValue) {
-                return shortCircuitExitCode;
-            }
-
-            // Check version cache.
-            _pluginEvents.Publish(VersionCacheCheckEvents.CreateVersionCacheManager);
-            _pluginEvents.Publish(VersionCacheCheckEvents.CheckVersionCache);
-
-            _pluginEvents.Publish(ConfigurationEvents.CreateConfiguration);
-            _pluginEvents.Publish(GlobalServicesEvents.CreateServiceProvider);
 
             return null;
         }
@@ -142,8 +149,9 @@ namespace Vernuntii.Console
             EnsureHavingLogger();
 
             if (_runOnce) {
-                _pluginEvents.Publish(GitEvents.UnsetRepositoryCache);
-            }
+                _pluginEvents.Publish(LifecycleEvents.BeforeNextRun);
+                //_pluginEvents.Publish(VersionCacheCheckEvents.CheckVersionCache);
+            } 
 
             int exitCode = (int)ExitCode.NotExecuted;
             using var exitCodeSubscription = _pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, i => exitCode = i);
@@ -164,7 +172,7 @@ namespace Vernuntii.Console
         /// </summary>
         public async Task<int> RunConsoleAsync()
         {
-            var shortCircuitExitCode = await PrepareRunCoreOnceAsync();
+            var shortCircuitExitCode = await PrepareRunOnceAsync();
 
             if (shortCircuitExitCode.HasValue) {
                 return (int)shortCircuitExitCode.Value;
@@ -179,7 +187,7 @@ namespace Vernuntii.Console
         /// <exception cref="InvalidOperationException"></exception>
         public async Task<IVersionCache> RunAsync()
         {
-            await PrepareRunCoreOnceAsync();
+            await PrepareRunOnceAsync();
             EnsureHavingPluginEvents();
             IVersionCache? versionCache = null;
 

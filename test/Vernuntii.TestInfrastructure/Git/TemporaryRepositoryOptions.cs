@@ -23,8 +23,8 @@
         public TemporaryRepositoryOptions()
         {
             RepositoryOptions = new RepositoryOptions() {
-                GitDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
-                GitDirectoryResolver = InOutGitDirectoryProvider.Instance
+                GitWorkingTreeDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
+                GitDirectoryResolver = GitDirectoryPassthrough.Instance
             };
         }
     }

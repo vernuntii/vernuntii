@@ -10,7 +10,7 @@ namespace Vernuntii.Git.Command
         /// <summary>
         /// The working directory at time of the creation of this instance.
         /// </summary>
-        string WorkingDirectory { get; }
+        string WorkingTreeDirectory { get; }
 
         /// <summary>
         /// Gets the active branch name.
@@ -36,9 +36,9 @@ namespace Vernuntii.Git.Command
         IEnumerable<ICommitTag> GetCommitTags();
 
         /// <summary>
-        /// Gets the git working directory.
+        /// Gets the .git-directory.
         /// </summary>
-        string GetDotGitDirectory();
+        string GetGitDirectory();
 
         /// <summary>
         /// Checks if head is detached.

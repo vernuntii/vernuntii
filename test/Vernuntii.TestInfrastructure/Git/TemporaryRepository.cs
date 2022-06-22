@@ -15,7 +15,7 @@ namespace Vernuntii.Git
         {
             if (options.DeleteOnDispose
                 && options.DeleteOnlyTempDirectory
-                && !Path.IsPathFullyQualified(options.RepositoryOptions.GitDirectory)) {
+                && !Path.IsPathFullyQualified(options.RepositoryOptions.GitWorkingTreeDirectory)) {
                 throw new ArgumentException("Git directory must be fully qualified");
             }
 
@@ -39,8 +39,8 @@ namespace Vernuntii.Git
 
         internal override Func<string, GitCommand> CreateCommandFactory()
         {
-            var gitDirectory = _options.RepositoryOptions.GitDirectory;
-            Directory.CreateDirectory(_options.RepositoryOptions.GitDirectory);
+            var gitDirectory = _options.RepositoryOptions.GitWorkingTreeDirectory;
+            Directory.CreateDirectory(_options.RepositoryOptions.GitWorkingTreeDirectory);
             var gitCommand = new TestingGitCommand(gitDirectory);
             var cloneOptions = _options.CloneOptions;
 
@@ -87,7 +87,7 @@ namespace Vernuntii.Git
             }
 
             if (disposing && _options.DeleteOnDispose) {
-                var gitDirectory = _options.RepositoryOptions.GitDirectory;
+                var gitDirectory = _options.RepositoryOptions.GitWorkingTreeDirectory;
 
                 if (Directory.Exists(gitDirectory)
                     && (!_options.DeleteOnlyTempDirectory || ContainsBasePath(gitDirectory, Path.GetTempPath()))) {
@@ -95,7 +95,7 @@ namespace Vernuntii.Git
                         File.SetAttributes(filePath, FileAttributes.Normal);
                     }
 
-                    Directory.Delete(_options.RepositoryOptions.GitDirectory, recursive: true);
+                    Directory.Delete(_options.RepositoryOptions.GitWorkingTreeDirectory, recursive: true);
                 }
 
                 static bool ContainsBasePath(string subPath, string basePath)

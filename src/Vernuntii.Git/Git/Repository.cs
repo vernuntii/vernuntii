@@ -64,16 +64,16 @@ namespace Vernuntii.Git
         };
 
         /// <summary>
-        /// Finds the root directory that contains the .git-directory or the .git-file.
+        /// Finds top-level working tree directory that contains the .git-directory or the .git-file.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
-        protected virtual string GetGitWorkingDirectory() =>
-            _options.GitDirectoryResolver.ResolveGitDirectory(_options.GitDirectory);
+        protected virtual string GetWorkingTreeDirectory() =>
+            _options.GitDirectoryResolver.ResolveWorkingTreeDirectory(_options.GitWorkingTreeDirectory);
 
         private CachingGitCommand CreateCommand()
         {
             var commandFactory = CreateCommandFactory();
-            var gitWorkingDirectory = GetGitWorkingDirectory();
+            var gitWorkingDirectory = GetWorkingTreeDirectory();
             return new CachingGitCommand(commandFactory(gitWorkingDirectory), _memoryCacheFactory);
         }
 
@@ -99,7 +99,7 @@ namespace Vernuntii.Git
 
         /// <inheritdoc/>
         public string GetGitDirectory() =>
-            GitCommand.GetDotGitDirectory();
+            GitCommand.GetGitDirectory();
 
         /// <inheritdoc/>
         public IEnumerable<ICommitTag> GetCommitTags() =>

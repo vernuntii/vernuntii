@@ -23,11 +23,11 @@ public interface IPlugin : IDisposable
     /// <summary>
     /// Called when all plugins are registered and ordered.
     /// </summary>
-    ValueTask OnCompletedRegistration();
+    ValueTask OnAfterRegistration();
 
     /// <summary>
     /// Called when this plugin gets notified about event aggregator.
-    /// Called after <see cref="OnCompletedRegistration()"/>.
+    /// Called after <see cref="OnAfterRegistration()"/>.
     /// </summary>
     /// <param name="eventAggregator"></param>
     ValueTask OnEvents(IPluginEventCache eventAggregator);

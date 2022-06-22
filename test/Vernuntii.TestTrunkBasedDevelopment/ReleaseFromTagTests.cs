@@ -21,10 +21,14 @@ namespace Vernuntii
             _vernuntii = new VernuntiiRunner() {
                 ConsoleArgs = new[] {
                     "--config-path",
-                    "ReleaseFromTag.yml"
+                    "ReleaseFromTag.yml",
+
                 },
                 PluginDescriptors = new[] {
-                    PluginDescriptor.Create(new AlternativeRepositoryPlugin(_temporaryRepository)),
+                    PluginDescriptor.Create(
+                        new PluginActionAfterRegistrationPlugin<IGitPlugin>(plugin => plugin.SetAlternativeRepository(
+                            _temporaryRepository,
+                            _temporaryRepository.GitCommand))),
                     PluginDescriptor.Create(_configurableCalculationServices)
                 }
             };

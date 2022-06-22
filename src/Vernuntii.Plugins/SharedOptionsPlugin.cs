@@ -68,7 +68,7 @@ namespace Vernuntii.Plugins
         }
 
         /// <inheritdoc/>
-        protected override void OnCompletedRegistration()
+        protected override void OnAfterRegistration()
         {
             var versioningPresetsPlugin = Plugins.First<IVersioningPresetsPlugin>();
 

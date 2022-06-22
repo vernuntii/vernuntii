@@ -49,7 +49,7 @@ namespace Vernuntii.Plugins
             await registrationContext.PluginRegistry.TryRegisterAsync<SharedOptionsPlugin>();
 
         /// <inheritdoc/>
-        protected override void OnCompletedRegistration()
+        protected override void OnAfterRegistration()
         {
             _sharedOptions = Plugins.First<SharedOptionsPlugin>();
             _logger = Plugins.First<ILoggingPlugin>().CreateLogger<ConfigurationPlugin>();

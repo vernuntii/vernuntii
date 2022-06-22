@@ -74,7 +74,7 @@ namespace Vernuntii.Plugins
             ((IEnumerable)_services).GetEnumerator();
 
         /// <inheritdoc/>
-        protected override void OnCompletedRegistration()
+        protected override void OnAfterRegistration()
         {
             _logger = Plugins.First<ILoggingPlugin>().CreateLogger<GlobalServicesPlugin>();
             _cacheCheckPlugin = Plugins.First<IVersionCacheCheckPlugin>();

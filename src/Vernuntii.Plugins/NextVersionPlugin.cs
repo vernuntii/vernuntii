@@ -149,7 +149,7 @@ namespace Vernuntii.Plugins
         }
 
         /// <inheritdoc/>
-        protected override void OnCompletedRegistration()
+        protected override void OnAfterRegistration()
         {
             Plugins.FirstLazy<ICommandLinePlugin>().Registered += plugin => {
                 plugin.SetRootCommandHandler(ProduceVersionOutput);

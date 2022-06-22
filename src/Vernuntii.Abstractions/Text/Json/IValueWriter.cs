@@ -3,13 +3,13 @@
     /// <summary>
     /// Enables to write any value that is serializable.
     /// </summary>
-    public interface IValueWriter<in T> : IDisposable
-        where T : class
+    /// <typeparam name="T"></typeparam>
+    public interface IValueWriter<in T> where T : class
     {
         /// <summary>
-        /// Writes the value.
+        /// Overwrites the value.
         /// </summary>
         /// <param name="value">Value to write.</param>
-        void WriteValue(T value);
+        void Overwrite(T value);
     }
 }

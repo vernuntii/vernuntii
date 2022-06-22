@@ -8,7 +8,7 @@
         /// <summary>
         /// The path to the .git-directory.
         /// </summary>
-        public string DotGitDirectory { get; }
+        public string GitDirectory { get; }
 
         /// <summary>
         /// The main configuration file.
@@ -18,12 +18,12 @@
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        /// <param name="dotGitDirectory"></param>
+        /// <param name="gitDirectory"></param>
         /// <param name="configFile"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public VersionHashFileOptions(string dotGitDirectory, string? configFile)
+        public VersionHashFileOptions(string gitDirectory, string? configFile)
         {
-            DotGitDirectory = dotGitDirectory ?? throw new ArgumentNullException(nameof(dotGitDirectory));
+            GitDirectory = gitDirectory ?? throw new ArgumentNullException(nameof(gitDirectory));
             ConfigFile = configFile;
         }
     }

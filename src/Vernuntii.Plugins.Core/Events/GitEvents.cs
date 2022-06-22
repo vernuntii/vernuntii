@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Vernuntii.Git.Command;
 using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Plugins.Events
@@ -11,7 +12,12 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when fully qualified git directory has been resolved.
         /// </summary>
-        public readonly static SubjectEvent<string> ResolvedGitDirectory = new SubjectEvent<string>();
+        public readonly static SubjectEvent<string> ResolvedGitWorkingTreeDirectory = new SubjectEvent<string>();
+
+        /// <summary>
+        /// Event is happening when the git command has been created.
+        /// </summary>
+        public readonly static SubjectEvent<IGitCommand> CreatedGitCommand = new SubjectEvent<IGitCommand>();
 
         /// <summary>
         /// Event when global service collection is about to be configured.
@@ -32,10 +38,5 @@ namespace Vernuntii.Plugins.Events
         /// Event when calculation service collection has been configured.
         /// </summary>
         public readonly static SubjectEvent<IServiceCollection> ConfiguredCalculationServices = new SubjectEvent<IServiceCollection>();
-
-        /// <summary>
-        /// Event that clears the cache of the repository.
-        /// </summary>
-        public readonly static SubjectEvent UnsetRepositoryCache = new SubjectEvent();
     }
 }

@@ -10,17 +10,17 @@ namespace Vernuntii.Git.Command
     public class GitCommand : IGitCommand
     {
         /// <inheritdoc/>
-        public string WorkingDirectory { get; }
+        public string WorkingTreeDirectory { get; }
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        /// <param name="workingDirectory"></param>
+        /// <param name="workingTreeDirectory"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public GitCommand(string workingDirectory) =>
-            WorkingDirectory = workingDirectory ?? throw new ArgumentNullException(nameof(workingDirectory));
+        public GitCommand(string workingTreeDirectory) =>
+            WorkingTreeDirectory = workingTreeDirectory ?? throw new ArgumentNullException(nameof(workingTreeDirectory));
 
-        private GitProcessStartInfo CreateStartInfo(string? args) => new GitProcessStartInfo(args, WorkingDirectory);
+        private GitProcessStartInfo CreateStartInfo(string? args) => new GitProcessStartInfo(args, WorkingTreeDirectory);
 
         /// <summary>
         /// Executes the git command.
@@ -68,7 +68,7 @@ namespace Vernuntii.Git.Command
         public bool IsHeadDetached() => ExecuteCommand("symbolic-ref -q HEAD") == 1;
 
         /// <inheritdoc/>
-        public string GetDotGitDirectory() => ExecuteCommandThenReadOutput("rev-parse --absolute-git-dir");
+        public string GetGitDirectory() => ExecuteCommandThenReadOutput("rev-parse --absolute-git-dir");
 
         /// <inheritdoc/>
         public bool TryResolveReference(

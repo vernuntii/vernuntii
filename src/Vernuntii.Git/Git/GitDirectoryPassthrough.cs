@@ -9,21 +9,21 @@ namespace Vernuntii.Git
     /// <summary>
     /// A provider that returns its parameter.
     /// </summary>
-    public sealed class InOutGitDirectoryProvider : IGitDirectoryResolver
+    public sealed class GitDirectoryPassthrough : IGitDirectoryResolver
     {
         /// <summary>
         /// The default instance of this type.
         /// </summary>
-        public readonly static InOutGitDirectoryProvider Instance = new InOutGitDirectoryProvider();
+        public readonly static GitDirectoryPassthrough Instance = new GitDirectoryPassthrough();
 
-        private InOutGitDirectoryProvider()
+        private GitDirectoryPassthrough()
         {
         }
 
         /// <summary>
-        /// Provides the git directory that has been passed.
+        /// Provides the top-level working tree directory.
         /// </summary>
         /// <param name="gitPath"></param>
-        public string ResolveGitDirectory(string gitPath) => gitPath;
+        public string ResolveWorkingTreeDirectory(string gitPath) => gitPath;
     }
 }

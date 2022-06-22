@@ -26,7 +26,7 @@ namespace Vernuntii.Git
         /// </summary>
         /// <param name="gitPath"></param>
         /// <exception cref="InvalidOperationException"></exception>
-        public string ResolveGitDirectory(string gitPath)
+        public string ResolveWorkingTreeDirectory(string gitPath)
         {
             var gitDirectoryAccessor = UpwardDirectory.FindUpwardDirectory(directory => {
                 var path = Path.Combine(directory.FullName, GitFolderOrFileName);

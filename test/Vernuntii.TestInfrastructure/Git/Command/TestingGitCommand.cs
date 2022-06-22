@@ -73,7 +73,7 @@ namespace Vernuntii.Git.Command
                 args.Append($" --depth {depth}");
             }
 
-            args.Append($" {url} {(Quote)WorkingDirectory}");
+            args.Append($" {url} {(Quote)WorkingTreeDirectory}");
             ExecuteCommandThenSucceed(args);
         }
 

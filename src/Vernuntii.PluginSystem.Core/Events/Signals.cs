@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace Vernuntii.PluginSystem.Events
 {
     /// <summary>
-    /// Helper methods for <see cref="IOnceSignalable"/>.
+    /// Helper methods for <see cref="IOneSignal"/>.
     /// </summary>
     public static class Signals
     {
-        public static bool AnyUnsignaled(IEnumerable<IOnceSignalable>? signals)
+        public static bool AnyUnsignaled(IEnumerable<IOneSignal>? signals)
         {
             if (signals != null) {
                 foreach (var signal in signals) {
@@ -24,10 +24,10 @@ namespace Vernuntii.PluginSystem.Events
             return false;
         }
 
-        public static bool AllSignaled(IEnumerable<IOnceSignalable>? signals) =>
+        public static bool AllSignaled(IEnumerable<IOneSignal>? signals) =>
             !AnyUnsignaled(signals);
 
-        public static bool AllSignaled(params IOnceSignalable[]? signals) =>
+        public static bool AllSignaled(params IOneSignal[]? signals) =>
             !AnyUnsignaled(signals);
     }
 }

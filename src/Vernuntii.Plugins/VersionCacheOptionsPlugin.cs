@@ -59,7 +59,7 @@ namespace Vernuntii.Plugins
         //private string? _cacheId;
 
         /// <inheritdoc/>
-        protected override void OnCompletedRegistration()
+        protected override void OnAfterRegistration()
         {
             Plugins.FirstLazy<ICommandLinePlugin>().Registered += plugin => {
                 _cacheCreationRetentionTimeOption.Description = "The cache retention time since creation. If the time span since creation is greater than then" +

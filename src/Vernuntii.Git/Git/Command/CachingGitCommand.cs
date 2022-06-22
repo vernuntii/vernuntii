@@ -17,7 +17,7 @@ namespace Vernuntii.Git.Command
         private readonly IMemoryCacheFactory _memoryCacheFactory;
         private IMemoryCache _memoryCache;
 
-        public string WorkingDirectory => UnderlyingCommand.WorkingDirectory;
+        public string WorkingTreeDirectory => UnderlyingCommand.WorkingTreeDirectory;
 
         public CachingGitCommand(IGitCommand gitCommand, IMemoryCacheFactory memoryCacheFactory)
         {
@@ -55,8 +55,8 @@ namespace Vernuntii.Git.Command
         public void UnsetCommitTagsCache() =>
             UnsetCache(Tuple.Create(nameof(GetCommitTags)));
 
-        public string GetDotGitDirectory() =>
-            GetOrCreateCache(Tuple.Create(nameof(GetDotGitDirectory)), UnderlyingCommand.GetDotGitDirectory);
+        public string GetGitDirectory() =>
+            GetOrCreateCache(Tuple.Create(nameof(GetGitDirectory)), UnderlyingCommand.GetGitDirectory);
 
         public bool IsHeadDetached() =>
             GetOrCreateCache(Tuple.Create(nameof(IsHeadDetached)), UnderlyingCommand.IsHeadDetached);

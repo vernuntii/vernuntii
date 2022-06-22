@@ -55,12 +55,12 @@ namespace Vernuntii.Git
         /// </summary>
         /// <param name="gitPath"></param>
         /// <exception cref="InvalidOperationException"></exception>
-        public string ResolveGitDirectory(string gitPath)
+        public string ResolveWorkingTreeDirectory(string gitPath)
         {
             if (UseAlternativeGitPath(out var alternativeGitPath)) {
-                return _gitDirectoryResolver.ResolveGitDirectory(alternativeGitPath);
+                return _gitDirectoryResolver.ResolveWorkingTreeDirectory(alternativeGitPath);
             } else {
-                return _gitDirectoryResolver.ResolveGitDirectory(gitPath);
+                return _gitDirectoryResolver.ResolveWorkingTreeDirectory(gitPath);
             }
         }
     }

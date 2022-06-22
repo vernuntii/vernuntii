@@ -7,7 +7,7 @@ using Vernuntii.SemVer.Json.System;
 
 namespace Vernuntii.Text.Json
 {
-    internal sealed class JsonFile<T> : IDisposable, IValueWriter<T>
+    internal sealed class JsonFile<T> : IDisposable, IManagedValueWriter<T>
         where T : class
     {
         public readonly static FileStreamLocker FileStreamLocker = new FileStreamLocker(new LockFileSystem());
@@ -35,7 +35,7 @@ namespace Vernuntii.Text.Json
         }
 
         /// <inheritdoc/>
-        public void WriteValue(T value)
+        public void Overwrite(T value)
         {
             if (_stream.Length != 0) {
                 _stream.SetLength(0);

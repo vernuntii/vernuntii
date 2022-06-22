@@ -9,9 +9,5 @@ namespace Vernuntii.Plugins.Events
     /// </summary>
     public sealed class GitCommandEvents
     {
-        /// <summary>
-        /// Event is happening when the git command has been created.
-        /// </summary>
-        public readonly static SubjectEvent<IGitCommand> CreatedCommand = new SubjectEvent<IGitCommand>();
     }
 }

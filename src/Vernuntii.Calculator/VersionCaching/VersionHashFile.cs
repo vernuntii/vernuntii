@@ -46,21 +46,25 @@ namespace Vernuntii.VersionCaching
         }
 
         /// <summary>
-        /// Checks if recache is required. Precisely it calculates a hash (again) of configuration file
-        /// and git-specific files and compares it to existing (if already existing) hash file. If these
-        /// hashes differ or the data inside the cache file (not to be confused with the hash file) then
-        /// got invalid then a recache is required.
+        /// Checks if recache is required. Precisely it calculates a hash (again) of configuration
+        /// file and git-specific files and compares it to existing (if existing) hash file. If these
+        /// hashes differ *or* the data inside the cache file (not to be confused with the hash file)
+        /// got invalid (e.g. last access time exceeded) then a recache is required.
         /// </summary>
+        /// <param name="versionCache">
+        /// The version cache when recache is not required. Is definitively <see langword="null"/> if
+        /// returned boolean is <see langword="false"/>.
+        /// </param>
         /// <exception cref="InvalidOperationException"></exception>
         public bool IsRecacheRequired([NotNullWhen(false)] out IVersionCache? versionCache)
         {
             _cacheDirectory.CreateCacheDirectoryIfNotExisting();
 
             var configFile = _options.ConfigFile;
-            var dotGitDirectory = _options.DotGitDirectory;
-            var refsTagDirectory = Path.Combine(dotGitDirectory, _refsTagDirectory);
-            var refsHeadDirectory = Path.Combine(dotGitDirectory, _refsHeadsDirectory);
-            var packedRefsFile = Path.Combine(dotGitDirectory, _packedRefsDirectory);
+            var gitDirectory = _options.GitDirectory;
+            var refsTagDirectory = Path.Combine(gitDirectory, _refsTagDirectory);
+            var refsHeadDirectory = Path.Combine(gitDirectory, _refsHeadsDirectory);
+            var packedRefsFile = Path.Combine(gitDirectory, _packedRefsDirectory);
             var hashFile = Path.Combine(_cacheDirectory.CacheDirectoryPath, $"{_cacheManager.CacheId}{_hashExtension}");
 
             var upToDateHashCode = new UpToDateHashCode();

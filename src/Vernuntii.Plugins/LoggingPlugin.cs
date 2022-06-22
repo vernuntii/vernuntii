@@ -123,7 +123,7 @@ namespace Vernuntii.Plugins
             EnableLoggingInfrastructureCore(DefaultVerbosity);
 
         /// <inheritdoc/>
-        protected override void OnCompletedRegistration()
+        protected override void OnAfterRegistration()
         {
             Plugins.First<ICommandLinePlugin>().RootCommand.Add(verbosityOption);
         }

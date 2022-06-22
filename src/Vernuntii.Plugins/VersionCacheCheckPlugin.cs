@@ -56,7 +56,7 @@ namespace Vernuntii.Plugins
             await registrationContext.PluginRegistry.RegisterAsync<VersionCacheOptionsPlugin>();
 
         /// <inheritdoc/>
-        protected override void OnCompletedRegistration()
+        protected override void OnAfterRegistration()
         {
             _configurationPlugin = Plugins.First<IConfigurationPlugin>();
             _loggerPlugin = Plugins.First<ILoggingPlugin>();
@@ -66,9 +66,9 @@ namespace Vernuntii.Plugins
 
         private void OnCreateVersionCacheManager()
         {
-            var dotGitDirectory = _gitCommand.GetDotGitDirectory();
+            var gitDirectory = _gitCommand.GetGitDirectory();
 
-            var versionCacheDirectory = new VersionCacheDirectory(new VersionCacheDirectoryOptions(dotGitDirectory));
+            var versionCacheDirectory = new VersionCacheDirectory(new VersionCacheDirectoryOptions(gitDirectory));
 
             _versionCacheManager = new VersionCacheManager(
                 versionCacheDirectory,
@@ -76,7 +76,7 @@ namespace Vernuntii.Plugins
                 _versionCacheOptionsPlugin.CacheOptions,
                 _loggerPlugin.CreateLogger<VersionCacheManager>());
 
-            _versionHashFile = new VersionHashFile(new VersionHashFileOptions(dotGitDirectory, _configFile), _versionCacheManager, versionCacheDirectory, _logger);
+            _versionHashFile = new VersionHashFile(new VersionHashFileOptions(gitDirectory, _configFile), _versionCacheManager, versionCacheDirectory, _logger);
 
             Events.Publish(VersionCacheCheckEvents.CreatedVersionCacheManager, _versionCacheManager);
         }
@@ -106,7 +106,7 @@ namespace Vernuntii.Plugins
                 () => _configFile = _configurationPlugin.ConfigFile);
 
             Events.SubscribeOnce(
-                GitCommandEvents.CreatedCommand,
+                GitEvents.CreatedGitCommand,
                 gitCommand => _gitCommand = gitCommand);
 
             Events.SubscribeOnce(VersionCacheCheckEvents.CreateVersionCacheManager,

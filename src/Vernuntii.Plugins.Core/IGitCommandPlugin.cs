@@ -8,9 +8,5 @@ namespace Vernuntii.Plugins
     /// </summary>
     public interface IGitCommandPlugin : IPlugin
     {
-        /// <summary>
-        /// The git command.
-        /// </summary>
-        IGitCommand GitCommand { get; }
     }
 }

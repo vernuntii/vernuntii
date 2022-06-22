@@ -1,14 +1,14 @@
 ﻿namespace Vernuntii.Git
 {
     /// <summary>
-    /// Has the ability to resolve to the git working directory.
+    /// Has the ability to resolve git-specific directories.
     /// </summary>
     public interface IGitDirectoryResolver
     {
         /// <summary>
-        /// Gets the git working directory.
+        /// Gets the top-level of the working tree.
         /// </summary>
         /// <param name="gitPath"></param>
-        public string ResolveGitDirectory(string gitPath);
+        public string ResolveWorkingTreeDirectory(string gitPath);
     }
 }

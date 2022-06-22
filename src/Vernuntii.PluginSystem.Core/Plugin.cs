@@ -66,20 +66,20 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Called when all plugins are registered and ordered.
         /// </summary>
-        protected virtual void OnCompletedRegistration()
+        protected virtual void OnAfterRegistration()
         {
         }
 
         /// <summary>
         /// Called when all plugins are registered and ordered.
         /// </summary>
-        protected virtual ValueTask OnCompletedRegistrationAsync() =>
+        protected virtual ValueTask OnAfterRegistrationAsync() =>
             ValueTask.CompletedTask;
 
-        ValueTask IPlugin.OnCompletedRegistration()
+        ValueTask IPlugin.OnAfterRegistration()
         {
-            OnCompletedRegistration();
-            return OnCompletedRegistrationAsync();
+            OnAfterRegistration();
+            return OnAfterRegistrationAsync();
         }
 
         /// <summary>

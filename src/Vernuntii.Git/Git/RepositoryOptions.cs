@@ -12,14 +12,14 @@ namespace Vernuntii.Git
         /// A nested directory is tried to resolved to the root containing a .git-directory.
         /// </summary>
         /// <exception cref="ArgumentNullException"></exception>
-        public string GitDirectory {
+        public string GitWorkingTreeDirectory {
             get => _gitDirectory;
             set => _gitDirectory = value ?? throw new ArgumentNullException(nameof(value), "Git directory cannot be null");
         }
 
         /// <summary>
         /// The git directory resolver. It will be used to resolve the actual
-        /// git directory. <see cref="GitDirectory"/> will be the input.
+        /// git directory. <see cref="GitWorkingTreeDirectory"/> will be the input.
         /// </summary>
         public IGitDirectoryResolver GitDirectoryResolver {
             get => _gitDirectoryResolver;

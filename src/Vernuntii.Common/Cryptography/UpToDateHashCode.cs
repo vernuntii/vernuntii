@@ -18,7 +18,7 @@ namespace Vernuntii.Cryptography
         private List<string> _files = new List<string>();
 
         /// <summary>
-        /// Adds _files in a directory to check.
+        /// Adds files in a directory to check.
         /// </summary>
         /// <param name="directoryPath"></param>
         /// <param name="recursively"></param>

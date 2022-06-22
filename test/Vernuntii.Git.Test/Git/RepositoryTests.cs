@@ -13,7 +13,7 @@ namespace Vernuntii.Git
             origin.CommitEmpty();
 
             var shallowOptions = new TemporaryRepositoryOptions() {
-                CloneOptions = new CloneOptions(originOptions.RepositoryOptions.GitDirectory) {
+                CloneOptions = new CloneOptions(originOptions.RepositoryOptions.GitWorkingTreeDirectory) {
                     Source = CloneSource.File,
                     Depth = 1
                 },
