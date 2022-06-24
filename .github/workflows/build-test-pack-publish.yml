@@ -35,7 +35,7 @@ on:
 
 env:
   VERNUNTII_VERBOSITY: Debug
-  MSBUILD_VERBOSITY: Normal
+  MSBUILD_VERBOSITY: normal
   MSBUILD_CONFIGURATION: Release
   CACHE_ID: GITHUB_VERSION_CACHE
   DOTNET_VERSION: "6.0.x"
@@ -44,7 +44,7 @@ env:
 
 jobs:
   pre-build:
-    runs-on: ubuntu-18.04
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v2
         with:
@@ -54,12 +54,12 @@ jobs:
         uses: ./.github/actions/produce-vernuntii-artifact
         with:
           artifact-name: ${{ env.VERNUNTII_ARTIFACT }}
-          console-tool-project-name: Vernuntii.Console.GlobalTool
+          console-tool-project-name: Vernuntii.Console.GlobalTool.win-x64
           msbuild-verbosity: ${{ env.MSBUILD_VERBOSITY }}
           msbuild-configuration: ${{ env.MSBUILD_CONFIGURATION }}
 
   build:
-    runs-on: ubuntu-18.04
+    runs-on: windows-2022
     needs: pre-build
     steps:
       - uses: actions/checkout@v2
@@ -92,6 +92,7 @@ jobs:
           && github.event.inputs.version != ''
         run: |
           echo "Vernuntii_SemanticVersion=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+        shell: bash
 
       - name: Set pre-release version from console application
         if: >
@@ -122,20 +123,25 @@ jobs:
         id: semantic-version
         run: >
           echo "::set-output name=semantic-version::${{ env.Vernuntii_SemanticVersion }}"
+        shell: bash
 
       - name: Restore projects
         run: dotnet restore
+        shell: bash
 
       - name: Build projects
         run: >
           dotnet build --verbosity $MSBUILD_VERBOSITY --configuration $MSBUILD_CONFIGURATION --no-restore
+        shell: bash
 
       - name: Test projects
         run: dotnet test --configuration $MSBUILD_CONFIGURATION --no-restore
+        shell: bash
 
       - name: Pack projects
         run: >
           dotnet pack --verbosity $MSBUILD_VERBOSITY --configuration $MSBUILD_CONFIGURATION --no-restore
+        shell: bash
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v3
@@ -160,31 +166,45 @@ jobs:
         with:
           name: publishable-nuget-packages
         continue-on-error: true
+
       - name: Display structure of downloaded files
         if: ${{ env.DRY_RUN == 'true' }}
         run: ls -R
+        shell: bash
+
       - name: Push nupkg's
         id: push-nupkg
         if: ${{ steps.download-artifacts.outcome == 'success' && env.DRY_RUN == 'false' }}
         run: echo "::set-output name=console::$(dotnet nuget push '**/*.nupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)"
+        shell: bash
         continue-on-error: true
+
       - name: Push nupkg's console output
         if: steps.push-nupkg.outcome != 'skipped'
         run: echo "${{ steps.push-nupkg.outputs.console }}"
+        shell: bash
+
       - name: Push nupkg's suceeded
         if: "${{ steps.push-nupkg.outcome == 'failure' && !contains(steps.push-nupkg.outputs.console, 'error: File does not exist') }}"
         run: exit 1
+        shell: bash
+
       - name: Push snupkg's
         id: push-snupkg
         if: ${{ steps.download-artifacts.outcome == 'success' && env.DRY_RUN == 'false' }}
         run: echo "::set-output name=console::$(dotnet nuget push '**/*.snupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)"
+        shell: bash
         continue-on-error: true
+
       - name: Push snupkg's console output
         if: steps.push-snupkg.outcome != 'skipped'
         run: echo "${{ steps.push-snupkg.outputs.console }}"
+        shell: bash
+
       - name: Push snupkg's suceeded
         if: "${{ steps.push-snupkg.outcome == 'failure' && !contains(steps.push-snupkg.outputs.console, 'error: File does not exist') }}"
         run: exit 1
+        shell: bash
 
   git-tag:
     runs-on: windows-latest
@@ -194,11 +214,15 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
+
       - name: Create (pre-)release tag remotely
         if: ${{ env.DRY_RUN == 'false' }}
         run: |
           git tag ${{ needs.build.outputs.semantic-version }}
           git push --tags
+        shell: bash
+
       - name: Create (pre-)release tag remotely (dry-run)
         if: ${{ env.DRY_RUN == 'true' }}
         run: echo ${{ needs.build.outputs.semantic-version }}
+        shell: bash

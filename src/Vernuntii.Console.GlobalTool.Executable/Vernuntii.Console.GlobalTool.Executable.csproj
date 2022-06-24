@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$(MSBuildProjectThisFileDirectory)Project.props" />
+
+  <ItemGroup>
+    <None Include="Project.Pack.props" />
+    <None Include="Project.props" />
+  </ItemGroup>
+
+</Project>

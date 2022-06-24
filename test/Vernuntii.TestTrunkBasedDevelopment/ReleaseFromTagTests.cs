@@ -26,7 +26,7 @@ namespace Vernuntii
                 },
                 PluginDescriptors = new[] {
                     PluginDescriptor.Create(
-                        new PluginActionAfterRegistrationPlugin<IGitPlugin>(plugin => plugin.SetAlternativeRepository(
+                        new PluginAction.AfterRegistration<IGitPlugin>(plugin => plugin.SetAlternativeRepository(
                             _temporaryRepository,
                             _temporaryRepository.GitCommand))),
                     PluginDescriptor.Create(_configurableCalculationServices)

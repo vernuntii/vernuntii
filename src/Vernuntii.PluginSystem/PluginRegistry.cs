@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.PluginSystem
+﻿using Microsoft.Extensions.Logging;
+
+namespace Vernuntii.PluginSystem
 {
     /// <summary>
     /// The plugin registry.
@@ -15,13 +17,13 @@
 
         private int _pluginRegistrationCounter;
         private bool _isSealed;
+        private readonly ILogger<PluginRegistry> _logger;
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        public PluginRegistry()
-        {
-        }
+        public PluginRegistry(ILogger<PluginRegistry> logger) =>
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         private void NotifyPluginRegistrationConsumer(Action<IPluginRegistration> consumePluginRegistrationAction)
         {
@@ -75,6 +77,9 @@
             if (acceptRegistration) {
                 _pluginRegistrations.Add(pluginRegistration);
                 NotifyPluginRegistrationConsumers(pluginRegistration);
+                _logger.LogTrace("Accepted plugin registration: {ServiceType} ({PluginType})", pluginRegistration.ServiceType, pluginRegistration.PluginType);
+            } else {
+                _logger.LogTrace("Denied plugin registration: {ServiceType} ({PluginType})", pluginRegistration.ServiceType, pluginRegistration.PluginType);
             }
 
             return pluginRegistration;

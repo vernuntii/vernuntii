@@ -30,7 +30,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\Vernuntii.Console\Vernuntii.Console.csproj">
+    
+    <ProjectReference Include="..\Vernuntii.Console.linux-x64\Vernuntii.Console.linux-x64.csproj;..\Vernuntii.Console.win-x64\Vernuntii.Console.win-x64.csproj;..\Vernuntii.Console.osx-x64\Vernuntii.Console.osx-x64.csproj">
       <!-- Setting ReferenceOutputAssembly skips adding the outputs of the referenced project to an item -->
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <!-- Setting SkipGetTargetFrameworkProperties skips target framework cross-project validation in NuGet -->
@@ -66,9 +67,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console\bin\$(Configuration)\$(ConsoleTargetFramework)\**\*">
+    <None Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console.linux-x64\bin\$(Configuration)\$(ConsoleTargetFramework)\linux-x64\publish\**\*">
       <Pack>True</Pack>
-      <PackagePath>tools\console\$(ConsoleTargetFramework)</PackagePath>
+      <PackagePath>tools\console\$(ConsoleTargetFramework)\linux-x64</PackagePath>
+      <Visible>False</Visible>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console.win-x64\bin\$(Configuration)\$(ConsoleTargetFramework)\win-x64\publish\**\*">
+      <Pack>True</Pack>
+      <PackagePath>tools\console\$(ConsoleTargetFramework)\win-x64</PackagePath>
+      <Visible>False</Visible>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console.osx-x64\bin\$(Configuration)\$(ConsoleTargetFramework)\osx-x64\publish\**\*">
+      <Pack>True</Pack>
+      <PackagePath>tools\console\$(ConsoleTargetFramework)\osx-x64</PackagePath>
       <Visible>False</Visible>
     </None>
   </ItemGroup>

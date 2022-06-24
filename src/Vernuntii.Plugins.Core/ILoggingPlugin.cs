@@ -9,6 +9,11 @@ namespace Vernuntii.Plugins
     public interface ILoggingPlugin : IPlugin
     {
         /// <summary>
+        /// <see langword="true"/> means all log messages are written to stderr (default is <see langword="true"/>).
+        /// </summary>
+        bool WriteToStandardError { get; set; }
+
+        /// <summary>
         /// Creates a logger.
         /// </summary>
         /// <typeparam name="T"></typeparam>

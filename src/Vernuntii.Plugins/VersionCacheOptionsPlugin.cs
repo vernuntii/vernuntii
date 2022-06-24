@@ -43,21 +43,6 @@ namespace Vernuntii.Plugins
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        ///// <summary>
-        ///// The cache id.
-        ///// </summary>
-        //[AllowNull]
-        //public string? CacheId {
-        //    get {
-        //        EnsureParsedCommandLineArgs();
-        //        return _cacheId;
-        //    }
-
-        //    set => _cacheId = value;
-        //}
-
-        //private string? _cacheId;
-
         /// <inheritdoc/>
         protected override void OnAfterRegistration()
         {

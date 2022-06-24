@@ -13,7 +13,12 @@ namespace Vernuntii.Plugins.Events
     public static class LifecycleEvents
     {
         /// <summary>
-        /// The event is called when the lifecycle is started again.
+        /// The event is called whenever a run starts.
+        /// </summary>
+        public readonly static SubjectEvent BeforeEveryRun = new SubjectEvent();
+
+        /// <summary>
+        /// The event is called when a next run starts.
         /// </summary>
         public readonly static SubjectEvent BeforeNextRun = new SubjectEvent();
     }

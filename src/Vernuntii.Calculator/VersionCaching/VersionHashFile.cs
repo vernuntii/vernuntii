@@ -112,7 +112,7 @@ namespace Vernuntii.VersionCaching
                 }
             }
 
-            _logger.LogInformation("Checked version cache (Up-to-date = {UpToDate})", isCacheUpToDate);
+            _logger.LogInformation("Checked version cache (Cache id = {CacheId}, Up-to-date = {UpToDate})", _cacheManager.CacheId, isCacheUpToDate);
             return !isCacheUpToDate;
         }
     }

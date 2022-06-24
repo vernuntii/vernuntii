@@ -26,12 +26,22 @@ namespace Vernuntii.Console
         /// </summary>
         public IEnumerable<PluginDescriptor>? PluginDescriptors { get; init; }
 
+        private LoggingPlugin _loggingPlugin;
         private bool _isDisposed;
         private PluginRegistry? _pluginRegistry;
         private PluginEventCache? _pluginEvents;
         private PluginExecutor? _pluginExecutor;
-        private ILogger? _logger;
+        private ILogger _logger;
         private string[] _args = Array.Empty<string>();
+
+        /// <summary>
+        /// Creates an instance of this type.
+        /// </summary>
+        public VernuntiiRunner()
+        {
+            _loggingPlugin = new LoggingPlugin();
+            _logger = _loggingPlugin.CreateLogger(nameof(VernuntiiRunner));
+        }
 
         [MemberNotNullWhen(true,
             nameof(_pluginRegistry),
@@ -43,14 +53,6 @@ namespace Vernuntii.Console
         {
             if (_isDisposed) {
                 throw new ObjectDisposedException("The runner has been already disposed");
-            }
-        }
-
-        [MemberNotNull(nameof(_logger))]
-        private void EnsureHavingLogger()
-        {
-            if (_logger is null) {
-                throw new InvalidOperationException("Logger has not been created");
             }
         }
 
@@ -91,16 +93,11 @@ namespace Vernuntii.Console
                     throw new InvalidOperationException("Runner was not prepared correctly");
                 }
 
-                _pluginRegistry = new PluginRegistry();
-
+                _pluginRegistry = new PluginRegistry(_loggingPlugin.CreateLogger<PluginRegistry>());
+                await _pluginRegistry.RegisterAsync<ILoggingPlugin>(_loggingPlugin);
                 await _pluginRegistry.RegisterAsync<IGlobalServicesPlugin, GlobalServicesPlugin>();
                 await _pluginRegistry.RegisterAsync<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
                 await _pluginRegistry.RegisterAsync<ICommandLinePlugin, CommandLinePlugin>();
-
-                var loggerPlugin = new LoggingPlugin();
-                await _pluginRegistry.RegisterAsync<ILoggingPlugin>(loggerPlugin);
-                _logger = loggerPlugin.CreateLogger(nameof(VernuntiiRunner));
-
                 await _pluginRegistry.RegisterAsync<IConfigurationPlugin, ConfigurationPlugin>();
                 await _pluginRegistry.RegisterAsync<IGitPlugin, GitPlugin>();
                 await _pluginRegistry.RegisterAsync<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>();
@@ -116,7 +113,11 @@ namespace Vernuntii.Console
                 _pluginExecutor = new PluginExecutor(_pluginRegistry, _pluginEvents);
                 _logger.LogTrace("Execute plugins");
                 await _pluginExecutor.ExecuteAsync();
+            }
 
+            _pluginEvents.Publish(LifecycleEvents.BeforeEveryRun);
+
+            if (!_runOnce) {
                 _logger.LogTrace("Set command-line arguments");
                 _pluginEvents.Publish(CommandLineEvents.SetCommandLineArgs, ConsoleArgs);
 
@@ -138,24 +139,23 @@ namespace Vernuntii.Console
                 _pluginEvents.Publish(GlobalServicesEvents.CreateServiceProvider);
             }
 
+            if (_runOnce) {
+                _pluginEvents.Publish(LifecycleEvents.BeforeNextRun);
+                //_pluginEvents.Publish(VersionCacheCheckEvents.CheckVersionCache);
+            }
+
             return null;
         }
 
         private int RunCore()
         {
             EnsureHavingPluginEvents();
-            EnsureHavingLogger();
-
-            if (_runOnce) {
-                _pluginEvents.Publish(LifecycleEvents.BeforeNextRun);
-                //_pluginEvents.Publish(VersionCacheCheckEvents.CheckVersionCache);
-            } 
 
             int exitCode = (int)ExitCode.NotExecuted;
             using var exitCodeSubscription = _pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, i => exitCode = i);
 
-            _pluginEvents.Publish(CommandLineEvents.InvokeRootCommand);
             _logger.LogTrace("Invoke command-line root command");
+            _pluginEvents.Publish(CommandLineEvents.InvokeRootCommand);
 
             if (exitCode == (int)ExitCode.NotExecuted) {
                 throw new InvalidOperationException("The command line was not running");
@@ -207,8 +207,6 @@ namespace Vernuntii.Console
             if (!ChackHavingPluginExecutor()) {
                 return;
             }
-
-            EnsureHavingLogger();
 
             _logger.LogTrace("Destroying plugins");
             await _pluginExecutor.DestroyAsync();

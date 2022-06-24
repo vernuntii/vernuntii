@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Vernuntii.Console": {
-      "commandName": "Project",
-      "commandLineArgs": "--help"
-    }
-  }
-}

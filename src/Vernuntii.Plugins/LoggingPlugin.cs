@@ -10,9 +10,11 @@ using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
+using Vernuntii.Logging;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
+using LogLevel = Vernuntii.Logging.LogLevel;
 
 namespace Vernuntii.Plugins
 {
@@ -28,10 +30,26 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         public override int? Order => -2000;
 
-        private LoggingConfiguration? _loggingConfiguration;
+        /// <inheritdoc/>
+        public bool WriteToStandardError {
+            get => _consoleTarget.StdErr;
+
+            set {
+                _consoleTarget.StdErr = value;
+                AcceptLoggingConfigurationChanges();
+            }
+        }
+
+        private LoggingConfiguration _loggingConfiguration = new LoggingConfiguration();
+
+        private ColoredConsoleTarget _consoleTarget = new ColoredConsoleTarget() {
+            StdErr = true
+        };
+
         private Logger _logger = null!;
         private ILoggerFactory _loggerFactory = null!;
         private Action<ILoggingBuilder> _loggerBinder = null!;
+        private bool _configuredOnce;
 
         /* If option is not specified, then do not log.
          * If value is not specified, then log on information level.
@@ -75,30 +93,33 @@ namespace Vernuntii.Plugins
             // but never both.
         }
 
+        private void AcceptLoggingConfigurationChanges() =>
+            _loggingConfiguration.LogFactory.ReconfigExistingLoggers();
+
         private void ReconfigureLoggingInfrastructure(LogLevel verbosity)
         {
             const string coloredConsoleTargetName = nameof(coloredConsoleTargetName);
 
-            if (_loggingConfiguration is null) {
-                _loggingConfiguration = new LoggingConfiguration();
+            if (!_configuredOnce) {
+                var consoleTarget = new AsyncTargetWrapper(_consoleTarget);
 
-                var coloredConsoleTarget = new AsyncTargetWrapper(new ColoredConsoleTarget() { 
-                    StdErr = true
-                });
-
-                _loggingConfiguration.AddTarget(coloredConsoleTargetName, coloredConsoleTarget);
-                AddRule();
+                _loggingConfiguration.AddTarget(coloredConsoleTargetName, consoleTarget);
+                AddDefaultRule();
 
                 _logger = _loggingConfiguration.LogFactory.GetCurrentClassLogger();
                 _loggerBinder = builder => builder.AddNLog(_loggingConfiguration);
                 _loggerFactory = LoggerFactory.Create(builder => _loggerBinder(builder));
+                _configuredOnce = true;
             } else {
-                _loggingConfiguration.LoggingRules.RemoveAt(0);
-                AddRule();
-                _loggingConfiguration.LogFactory.ReconfigExistingLoggers();
+                RemoveDefaultRule();
+                AddDefaultRule();
+                AcceptLoggingConfigurationChanges();
             }
 
-            void AddRule()
+            void RemoveDefaultRule() =>
+                _loggingConfiguration.LoggingRules.RemoveAt(0);
+
+            void AddDefaultRule()
             {
                 _loggingConfiguration.AddRule(
                     NLog.LogLevel.FromOrdinal((int)verbosity),
