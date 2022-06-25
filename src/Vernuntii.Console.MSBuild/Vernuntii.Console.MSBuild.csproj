@@ -1,22 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Vernuntii.Console</RootNamespace>
-    <Description>Simple semantic versioning with git integration. The primary goal of this package is to set the version of NuGet-package(s).</Description>
-    <IsPackable>true</IsPackable>
-  </PropertyGroup>
-
-  <!-- We don't build an executable package.
-       We build an only-build-time package. -->
-  <PropertyGroup>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <DevelopmentDependency>true</DevelopmentDependency>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <IncludeSymbols>false</IncludeSymbols>
-    <NoPackageAnalysis>true</NoPackageAnalysis>
-  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.MSBuild.Orphan/Project.Pack.props" />
 
   <PropertyGroup>
     <!-- Single point of truth -->
@@ -24,70 +8,44 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.9.0" PrivateAssets="all" />
-    <PackageReference Include="System.Text.Json" Version="5.0.1" />
+    <_RuntimeSpecificProject Include="..\Vernuntii.Console.linux-x64\Vernuntii.Console.linux-x64.csproj">
+      <_RuntimeIdentifier>linux-x64</_RuntimeIdentifier>
+    </_RuntimeSpecificProject>
+
+    <_RuntimeSpecificProject Include="..\Vernuntii.Console.win-x64\Vernuntii.Console.win-x64.csproj">
+      <_RuntimeIdentifier>win-x64</_RuntimeIdentifier>
+    </_RuntimeSpecificProject>
+
+    <_RuntimeSpecificProject Include="..\Vernuntii.Console.osx-x64\Vernuntii.Console.osx-x64.csproj">
+      <_RuntimeIdentifier>osx-x64</_RuntimeIdentifier>
+    </_RuntimeSpecificProject>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" PrivateAssets="all" />
-    
-    <ProjectReference Include="..\Vernuntii.Console.linux-x64\Vernuntii.Console.linux-x64.csproj;..\Vernuntii.Console.win-x64\Vernuntii.Console.win-x64.csproj;..\Vernuntii.Console.osx-x64\Vernuntii.Console.osx-x64.csproj">
-      <!-- Setting ReferenceOutputAssembly skips adding the outputs of the referenced project to an item -->
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <!-- Setting SkipGetTargetFrameworkProperties skips target framework cross-project validation in NuGet -->
-      <OutputItemType>None</OutputItemType>
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-      <AdditionalProperties>TargetFramework=$(ConsoleTargetFramework)</AdditionalProperties>
-    </ProjectReference>
-    <ProjectReference Include="..\Vernuntii.SimpleProcess\Vernuntii.SimpleProcess.csproj" />
-  </ItemGroup>
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_IncludeProjectReferencePublishOutputToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)build\**\*.props;$(MSBuildThisFileDirectory)build\**\*.targets">
-      <Pack>True</Pack>
-      <PackagePath>build</PackagePath>
-      <Link>build\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
+  <Target Name="_PublishProjectReferences">
+    <PropertyGroup>
+      <_MSBuildProps>
+        TargetFramework=$(ConsoleTargetFramework);
+        Configuration=$(Configuration)
+      </_MSBuildProps>
+    </PropertyGroup>
 
-    <None Include="$(MSBuildThisFileDirectory)build\**\*.props;$(MSBuildThisFileDirectory)build\**\*.targets">
-      <Pack>True</Pack>
-      <PackagePath>buildMultiTargeting</PackagePath>
-      <Link>buildMultiTargeting\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-  </ItemGroup>
+    <MSBuild Projects="%(_RuntimeSpecificProject.Identity)" Targets="Restore;Publish" Properties="$(_MSBuildProps)" />
+  </Target>
 
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)bin\$(Configuration)\$(TargetFramework)\**\*">
-      <Pack>True</Pack>
-      <PackagePath>tools\msbuild\$(TargetFramework)</PackagePath>
-      <Visible>False</Visible>
-    </None>
-  </ItemGroup>
+  <Target Name="_IncludeProjectReferencePublishOutputToPackage" DependsOnTargets="_PublishProjectReferences">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="%(_RuntimeSpecificProject.RelativeDir)bin\$(Configuration)\$(ConsoleTargetFramework)\%(_RuntimeSpecificProject._RuntimeIdentifier)\publish\**\*">
+        <Pack>True</Pack>
+        <PackagePath>deps\console\$(ConsoleTargetFramework)\%(_RuntimeIdentifier)</PackagePath>
+        <Visible>False</Visible>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+  </Target>
 
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console.linux-x64\bin\$(Configuration)\$(ConsoleTargetFramework)\linux-x64\publish\**\*">
-      <Pack>True</Pack>
-      <PackagePath>tools\console\$(ConsoleTargetFramework)\linux-x64</PackagePath>
-      <Visible>False</Visible>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console.win-x64\bin\$(Configuration)\$(ConsoleTargetFramework)\win-x64\publish\**\*">
-      <Pack>True</Pack>
-      <PackagePath>tools\console\$(ConsoleTargetFramework)\win-x64</PackagePath>
-      <Visible>False</Visible>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console.osx-x64\bin\$(Configuration)\$(ConsoleTargetFramework)\osx-x64\publish\**\*">
-      <Pack>True</Pack>
-      <PackagePath>tools\console\$(ConsoleTargetFramework)\osx-x64</PackagePath>
-      <Visible>False</Visible>
-    </None>
-  </ItemGroup>
+  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.MSBuild.Orphan/Project.Pack.targets" />
 
 </Project>

@@ -1,20 +1,19 @@
 ﻿<Project>
 
-  <Import Project="$(MSBuildProjectThisFileDirectory)Project.props" />
+  <Import Project="$(MSBuildThisFileDirectory)Project.props" />
   
   <PropertyGroup>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vernuntii</ToolCommandName>
     <Description>Simple semantic versioning with git integration. Installing this package as dotnet tool makes the global command "vernuntii" available.</Description>
     <IsPackable>true</IsPackable>
-    <!--<RuntimeIdentifiers>linux-x64;win-x64;osx-x64</RuntimeIdentifiers>-->
     <SelfContained>false</SelfContained>
     <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)ConsoleToolProgram.cs'))" />
-    <!--<Compile Include="$(MSBuildProjectThisFileDirectory)ConsoleToolProgram.cs" Link="ConsoleToolProgram222.cs" />-->
+    <Compile Include="$(MSBuildThisFileDirectory)**/*.cs" Exclude="$(MSBuildThisFileDirectory)obj/**/*" />
   </ItemGroup>
   
 </Project>

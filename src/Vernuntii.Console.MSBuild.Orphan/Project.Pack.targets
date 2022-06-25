@@ -1,0 +1,10 @@
+﻿<Project>
+
+  <Import Project="$(MSBuildThisFileDirectory)Project.targets" />
+
+  <ItemGroup>
+    <None Remove="@(PackageInclude)" />
+    <None Include="@(PackageInclude)" />
+  </ItemGroup>
+
+</Project>

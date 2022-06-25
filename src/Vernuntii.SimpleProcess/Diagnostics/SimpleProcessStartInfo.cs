@@ -7,7 +7,17 @@ namespace Vernuntii.Diagnostics
     /// </summary>
     public class SimpleProcessStartInfo
     {
-        internal ProcessStartInfo ProcessStartInfo;
+        /// <summary>
+        /// The executable to start.
+        /// </summary>
+        public string? Executable => ProcessStartInfo.FileName;
+
+        /// <summary>
+        /// The process arguments.
+        /// </summary>
+        public string? Arguments => ProcessStartInfo.Arguments;
+
+        internal ProcessStartInfo ProcessStartInfo { get; private set; }
 
         /// <summary>
         /// Creates an instance of type <see cref="SimpleProcessStartInfo" />.

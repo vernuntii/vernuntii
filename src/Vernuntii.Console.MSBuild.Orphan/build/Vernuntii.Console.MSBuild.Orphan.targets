@@ -3,7 +3,11 @@
 
   <Import Project="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).props" Condition="'$(VernuntiiPropsLoaded)' != 'true'" />
 
-  <UsingTask AssemblyFile="$(VernuntiiAssemblyFile)" TaskName="VernuntiiTask" Condition="'$(DisableVernuntii)' != 'true'" />
+  <PropertyGroup>
+    <VernuntiiMSBuildIntegrationAssemblyFile Condition="'$(VernuntiiMSBuildIntegrationAssemblyFile)' == ''">$(MSBuildThisFileDirectory)..\deps\msbuild\netstandard2.0\$(MSBuildThisFileName).dll</VernuntiiMSBuildIntegrationAssemblyFile>
+  </PropertyGroup>
+
+  <UsingTask AssemblyFile="$(VernuntiiMSBuildIntegrationAssemblyFile)" TaskName="VernuntiiTask" Condition="'$(DisableVernuntii)' != 'true'" />
 
   <PropertyGroup>
     <!-- Possible canditates: -->
@@ -30,7 +34,22 @@
     </ExecuteVernuntiiTaskBeforeTargets>
   </PropertyGroup>
 
-  <Target Name="ExecuteVernuntiiTask" DependsOnTargets="$(ExecuteVernuntiiTaskDependsOn)" BeforeTargets="$(ExecuteVernuntiiTaskBeforeTargets)" Condition="'$(DisableVernuntii)' != 'true'">
+  <Target Name="_EnsureSupportedPlatformForConsole">
+    <Error Text="The platform Vernuntii is currently operating on is not supported" Condition="'$(VernuntiiConsoleExecutableRuntime)' == 'UNSUPPORTED'" />
+  </Target>
+
+  <PropertyGroup>
+    <ExecuteVernuntiiTaskDependsOn>
+      $(ExecuteVernuntiiTaskDependsOn);
+      _EnsureSupportedPlatformForConsole
+   </ExecuteVernuntiiTaskDependsOn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VernuntiiConsoleExecutableFile Condition="'$(VernuntiiConsoleExecutableFile)' == ''">$(MSBuildThisFileDirectory)..\deps\console\net6.0\$(VernuntiiConsoleExecutableRuntime)\Vernuntii.Console.$(VernuntiiConsoleExecutableRuntime).dll</VernuntiiConsoleExecutableFile>
+  </PropertyGroup>
+
+  <Target Name="ExecuteVernuntiiTask" BeforeTargets="$(ExecuteVernuntiiTaskBeforeTargets)" DependsOnTargets="$(ExecuteVernuntiiTaskDependsOn)" Condition="'$(DisableVernuntii)' != 'true'">
 
     <PropertyGroup>
       <_VernuntiiConsoleExecutableFile Condition="'$(_VernuntiiConsoleExecutableFile)' == ''">$(VernuntiiConsoleExecutableFile)</_VernuntiiConsoleExecutableFile>
@@ -42,13 +61,7 @@
       <_VernuntiiEmptyCaches Condition="'$(_VernuntiiEmptyCaches)' == ''">$(VernuntiiEmptyCaches)</_VernuntiiEmptyCaches>
     </PropertyGroup>
 
-    <VernuntiiTask ConsoleExecutablePath="$(_VernuntiiConsoleExecutableFile)"
-                             Verbosity="$(_VernuntiiVerbosity)"
-                             ConfigPath="$(_VernuntiiConfigPath)"
-                             CacheId="$(_VernuntiiCacheId)"
-                             CacheCreationRetentionTime="$(_VernuntiiCacheCreationRetentionTime)"
-                             CacheLastAccessRetentionTime="$(_VernuntiiCacheLastAccessRetentionTime)"
-                             EmptyCaches="$(_VernuntiiEmptyCaches)">
+    <VernuntiiTask ConsoleExecutablePath="$(_VernuntiiConsoleExecutableFile)" Verbosity="$(_VernuntiiVerbosity)" ConfigPath="$(_VernuntiiConfigPath)" CacheId="$(_VernuntiiCacheId)" CacheCreationRetentionTime="$(_VernuntiiCacheCreationRetentionTime)" CacheLastAccessRetentionTime="$(_VernuntiiCacheLastAccessRetentionTime)" EmptyCaches="$(_VernuntiiEmptyCaches)">
       <Output TaskParameter="Major" PropertyName="Vernuntii_Major" />
       <Output TaskParameter="Minor" PropertyName="Vernuntii_Minor" />
       <Output TaskParameter="Patch" PropertyName="Vernuntii_Patch" />

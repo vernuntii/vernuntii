@@ -80,7 +80,7 @@ namespace Vernuntii.Plugins
             _cacheCheckPlugin = Plugins.First<IVersionCacheCheckPlugin>();
         }
 
-        private void CreateServiceProvider()
+        private void OnCreateServiceProvider()
         {
             var services = _services;
             Events.Publish(GlobalServicesEvents.ConfigureServices, services);
@@ -93,7 +93,7 @@ namespace Vernuntii.Plugins
         protected override void OnEvents() =>
             Events.SubscribeOnce(
                 GlobalServicesEvents.CreateServiceProvider,
-                _ => CreateServiceProvider(),
+                _ => OnCreateServiceProvider(),
                 () => !_cacheCheckPlugin.IsCacheUpToDate);
     }
 }

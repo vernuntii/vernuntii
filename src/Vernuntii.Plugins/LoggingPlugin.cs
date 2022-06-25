@@ -6,15 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NLog;
+using NLog.Common;
 using NLog.Config;
 using NLog.Extensions.Logging;
+using NLog.Filters;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Vernuntii.Logging;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
-using LogLevel = Vernuntii.Logging.LogLevel;
 
 namespace Vernuntii.Plugins
 {
@@ -23,12 +24,16 @@ namespace Vernuntii.Plugins
     /// </summary>
     public class LoggingPlugin : Plugin, ILoggingPlugin
     {
-        private const LogLevel DefaultVerbosity = LogLevel.Fatal;
+        private const Verbosity DefaultVerbosity = Verbosity.Fatal;
+        const string ConsoleTargetName = nameof(ConsoleTargetName);
 
         private event Action<ILoggingPlugin>? _enabledLoggingInfrastructureEvent;
 
         /// <inheritdoc/>
         public override int? Order => -2000;
+
+        /// <inheritdoc/>
+        public Verbosity Verbosity => _verbosity ?? throw new InvalidOperationException("Verbosity is not yet initialized");
 
         /// <inheritdoc/>
         public bool WriteToStandardError {
@@ -40,28 +45,25 @@ namespace Vernuntii.Plugins
             }
         }
 
-        private LoggingConfiguration _loggingConfiguration = new LoggingConfiguration();
-
-        private ColoredConsoleTarget _consoleTarget = new ColoredConsoleTarget() {
-            StdErr = true
-        };
-
+        private LoggingConfiguration _loggingConfiguration;
+        private ColoredConsoleTarget _consoleTarget;
+        private Target _asyncConsoleTarget;
+        private BlockTarget _blockTarget;
         private Logger _logger = null!;
         private ILoggerFactory _loggerFactory = null!;
         private Action<ILoggingBuilder> _loggerBinder = null!;
-        private bool _configuredOnce;
 
         /* If option is not specified, then do not log.
          * If value is not specified, then log on information level.
          * If value is specified, then log on specified log level.
          */
-        private Option<LogLevel?> verbosityOption = new Option<LogLevel?>(new[] { "--verbosity", "-v" }, parseArgument: result => {
+        private Option<Verbosity?> verbosityOption = new Option<Verbosity?>(new[] { "--verbosity", "-v" }, parseArgument: result => {
             if (result.Tokens.Count == 0) {
-                return LogLevel.Information;
+                return Verbosity.Information;
             }
 
             try {
-                var argument = new Argument<LogLevel>();
+                var argument = new Argument<Verbosity>();
                 var value = argument.Parse(result.Tokens[0].Value).GetValueForArgument(argument);
 
                 if (!Enum.IsDefined(value)) {
@@ -79,70 +81,65 @@ namespace Vernuntii.Plugins
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        private LogLevel? _verbosity;
+        private Verbosity? _verbosity;
 
         /// <summary>
         /// Creates an instance of this type and enables the debug logging infrastructure.
         /// </summary>
         public LoggingPlugin()
         {
-            // Either debug or
-            EnableDebugLoggingInfrastructure();
-            // release logging infrastructure is enabled
-            EnableReleaseLoggingInfrastructure();
-            // but never both.
+            _loggingConfiguration = new LoggingConfiguration();
+
+            _consoleTarget = new ColoredConsoleTarget() {
+                StdErr = true
+            };
+
+            _asyncConsoleTarget = new AsyncTargetWrapper(_consoleTarget);
+            _blockTarget = new BlockTarget(_asyncConsoleTarget);
+
+            ConfigureLoggingInfrastructure();
+        }
+
+        private void SetMinimumVerbosity(Verbosity verbosity)
+        {
+            if (_loggingConfiguration.LoggingRules.Count != 0) {
+                _loggingConfiguration.LoggingRules.RemoveAt(0);
+            }
+
+            _loggingConfiguration.AddRule(
+                NLog.LogLevel.FromOrdinal((int)verbosity),
+                NLog.LogLevel.Off,
+                ConsoleTargetName);
         }
 
         private void AcceptLoggingConfigurationChanges() =>
             _loggingConfiguration.LogFactory.ReconfigExistingLoggers();
 
-        private void ReconfigureLoggingInfrastructure(LogLevel verbosity)
+        private void ConfigureLoggingInfrastructure()
         {
-            const string coloredConsoleTargetName = nameof(coloredConsoleTargetName);
+            _loggingConfiguration.AddTarget(ConsoleTargetName, _blockTarget);
+            _logger = _loggingConfiguration.LogFactory.GetCurrentClassLogger();
+            _loggerBinder = builder => builder.AddNLog(_loggingConfiguration);
+            _loggerFactory = LoggerFactory.Create(builder => _loggerBinder(builder));
 
-            if (!_configuredOnce) {
-                var consoleTarget = new AsyncTargetWrapper(_consoleTarget);
+            // First we allow any messages since
+            // the block target has not been yet
+            // unblocked. I case of unblock
+            // messages since then are filtered
+            // by minimum verbosity again.
+            SetMinimumVerbosity(Verbosity.Verbose);
+            AcceptLoggingConfigurationChanges();
+        }
 
-                _loggingConfiguration.AddTarget(coloredConsoleTargetName, consoleTarget);
-                AddDefaultRule();
-
-                _logger = _loggingConfiguration.LogFactory.GetCurrentClassLogger();
-                _loggerBinder = builder => builder.AddNLog(_loggingConfiguration);
-                _loggerFactory = LoggerFactory.Create(builder => _loggerBinder(builder));
-                _configuredOnce = true;
-            } else {
-                RemoveDefaultRule();
-                AddDefaultRule();
+        private void ReconfigureLoggingInfrastructure()
+        {
+            lock (_blockTarget.LockObject) {
+                var verbosity = _verbosity ??= DefaultVerbosity;
+                _blockTarget.Unblock(verbosity);
+                SetMinimumVerbosity(verbosity);
                 AcceptLoggingConfigurationChanges();
             }
-
-            void RemoveDefaultRule() =>
-                _loggingConfiguration.LoggingRules.RemoveAt(0);
-
-            void AddDefaultRule()
-            {
-                _loggingConfiguration.AddRule(
-                    NLog.LogLevel.FromOrdinal((int)verbosity),
-                    NLog.LogLevel.Off,
-                    coloredConsoleTargetName);
-            }
         }
-
-        [Conditional("DEBUG")]
-        private void EnableDebugLoggingInfrastructure()
-        {
-            var verbosityString = Environment.GetEnvironmentVariable("Verbosity");
-
-            if (Enum.TryParse<LogLevel>(verbosityString, ignoreCase: true, out var verbosity)) {
-                ReconfigureLoggingInfrastructure(verbosity);
-            } else {
-                ReconfigureLoggingInfrastructure(DefaultVerbosity);
-            }
-        }
-
-        [Conditional("RELEASE")]
-        private void EnableReleaseLoggingInfrastructure() =>
-            ReconfigureLoggingInfrastructure(DefaultVerbosity);
 
         /// <inheritdoc/>
         protected override void OnAfterRegistration()
@@ -150,12 +147,9 @@ namespace Vernuntii.Plugins
             Plugins.First<ICommandLinePlugin>().RootCommand.Add(verbosityOption);
         }
 
-        private void DestroyCurrentEnabledLoggingInfrastructure() =>
-            _loggerFactory?.Dispose();
-
         private void EnableLoggingInfrastructure()
         {
-            ReconfigureLoggingInfrastructure(_verbosity ?? DefaultVerbosity);
+            ReconfigureLoggingInfrastructure();
 
             Events.Publish(LoggingEvents.EnabledLoggingInfrastructure, this);
 
@@ -200,7 +194,75 @@ namespace Vernuntii.Plugins
                 return;
             }
 
-            DestroyCurrentEnabledLoggingInfrastructure();
+            _loggingConfiguration.LogFactory.Shutdown();
+            _loggerFactory.Dispose();
+        }
+
+        private class BlockTarget : WrapperTargetBase
+        {
+            public object LockObject { get; } = new object();
+
+            private readonly List<AsyncLogEventInfo> _logEvents;
+            private bool _bypassLogEvents;
+
+            public BlockTarget(Target releaseTarget)
+            {
+                _logEvents = new List<AsyncLogEventInfo>();
+                WrappedTarget = releaseTarget;
+            }
+
+            protected override void FlushAsync(AsyncContinuation asyncContinuation)
+            {
+                if (_bypassLogEvents) {
+                    Unblock(null);
+                }
+
+                base.FlushAsync(asyncContinuation);
+            }
+
+            public void Unblock(Verbosity? minLevel)
+            {
+                foreach (var logEvent in _logEvents) {
+                    if (!minLevel.HasValue || logEvent.LogEvent.Level.Ordinal >= (int)minLevel) {
+                        WrappedTarget.WriteAsyncLogEvent(logEvent);
+                    }
+                }
+
+                _logEvents.Clear();
+                _bypassLogEvents = true;
+            }
+
+            protected override void Write(IList<AsyncLogEventInfo> logEvents)
+            {
+                if (_bypassLogEvents) {
+                    WrappedTarget.WriteAsyncLogEvents(logEvents);
+                    return;
+                }
+
+                lock (LockObject) {
+                    if (_bypassLogEvents) {
+                        WrappedTarget.WriteAsyncLogEvents(logEvents);
+                    } else {
+                        _logEvents.AddRange(logEvents);
+                    }
+                }
+            }
+
+            protected override void Write(AsyncLogEventInfo logEvent)
+            {
+                if (_bypassLogEvents) {
+                    WrappedTarget.WriteAsyncLogEvent(logEvent);
+                    return;
+                }
+
+                lock (LockObject) {
+                    if (_bypassLogEvents) {
+                        WrappedTarget.WriteAsyncLogEvent(logEvent);
+                    } else {
+                        _logEvents.Add(logEvent);
+                    }
+                }
+            }
         }
     }
 }

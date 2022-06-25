@@ -27,7 +27,7 @@
         /// </summary>
         public static PluginDescriptor Create<TPlugin>()
             where TPlugin : IPlugin, new() =>
-            new PluginDescriptor(typeof(IPlugin), new TPlugin());
+            new PluginDescriptor(typeof(TPlugin), new TPlugin());
 
         /// <summary>
         /// The type of plugin at registration time.

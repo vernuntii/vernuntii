@@ -1,0 +1,14 @@
+﻿<Project>
+
+  <Import Project="$(MSBuildThisFileDirectory)Project.props" />
+
+  <PropertyGroup>
+    <SelfContained>false</SelfContained>
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)**/*.cs" Exclude="$(MSBuildThisFileDirectory)obj/**/*" />
+  </ItemGroup>
+
+</Project>

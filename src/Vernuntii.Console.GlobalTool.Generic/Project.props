@@ -1,0 +1,21 @@
+﻿<Project>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Vernuntii.Console.GlobalTool</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console\Vernuntii.Console.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nuke.Common" Version="6.1.1">
+      <IncludeAssets>compile;runtime;native</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  
+</Project>

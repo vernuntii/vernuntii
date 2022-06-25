@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="$(MSBuildProjectThisFileDirectory)../Vernuntii.Console.Executable/Project.Publish.props" />
+  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.Generic/Project.Publish.props" />
 
   <PropertyGroup>
     <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildProjectThisFileDirectory)../Vernuntii.Console.Executable/Project.Publish.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.Generic/Project.Publish.targets" />
 
 </Project>

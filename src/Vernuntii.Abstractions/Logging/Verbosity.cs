@@ -9,7 +9,7 @@ namespace Vernuntii.Logging
     /// <summary>
     /// Specifies the meaning and relative importance of a log event.
     /// </summary>
-    public enum LogLevel
+    public enum Verbosity
     {
         /// <summary>
         /// Anything and everything you might want to know about a running block of code.

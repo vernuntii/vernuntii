@@ -35,12 +35,13 @@ on:
 
 env:
   VERNUNTII_VERBOSITY: Debug
-  MSBUILD_VERBOSITY: normal
+  MSBUILD_VERBOSITY: Minimal
   MSBUILD_CONFIGURATION: Release
   CACHE_ID: GITHUB_VERSION_CACHE
   DOTNET_VERSION: "6.0.x"
   DRY_RUN: ${{ github.event.inputs.dry-run == 'true' && 'true' || 'false' }}
-  VERNUNTII_ARTIFACT: vernuntii-console-tool
+  PRE_BUILT_ARTIFACTS_NAME: "pre-built-artifacts"
+  MSBUILD_INTEGRATION_NAME: Vernuntii.Console.MSBuild.Orphan
 
 jobs:
   pre-build:
@@ -53,8 +54,9 @@ jobs:
       - name: Produce Vernuntii artifact
         uses: ./.github/actions/produce-vernuntii-artifact
         with:
-          artifact-name: ${{ env.VERNUNTII_ARTIFACT }}
+          artifact-name: ${{ env.PRE_BUILT_ARTIFACTS_NAME }}
           console-tool-project-name: Vernuntii.Console.GlobalTool.win-x64
+          msbuild-integration-project-name: ${{ env.MSBUILD_INTEGRATION_NAME }}
           msbuild-verbosity: ${{ env.MSBUILD_VERBOSITY }}
           msbuild-configuration: ${{ env.MSBUILD_CONFIGURATION }}
 
@@ -72,17 +74,20 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - uses: actions/download-artifact@v3
+        id: pre-built-artifacts
         with:
-          name: ${{ env.VERNUNTII_ARTIFACT }}
-          path: ~/artifacts
+          name: ${{ env.PRE_BUILT_ARTIFACTS_NAME }}
+          path: ~/${{ env.PRE_BUILT_ARTIFACTS_NAME }}
 
       - uses: vernuntii/actions/install/dotnet-tool@main
         with:
-          add-source: ~/artifacts
+          add-source: ${{ steps.pre-built-artifacts.outputs.download-path }}
 
-      - name: Enable "Vernuntii" in subsequent MSBuild calls
+      - name: Enable Vernuntii MSBuild Integration system-wide
         uses: vernuntii/actions/install/msbuild-import@main
         with:
+          msbuild-integration-package-name: ${{ env.MSBUILD_INTEGRATION_NAME }}
+          msbuild-integration-package-source: "${{ steps.pre-built-artifacts.outputs.download-path }}"
           verbosity: ${{ env.VERNUNTII_VERBOSITY }}
           cache-id: ${{ env.CACHE_ID }}
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Vernuntii.Logging;
 using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Plugins
@@ -8,6 +9,11 @@ namespace Vernuntii.Plugins
     /// </summary>
     public interface ILoggingPlugin : IPlugin
     {
+        /// <summary>
+        /// The current verbosity.
+        /// </summary>
+        Verbosity Verbosity { get; }
+
         /// <summary>
         /// <see langword="true"/> means all log messages are written to stderr (default is <see langword="true"/>).
         /// </summary>

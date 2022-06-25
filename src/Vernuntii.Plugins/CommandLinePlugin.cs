@@ -3,6 +3,12 @@ using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
+using System.Diagnostics;
+using System.Reflection;
+using Autofac.Core;
+using Microsoft.Extensions.Logging;
+using Vernuntii.Console;
+using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
@@ -15,11 +21,8 @@ namespace Vernuntii.Plugins
     [Plugin<ICommandLinePlugin>]
     public class CommandLinePlugin : Plugin, ICommandLinePlugin
     {
-        /// <inheritdoc/>
-        public override int? Order => -3000;
-
-        private static CommandLineBuilder CreateCommandLineBuilder(RootCommand rootCommand) =>
-               new CommandLineBuilder(rootCommand)
+        private static void ConfigureCommandLineBuilder(CommandLineBuilder builder, ILogger logger) =>
+               builder
                    // .UseVersionOption() // produces exception
                    .UseHelp()
                    .UseEnvironmentVariableDirective()
@@ -28,24 +31,70 @@ namespace Vernuntii.Plugins
                    .RegisterWithDotnetSuggest()
                    .UseTypoCorrections()
                    .UseParseErrorReporting()
+                   .AddMiddleware(
+                    async (ctx, next) => {
+                        try {
+                            await next(ctx);
+                        } catch (Exception error) {
+                            UnwrapError(ref error);
+                            logger.LogCritical(error, $"{nameof(Vernuntii)} stopped due to an exception.");
+                            ctx.ExitCode = (int)ExitCode.Failure;
+
+                            // Unwraps error to make the actual error more valuable for casual users.
+                            [Conditional("RELEASE")]
+                            static void UnwrapError(ref Exception error)
+                            {
+                                UnwrapError<TargetInvocationException>(ref error);
+                                UnwrapError<DependencyResolutionException>(ref error);
+
+                                static void UnwrapError<T>(ref Exception error) where T : Exception
+                                {
+                                    if (error is T dependencyResolutionException
+                                        && dependencyResolutionException.InnerException is not null) {
+                                        error = dependencyResolutionException.InnerException;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    MiddlewareOrder.ExceptionHandler)
                    //.UseExceptionHandler() // not needed
                    .CancelOnProcessTermination();
 
         /// <inheritdoc/>
-        public Func<RootCommand, CommandLineBuilder> CommandLineBuilderFactory { get; set; } = CreateCommandLineBuilder;
+        private static ICommandHandler? CreateCommandHandler(Func<int>? action) =>
+            action is null ? null : CommandHandler.Create(action);
+
         /// <inheritdoc/>
-        public RootCommand RootCommand { get; } = new RootCommand();
+        public override int? Order => -3000;
+
+        /// <inheritdoc/>
+        public ICommandWrapper RootCommand { get; }
+
+        /// <inheritdoc/>
+        public Action<CommandLineBuilder, ILogger> ConfigureCommandLineBuilderAction { get; set; } = ConfigureCommandLineBuilder;
 
         /// <summary>
         /// The command line args received from event.
         /// </summary>
         protected virtual string[]? CommandLineArgs { get; set; }
 
+        private readonly RootCommand _rootCommand;
+        private ILogger _logger = null!;
         private ParseResult _parseResult = null!;
 
+        /// <summary>
+        /// Creates an instance of this type.
+        /// </summary>
+        public CommandLinePlugin()
+        {
+            _rootCommand = new RootCommand();
+            RootCommand = new CommandWrapper(_rootCommand, CreateCommandHandler);
+        }
+
         /// <inheritdoc/>
-        public void SetRootCommandHandler(Func<int> action) =>
-            RootCommand.Handler = CommandHandler.Create(action);
+        protected override void OnAfterRegistration() =>
+            _logger = Plugins.First<ILoggingPlugin>().CreateLogger<ICommandLinePlugin>();
 
         /// <summary>
         /// Called when <see cref="CommandLineEvents.ParseCommandLineArgs"/> is happening.
@@ -56,20 +105,34 @@ namespace Vernuntii.Plugins
                 throw new InvalidOperationException("Command line parse result already computed");
             }
 
-            var parser = CommandLineBuilderFactory(RootCommand)
+            if (_logger.IsEnabled(LogLevel.Trace)) {
+                string commandLineArgsToEcho;
+
+                if (CommandLineArgs == null || CommandLineArgs.Length == 0) {
+                    commandLineArgsToEcho = " (no arguments)";
+                } else {
+                    commandLineArgsToEcho = Environment.NewLine + string.Join(Environment.NewLine, CommandLineArgs.Select((x, i) => $"{i}:{x}"));
+                }
+
+                _logger.LogTrace("Parse command-line arguments:{CommandLineArgs}", commandLineArgsToEcho);
+            }
+
+            var builder = new CommandLineBuilder(_rootCommand);
+            ConfigureCommandLineBuilderAction(builder, _logger);
+
+            var parser = builder
                 // This middleware is not called when an parser exception occured before.
                 // This middleware is not called when --help was used.
-                // This middleware gets called TWICE but in the first call it will NEVER
-                // call the root command!
+                // This middleware gets called TWICE but in the first call it will NEVER call the root command!
                 .AddMiddleware(
                     (ctx, next) => {
-                        var invokeRootCommandHandler = _parseResult is not null;
+                        var firstCall = _parseResult is null;
                         _parseResult = ctx.ParseResult;
 
-                        if (invokeRootCommandHandler) {
-                            return next(ctx);
-                        } else {
+                        if (firstCall) {
                             return Task.CompletedTask;
+                        } else {
+                            return next(ctx);
                         }
                     },
                     MiddlewareOrder.ErrorReporting)
@@ -77,6 +140,7 @@ namespace Vernuntii.Plugins
 
             var exitCode = parser.Invoke(CommandLineArgs ?? Array.Empty<string>());
 
+            // Is null if above middleware was not called.
             if (_parseResult is null) {
                 // This is the case when the help text is displayed or a
                 // parser exception occured but that's okay because we only
@@ -93,7 +157,7 @@ namespace Vernuntii.Plugins
         /// <exception cref="InvalidOperationException"></exception>
         protected virtual void InvokeRootCommand()
         {
-            if (RootCommand.Handler is null) {
+            if (RootCommand.HandlerFunc is null) {
                 throw new InvalidOperationException("Root command handler is not set");
             }
 

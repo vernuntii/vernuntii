@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="_EnsureSupportedPlatform">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Choose>
     <When Condition="'$(OS)' == 'Windows_NT' OR $([MSBuild]::IsOSPlatform('Windows'))">
       <PropertyGroup>
-        <_VernuntiiConsoleExecutableRuntime>win-x64</_VernuntiiConsoleExecutableRuntime>
+        <VernuntiiConsoleExecutableRuntime>win-x64</VernuntiiConsoleExecutableRuntime>
       </PropertyGroup>
     </When>
     <When Condition="$([MSBuild]::IsOSPlatform('Linux'))">
       <PropertyGroup>
-      <_VernuntiiConsoleExecutableRuntime>linux-x64</_VernuntiiConsoleExecutableRuntime>
+      <VernuntiiConsoleExecutableRuntime>linux-x64</VernuntiiConsoleExecutableRuntime>
       </PropertyGroup>
     </When>
     <When Condition="$([MSBuild]::IsOSPlatform('OSX'))">
       <PropertyGroup>
-      <_VernuntiiConsoleExecutableRuntime>osx-x64</_VernuntiiConsoleExecutableRuntime>
+      <VernuntiiConsoleExecutableRuntime>osx-x64</VernuntiiConsoleExecutableRuntime>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
-        <_VernuntiiConsoleExecutableRuntime>UNSUPPORTED</_VernuntiiConsoleExecutableRuntime>
+        <VernuntiiConsoleExecutableRuntime>UNSUPPORTED</VernuntiiConsoleExecutableRuntime>
       </PropertyGroup>
     </Otherwise>
   </Choose>
@@ -27,8 +27,8 @@
   <PropertyGroup>
     <VernuntiiPropsLoaded>true</VernuntiiPropsLoaded>
     <DisableVernuntii Condition="'$(DisableVernuntii)' == ''">false</DisableVernuntii>
-    <VernuntiiAssemblyFile Condition="'$(VernuntiiAssemblyFile)' == ''">$(MSBuildThisFileDirectory)..\tools\msbuild\netstandard2.0\Vernuntii.Console.MSBuild.dll</VernuntiiAssemblyFile>
-    <VernuntiiConsoleExecutableFile Condition="'$(VernuntiiConsoleExecutableFile)' == ''">$(MSBuildThisFileDirectory)..\tools\console\net6.0\$(_VernuntiiConsoleExecutableRuntime)\Vernuntii.Console.$(_VernuntiiConsoleExecutableRuntime).dll</VernuntiiConsoleExecutableFile>
+    <VernuntiiMSBuildIntegrationAssemblyFile>$(VernuntiiMSBuildIntegrationAssemblyFile)</VernuntiiMSBuildIntegrationAssemblyFile>
+    <VernuntiiConsoleExecutableFile>$(VernuntiiConsoleExecutableFile)</VernuntiiConsoleExecutableFile>
     <VernuntiiVerbosity Condition="'$(VernuntiiVerbosity)' == ''"></VernuntiiVerbosity>
     <VernuntiiConfigPath Condition="'$(VernuntiiConfigPath)' == ''">$(MSBuildProjectDirectory)</VernuntiiConfigPath>
     <VernuntiiConfigPath Condition="'$(VernuntiiConfigPath)' == ''">$(SolutionDir)</VernuntiiConfigPath>
@@ -40,9 +40,5 @@
     <ExecuteVernuntiiTaskBeforeTargets>$(ExecuteVernuntiiTaskBeforeTargets)</ExecuteVernuntiiTaskBeforeTargets>
     <UpdateVersionPropsFromVernuntiiTask Condition="'$(UpdateVersionPropsFromVernuntiiTask)' == ''">true</UpdateVersionPropsFromVernuntiiTask>
   </PropertyGroup>
-
-  <Target Name="_EnsureSupportedPlatform">
-    <Error Text="The platform Vernuntii is currently operating on is not supported" Condition="'$(_VernuntiiConsoleExecutableRuntime)' == 'UNSUPPORTED'" />
-  </Target>
 
 </Project>

@@ -1,0 +1,16 @@
+﻿<Project>
+
+  <Import Project="$(MSBuildThisFileDirectory)Project.props" />
+
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)**/*.cs" Exclude="$(MSBuildThisFileDirectory)obj/**/*;$(MSBuildProjectDirectory)/bin/**/*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageInclude Update="@(PackageInclude)">
+      <PackagePath Condition="%(Filename) == 'Vernuntii.Console.MSBuild.Orphan'">build/%(RecursiveDir)$(MSBuildProjectName)%(Extension)</PackagePath>
+      <Link Condition="'%(Filename)' == 'Vernuntii.Console.MSBuild.Orphan'">build/%(RecursiveDir)$(MSBuildProjectName)%(Extension)</Link>
+    </PackageInclude>
+  </ItemGroup>
+
+</Project>

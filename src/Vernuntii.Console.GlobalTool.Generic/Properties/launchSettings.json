@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Vernuntii.Console.GlobalTool.Generic": {
+      "commandName": "Project",
+      "commandLineArgs": "--verbosity Verbose msbuild-integration locate MSBuildTaskDirectory --auto-download"
+    }
+  }
+}

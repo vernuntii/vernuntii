@@ -6,7 +6,7 @@
     internal static class ListExtensions
     {
         /// <summary>
-        /// Binary search <paramref name="item"/>.
+        /// Executable search <paramref name="item"/>.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="items"></param>

@@ -1,5 +1,7 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Builder;
+using Microsoft.Extensions.Logging;
+using Vernuntii.Plugins.CommandLine;
 using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Plugins;
@@ -10,17 +12,12 @@ namespace Vernuntii.Plugins;
 public interface ICommandLinePlugin : IPlugin
 {
     /// <summary>
-    /// A delegate that creates an instance of <see cref="CommandLineBuilder"/>.
-    /// </summary>
-    Func<RootCommand, CommandLineBuilder> CommandLineBuilderFactory { get; set; }
-    /// <summary>
     /// The root command.
     /// </summary>
-    RootCommand RootCommand { get; }
+    ICommandWrapper RootCommand { get; }
 
     /// <summary>
-    /// Sets handler for <see cref="RootCommand"/>.
+    /// A delegate that creates an instance of <see cref="CommandLineBuilder"/>.
     /// </summary>
-    /// <param name="action"></param>
-    void SetRootCommandHandler(Func<int> action);
+    Action<CommandLineBuilder, ILogger> ConfigureCommandLineBuilderAction { get; set; }
 }

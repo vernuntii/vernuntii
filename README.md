@@ -187,7 +187,7 @@ From the following set of **optional properties** you can choose to change the b
 
 - `<DisableVernuntii/>`
   - Disables Vernuntii
-- `<VernuntiiAssemblyFile/>`
+- `<VernuntiiMSBuildIntegrationAssemblyFile/>`
 - `<VernuntiiConsoleExecutableFile/>`
 - `<VernuntiiVerbosity/>`
   - Allowed value: `Debug`, `Error`, `Fatal` (implicit default), `Information`, `Verbose`, `Warning`

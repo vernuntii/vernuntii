@@ -1,0 +1,42 @@
+﻿<Project>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Vernuntii.Console</RootNamespace>
+    <Description>Simple semantic versioning with git integration. The primary goal of this package is to set the version of NuGet-package(s).</Description>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <!-- We don't build an executable package.
+       We build an only-build-time package. -->
+  <PropertyGroup>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Vernuntii.SimpleProcess\Vernuntii.SimpleProcess.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.9.0" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>    
+    <PackageInclude Include="$(MSBuildThisFileDirectory)build\**\*.props;$(MSBuildThisFileDirectory)build\**\*.targets">
+      <Pack>True</Pack>
+      <PackagePath>build;buildMultiTargeting</PackagePath>
+      <Link>build\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </PackageInclude>
+
+    <None Include="@(PackageInclude)" />
+  </ItemGroup>
+
+</Project>

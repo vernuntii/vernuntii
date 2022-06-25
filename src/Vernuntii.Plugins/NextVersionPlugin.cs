@@ -1,4 +1,6 @@
 ﻿using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.Diagnostics;
 using System.Globalization;
 using Autofac.Core;
@@ -33,6 +35,7 @@ namespace Vernuntii.Plugins
         private IVersionCacheCheckPlugin _versionCacheCheckPlugin = null!;
         private ILogger _logger = null!;
         private IConfiguration _configuration = null!;
+        private ICommandHandler? _commandHandler;
 
         #region command line options
 
@@ -99,68 +102,73 @@ namespace Vernuntii.Plugins
             return calculationServiceProvider;
         }
 
-        private int ProduceVersionOutput()
+        private int OnInvokeCommand()
         {
-            try {
-                IVersionCache versionCache;
+            IVersionCache versionCache;
 
-                if (_versionCacheCheckPlugin.IsCacheUpToDate) {
-                    versionCache = _versionCacheCheckPlugin.VersionCache;
-                } else {
-                    using var calculationServiceProvider = CreateCalculationServiceProvider();
-                    var repository = calculationServiceProvider.GetRequiredService<IRepository>();
-                    var versionCalculation = calculationServiceProvider.GetRequiredService<ISingleVersionCalculation>();
-                    var versionCacheManager = calculationServiceProvider.GetRequiredService<IVersionCacheManager>();
+            if (_versionCacheCheckPlugin.IsCacheUpToDate) {
+                versionCache = _versionCacheCheckPlugin.VersionCache;
+            } else {
+                using var calculationServiceProvider = CreateCalculationServiceProvider();
+                var repository = calculationServiceProvider.GetRequiredService<IRepository>();
+                var versionCalculation = calculationServiceProvider.GetRequiredService<ISingleVersionCalculation>();
+                var versionCacheManager = calculationServiceProvider.GetRequiredService<IVersionCacheManager>();
 
-                    var newVersion = versionCalculation.GetVersion();
-                    var newBranch = repository.GetActiveBranch();
+                var newVersion = versionCalculation.GetVersion();
+                var newBranch = repository.GetActiveBranch();
 
-                    // get cache or calculate version.
-                    versionCache = versionCacheManager.RecacheCache(
-                        newVersion,
-                        newBranch);
-                }
-
-                Events.Publish(NextVersionEvents.CalculatedNextVersion, versionCache);
-
-                var formattedVersion = new VersionPresentationStringBuilder(versionCache)
-                    .UsePresentationKind(_presentationKind)
-                    .UsePresentationPart(_presentationParts)
-                    .UsePresentationView(_presentationView)
-                    .BuildString();
-
-                System.Console.Write(formattedVersion);
-                _logger.LogInformation("Loaded version {Version} in {LoadTime}", versionCache.Version, $"{_loadingVersionStopwatch.Elapsed.ToString("s\\.ff", CultureInfo.InvariantCulture)}s");
-
-                return ExitCodeOnSuccess ?? (int)ExitCode.Success;
-            } catch (Exception error) {
-                UnwrapError(ref error);
-                _logger.LogCritical(error, $"{nameof(Vernuntii)} stopped due to an exception.");
-                return (int)ExitCode.Failure;
-
-                // Unwraps error to make the actual error more valuable for casual users.
-                [Conditional("RELEASE")]
-                static void UnwrapError(ref Exception error)
-                {
-                    if (error is DependencyResolutionException dependencyResolutionException
-                        && dependencyResolutionException.InnerException is not null) {
-                        error = dependencyResolutionException.InnerException;
-                    }
-                }
+                // get cache or calculate version.
+                versionCache = versionCacheManager.RecacheCache(
+                    newVersion,
+                    newBranch);
             }
+
+            Events.Publish(NextVersionEvents.CalculatedNextVersion, versionCache);
+
+            var formattedVersion = new VersionPresentationStringBuilder(versionCache)
+                .UsePresentationKind(_presentationKind)
+                .UsePresentationPart(_presentationParts)
+                .UsePresentationView(_presentationView)
+                .BuildString();
+
+            System.Console.Write(formattedVersion);
+            _logger.LogInformation("Loaded version {Version} in {LoadTime}", versionCache.Version, $"{_loadingVersionStopwatch.Elapsed.ToString("s\\.ff", CultureInfo.InvariantCulture)}s");
+
+            return ExitCodeOnSuccess ?? (int)ExitCode.Success;
+        }
+
+        private void OnConfigureCommandLine(ICommandLinePlugin cli)
+        {
+            _commandHandler = cli.RootCommand.SetHandler(OnInvokeCommand);
+            cli.RootCommand.Add(_presentationKindOption);
+            cli.RootCommand.Add(_presentationPartsOption);
+            cli.RootCommand.Add(_presentationViewOption);
+            cli.RootCommand.Add(_emptyCachesOption);
+        }
+
+        private void OnParsedCommandLine(ParseResult parseResult)
+        {
+            if (parseResult.CommandResult.Command.Handler != _commandHandler) {
+                return;
+            }
+
+            _presentationKind = parseResult.GetValueForOption(_presentationKindOption);
+            _presentationParts = parseResult.GetValueForOption(_presentationPartsOption);
+            _presentationView = parseResult.GetValueForOption(_presentationViewOption);
+            _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
+
+            // Check version cache.
+            Events.Publish(VersionCacheCheckEvents.CreateVersionCacheManager);
+            Events.Publish(VersionCacheCheckEvents.CheckVersionCache);
+
+            Events.Publish(ConfigurationEvents.CreateConfiguration);
+            Events.Publish(GlobalServicesEvents.CreateServiceProvider);
         }
 
         /// <inheritdoc/>
         protected override void OnAfterRegistration()
         {
-            Plugins.FirstLazy<ICommandLinePlugin>().Registered += plugin => {
-                plugin.SetRootCommandHandler(ProduceVersionOutput);
-                plugin.RootCommand.Add(_presentationKindOption);
-                plugin.RootCommand.Add(_presentationPartsOption);
-                plugin.RootCommand.Add(_presentationViewOption);
-                plugin.RootCommand.Add(_emptyCachesOption);
-            };
-
+            OnConfigureCommandLine(Plugins.First<ICommandLinePlugin>());
             _loggingPlugin = Plugins.First<ILoggingPlugin>();
             _sharedOptions = Plugins.First<SharedOptionsPlugin>();
             _versionCacheCheckPlugin = Plugins.First<IVersionCacheCheckPlugin>();
@@ -169,18 +177,13 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnEvents()
         {
-            Events.Subscribe(LifecycleEvents.BeforeEveryRun, () => _loadingVersionStopwatch.Restart());
+            Events.Subscribe(LifecycleEvents.BeforeEveryRun, _loadingVersionStopwatch.Restart);
 
             Events.SubscribeOnce(
                 LoggingEvents.EnabledLoggingInfrastructure,
                 plugin => _logger = plugin.CreateLogger<NextVersionPlugin>());
 
-            Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult => {
-                _presentationKind = parseResult.GetValueForOption(_presentationKindOption);
-                _presentationParts = parseResult.GetValueForOption(_presentationPartsOption);
-                _presentationView = parseResult.GetValueForOption(_presentationViewOption);
-                _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
-            });
+            Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, OnParsedCommandLine);
 
             Events.SubscribeOnce(
                 ConfigurationEvents.CreatedConfiguration,

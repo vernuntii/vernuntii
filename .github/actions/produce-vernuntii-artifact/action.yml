@@ -8,6 +8,9 @@ inputs:
   console-tool-project-name:
     description: The project name of console tool
     required: true
+  msbuild-integration-project-name:
+    description: The project name of msbuild integration
+    required: true
   msbuild-verbosity:
     description: MSBuild verbosity
     required: true
@@ -18,43 +21,30 @@ inputs:
 runs:
   using: composite
   steps:
-    - id: echo
-      run: |
-        FILE=./src/${{ inputs.console-tool-project-name }}/${{ inputs.console-tool-project-name }}.csproj
-        echo "::set-output name=console-tool-project-file::$FILE"
-      shell: bash
-
     - uses: actions/setup-dotnet@v1
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Restore projects
+    - name: Pack msbuild project
       shell: bash
-      run: dotnet restore ${{ steps.echo.outputs.console-tool-project-file }}
+      run: |
+        PROJECTS=(
+          './src/${{ inputs.console-tool-project-name }}/${{ inputs.console-tool-project-name }}.csproj'
+          './src/${{ inputs.msbuild-integration-project-name }}/${{ inputs.msbuild-integration-project-name }}.csproj'
+        )
 
-    - name: Build projects
-      shell: bash
-      run: >
-        dotnet build ${{ steps.echo.outputs.console-tool-project-file }}
-        --verbosity ${{ inputs.msbuild-verbosity }}
-        --configuration ${{ inputs.msbuild-configuration }}
-        --no-restore
-
-    - name: Pack projects
-      shell: bash
-      run: >
-        dotnet pack ${{ steps.echo.outputs.console-tool-project-file }}
-        --verbosity ${{ inputs.msbuild-verbosity }}
-        --configuration ${{ inputs.msbuild-configuration }}
-        --no-restore
-
-    - run: find . -name "${{ inputs.console-tool-project-name }}.*.nupkg" -exec mv {} ./ \; -exec echo 0 \; | grep .;
-      shell: bash
+        for PROJECT in "${PROJECTS[@]}"
+        do
+          dotnet pack $PROJECT \
+          --verbosity ${{ inputs.msbuild-verbosity }} \
+          --configuration ${{ inputs.msbuild-configuration }} \
+          --output ~/artifacts
+        done
 
     - name: Upload Vernuntii (artifacts)
       uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.artifact-name }}
         path: |
-          **/${{ inputs.console-tool-project-name }}.*.nupkg
+          ~/artifacts/*.nupkg
         if-no-files-found: error

@@ -1,0 +1,41 @@
+﻿<Project>
+
+  <PropertyGroup>
+    <VernuntiiConsoleMSBuildPackageVersionFile>$(BaseIntermediateOutputPath)/$(Configuration)/Vernuntii.Console.MSBuild.pkgver</VernuntiiConsoleMSBuildPackageVersionFile>
+    <VernuntiiConsoleMSBuildOrphanPackageVersionFile>$(BaseIntermediateOutputPath)/$(Configuration)/Vernuntii.Console.MSBuild.Orphan.pkgver</VernuntiiConsoleMSBuildOrphanPackageVersionFile>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_IncludePackageVersionToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <Target Name="ConsumeExternalProjectPackages" BeforeTargets="GenerateNuspec">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)../Vernuntii.Console.MSBuild/Vernuntii.Console.MSBuild.csproj" Targets="_GetProjectVersion">
+      <Output TaskParameter="TargetOutputs" ItemName="_VernuntiiMSBuildPathWithVersion"/>
+    </MSBuild>
+
+    <MSBuild Projects="$(MSBuildThisFileDirectory)../Vernuntii.Console.MSBuild.Orphan/Vernuntii.Console.MSBuild.Orphan.csproj" Targets="_GetProjectVersion">
+      <Output TaskParameter="TargetOutputs" ItemName="_VernuntiiMSBuildOrphanPathWithVersion"/>
+    </MSBuild>
+
+    <ItemGroup>
+      
+      <_VernuntiiMSBuildInfos Include="$(VernuntiiConsoleMSBuildPackageVersionFile)">
+        <PackageVersion>%(_VernuntiiMSBuildPathWithVersion.ProjectVersion)</PackageVersion>
+      </_VernuntiiMSBuildInfos>
+
+      <_VernuntiiMSBuildInfos Include="$(VernuntiiConsoleMSBuildOrphanPackageVersionFile)">
+        <PackageVersion>%(_VernuntiiMSBuildOrphanPathWithVersion.ProjectVersion)</PackageVersion>
+      </_VernuntiiMSBuildInfos>
+      
+    </ItemGroup>
+
+    <WriteLinesToFile Lines="%(_VernuntiiMSBuildInfos.PackageVersion)"
+                      File="%(_VernuntiiMSBuildInfos.Identity)"
+                      Overwrite="true" />
+  </Target>
+
+  <Target Name="_IncludePackageVersionToPackage">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(VernuntiiConsoleMSBuildPackageVersionFile);$(VernuntiiConsoleMSBuildOrphanPackageVersionFile)" PackagePath="tools\$(TargetFramework)\any" />
+    </ItemGroup>
+  </Target>
+  
+</Project>

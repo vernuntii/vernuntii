@@ -123,20 +123,12 @@ namespace Vernuntii.Console
 
                 ExitCode? shortCircuitExitCode = null;
                 using var invokedRootCommandSubscripion = _pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, exitCode => shortCircuitExitCode = (ExitCode)exitCode);
-                _logger.LogTrace("Parse command-line arguments");
                 _pluginEvents.Publish(CommandLineEvents.ParseCommandLineArgs);
                 _pluginEvents.Publish(LoggingEvents.EnableLoggingInfrastructure);
 
                 if (shortCircuitExitCode.HasValue) {
                     return shortCircuitExitCode;
                 }
-
-                // Check version cache.
-                _pluginEvents.Publish(VersionCacheCheckEvents.CreateVersionCacheManager);
-                _pluginEvents.Publish(VersionCacheCheckEvents.CheckVersionCache);
-
-                _pluginEvents.Publish(ConfigurationEvents.CreateConfiguration);
-                _pluginEvents.Publish(GlobalServicesEvents.CreateServiceProvider);
             }
 
             if (_runOnce) {
