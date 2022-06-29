@@ -28,11 +28,19 @@
     <PackageReference Include="System.Text.Json" Version="5.0.1" />
   </ItemGroup>
 
-  <ItemGroup>    
+  <ItemGroup>
     <PackageInclude Include="$(MSBuildThisFileDirectory)build\**\*.props;$(MSBuildThisFileDirectory)build\**\*.targets">
+      <NuGetRelativeDir>build</NuGetRelativeDir>
+    </PackageInclude>
+
+    <PackageInclude Include="$(MSBuildThisFileDirectory)buildMultiTargeting\**\*.props;$(MSBuildThisFileDirectory)buildMultiTargeting\**\*.targets">
+      <NuGetRelativeDir>buildMultiTargeting</NuGetRelativeDir>
+    </PackageInclude>
+
+    <PackageInclude Update="@(PackageInclude)">
       <Pack>True</Pack>
-      <PackagePath>build;buildMultiTargeting</PackagePath>
-      <Link>build\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <PackagePath>%(NuGetRelativeDir)</PackagePath>
+      <Link>%(NuGetRelativeDir)\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </PackageInclude>
 

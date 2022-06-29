@@ -8,8 +8,8 @@
 
   <ItemGroup>
     <PackageInclude Update="@(PackageInclude)">
-      <PackagePath Condition="%(Filename) == 'Vernuntii.Console.MSBuild.Orphan'">build/%(RecursiveDir)$(MSBuildProjectName)%(Extension)</PackagePath>
-      <Link Condition="'%(Filename)' == 'Vernuntii.Console.MSBuild.Orphan'">build/%(RecursiveDir)$(MSBuildProjectName)%(Extension)</Link>
+      <PackagePath Condition="%(Filename) == 'Vernuntii.Console.MSBuild.Orphan'">%(NuGetRelativeDir)/%(RecursiveDir)$(MSBuildProjectName)%(Extension)</PackagePath>
+      <Link Condition="'%(Filename)' == 'Vernuntii.Console.MSBuild.Orphan'">%(NuGetRelativeDir)/%(RecursiveDir)$(MSBuildProjectName)%(Extension)</Link>
     </PackageInclude>
   </ItemGroup>
 

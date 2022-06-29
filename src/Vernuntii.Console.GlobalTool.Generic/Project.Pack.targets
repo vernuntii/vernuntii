@@ -6,7 +6,7 @@
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_IncludePackageVersionToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
-  <Target Name="ConsumeExternalProjectPackages" BeforeTargets="GenerateNuspec">
+  <Target Name="_WriteDependentProjectPackageVersions" BeforeTargets="GenerateNuspec">
     <MSBuild Projects="$(MSBuildThisFileDirectory)../Vernuntii.Console.MSBuild/Vernuntii.Console.MSBuild.csproj" Targets="_GetProjectVersion">
       <Output TaskParameter="TargetOutputs" ItemName="_VernuntiiMSBuildPathWithVersion"/>
     </MSBuild>

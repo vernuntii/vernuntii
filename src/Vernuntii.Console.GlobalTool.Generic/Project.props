@@ -13,9 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="6.1.1">
-      <IncludeAssets>compile;runtime;native</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="NuGet.Configuration" Version="6.2.1" />
   </ItemGroup>
   
 </Project>

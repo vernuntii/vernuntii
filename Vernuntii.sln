@@ -77,19 +77,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.TestInfrastructur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.TestTrunkBasedDevelopment", "test\Vernuntii.TestTrunkBasedDevelopment\Vernuntii.TestTrunkBasedDevelopment.csproj", "{CB381944-92E0-4336-A723-5498D8F1EE0D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E99EF837-3F73-4208-B96A-5C013DCF5A35}"
-	ProjectSection(SolutionItems) = preProject
-		test\Directory.Build.props = test\Directory.Build.props
-		test\Directory.Build.targets = test\Directory.Build.targets
-		test\Packages.props = test\Packages.props
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{865700FC-6FE5-4445-B584-C2AA3900D0E4}"
 	ProjectSection(SolutionItems) = preProject
+		test\Directory.Build.props = test\Directory.Build.props
 		Directory.Build.props = Directory.Build.props
+		test\Directory.Build.targets = test\Directory.Build.targets
 		Directory.Build.targets = Directory.Build.targets
+		test\Packages.props = test\Packages.props
 		vernuntii.yml = vernuntii.yml
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.MSBuild.Test", "test\Vernuntii.Console.MSBuild.Test\Vernuntii.Console.MSBuild.Test.csproj", "{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -237,6 +235,10 @@ Global
 		{CB381944-92E0-4336-A723-5498D8F1EE0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CB381944-92E0-4336-A723-5498D8F1EE0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CB381944-92E0-4336-A723-5498D8F1EE0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -251,7 +253,7 @@ Global
 		{9D19B1EB-41BB-4C04-8469-5C2CB73B646D} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 		{4CF5435D-DD1E-4416-B601-7AAE3B91D165} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 		{CB381944-92E0-4336-A723-5498D8F1EE0D} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
-		{E99EF837-3F73-4208-B96A-5C013DCF5A35} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
+		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2888C95-8ED3-44F8-BD54-15A071471147}

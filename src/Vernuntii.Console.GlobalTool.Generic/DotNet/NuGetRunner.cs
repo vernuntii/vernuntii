@@ -5,24 +5,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Nuke.Common.Tools.DotNet;
 using Vernuntii.Console.GlobalTool.Extensions;
+using Vernuntii.Console.GlobalTool.NuGet;
 using Vernuntii.Diagnostics;
 using Vernuntii.Logging;
-using static Nuke.Common.Tooling.NuGetPackageResolver;
 
-namespace Vernuntii.Console.GlobalTool
+namespace Vernuntii.Console.GlobalTool.DotNet
 {
-    internal class NuGetTasks
+    internal class NuGetRunner
     {
         private const Verbosity DefaultVerbosity = Verbosity.Error;
 
-        private static InstalledPackage? GetGlobalPackage(string packageName, string packageVersion) =>
-            GetGlobalInstalledPackage(packageName, packageVersion, packagesConfigFile: null);
+        private static DownloadedPackage? GetGlobalPackage(string packageName, string packageVersion) =>
+            NuGetPackageResolver.GetGlobalDownloadedPackage(packageName, packageVersion);
 
-        ILogger<NuGetTasks> _logger;
+        ILogger<NuGetRunner> _logger;
 
-        public NuGetTasks(ILogger<NuGetTasks> logger) =>
+        public NuGetRunner(ILogger<NuGetRunner> logger) =>
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         private const string RestoreProjectTemplate = """
@@ -66,15 +65,23 @@ namespace Vernuntii.Console.GlobalTool
                     new SimpleProcessStartInfo(
                         "dotnet",
                         args: $"restore {restoreProjectFile} --verbosity {verbosity.ToDotNetVerbosity()}").LogDebug(_logger),
-                    outputReceived: message => _logger.LogDebug(message),
-                    errorReceived: message => _logger.LogError(message));
+                    outputReceived: message => {
+                        if (!string.IsNullOrEmpty(message)) {
+                            _logger.LogDebug(message);
+                        }
+                    },
+                    errorReceived: message => {
+                        if (!string.IsNullOrEmpty(message)) {
+                            _logger.LogError(message);
+                        }
+                    });
 #pragma warning restore CA2254 // Template should be a static expression
             } finally {
                 File.Delete(restoreProjectFile);
             }
         }
 
-        public InstalledPackage? GetGlobalPackage(
+        public DownloadedPackage? GetGlobalPackage(
             string packageName,
             string packageVersion,
             bool downloadPackage = false,

@@ -6,12 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Nuke.Common.Tooling;
-using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.NuGet;
+using Vernuntii.Console.GlobalTool.DotNet;
+using Vernuntii.Console.GlobalTool.NuGet;
 using Vernuntii.Plugins;
 using Vernuntii.PluginSystem;
-using static Nuke.Common.Tooling.NuGetPackageResolver;
 
 namespace Vernuntii.Console.GlobalTool
 {
@@ -24,7 +22,7 @@ namespace Vernuntii.Console.GlobalTool
         private Command _command;
         private ILoggingPlugin _loggingPlugin = null!;
         private ILogger _logger = null!;
-        private NuGetTasks nugetTasks = null!;
+        private NuGetRunner nugetTasks = null!;
 
         private Argument<MSBuildFileLocation> locateArgument = new Argument<MSBuildFileLocation>("locate") {
             Description = "The file location you are asking for."
@@ -74,9 +72,9 @@ namespace Vernuntii.Console.GlobalTool
             var package = GetGlobalPackage();
 
             var packageDirectory = package.Directory;
-            var buildDirectory = packageDirectory / "build";
-            var depsDirectory = packageDirectory / "deps";
-            var msbuildTaskDirectory = depsDirectory / "msbuild" / "netstandard2.0";
+            var buildDirectory = Path.Combine(packageDirectory, "build");
+            var depsDirectory = Path.Combine(packageDirectory, "deps");
+            var msbuildTaskDirectory = Path.Combine(depsDirectory, "msbuild", "netstandard2.0");
 
             var filePath = locate switch {
                 MSBuildFileLocation.PackageDirectory => packageDirectory,
@@ -108,7 +106,7 @@ namespace Vernuntii.Console.GlobalTool
                 return version;
             }
 
-            InstalledPackage GetGlobalPackage()
+            DownloadedPackage GetGlobalPackage()
             {
                 try {
                     return nugetTasks.GetGlobalPackage(
@@ -144,8 +142,8 @@ namespace Vernuntii.Console.GlobalTool
             _loggingPlugin = Plugins.First<ILoggingPlugin>();
             _logger = _loggingPlugin.CreateLogger<MSBuildIntegrationLocateCommandPlugin>();
 
-            var nugetActionLogger = Plugins.First<ILoggingPlugin>().CreateLogger<NuGetTasks>();
-            nugetTasks = new NuGetTasks(nugetActionLogger);
+            var nugetActionLogger = Plugins.First<ILoggingPlugin>().CreateLogger<NuGetRunner>();
+            nugetTasks = new NuGetRunner(nugetActionLogger);
         }
     }
 }
