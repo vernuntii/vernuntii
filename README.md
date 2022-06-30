@@ -8,20 +8,20 @@ Vernuntii (latin for versionable messages) is your tool to get rid of manually v
 ### Vernuntii key facts on a glance
 
 - Calculates version with [adaptivity][self-version-adaptivity] in mind
-- Optional [configuration file][configuration-file] (but recommended)
+- Highly customizable via [configuration file][configuration-file]
   - Either json or yaml
-- In-built [versioning modes][configuration-versioning-modes]
+- Many inbuilt [versioning modes][configuration-versioning-modes]
   - Possiblity to override increment mode, message convention and more
-- Git plugin
+- Mighty git plugin
   - Reads commits and tags, so it:
     - Searches for latest commit version
     - Uses commit messages as message stream
   - Enables branch-based configurations
   - Fails fast if using a shallow repository
-- Plugin system (TBD)
-- Inbuilt cache mechanism
-- Can be run concurrently
-- SUPER FAST
+- Two layer inbuilt cache mechanism
+- SUPER FAST due to R2R-compilation
+- Predestined to run concurrently
+- Extendable through plugins (TBD)
 
 <!-- omit in toc -->
 ## Quick start guide
