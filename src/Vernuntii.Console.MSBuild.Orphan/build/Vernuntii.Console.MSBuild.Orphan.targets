@@ -20,16 +20,16 @@
     <!-- 
       Sets version informations before the following targets are going
         to be called:
-      - GetAssemblyVersion: This target sets AssemblyVersion, FileVersion and
-          InformationalVersion.
-      - _GetProjectVersion: Before nuspec can be built it has to collect the 
-          versions of project references the package depends on. 
-      - GenerateNuspec: When packing, this target creates nuspec file for package.
+      - GetAssemblyVersion: This target sets AssemblyVersion, FileVersion and InformationalVersion.
+      - _GetProjectVersion: Before nuspec can be built it has to collect the versions of project references the package depends on. 
+      - _GetOutputItemsFromPack: We list it because it uses the package version but does not depend on _GetProjectVersion.
+      - GenerateNuspec: When packing, this target creates the .nuspec-file for package.
     -->
     <ExecuteVernuntiiTaskBeforeTargets>
       $(ExecuteVernuntiiTaskBeforeTargets);
       GetAssemblyVersion;
       _GetProjectVersion;
+      _GetOutputItemsFromPack;
       GenerateNuspec;
     </ExecuteVernuntiiTaskBeforeTargets>
   </PropertyGroup>
