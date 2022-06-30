@@ -141,7 +141,7 @@ jobs:
         shell: bash
 
       - name: Test projects
-        run: dotnet test --configuration $MSBUILD_CONFIGURATION --no-build
+        run: dotnet test --configuration $MSBUILD_CONFIGURATION --no-restore
         shell: bash
 
       - name: Pack projects
@@ -149,7 +149,7 @@ jobs:
           dotnet pack
           --verbosity $MSBUILD_VERBOSITY
           --configuration $MSBUILD_CONFIGURATION
-          --no-build
+          --no-restore
           --output "${{ env.PUBLISHABLE_PACKAGES_DIR }}"
         shell: bash
 

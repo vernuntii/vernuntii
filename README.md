@@ -2,7 +2,7 @@
 
 [:running: **Quick start guide**](#quick-start-guide) &nbsp; | &nbsp; [:bulb: How it works](#how-it-works) &nbsp; | &nbsp; [ :scroll: Chat on gitter](https://gitter.im/vernuntii/vernuntii?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Vernuntii (transl. versionable messages) is a tool for calculating the next semantic version. The tool has the capability to iterate a stream of commit messages and decide upon versioning mode to increment major, minor, patch or height. The pre-release is derived from branch and highly customizable. The version prefix (e.g. v) is either inherited (default), initially set or explicitly removed depending on configuration. Each branch is separatly configurable. The most important fact is that this tool is single branch scoped like MinVer, so simply said it reads all commits you see in git log.
+Vernuntii (latin for versionable messages) is your tool to get rid of manually versioning your software.
 
 <!-- omit in toc -->
 ### Vernuntii key facts on a glance
@@ -14,13 +14,14 @@ Vernuntii (transl. versionable messages) is a tool for calculating the next sema
   - Possiblity to override increment mode, message convention and more
 - Git plugin
   - Reads commits and tags, so it:
-  - Searches for latest commit version
-  - Uses commit messages as message stream
-  - Enables branch-based configuration
+    - Searches for latest commit version
+    - Uses commit messages as message stream
+  - Enables branch-based configurations
   - Fails fast if using a shallow repository
 - Plugin system (TBD)
 - Inbuilt cache mechanism
 - Can be run concurrently
+- SUPER FAST
 
 <!-- omit in toc -->
 ## Quick start guide
@@ -234,6 +235,7 @@ The project is out of the box compilable and you don't have to initialize anythi
 
 #### Minimum requirements
 
+- Windows (OS) for cross-compiling
 - Visual Studio 2022 (optional)
 - .NET 6.0 SDK
 
