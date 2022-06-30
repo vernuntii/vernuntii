@@ -42,6 +42,8 @@ env:
   DRY_RUN: ${{ github.event.inputs.dry-run == 'true' && 'true' || 'false' }}
   PRE_BUILT_ARTIFACTS_NAME: "pre-built_artifacts"
   MSBUILD_INTEGRATION_NAME: Vernuntii.Console.MSBuild.Orphan
+  # Make sure it is escaped in case the path has spaces
+  # Required for bash to expand tilde to $HOME.
   PUBLISHABLE_PACKAGES_DIR: ~/publishable_packages
 
 jobs:
@@ -150,7 +152,7 @@ jobs:
           --verbosity $MSBUILD_VERBOSITY
           --configuration $MSBUILD_CONFIGURATION
           --no-restore
-          --output "${{ env.PUBLISHABLE_PACKAGES_DIR }}"
+          --output ${{ env.PUBLISHABLE_PACKAGES_DIR }}
         shell: bash
 
       - name: Upload package artifacts
