@@ -28,14 +28,16 @@ namespace Vernuntii.Console.GlobalTool.NuGet
                 throw new ArgumentException("Global packages directory is null or empty");
             }
 
-            var packageNameDirectory = Directory.GetDirectories(packagesDirectory, packageName, SearchOption.TopDirectoryOnly).SingleOrDefault();
+            if (Directory.Exists(packagesDirectory)) {
+                var packageNameDirectory = Directory.GetDirectories(packagesDirectory, packageName, SearchOption.TopDirectoryOnly).SingleOrDefault();
 
-            if (packageNameDirectory != null) {
-                var packageNameVersionDirectory = Directory.GetDirectories(packageNameDirectory, packageVersion, SearchOption.TopDirectoryOnly).SingleOrDefault();
+                if (packageNameDirectory != null) {
+                    var packageNameVersionDirectory = Directory.GetDirectories(packageNameDirectory, packageVersion, SearchOption.TopDirectoryOnly).SingleOrDefault();
 
-                if (packageNameVersionDirectory != null) {
-                    var correctCasedPackageVersion = Path.GetDirectoryName(packagesDirectory)!;
-                    return new DownloadedPackage(packageNameVersionDirectory, correctCasedPackageVersion);
+                    if (packageNameVersionDirectory != null) {
+                        var correctCasedPackageVersion = Path.GetDirectoryName(packagesDirectory)!;
+                        return new DownloadedPackage(packageNameVersionDirectory, correctCasedPackageVersion);
+                    }
                 }
             }
 

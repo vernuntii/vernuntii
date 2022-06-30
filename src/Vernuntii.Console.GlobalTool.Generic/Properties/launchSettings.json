@@ -2,7 +2,7 @@
   "profiles": {
     "Vernuntii.Console.GlobalTool.Generic": {
       "commandName": "Project",
-      "commandLineArgs": "--verbosity Verbose msbuild-integration locate MSBuildTaskDirectory --download-package --package-version 0.1.0-alpha.9"
+      "commandLineArgs": "--verbosity Verbose msbuild-integration locate MSBuildTaskDirectory --download-package --package-version 0.1.0-alpha.12"
     }
   }
 }
