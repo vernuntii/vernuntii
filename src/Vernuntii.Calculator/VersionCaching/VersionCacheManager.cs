@@ -96,7 +96,7 @@ namespace Vernuntii.VersionCaching
 
             var cacheFileName = CacheId + ".data";
             var cacheFilePath = Path.Combine(_cacheDirectory.CacheDirectoryPath, cacheFileName);
-            var cacheFile = new JsonFile<DefaultVersionCache>(cacheFilePath, CacheLockAttemptSeconds);
+            var cacheFile = new JsonFile<DefaultVersionCache>(cacheFilePath, CacheLockAttemptSeconds, VersionCacheSerializerContext.Default);
 
             //MaybeDeleteOtherCacheFiles(
             //    CacheDirectoryPath,

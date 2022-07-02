@@ -4,6 +4,7 @@ using System.Text.Json;
 using Vernuntii.SemVer.Json;
 using Teronis.IO.FileLocking;
 using Vernuntii.SemVer.Json.System;
+using System.Text.Json.Serialization;
 
 namespace Vernuntii.Text.Json
 {
@@ -12,26 +13,16 @@ namespace Vernuntii.Text.Json
     {
         public readonly static FileStreamLocker FileStreamLocker = new FileStreamLocker(new LockFileSystem());
 
-        private static JsonSerializerOptions SerializerOptions = new JsonSerializerOptions() {
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
-
-        static JsonFile() => SerializerOptions.Converters.Add(VersionStringJsonConverter.Default);
-
-        public static T ReadValue(FileStream stream)
-        {
-            stream.Position = 0;
-
-            return JsonSerializer.Deserialize<T>(stream, SerializerOptions)
-                ?? throw new JsonException($"A non-null serialized type of {typeof(T).FullName} was expected");
-        }
+        public JsonSerializerContext SerializerContext { get; }
 
         private readonly FileStream _stream;
 
-        public JsonFile(string jsonFilePath, int lockTimeout)
+        public JsonFile(string jsonFilePath, int lockTimeout, JsonSerializerContext serializerContext)
         {
             _stream = FileStreamLocker.WaitUntilAcquired(jsonFilePath, lockTimeout)
                 ?? throw new TimeoutException("Locking the cache file has been aborted due to timeout");
+
+            SerializerContext = serializerContext ?? throw new ArgumentNullException(nameof(serializerContext));
         }
 
         /// <inheritdoc/>
@@ -42,7 +33,16 @@ namespace Vernuntii.Text.Json
                 _stream.Flush();
             }
 
-            JsonSerializer.Serialize(_stream, value, SerializerOptions);
+            using var writer = new Utf8JsonWriter(_stream);
+            JsonSerializer.Serialize(writer, value, typeof(T), SerializerContext);
+        }
+
+        public T ReadValue(FileStream stream)
+        {
+            stream.Position = 0;
+
+            return JsonSerializer.Deserialize<T>(stream, SerializerContext.Options)
+                ?? throw new JsonException($"A non-null serialized type of {typeof(T).FullName} was expected");
         }
 
         public bool TryReadValue([NotNullWhen(true)] out T? value)

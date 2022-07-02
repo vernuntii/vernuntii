@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Vernuntii.Git;
 using Vernuntii.SemVer;
+using Vernuntii.SemVer.Json.System;
 
 namespace Vernuntii.VersionCaching
 {
@@ -23,6 +24,7 @@ namespace Vernuntii.VersionCaching
                 creationRetentionTime == null ? null : DateTime.UtcNow + creationRetentionTime);
 
         /// <inheritdoc/>
+        [JsonConverter(typeof(VersionStringJsonConverter))]
         public SemanticVersion Version { get; }
         /// <inheritdoc/>
         public string BranchName { get; }
