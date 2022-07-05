@@ -13,7 +13,7 @@
 
         public void EnsureSealed()
         {
-            if (IsSealed) {
+            if (!IsSealed) {
                 throw new InvalidOperationException($"The object of type {GetType()} is not sealed yet");
             }
         }
