@@ -11,11 +11,6 @@
         IReadOnlyCollection<IPluginRegistration> PluginRegistrations { get; }
 
         /// <summary>
-        /// The first appearing plugin that may or may not exist.
-        /// </summary>
-        ILazyPlugin<T> FirstLazy<T>() where T : IPlugin;
-
-        /// <summary>
         /// The first appearing plugin.
         /// </summary>
         /// <typeparam name="T"></typeparam>

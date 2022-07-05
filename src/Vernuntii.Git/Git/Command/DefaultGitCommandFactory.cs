@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Vernuntii.Git.Command
+namespace Vernuntii.Git.Commands
 {
     /// <summary>
     /// The default git command factory.

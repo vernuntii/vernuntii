@@ -24,6 +24,7 @@ namespace Vernuntii.Plugins
     /// <summary>
     /// Plugin that produces the next version and writes it to console.
     /// </summary>
+    [Plugin<INextVersionPlugin>]
     public class NextVersionPlugin : Plugin, INextVersionPlugin
     {
         /// <inheritdoc/>

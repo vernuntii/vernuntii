@@ -2,13 +2,16 @@
 using Vernuntii.Diagnostics;
 using Vernuntii.Text;
 
-namespace Vernuntii.Git.Command
+namespace Vernuntii.Git.Commands
 {
     /// <summary>
     /// The git command with limited capabilities.
     /// </summary>
     public class GitCommand : IGitCommand
     {
+        private bool _isDisposed;
+        private LibGit2Command _libGit2;
+
         /// <inheritdoc/>
         public string WorkingTreeDirectory { get; }
 
@@ -17,8 +20,11 @@ namespace Vernuntii.Git.Command
         /// </summary>
         /// <param name="workingTreeDirectory"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public GitCommand(string workingTreeDirectory) =>
+        public GitCommand(string workingTreeDirectory)
+        {
             WorkingTreeDirectory = workingTreeDirectory ?? throw new ArgumentNullException(nameof(workingTreeDirectory));
+            _libGit2 = new LibGit2Command(workingTreeDirectory);
+        }
 
         private GitProcessStartInfo CreateStartInfo(string? args) => new GitProcessStartInfo(args, WorkingTreeDirectory);
 
@@ -66,6 +72,7 @@ namespace Vernuntii.Git.Command
 
         /// <inheritdoc/>
         public bool IsHeadDetached() => ExecuteCommand("symbolic-ref -q HEAD") == 1;
+        //public bool IsHeadDetached() => _libGit2.IsHeadDetached();
 
         /// <inheritdoc/>
         public string GetGitDirectory() => ExecuteCommandThenReadOutput("rev-parse --absolute-git-dir");
@@ -190,8 +197,10 @@ namespace Vernuntii.Git.Command
         }
 
         /// <inheritdoc/>
-        public bool IsShallowRepository() =>
-            ExecuteCommandThenReadOutput("rev-parse --is-shallow-repository").Equals("true", StringComparison.OrdinalIgnoreCase);
+        //public bool IsShallow() =>
+        //    ExecuteCommandThenReadOutput("rev-parse --is-shallow-repository").Equals("true", StringComparison.OrdinalIgnoreCase);
+        public bool IsShallow() =>
+            _libGit2.IsShallow();
 
         private class GitProcessStartInfo : SimpleProcessStartInfo
         {
@@ -247,6 +256,30 @@ namespace Vernuntii.Git.Command
 
             public static implicit operator string(Quote quote) =>
                 quote.Content;
+        }
+
+        /// <summary>
+        /// Disposes this object.
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_isDisposed) {
+                return;
+            }
+
+            if (disposing) {
+
+            }
+
+            _isDisposed = true;
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

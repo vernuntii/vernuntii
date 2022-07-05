@@ -10,7 +10,12 @@ namespace Vernuntii.PluginSystem
         /// <inheritdoc/>
         public virtual int? Order { get; }
 
-        private bool _isDisposed;
+        /// <summary>
+        /// If <see langword="true"/> the plugin is disposed.
+        /// </summary>
+        public bool IsDisposed => _isDisposed != 0;
+
+        private int _isDisposed;
 
         /// <summary>
         /// Represents the plugin registry.
@@ -37,7 +42,7 @@ namespace Vernuntii.PluginSystem
         protected internal T AddDisposable<T>(T disposable)
             where T : IDisposable
         {
-            if (_isDisposed) {
+            if (IsDisposed) {
                 disposable.Dispose();
             } else {
                 _disposables.Add(disposable);
@@ -129,6 +134,10 @@ namespace Vernuntii.PluginSystem
         /// <param name="disposing">True disposes managed state (managed objects).</param>
         protected virtual void Dispose(bool disposing)
         {
+            if (Interlocked.CompareExchange(ref _isDisposed, 1, 0) != 0) {
+                return;
+            }
+
             if (!disposing) {
                 return;
             }
@@ -136,8 +145,6 @@ namespace Vernuntii.PluginSystem
             foreach (var disposable in _disposables) {
                 disposable.Dispose();
             }
-
-            _isDisposed = true;
         }
 
         /// <inheritdoc/>

@@ -1,6 +1,6 @@
 ﻿using Vernuntii.Text;
 
-namespace Vernuntii.Git.Command
+namespace Vernuntii.Git.Commands
 {
     internal class TestingGitCommand : GitCommand
     {

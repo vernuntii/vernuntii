@@ -1,5 +1,5 @@
 ﻿using Vernuntii.Git;
-using Vernuntii.Git.Command;
+using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 

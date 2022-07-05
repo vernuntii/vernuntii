@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents a plugin registry.
     /// </summary>
-    public interface IPluginRegistry : IPluginRegistrationProducer, IReadOnlyPlugins
+    public interface IPluginRegistry : IReadOnlyPlugins
     {
         /// <summary>
         /// Registers a plugin.

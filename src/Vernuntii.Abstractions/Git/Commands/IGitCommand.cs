@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Vernuntii.Git.Command
+namespace Vernuntii.Git.Commands
 {
     /// <summary>
     /// A low-level access to git.
     /// </summary>
-    public interface IGitCommand
+    public interface IGitCommand : IDisposable
     {
         /// <summary>
         /// The working directory at time of the creation of this instance.
@@ -48,7 +48,7 @@ namespace Vernuntii.Git.Command
         /// <summary>
         /// Checks whether the repository is shallow.
         /// </summary>
-        bool IsShallowRepository();
+        bool IsShallow();
 
         /// <summary>
         /// Tries to resolve a name to a reference.

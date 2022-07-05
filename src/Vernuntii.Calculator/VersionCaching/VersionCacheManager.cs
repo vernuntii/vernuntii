@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Git;
-using Vernuntii.Git.Command;
+using Vernuntii.Git.Commands;
 using Vernuntii.SemVer;
 using Vernuntii.Text.Json;
 

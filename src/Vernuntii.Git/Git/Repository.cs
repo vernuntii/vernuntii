@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Vernuntii.Git.Command;
+using Vernuntii.Git.Commands;
 using Teronis.IO;
 using Vernuntii.SemVer;
 using Vernuntii.Caching;
@@ -54,7 +54,7 @@ namespace Vernuntii.Git
             var gitCommand = _options.GitCommandFactory.CreateCommand(gitWorkingDirectory)
                 ?? throw new InvalidOperationException("Git command factory produced null");
 
-            if (gitCommand.IsShallowRepository()) {
+            if (gitCommand.IsShallow()) {
                 throw new ShallowRepositoryException("Repository is not allowed to be shallow to prevent misbehavior") {
                     GitDirectory = gitWorkingDirectory
                 };

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Vernuntii.Git.Command;
+using Vernuntii.Git.Commands;
 using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Plugins.Events

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Vernuntii.Git.Command
+namespace Vernuntii.Git.Commands
 {
     internal record GitReference : IGitReference
     {

@@ -4,6 +4,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Vernuntii</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +13,15 @@
     <ProjectReference Include="..\Vernuntii.Common\Vernuntii.Common.csproj" />
     <ProjectReference Include="..\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj" />
     <ProjectReference Include="..\Vernuntii.SimpleProcess\Vernuntii.SimpleProcess.csproj" />
+  </ItemGroup>
+
+  <!-- TODO: If Vernuntii.Git is packable then also deliver runtimes/**/* -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)runtimes/**/*">
+      <!--<Pack>true</Pack>-->
+      <!--<PackagePath>runtimes/%(RecursiveDir)%(FileName)%(Extension)</PackagePath>-->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

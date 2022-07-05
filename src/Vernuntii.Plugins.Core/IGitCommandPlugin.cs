@@ -1,4 +1,4 @@
-﻿using Vernuntii.Git.Command;
+﻿using Vernuntii.Git.Commands;
 using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Plugins

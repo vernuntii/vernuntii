@@ -8,7 +8,7 @@ using Vernuntii.Console;
 using Vernuntii.Extensions;
 using Vernuntii.Extensions.BranchCases;
 using Vernuntii.Git;
-using Vernuntii.Git.Command;
+using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
@@ -145,10 +145,9 @@ public class GitPlugin : Plugin, IGitPlugin
     /// <inheritdoc/>
     protected override void OnAfterRegistration()
     {
-        Plugins.FirstLazy<ICommandLinePlugin>().Registered += plugin => {
-            plugin.RootCommand.Add(_overridePostPreReleaseOption);
-            plugin.RootCommand.Add(_duplicateVersionFailsOption);
-        };
+        var commandlinePlugin = Plugins.First<ICommandLinePlugin>();
+        commandlinePlugin.RootCommand.Add(_overridePostPreReleaseOption);
+        commandlinePlugin.RootCommand.Add(_duplicateVersionFailsOption);
 
         _sharedOptions = Plugins.First<SharedOptionsPlugin>();
         _nextVersionPlugin = Plugins.First<INextVersionPlugin>();

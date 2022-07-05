@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Vernuntii.Git.Command
+namespace Vernuntii.Git.Commands
 {
     /// <summary>
     /// Instead of creating it provides the instance passed to constructor.

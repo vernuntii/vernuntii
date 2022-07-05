@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Teronis.IO.FileLocking;
 using Vernuntii.Cryptography;
-using Vernuntii.Git.Command;
+using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;

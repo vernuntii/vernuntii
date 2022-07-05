@@ -5,16 +5,14 @@ namespace Vernuntii.PluginSystem
     /// <summary>
     /// The plugin registry.
     /// </summary>
-    public sealed class PluginRegistry : IPluginRegistry, IDisposable
+    public sealed class PluginRegistry : IPluginRegistry, ISealed, IDisposable
     {
         /// <inheritdoc/>
-        public IReadOnlyCollection<IPluginRegistration> PluginRegistrations => _pluginRegistrations;
+        public IReadOnlyCollection<IPluginRegistration> PluginRegistrations => _pluginRegistrations.Sorted;
 
-        private List<Action<IPluginRegistration>> _consumePluginRegistrationActionList =
-            new List<Action<IPluginRegistration>>();
+        bool ISealed.IsSealed => _isSealed;
 
-        private SortedSet<PluginRegistration> _pluginRegistrations = new SortedSet<PluginRegistration>(PluginRegistrationComparer.Default);
-
+        private PluginRegistrationCollection _pluginRegistrations;
         private int _pluginRegistrationCounter;
         private bool _isSealed;
         private readonly ILogger<PluginRegistry> _logger;
@@ -22,46 +20,16 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        public PluginRegistry(ILogger<PluginRegistry> logger) =>
+        public PluginRegistry(ILogger<PluginRegistry> logger)
+        {
+            _pluginRegistrations = new PluginRegistrationCollection(this);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-        private void NotifyPluginRegistrationConsumer(Action<IPluginRegistration> consumePluginRegistrationAction)
-        {
-            foreach (var pluginRegistration in _pluginRegistrations) {
-                consumePluginRegistrationAction(pluginRegistration);
-            }
-        }
-
-        /// <inheritdoc/>
-        public IDisposable AddPluginRegistrationConsumer(Action<IPluginRegistration> consumePluginRegistrationAction)
-        {
-            var disposable = new Disposable(() => _consumePluginRegistrationActionList.Remove(consumePluginRegistrationAction));
-            _consumePluginRegistrationActionList.Add(consumePluginRegistrationAction);
-            NotifyPluginRegistrationConsumer(consumePluginRegistrationAction);
-            return disposable;
-        }
-
-        private void NotifyPluginRegistrationConsumers(IPluginRegistration pluginRegistration)
-        {
-            foreach (var consumePluginRegistrationAction in _consumePluginRegistrationActionList) {
-                consumePluginRegistrationAction(pluginRegistration);
-            }
-        }
-
-        /// <summary>
-        /// Ensures that registry is not sealed.
-        /// </summary>
-        private void EnsureNotSealed()
-        {
-            if (_isSealed) {
-                throw new InvalidOperationException("The plugin registry is sealed and cannot be changed anymore");
-            }
         }
 
         /// <inheritdoc/>
         private async ValueTask<IPluginRegistration> RegisterAsyncCore(Type serviceType, IPlugin plugin)
         {
-            EnsureNotSealed();
+            ((ISealed)this).EnsureNotSealed();
             var acceptRegistration = await plugin.OnRegistration(this);
 
             int pluginId;
@@ -76,7 +44,6 @@ namespace Vernuntii.PluginSystem
 
             if (acceptRegistration) {
                 _pluginRegistrations.Add(pluginRegistration);
-                NotifyPluginRegistrationConsumers(pluginRegistration);
                 _logger.LogTrace("Accepted plugin registration: {ServiceType} ({PluginType})", pluginRegistration.ServiceType, pluginRegistration.PluginType);
             } else {
                 _logger.LogTrace("Denied plugin registration: {ServiceType} ({PluginType})", pluginRegistration.ServiceType, pluginRegistration.PluginType);
@@ -100,22 +67,28 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Seals the registry.
         /// </summary>
-        public void Seal() =>
+        public void Seal()
+        {
+            _pluginRegistrations.Seal();
             _isSealed = true;
-
-        /// <inheritdoc/>
-        public ILazyPlugin<T> FirstLazy<T>()
-            where T : IPlugin =>
-            new LazyPlugin<T>(this);
+        }
 
         /// <inheritdoc/>
         public T First<T>()
-            where T : IPlugin =>
-            FirstLazy<T>().Value;
+            where T : IPlugin
+        {
+            ((ISealed)this).EnsureSealed();
+
+            if (!_pluginRegistrations.AcendedPlugins.TryGetValue(typeof(T), out var firstPlugin)
+                || firstPlugin is not T firstPluginTyped) {
+                throw new PluginNotFoundException($"A plugin registered as service \"{typeof(T)}\" was not registered");
+            }
+
+            return firstPluginTyped;
+        }
 
         /// <inheritdoc/>
-        public void Dispose() =>
-            _consumePluginRegistrationActionList.Clear();
+        public void Dispose() { }
 
         private class Disposable : IDisposable
         {

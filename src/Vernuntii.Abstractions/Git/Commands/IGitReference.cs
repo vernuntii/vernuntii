@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.Git.Command
+﻿namespace Vernuntii.Git.Commands
 {
     /// <summary>
     /// Represents a git reference.

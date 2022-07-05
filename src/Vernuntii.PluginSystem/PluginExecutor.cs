@@ -29,6 +29,12 @@ namespace Vernuntii.PluginSystem
             _pluginRegistry.Seal();
 
             foreach (var registration in _pluginRegistry.PluginRegistrations) {
+                var plugin = registration.Plugin;
+
+                if (plugin is IBeforeOnAfterRegistrationPlugin beforeOnAfterRegistrationPlugin) {
+                    beforeOnAfterRegistrationPlugin.BeforeOnAfterRegistration();
+                }
+
                 await registration.Plugin.OnAfterRegistration();
             }
 

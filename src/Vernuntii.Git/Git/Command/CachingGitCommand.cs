@@ -8,9 +8,9 @@ using System.Runtime.CompilerServices;
 using YamlDotNet.Core.Tokens;
 using Vernuntii.Caching;
 
-namespace Vernuntii.Git.Command
+namespace Vernuntii.Git.Commands
 {
-    internal class CachingGitCommand : IGitCommand
+    internal sealed class CachingGitCommand : IGitCommand
     {
         internal IGitCommand UnderlyingCommand { get; }
 
@@ -61,8 +61,8 @@ namespace Vernuntii.Git.Command
         public bool IsHeadDetached() =>
             GetOrCreateCache(Tuple.Create(nameof(IsHeadDetached)), UnderlyingCommand.IsHeadDetached);
 
-        public bool IsShallowRepository() =>
-            GetOrCreateCache(Tuple.Create(nameof(IsShallowRepository)), UnderlyingCommand.IsShallowRepository);
+        public bool IsShallow() =>
+            GetOrCreateCache(Tuple.Create(nameof(IsShallow)), UnderlyingCommand.IsShallow);
 
         public bool TryResolveReference(string? name, ShowRefLimit showRefLimit, [NotNullWhen(true)] out IGitReference? reference)
         {
@@ -80,5 +80,8 @@ namespace Vernuntii.Git.Command
             _memoryCache.Clear();
             Interlocked.Exchange(ref _memoryCache, _memoryCacheFactory.Create());
         }
+
+        public void Dispose() => 
+            UnderlyingCommand.Dispose();
     }
 }

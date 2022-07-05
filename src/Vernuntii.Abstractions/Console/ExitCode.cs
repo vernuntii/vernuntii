@@ -14,7 +14,7 @@
         /// </summary>
         Failure = 1,
         /// <summary>
-        /// Command line plugin was not running.
+        /// Commands line plugin was not running.
         /// </summary>
         NotExecuted = 2,
         /// <summary>

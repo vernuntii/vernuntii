@@ -46,22 +46,22 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnAfterRegistration()
         {
-            Plugins.FirstLazy<ICommandLinePlugin>().Registered += plugin => {
-                _cacheCreationRetentionTimeOption.Description = "The cache retention time since creation. If the time span since creation is greater than then" +
+            var commandLinePlugin = Plugins.First<ICommandLinePlugin>();
+
+            _cacheCreationRetentionTimeOption.Description = "The cache retention time since creation. If the time span since creation is greater than then" +
                 " the at creation specified retention time then the version informations is reloaded. Null or empty means the" +
                 $" default creation retention time of {CacheOptions.CacheCreationRetentionTime.TotalHours}" +
                 " hours is used.";
 
-                _cacheLastAccessRetentionTimeOption.Description = "The cache retention time since last access. If the time span since last access is greater than the" +
-                " retention time then the version informations is reloaded. Null or empty means this feature is disabled except" +
-                $" if the cache id is implictly or explictly equals to the internal cache id, then the default last access retention time of" +
-                $" {CacheOptions.InternalCacheLastAccessRetentionTime.ToString("s\\.f", CultureInfo.InvariantCulture)}s" +
-                " is used.";
+            _cacheLastAccessRetentionTimeOption.Description = "The cache retention time since last access. If the time span since last access is greater than the" +
+            " retention time then the version informations is reloaded. Null or empty means this feature is disabled except" +
+            $" if the cache id is implictly or explictly equals to the internal cache id, then the default last access retention time of" +
+            $" {CacheOptions.InternalCacheLastAccessRetentionTime.ToString("s\\.f", CultureInfo.InvariantCulture)}s" +
+            " is used.";
 
-                plugin.RootCommand.Add(_cacheCreationRetentionTimeOption);
-                plugin.RootCommand.Add(_cacheLastAccessRetentionTimeOption);
-                plugin.RootCommand.Add(_cacheIdOption);
-            };
+            commandLinePlugin.RootCommand.Add(_cacheCreationRetentionTimeOption);
+            commandLinePlugin.RootCommand.Add(_cacheLastAccessRetentionTimeOption);
+            commandLinePlugin.RootCommand.Add(_cacheIdOption);
         }
 
         private void OnParseCommandLineArgs(ParseResult parseResult)

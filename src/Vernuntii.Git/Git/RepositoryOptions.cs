@@ -1,4 +1,4 @@
-﻿using Vernuntii.Git.Command;
+﻿using Vernuntii.Git.Commands;
 
 namespace Vernuntii.Git
 {
