@@ -1111,7 +1111,8 @@ namespace Vernuntii.Git.LibGit2
             public Lifetime()
             {
                 try { } finally {
-                    NativeLibrary.Load($"runtimes/{GetRuntimeIdentifier()}/native/git2-182d0d1");
+                    var libGit2Library = Path.Combine(AppContext.BaseDirectory, $"runtimes/{GetRuntimeIdentifier()}/native/git2-182d0d1");
+                    NativeLibrary.Load(libGit2Library);
                     _shutdownFinalizer = new ShutdownFinalizer(git_libgit2_init());
                 }
             }
