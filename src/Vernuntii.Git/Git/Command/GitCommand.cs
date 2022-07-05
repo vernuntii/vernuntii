@@ -10,7 +10,7 @@ namespace Vernuntii.Git.Commands
     public class GitCommand : IGitCommand
     {
         private bool _isDisposed;
-        private LibGit2Command _libGit2;
+        private Lazy<LibGit2Command> _libGit2;
 
         /// <inheritdoc/>
         public string WorkingTreeDirectory { get; }
@@ -23,7 +23,7 @@ namespace Vernuntii.Git.Commands
         public GitCommand(string workingTreeDirectory)
         {
             WorkingTreeDirectory = workingTreeDirectory ?? throw new ArgumentNullException(nameof(workingTreeDirectory));
-            _libGit2 = new LibGit2Command(workingTreeDirectory);
+            _libGit2 = new Lazy<LibGit2Command>(() => new LibGit2Command(workingTreeDirectory));
         }
 
         private GitProcessStartInfo CreateStartInfo(string? args) => new GitProcessStartInfo(args, WorkingTreeDirectory);
@@ -71,8 +71,7 @@ namespace Vernuntii.Git.Commands
             .ToList();
 
         /// <inheritdoc/>
-        public bool IsHeadDetached() => ExecuteCommand("symbolic-ref -q HEAD") == 1;
-        //public bool IsHeadDetached() => _libGit2.IsHeadDetached();
+        public bool IsHeadDetached() => _libGit2.Value.IsHeadDetached();
 
         /// <inheritdoc/>
         public string GetGitDirectory() => ExecuteCommandThenReadOutput("rev-parse --absolute-git-dir");
@@ -197,10 +196,8 @@ namespace Vernuntii.Git.Commands
         }
 
         /// <inheritdoc/>
-        //public bool IsShallow() =>
-        //    ExecuteCommandThenReadOutput("rev-parse --is-shallow-repository").Equals("true", StringComparison.OrdinalIgnoreCase);
         public bool IsShallow() =>
-            _libGit2.IsShallow();
+            _libGit2.Value.IsShallow();
 
         private class GitProcessStartInfo : SimpleProcessStartInfo
         {

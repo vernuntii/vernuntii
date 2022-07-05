@@ -29,15 +29,11 @@ namespace Vernuntii.Git.Commands
                 });
         }
 
-        //public bool IsHeadDetached()
-        //{
-        //    var isHeadDetached = Ensure.NativeCall(
-
-        //    return libgit2.git_repository_head_detached(_repositoryPointer) == 1;
-        //}
+        public unsafe bool IsHeadDetached() =>
+            Ensure.NativeBoolean(libgit2.git_repository_head_detached(_repositoryPointer));
 
         public unsafe bool IsShallow() =>
-            libgit2.git_repository_head_detached(_repositoryPointer) == 1;
+            Ensure.NativeBoolean(libgit2.git_repository_is_shallow(_repositoryPointer));
 
         public unsafe void Dispose()
         {
