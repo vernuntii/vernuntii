@@ -68,6 +68,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Restore
+        run: dotnet restore
+
       - name: Test
         run: >
           dotnet test
