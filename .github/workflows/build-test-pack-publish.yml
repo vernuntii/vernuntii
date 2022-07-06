@@ -67,12 +67,14 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Test
         run: >
           dotnet test
           --verbosity $MSBUILD_VERBOSITY
           --configuration $MSBUILD_CONFIGURATION
+          --no-restore
+
         shell: bash
 
   pack:

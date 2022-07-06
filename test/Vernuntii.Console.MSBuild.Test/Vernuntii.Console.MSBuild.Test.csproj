@@ -18,7 +18,6 @@
 		<ItemGroup>
 			<_ProjectToPack Include="../../src/Vernuntii.Console.MSBuild/Vernuntii.Console.MSBuild.csproj">
 				<Properties>
-					NoBuild=true;
 					Configuration=$(Configuration);
 					PackageOutputPath=$(_TestDirectory)
 				</Properties>
