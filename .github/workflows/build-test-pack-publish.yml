@@ -68,16 +68,19 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Restore
-        run: dotnet restore
+      - name: Build
+        run: >
+          dotnet build
+          --verbosity $MSBUILD_VERBOSITY
+          --configuration $MSBUILD_CONFIGURATION
+        shell: bash
 
       - name: Test
         run: >
           dotnet test
           --verbosity $MSBUILD_VERBOSITY
           --configuration $MSBUILD_CONFIGURATION
-          --no-restore
-
+          --no-build
         shell: bash
 
   pack:
