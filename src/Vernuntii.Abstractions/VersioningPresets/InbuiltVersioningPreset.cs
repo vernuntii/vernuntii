@@ -8,19 +8,19 @@ namespace Vernuntii.VersioningPresets
     public enum InbuiltVersioningPreset
     {
         /// <summary>
-        /// Continous delivery preset consisting of
+        /// Continuous delivery preset consisting of
         /// <br/> - FalsyMessageIndicator for major and minor,
         /// <br/> - TruthyMessageIndicator for patch and
         /// <br/> - <see cref="VersionIncrementMode.Consecutive"/>
         /// </summary>
-        ContinousDelivery,
+        ContinuousDelivery,
         /// <summary>
-        /// Continous deployment preset consisting of
+        /// Continuous deployment preset consisting of
         /// <br/> - FalsyMessageIndicator for major and minor,
         /// <br/> - TruthyMessageIndicator for patch and
         /// <br/> - <see cref="VersionIncrementMode.Successive"/>
         /// </summary>
-        ContinousDeployment,
+        ContinuousDeployment,
         /// <summary>
         /// Conventional commits preset consisting of
         /// <br/> - ConventionalCommitsMessageIndicator for version core and
@@ -40,7 +40,7 @@ namespace Vernuntii.VersioningPresets
         /// </summary>
         Manual,
         /// <summary>
-        /// Default preset is <see cref="ContinousDelivery"/>.
+        /// Default preset is <see cref="ContinuousDelivery"/>.
         /// </summary>
         Default
     }

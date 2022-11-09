@@ -19,12 +19,12 @@ namespace Vernuntii.VersioningPresets
         public readonly static VersioningPreset Manual = new VersioningPreset();
 
         /// <summary>
-        /// Continous delivery preset consisting of
+        /// Continuous delivery preset consisting of
         /// <br/> - <see cref="FalsyMessageIndicator"/> for major and minor,
         /// <br/> - <see cref="TruthyMessageIndicator"/> for patch and
         /// <br/> - <see cref="VersionIncrementMode.Consecutive"/>
         /// </summary>
-        public readonly static VersioningPreset ContinousDelivery = new VersioningPreset() {
+        public readonly static VersioningPreset ContinuousDelivery = new VersioningPreset() {
             IncrementMode = VersionIncrementMode.Consecutive,
             MessageConvention = new MessageConvention() {
                 MajorIndicators = new[] { FalsyMessageIndicator.Default },
@@ -35,17 +35,17 @@ namespace Vernuntii.VersioningPresets
         };
 
         /// <summary>
-        /// Default reset. Equivalent to <see cref="ContinousDelivery"/>.
+        /// Default reset. Equivalent to <see cref="ContinuousDelivery"/>.
         /// </summary>
-        public readonly static VersioningPreset Default = ContinousDelivery;
+        public readonly static VersioningPreset Default = ContinuousDelivery;
 
         /// <summary>
-        /// Continous deployment preset consisting of
+        /// Continuous deployment preset consisting of
         /// <br/> - <see cref="FalsyMessageIndicator"/> for major and minor,
         /// <br/> - <see cref="TruthyMessageIndicator"/> for patch and
         /// <br/> - <see cref="VersionIncrementMode.Successive"/>
         /// </summary>
-        public readonly static VersioningPreset ContinousDeployment = new VersioningPreset() {
+        public readonly static VersioningPreset ContinuousDeployment = new VersioningPreset() {
             IncrementMode = VersionIncrementMode.Successive,
             MessageConvention = new MessageConvention() {
                 MajorIndicators = new[] { FalsyMessageIndicator.Default },

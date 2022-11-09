@@ -12,13 +12,13 @@
         /// <summary>
         /// Each message is incrementing patch.
         /// </summary>
-        Continous,
+        Continuous,
         /// <summary>
         /// Increment depending on Conventional Commits message.
         /// </summary>
         ConventionalCommits,
         /// <summary>
-        /// Default message conventions is <see cref="Continous"/>.
+        /// Default message conventions is <see cref="Continuous"/>.
         /// </summary>
         Default
     }
