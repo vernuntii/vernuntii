@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <!-- Single point of truth -->
-    <ConsoleTargetFramework>net6.0</ConsoleTargetFramework>
+    <ConsoleTargetFramework>net7.0</ConsoleTargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

@@ -46,7 +46,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VernuntiiConsoleExecutableFile Condition="'$(VernuntiiConsoleExecutableFile)' == ''">$(MSBuildThisFileDirectory)..\deps\console\net6.0\$(VernuntiiConsoleExecutableRuntime)\Vernuntii.Console.$(VernuntiiConsoleExecutableRuntime).dll</VernuntiiConsoleExecutableFile>
+    <VernuntiiConsoleExecutableFile Condition="'$(VernuntiiConsoleExecutableFile)' == ''">$(MSBuildThisFileDirectory)..\deps\console\net7.0\$(VernuntiiConsoleExecutableRuntime)\Vernuntii.Console.$(VernuntiiConsoleExecutableRuntime).dll</VernuntiiConsoleExecutableFile>
   </PropertyGroup>
 
   <Target Name="ExecuteVernuntiiTask" BeforeTargets="$(ExecuteVernuntiiTaskBeforeTargets)" DependsOnTargets="$(ExecuteVernuntiiTaskDependsOn)" Condition="'$(DisableVernuntii)' != 'true'">

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>true</IsPackable>
     <Description>A fully modular SemVer (Semantic Version) parser being capable to parse each part of your version string, namely major, minor, patch, pre-relase and build. It also supports parse and validation aspects for prefixes.</Description>
