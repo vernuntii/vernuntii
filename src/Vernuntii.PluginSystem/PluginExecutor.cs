@@ -1,4 +1,5 @@
 ﻿using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.PluginSystem
 {
@@ -8,17 +9,17 @@ namespace Vernuntii.PluginSystem
     public class PluginExecutor
     {
         private PluginRegistry _pluginRegistry;
-        private readonly IPluginEventCache _eventAggregator;
+        private readonly IPluginEventCache _pluginEvents;
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
         /// <param name="pluginRegistry"></param>
-        /// <param name="eventAggregator"></param>
-        public PluginExecutor(PluginRegistry pluginRegistry, IPluginEventCache eventAggregator)
+        /// <param name="pluginEvents"></param>
+        public PluginExecutor(PluginRegistry pluginRegistry, IPluginEventCache pluginEvents)
         {
             _pluginRegistry = pluginRegistry;
-            _eventAggregator = eventAggregator;
+            _pluginEvents = pluginEvents;
         }
 
         /// <summary>
@@ -26,20 +27,10 @@ namespace Vernuntii.PluginSystem
         /// </summary>
         public async ValueTask ExecuteAsync()
         {
-            _pluginRegistry.Seal();
+            await _pluginRegistry.CompleteRegistrationPhase();
 
             foreach (var registration in _pluginRegistry.PluginRegistrations) {
-                var plugin = registration.Plugin;
-
-                if (plugin is IBeforeOnAfterRegistrationPlugin beforeOnAfterRegistrationPlugin) {
-                    beforeOnAfterRegistrationPlugin.BeforeOnAfterRegistration();
-                }
-
-                await registration.Plugin.OnAfterRegistration();
-            }
-
-            foreach (var registration in _pluginRegistry.PluginRegistrations) {
-                await registration.Plugin.OnEvents(_eventAggregator);
+                await registration.Plugin.OnExecution(_pluginEvents);
             }
         }
 
@@ -49,7 +40,11 @@ namespace Vernuntii.PluginSystem
         public async ValueTask DestroyAsync()
         {
             foreach (var registration in _pluginRegistry.PluginRegistrations) {
-                await registration.Plugin.OnDestroy();
+                if (!registration.ImplementsDestructionAspect) {
+                    continue;
+                }
+
+                await ((IPluginDestructionAspect)registration.Plugin).OnDestroy();
             }
         }
     }

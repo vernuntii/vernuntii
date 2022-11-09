@@ -15,12 +15,14 @@ using Vernuntii.VersionCaching;
 using System.CommandLine;
 using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
+using Vernuntii.PluginSystem.Meta;
 
 namespace Vernuntii.Plugins
 {
     /// <summary>
     /// Represents the up-to date mechanism to check whether you need to re-calculate the next version.
     /// </summary>
+    [PluginDependency<VersionCacheOptionsPlugin>(TryRegister = true)]
     public class VersionCacheCheckPlugin : Plugin, IVersionCacheCheckPlugin
     {
         /// <inheritdoc/>
@@ -50,19 +52,6 @@ namespace Vernuntii.Plugins
         private VersionHashFile _versionHashFile = null!;
         private IVersionCache? _versionCache;
         private bool isVersionChecked;
-
-        /// <inheritdoc/>
-        protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
-            await registrationContext.PluginRegistry.RegisterAsync<VersionCacheOptionsPlugin>();
-
-        /// <inheritdoc/>
-        protected override void OnAfterRegistration()
-        {
-            _configurationPlugin = Plugins.First<IConfigurationPlugin>();
-            _loggerPlugin = Plugins.First<ILoggingPlugin>();
-            _logger = _loggerPlugin.CreateLogger<VersionCacheCheckPlugin>();
-            _versionCacheOptionsPlugin = Plugins.First<VersionCacheOptionsPlugin>();
-        }
 
         private void OnCreateVersionCacheManager()
         {
@@ -99,8 +88,13 @@ namespace Vernuntii.Plugins
         }
 
         /// <inheritdoc/>
-        protected override void OnEvents()
+        protected override void OnExecution()
         {
+            _configurationPlugin = Plugins.GetPlugin<IConfigurationPlugin>();
+            _loggerPlugin = Plugins.GetPlugin<ILoggingPlugin>();
+            _logger = _loggerPlugin.CreateLogger<VersionCacheCheckPlugin>();
+            _versionCacheOptionsPlugin = Plugins.GetPlugin<VersionCacheOptionsPlugin>();
+
             Events.SubscribeOnce(
                 ConfigurationEvents.ConfiguredConfigurationBuilder,
                 () => _configFile = _configurationPlugin.ConfigFile);

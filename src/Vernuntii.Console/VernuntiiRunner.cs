@@ -94,18 +94,18 @@ namespace Vernuntii.Console
                 }
 
                 _pluginRegistry = new PluginRegistry(_loggingPlugin.CreateLogger<PluginRegistry>());
-                await _pluginRegistry.RegisterAsync<ILoggingPlugin>(_loggingPlugin);
-                await _pluginRegistry.RegisterAsync<IGlobalServicesPlugin, GlobalServicesPlugin>();
-                await _pluginRegistry.RegisterAsync<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
-                await _pluginRegistry.RegisterAsync<ICommandLinePlugin, CommandLinePlugin>();
-                await _pluginRegistry.RegisterAsync<IConfigurationPlugin, ConfigurationPlugin>();
-                await _pluginRegistry.RegisterAsync<IGitPlugin, GitPlugin>();
-                await _pluginRegistry.RegisterAsync<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>();
-                await _pluginRegistry.RegisterAsync<INextVersionPlugin, NextVersionPlugin>();
+                _pluginRegistry.Register<ILoggingPlugin>(_loggingPlugin);
+                _pluginRegistry.Register<IGlobalServicesPlugin, GlobalServicesPlugin>();
+                _pluginRegistry.Register<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
+                _pluginRegistry.Register<ICommandLinePlugin, CommandLinePlugin>();
+                _pluginRegistry.Register<IConfigurationPlugin, ConfigurationPlugin>();
+                _pluginRegistry.Register<IGitPlugin, GitPlugin>();
+                _pluginRegistry.Register<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>();
+                _pluginRegistry.Register<INextVersionPlugin, NextVersionPlugin>();
 
                 if (PluginDescriptors is not null) {
                     foreach (var pluginDescriptor in PluginDescriptors) {
-                        await _pluginRegistry.RegisterAsync(pluginDescriptor.PluginType, pluginDescriptor.Plugin);
+                        _pluginRegistry.DescribePluginRegistration(pluginDescriptor);
                     }
                 }
 
@@ -210,7 +210,11 @@ namespace Vernuntii.Console
         {
             EnsureNotDisposed();
             await DestroyPluginsAsync();
-            _pluginRegistry?.Dispose();
+
+            if (_pluginRegistry is not null) {
+                await _pluginRegistry.DisposeAsync();
+            }
+
             _isDisposed = true;
         }
     }

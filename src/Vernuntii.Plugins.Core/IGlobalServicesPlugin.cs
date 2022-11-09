@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Vernuntii.PluginSystem;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.Plugins
 {

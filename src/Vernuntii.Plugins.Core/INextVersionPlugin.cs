@@ -1,5 +1,5 @@
 ﻿using Vernuntii.Caching;
-using Vernuntii.PluginSystem;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.Plugins
 {

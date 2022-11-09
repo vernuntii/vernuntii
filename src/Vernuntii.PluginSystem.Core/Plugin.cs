@@ -1,15 +1,13 @@
 ﻿using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.PluginSystem
 {
     /// <summary>
     /// A plugin for <see cref="Vernuntii"/>.
     /// </summary>
-    public abstract class Plugin : IPlugin
+    public abstract class Plugin : IPlugin, IPluginRegistrationAspect, IPluginDestructionAspect
     {
-        /// <inheritdoc/>
-        public virtual int? Order { get; }
-
         /// <summary>
         /// If <see langword="true"/> the plugin is disposed.
         /// </summary>
@@ -27,7 +25,7 @@ namespace Vernuntii.PluginSystem
         /// Represents the plugin event aggregator.
         /// </summary>
         protected internal IPluginEventCache Events =>
-            _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnEvents)} was not called yet");
+            _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnExecution)} was not called yet");
 
         private IPluginRegistry? _plugins;
         private IPluginEventCache? _eventAggregator;
@@ -57,10 +55,20 @@ namespace Vernuntii.PluginSystem
         /// and prevent the registration.
         /// </summary>
         /// <param name="registrationContext"></param>
+        protected virtual void OnRegistration(RegistrationContext registrationContext)
+        {
+        }
+
+        /// <summary>
+        /// Called when this plugin gets added. It gives
+        /// you the opportunity to prepare dependencies
+        /// and prevent the registration.
+        /// </summary>
+        /// <param name="registrationContext"></param>
         protected virtual ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
             ValueTask.CompletedTask;
 
-        async ValueTask<bool> IPlugin.OnRegistration(IPluginRegistry pluginRegistry)
+        async ValueTask<bool> IPluginRegistrationAspect.OnRegistration(IPluginRegistry pluginRegistry)
         {
             _plugins = pluginRegistry;
             var registrationContext = new RegistrationContext(pluginRegistry);
@@ -69,29 +77,10 @@ namespace Vernuntii.PluginSystem
         }
 
         /// <summary>
-        /// Called when all plugins are registered and ordered.
-        /// </summary>
-        protected virtual void OnAfterRegistration()
-        {
-        }
-
-        /// <summary>
-        /// Called when all plugins are registered and ordered.
-        /// </summary>
-        protected virtual ValueTask OnAfterRegistrationAsync() =>
-            ValueTask.CompletedTask;
-
-        ValueTask IPlugin.OnAfterRegistration()
-        {
-            OnAfterRegistration();
-            return OnAfterRegistrationAsync();
-        }
-
-        /// <summary>
         /// Called when this plugin gets notified about event aggregator.
         /// Called after <see cref="OnRegistrationAsync(RegistrationContext)"/>.
         /// </summary>
-        protected virtual void OnEvents()
+        protected virtual void OnExecution()
         {
         }
 
@@ -99,14 +88,14 @@ namespace Vernuntii.PluginSystem
         /// Called when this plugin gets notified about event aggregator.
         /// Called after <see cref="OnRegistrationAsync(RegistrationContext)"/>.
         /// </summary>
-        protected virtual ValueTask OnEventsAsync() =>
+        protected virtual ValueTask OnExecutionAsync() =>
             ValueTask.CompletedTask;
 
-        ValueTask IPlugin.OnEvents(IPluginEventCache eventAggregator)
+        ValueTask IPlugin.OnExecution(IPluginEventCache eventAggregator)
         {
             _eventAggregator = eventAggregator;
-            OnEvents();
-            return OnEventsAsync();
+            OnExecution();
+            return OnExecutionAsync();
         }
 
         /// <summary>
@@ -122,7 +111,7 @@ namespace Vernuntii.PluginSystem
         protected virtual ValueTask OnDestroyAsync() =>
             ValueTask.CompletedTask;
 
-        ValueTask IPlugin.OnDestroy()
+        ValueTask IPluginDestructionAspect.OnDestroy()
         {
             OnDestroy();
             return OnDestroyAsync();
@@ -133,6 +122,15 @@ namespace Vernuntii.PluginSystem
         /// </summary>
         /// <param name="disposing">True disposes managed state (managed objects).</param>
         protected virtual void Dispose(bool disposing)
+        {
+
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <param name="disposing">True disposes managed state (managed objects).</param>
+        protected virtual void DisposeCore(bool disposing)
         {
             if (Interlocked.CompareExchange(ref _isDisposed, 1, 0) != 0) {
                 return;
@@ -145,13 +143,18 @@ namespace Vernuntii.PluginSystem
             foreach (var disposable in _disposables) {
                 disposable.Dispose();
             }
+
+            Dispose(disposing);
         }
 
         /// <inheritdoc/>
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
-            Dispose(disposing: true);
+            Dispose(disposing: false);
+#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
             GC.SuppressFinalize(this);
+#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>

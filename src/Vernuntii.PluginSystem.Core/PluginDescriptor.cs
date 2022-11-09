@@ -1,12 +1,14 @@
-﻿namespace Vernuntii.PluginSystem
+﻿using Vernuntii.PluginSystem.Lifecycle;
+
+namespace Vernuntii.PluginSystem
 {
     /// <summary>
-    /// Describes a plugin.
+    /// The default plugin descriptor.
     /// </summary>
-    public sealed class PluginDescriptor
+    public record PluginDescriptor : PluginDescriptorBase<IPlugin?>
     {
         /// <summary>
-        /// Create a plugin descriptor.
+        /// Describes an instantiated plugin whose service and implementation type is <typeparamref name="TService"/>.
         /// </summary>
         /// <typeparam name="TService"></typeparam>
         /// <param name="plugin"></param>
@@ -15,38 +17,41 @@
             new PluginDescriptor(typeof(TService), plugin);
 
         /// <summary>
-        /// Create a plugin descriptor.
+        /// Describes a not yet created plugin whose service and implementation type is <typeparamref name="TPlugin"/>.
         /// </summary>
-        public static PluginDescriptor Create<TService, TImplementation>()
-            where TService : IPlugin
-            where TImplementation : TService, new() =>
-            new PluginDescriptor(typeof(TService), new TImplementation());
-
-        /// <summary>
-        /// Create a plugin descriptor.
-        /// </summary>
+        /// <typeparam name="TPlugin"></typeparam>
         public static PluginDescriptor Create<TPlugin>()
-            where TPlugin : IPlugin, new() =>
-            new PluginDescriptor(typeof(TPlugin), new TPlugin());
+            where TPlugin : IPlugin =>
+            new PluginDescriptor(typeof(TPlugin), typeof(TPlugin));
 
         /// <summary>
-        /// The type of plugin at registration time.
+        /// Creates a copy of <paramref name="original"/>.
         /// </summary>
-        public Type PluginType { get; }
-        /// <summary>
-        /// The plugin.
-        /// </summary>
-        public IPlugin Plugin { get; }
+        /// <param name="original"></param>
+        protected PluginDescriptor(PluginDescriptorBase<IPlugin?> original)
+            : base(original)
+        {
+        }
 
         /// <summary>
-        /// Creates an instance of this type.
+        /// Describes an instantiated plugin whose service type is <paramref name="serviceType"/>.
+        /// </summary>
+        /// <param name="plugin"></param>
+        /// <param name="serviceType"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public PluginDescriptor(Type serviceType, IPlugin plugin)
+            : base(serviceType, plugin ?? throw new ArgumentNullException(nameof(plugin)), plugin.GetType())
+        {
+        }
+
+        /// <summary>
+        /// Describes an not yet created plugin whose service type is <paramref name="serviceType"/>.
         /// </summary>
         /// <param name="pluginType"></param>
-        /// <param name="plugin"></param>
-        public PluginDescriptor(Type pluginType, IPlugin plugin)
+        /// <param name="serviceType"></param>
+        public PluginDescriptor(Type serviceType, Type pluginType)
+            : base(serviceType, plugin: null, pluginType)
         {
-            PluginType = pluginType;
-            Plugin = plugin;
         }
     }
 }

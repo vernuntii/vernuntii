@@ -73,13 +73,6 @@ namespace Vernuntii.Plugins
         IEnumerator IEnumerable.GetEnumerator() =>
             ((IEnumerable)_services).GetEnumerator();
 
-        /// <inheritdoc/>
-        protected override void OnAfterRegistration()
-        {
-            _logger = Plugins.First<ILoggingPlugin>().CreateLogger<GlobalServicesPlugin>();
-            _cacheCheckPlugin = Plugins.First<IVersionCacheCheckPlugin>();
-        }
-
         private void OnCreateServiceProvider()
         {
             var services = _services;
@@ -90,10 +83,15 @@ namespace Vernuntii.Plugins
         }
 
         /// <inheritdoc/>
-        protected override void OnEvents() =>
+        protected override void OnExecution()
+        {
+            _logger = Plugins.GetPlugin<ILoggingPlugin>().CreateLogger<GlobalServicesPlugin>();
+            _cacheCheckPlugin = Plugins.GetPlugin<IVersionCacheCheckPlugin>();
+
             Events.SubscribeOnce(
                 GlobalServicesEvents.CreateServiceProvider,
                 _ => OnCreateServiceProvider(),
                 () => !_cacheCheckPlugin.IsCacheUpToDate);
+        }
     }
 }

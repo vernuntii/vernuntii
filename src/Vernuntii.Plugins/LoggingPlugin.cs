@@ -16,21 +16,20 @@ using Vernuntii.Logging;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Meta;
 
 namespace Vernuntii.Plugins
 {
     /// <summary>
     /// This plugin implements logging capabilities.
     /// </summary>
+    [Plugin(Order = -2000)]
     public class LoggingPlugin : Plugin, ILoggingPlugin
     {
         private const Verbosity DefaultVerbosity = Verbosity.Fatal;
         const string ConsoleTargetName = nameof(ConsoleTargetName);
 
         private event Action<ILoggingPlugin>? _enabledLoggingInfrastructureEvent;
-
-        /// <inheritdoc/>
-        public override int? Order => -2000;
 
         /// <inheritdoc/>
         public Verbosity Verbosity => _verbosity ?? throw new InvalidOperationException("Verbosity is not yet initialized");
@@ -141,12 +140,6 @@ namespace Vernuntii.Plugins
             }
         }
 
-        /// <inheritdoc/>
-        protected override void OnAfterRegistration()
-        {
-            Plugins.First<ICommandLinePlugin>().RootCommand.Add(verbosityOption);
-        }
-
         private void EnableLoggingInfrastructure()
         {
             ReconfigureLoggingInfrastructure();
@@ -165,8 +158,10 @@ namespace Vernuntii.Plugins
         }
 
         /// <inheritdoc/>
-        protected override void OnEvents()
+        protected override void OnExecution()
         {
+            Plugins.GetPlugin<ICommandLinePlugin>().RootCommand.Add(verbosityOption);
+
             Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult =>
                 _verbosity = parseResult.GetValueForOption(verbosityOption));
 
@@ -211,15 +206,6 @@ namespace Vernuntii.Plugins
                 WrappedTarget = releaseTarget;
             }
 
-            protected override void FlushAsync(AsyncContinuation asyncContinuation)
-            {
-                if (_bypassLogEvents) {
-                    Unblock(null);
-                }
-
-                base.FlushAsync(asyncContinuation);
-            }
-
             public void Unblock(Verbosity? minLevel)
             {
                 foreach (var logEvent in _logEvents) {
@@ -230,6 +216,15 @@ namespace Vernuntii.Plugins
 
                 _logEvents.Clear();
                 _bypassLogEvents = true;
+            }
+
+            protected override void FlushAsync(AsyncContinuation asyncContinuation)
+            {
+                if (_bypassLogEvents) {
+                    Unblock(null);
+                }
+
+                base.FlushAsync(asyncContinuation);
             }
 
             protected override void Write(IList<AsyncLogEventInfo> logEvents)

@@ -1,7 +1,7 @@
 ﻿using Vernuntii.Git;
 using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
-using Vernuntii.PluginSystem;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.Plugins
 {

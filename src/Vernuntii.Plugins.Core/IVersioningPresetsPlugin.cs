@@ -1,4 +1,4 @@
-﻿using Vernuntii.PluginSystem;
+﻿using Vernuntii.PluginSystem.Lifecycle;
 using Vernuntii.VersioningPresets;
 
 namespace Vernuntii.Plugins

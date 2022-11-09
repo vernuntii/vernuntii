@@ -15,6 +15,7 @@ using Vernuntii.Git;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Meta;
 using Vernuntii.VersionCaching;
 using Vernuntii.VersionPresentation;
 using Vernuntii.VersionPresentation.Serializers;
@@ -24,14 +25,14 @@ namespace Vernuntii.Plugins
     /// <summary>
     /// Plugin that produces the next version and writes it to console.
     /// </summary>
-    [Plugin<INextVersionPlugin>]
+    [RegisterPlugin<INextVersionPlugin>]
+    [PluginDependency<SharedOptionsPlugin>(TryRegister = true)]
     public class NextVersionPlugin : Plugin, INextVersionPlugin
     {
         /// <inheritdoc/>
         public int? ExitCodeOnSuccess { get; set; }
 
         private Stopwatch _loadingVersionStopwatch = new Stopwatch();
-        private ILoggingPlugin _loggingPlugin = null!;
         private SharedOptionsPlugin _sharedOptions = null!;
         private IVersionCacheCheckPlugin _versionCacheCheckPlugin = null!;
         private ILogger _logger = null!;
@@ -75,10 +76,6 @@ namespace Vernuntii.Plugins
         private bool _emptyCaches;
 
         private ILifetimeScopedServiceProvider _globalServiceProvider = null!;
-
-        /// <inheritdoc/>
-        protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
-            await registrationContext.PluginRegistry.TryRegisterAsync<SharedOptionsPlugin>();
 
         private ILifetimeScopedServiceProvider CreateCalculationServiceProvider()
         {
@@ -167,17 +164,12 @@ namespace Vernuntii.Plugins
         }
 
         /// <inheritdoc/>
-        protected override void OnAfterRegistration()
+        protected override void OnExecution()
         {
-            OnConfigureCommandLine(Plugins.First<ICommandLinePlugin>());
-            _loggingPlugin = Plugins.First<ILoggingPlugin>();
-            _sharedOptions = Plugins.First<SharedOptionsPlugin>();
-            _versionCacheCheckPlugin = Plugins.First<IVersionCacheCheckPlugin>();
-        }
+            OnConfigureCommandLine(Plugins.GetPlugin<ICommandLinePlugin>());
+            _sharedOptions = Plugins.GetPlugin<SharedOptionsPlugin>();
+            _versionCacheCheckPlugin = Plugins.GetPlugin<IVersionCacheCheckPlugin>();
 
-        /// <inheritdoc/>
-        protected override void OnEvents()
-        {
             Events.Subscribe(LifecycleEvents.BeforeEveryRun, _loadingVersionStopwatch.Restart);
 
             Events.SubscribeOnce(

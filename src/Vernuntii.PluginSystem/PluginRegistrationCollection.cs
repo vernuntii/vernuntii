@@ -4,33 +4,34 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.PluginSystem
 {
-    internal class PluginRegistrationCollection
+    internal class PluginRegistrations
     {
-        public IReadOnlySet<PluginRegistration> Sorted => _sorted;
+        public IReadOnlySet<PluginRegistration> Ordered => _orderedPlugins;
 
-        public IReadOnlyDictionary<Type, IPlugin> AcendedPlugins {
+        public IReadOnlyDictionary<Type, IPlugin> FirstByServiceType {
             get {
-                _sealedObject.EnsureSealed();
+                _sealedObject.ThrowIfNotSealed();
                 return _ascendedPlugins;
             }
         }
 
-        private SortedSet<PluginRegistration> _sorted = new SortedSet<PluginRegistration>(PluginRegistrationComparer.Default);
+        private SortedSet<PluginRegistration> _orderedPlugins = new SortedSet<PluginRegistration>(PluginRegistrationComparer.Default);
         private Dictionary<Type, IPlugin> _ascendedPlugins = new Dictionary<Type, IPlugin>();
         private ISealed _sealedObject;
 
-        public PluginRegistrationCollection(ISealed sealedObject) =>
+        public PluginRegistrations(ISealed sealedObject) =>
             _sealedObject = sealedObject ?? throw new ArgumentNullException(nameof(sealedObject));
 
         public void Add(PluginRegistration pluginRegistration) =>
-            _sorted.Add(pluginRegistration);
+            _orderedPlugins.Add(pluginRegistration);
 
         private void InitializeFirstPluginByTypeDictinary()
         {
-            foreach (var pluginRegistration in _sorted) {
+            foreach (var pluginRegistration in _orderedPlugins) {
                 var pluginServiceType = pluginRegistration.ServiceType;
 
                 if (_ascendedPlugins.ContainsKey(pluginServiceType)) {
@@ -43,7 +44,7 @@ namespace Vernuntii.PluginSystem
 
         public void Seal()
         {
-            _sealedObject.EnsureNotSealed();
+            _sealedObject.ThrowIfSealed();
             InitializeFirstPluginByTypeDictinary();
         }
     }

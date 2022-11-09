@@ -1,39 +1,16 @@
 ﻿using Vernuntii.PluginSystem.Events;
 
-namespace Vernuntii.PluginSystem;
+namespace Vernuntii.PluginSystem.Lifecycle;
 
 /// <summary>
-/// A plugin for <see cref="Vernuntii"/>.
+/// A plugin.
 /// </summary>
-public interface IPlugin : IDisposable
+public interface IPlugin
 {
     /// <summary>
-    /// Order of plugin.
+    /// Called when plugins have been constrcuted and are ready to serve.
+    /// Called after registration but before destruction.
     /// </summary>
-    int? Order { get; }
-
-    /// <summary>
-    /// Called when this plugin gets added. It gives
-    /// you the opportunity to prepare dependencies.
-    /// </summary>
-    /// <param name="pluginRegistry"></param>
-    /// <returns><see langword="true"/> accepts the registration.</returns>
-    ValueTask<bool> OnRegistration(IPluginRegistry pluginRegistry);
-
-    /// <summary>
-    /// Called when all plugins are registered and ordered.
-    /// </summary>
-    ValueTask OnAfterRegistration();
-
-    /// <summary>
-    /// Called when this plugin gets notified about event aggregator.
-    /// Called after <see cref="OnAfterRegistration()"/>.
-    /// </summary>
-    /// <param name="eventAggregator"></param>
-    ValueTask OnEvents(IPluginEventCache eventAggregator);
-
-    /// <summary>
-    /// Called when plugin gets explictly destroyed.
-    /// </summary>
-    ValueTask OnDestroy();
+    /// <param name="events"></param>
+    ValueTask OnExecution(IPluginEventCache events);
 }

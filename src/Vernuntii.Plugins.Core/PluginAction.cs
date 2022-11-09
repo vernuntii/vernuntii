@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Vernuntii.PluginSystem;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.Plugins
 {
@@ -32,8 +33,8 @@ namespace Vernuntii.Plugins
                 _handler = handler ?? throw new ArgumentNullException(nameof(handler));
 
             /// <inheritdoc/>
-            protected override void OnAfterRegistration() =>
-                _handler(Plugins.First<TPlugin>());
+            protected override void OnExecution() =>
+                _handler(Plugins.GetPlugin<TPlugin>());
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Vernuntii.Console.GlobalTool
         public MSBuildIntegrationCommandPlugin() =>
             command = new Command("msbuild-integration");
 
-        protected override void OnAfterRegistration() =>
-            Plugins.First<ICommandLinePlugin>().RootCommand.Add(command);
+        protected override void OnExecution() =>
+            Plugins.GetPlugin<ICommandLinePlugin>().RootCommand.Add(command);
     }
 }

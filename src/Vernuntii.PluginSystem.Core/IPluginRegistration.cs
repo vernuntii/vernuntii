@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.PluginSystem
+﻿using Vernuntii.PluginSystem.Lifecycle;
+
+namespace Vernuntii.PluginSystem
 {
     /// <summary>
     /// A plugin registration.
@@ -9,6 +11,11 @@
         /// Unique plugin id.
         /// </summary>
         int PluginId { get; }
+
+        /// <summary>
+        /// The implementation type of <see cref="Plugin"/>.
+        /// </summary>
+        Type ImplementationType { get; }
 
         /// <summary>
         /// The plugin type for filter purpose.
@@ -23,13 +30,18 @@
         IPlugin Plugin { get; }
 
         /// <summary>
-        /// The implementation type of <see cref="Plugin"/>.
-        /// </summary>
-        Type PluginType { get; }
-
-        /// <summary>
         /// Indicates whether the registration was successful.
         /// </summary>
         bool Succeeded { get; }
+
+        /// <summary>
+        /// Implements <see cref="IPluginRegistrationAspect"/>.
+        /// </summary>
+        bool ImplementsRegistrationAspect { get; }
+
+        /// <summary>
+        /// Implements <see cref="IPluginDestructionAspect"/>.
+        /// </summary>
+        bool ImplementsDestructionAspect { get; }
     }
 }

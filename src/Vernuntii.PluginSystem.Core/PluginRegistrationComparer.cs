@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.PluginSystem
+﻿using Vernuntii.PluginSystem.Lifecycle;
+
+namespace Vernuntii.PluginSystem
 {
     /// <summary>
     /// Compares plugin registrations. Compares <see cref="IPlugin.Order"/>
@@ -14,23 +16,26 @@
         /// <inheritdoc/>
         public override int Compare(IPluginRegistration? x, IPluginRegistration? y)
         {
-            if (ReferenceEquals(x, y)) {
-                return 0;
-            } else if (x is null) {
-                return -1;
-            } else if (y is null) {
-                return 1;
-            }
+            // ISSUE: rework
+            return 0;
 
-            var result = Nullable.Compare(x.Plugin.Order, y.Plugin.Order);
+            //if (ReferenceEquals(x, y)) {
+            //    return 0;
+            //} else if (x is null) {
+            //    return -1;
+            //} else if (y is null) {
+            //    return 1;
+            //}
 
-            if (result < 0) {
-                return -1;
-            } else if (result > 0) {
-                return 1;
-            } else {
-                return x.PluginId.CompareTo(y.PluginId);
-            }
+            //var result = Nullable.Compare(x.Plugin.Order, y.Plugin.Order);
+
+            //if (result < 0) {
+            //    return -1;
+            //} else if (result > 0) {
+            //    return 1;
+            //} else {
+            //    return x.PluginId.CompareTo(y.PluginId);
+            //}
         }
     }
 }

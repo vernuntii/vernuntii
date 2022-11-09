@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Vernuntii.Logging;
-using Vernuntii.PluginSystem;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.Plugins
 {
@@ -31,7 +31,7 @@ namespace Vernuntii.Plugins
         ILogger CreateLogger(string category);
 
         /// <summary>
-        /// Binds <see cref="ILoggingPlugin"/> internal logger to <paramref name="builder"/>.
+        /// Binds internal logger of <see cref="ILoggingPlugin"/> to <paramref name="builder"/>.
         /// </summary>
         /// <param name="builder"></param>
         void Bind(ILoggingBuilder builder);

@@ -43,10 +43,22 @@ namespace Vernuntii.Plugins
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        /// <inheritdoc/>
-        protected override void OnAfterRegistration()
+        private void OnParseCommandLineArgs(ParseResult parseResult)
         {
-            var commandLinePlugin = Plugins.First<ICommandLinePlugin>();
+            CacheOptions.CacheId = parseResult.GetValueForOption(_cacheIdOption);
+
+            var cacheCreationRetentionTime = parseResult.GetValueForOption(_cacheCreationRetentionTimeOption);
+
+            if (cacheCreationRetentionTime.HasValue) {
+                CacheOptions.CacheCreationRetentionTime = cacheCreationRetentionTime.Value;
+            }
+
+            CacheOptions.LastAccessRetentionTime = parseResult.GetValueForOption(_cacheLastAccessRetentionTimeOption);
+        }
+
+        protected override void OnExecution()
+        {
+            var commandLinePlugin = Plugins.GetPlugin<ICommandLinePlugin>();
 
             _cacheCreationRetentionTimeOption.Description = "The cache retention time since creation. If the time span since creation is greater than then" +
                 " the at creation specified retention time then the version informations is reloaded. Null or empty means the" +
@@ -62,23 +74,7 @@ namespace Vernuntii.Plugins
             commandLinePlugin.RootCommand.Add(_cacheCreationRetentionTimeOption);
             commandLinePlugin.RootCommand.Add(_cacheLastAccessRetentionTimeOption);
             commandLinePlugin.RootCommand.Add(_cacheIdOption);
-        }
 
-        private void OnParseCommandLineArgs(ParseResult parseResult)
-        {
-            CacheOptions.CacheId = parseResult.GetValueForOption(_cacheIdOption);
-
-            var cacheCreationRetentionTime = parseResult.GetValueForOption(_cacheCreationRetentionTimeOption);
-
-            if (cacheCreationRetentionTime.HasValue) {
-                CacheOptions.CacheCreationRetentionTime = cacheCreationRetentionTime.Value;
-            }
-
-            CacheOptions.LastAccessRetentionTime = parseResult.GetValueForOption(_cacheLastAccessRetentionTimeOption);
-        }
-
-        protected override void OnEvents()
-        {
             Events.SubscribeOnce(
                 CommandLineEvents.ParsedCommandLineArgs,
                 OnParseCommandLineArgs);

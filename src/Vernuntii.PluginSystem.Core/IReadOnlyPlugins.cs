@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.PluginSystem
+﻿using Vernuntii.PluginSystem.Lifecycle;
+
+namespace Vernuntii.PluginSystem
 {
     /// <summary>
     /// Represents the read-only interface for accessing plugins.
@@ -11,9 +13,9 @@
         IReadOnlyCollection<IPluginRegistration> PluginRegistrations { get; }
 
         /// <summary>
-        /// The first appearing plugin.
+        /// Gets the plugin by its type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        T First<T>() where T : IPlugin;
+        T GetPlugin<T>() where T : IPlugin;
     }
 }

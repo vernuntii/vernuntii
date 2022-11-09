@@ -2,7 +2,7 @@
 using System.CommandLine.Builder;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Plugins.CommandLine;
-using Vernuntii.PluginSystem;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.Plugins;
 

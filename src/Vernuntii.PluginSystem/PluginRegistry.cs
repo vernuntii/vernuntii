@@ -1,18 +1,25 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Vernuntii.PluginSystem.Lifecycle;
+using Vernuntii.PluginSystem.Meta;
 
 namespace Vernuntii.PluginSystem
 {
     /// <summary>
     /// The plugin registry.
     /// </summary>
-    public sealed class PluginRegistry : IPluginRegistry, ISealed, IDisposable
+    public sealed class PluginRegistry : IPluginRegistry, ISealed, IAsyncDisposable
     {
         /// <inheritdoc/>
-        public IReadOnlyCollection<IPluginRegistration> PluginRegistrations => _pluginRegistrations.Sorted;
+        public IReadOnlyCollection<IPluginRegistration> PluginRegistrations => _pluginRegistrations.Ordered;
 
         bool ISealed.IsSealed => _isSealed;
 
-        private PluginRegistrationCollection _pluginRegistrations;
+        private ISealed _seal;
+        private SemaphoreSlim _registationLock;
+        private PluginDescriptorCollection _pluginDescriptors;
+        private PluginRegistrations _pluginRegistrations;
+        private ServiceProvider? _pluginProvider;
         private int _pluginRegistrationCounter;
         private bool _isSealed;
         private readonly ILogger<PluginRegistry> _logger;
@@ -22,73 +29,106 @@ namespace Vernuntii.PluginSystem
         /// </summary>
         public PluginRegistry(ILogger<PluginRegistry> logger)
         {
-            _pluginRegistrations = new PluginRegistrationCollection(this);
+            _seal = this;
+            _registationLock = new SemaphoreSlim(1);
+            _pluginDescriptors = new PluginDescriptorCollection();
+            _pluginRegistrations = new PluginRegistrations(this);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        private void DescribePluginRegistrationCore(PluginDescriptor pluginDescriptor) =>
+            _pluginDescriptors.Add(pluginDescriptor);
+
         /// <inheritdoc/>
-        private async ValueTask<IPluginRegistration> RegisterAsyncCore(Type serviceType, IPlugin plugin)
+        public void DescribePluginRegistration(PluginDescriptor pluginDescriptor)
         {
-            ((ISealed)this).EnsureNotSealed();
-            var acceptRegistration = await plugin.OnRegistration(this);
+            _registationLock.Wait();
 
-            int pluginId;
-
-            if (acceptRegistration) {
-                pluginId = _pluginRegistrationCounter++;
-            } else {
-                pluginId = -1;
+            try {
+                DescribePluginRegistrationCore(pluginDescriptor);
+            } finally {
+                _registationLock.Release();
             }
-
-            var pluginRegistration = new PluginRegistration(pluginId, serviceType, plugin);
-
-            if (acceptRegistration) {
-                _pluginRegistrations.Add(pluginRegistration);
-                _logger.LogTrace("Accepted plugin registration: {ServiceType} ({PluginType})", pluginRegistration.ServiceType, pluginRegistration.PluginType);
-            } else {
-                _logger.LogTrace("Denied plugin registration: {ServiceType} ({PluginType})", pluginRegistration.ServiceType, pluginRegistration.PluginType);
-            }
-
-            return pluginRegistration;
         }
 
-        /// <inheritdoc/>
-        public async ValueTask<IPluginRegistration> RegisterAsync(Type serviceType, IPlugin plugin)
+        private async ValueTask ConstructPluginsAsync()
         {
-            var pluginType = plugin.GetType();
+            var pluginDescriptors = _pluginDescriptors;
+            var pluginProvider = pluginDescriptors.BuildServiceProvider();
+            var pluginsWithRegistrationAspect = new List<IPluginRegistrationAspect>();
 
-            if (!serviceType.IsAssignableFrom(plugin.GetType())) {
-                throw new ArgumentException($"Service type \"{serviceType}\" is not a subset of plugin type \"{pluginType.GetType()}\"", nameof(serviceType));
+            foreach (var pluginDescriptor in pluginDescriptors) {
+                var plugin = (IPlugin)pluginProvider.GetRequiredService(pluginDescriptor.ServiceType);
+                bool acceptRegistration;
+
+                if (plugin is IPluginRegistrationAspect pluginWithRegistrationAspect) {
+                    pluginsWithRegistrationAspect.Add(pluginWithRegistrationAspect);
+                    acceptRegistration = await pluginWithRegistrationAspect.OnRegistration(this);
+                } else {
+                    acceptRegistration = true;
+                }
+
+                var pluginId = acceptRegistration
+                    ? _pluginRegistrationCounter++
+                    : -1;
+
+                if (acceptRegistration) {
+                    var pluginDescriptorWithInstance = new PluginDescriptorBase<IPlugin>(
+                        pluginDescriptor.ServiceType,
+                        plugin,
+                        pluginDescriptor.PluginType);
+
+                    var pluginRegistration = new PluginRegistration(pluginId, pluginDescriptorWithInstance);
+
+                    _pluginRegistrations.Add(pluginRegistration);
+                    _logger.LogTrace("Accepted plugin registration: {ServiceType} ({PluginType})", pluginRegistration.ServiceType, pluginRegistration.ImplementationType);
+                } else {
+                    _logger.LogTrace("Denied plugin registration: {ServiceType} ({PluginType})", pluginDescriptor.ServiceType, pluginDescriptor.PluginType);
+                }
             }
 
-            return await RegisterAsyncCore(serviceType, plugin);
+            _pluginProvider = pluginProvider;
         }
 
         /// <summary>
-        /// Seals the registry.
+        /// Completes the registation phase by loading plugin dependencies and constructing missing plugins.
         /// </summary>
-        public void Seal()
+        public async ValueTask CompleteRegistrationPhase()
         {
-            _pluginRegistrations.Seal();
-            _isSealed = true;
-        }
+            await _registationLock.WaitAsync();
 
-        /// <inheritdoc/>
-        public T First<T>()
-            where T : IPlugin
-        {
-            ((ISealed)this).EnsureSealed();
-
-            if (!_pluginRegistrations.AcendedPlugins.TryGetValue(typeof(T), out var firstPlugin)
-                || firstPlugin is not T firstPluginTyped) {
-                throw new PluginNotFoundException($"A plugin registered as service \"{typeof(T)}\" was not registered");
+            try {
+                _seal.ThrowIfSealed();
+                await ConstructPluginsAsync();
+                Seal();
+            } finally {
+                _registationLock.Release();
             }
 
-            return firstPluginTyped;
+            void Seal()
+            {
+                _pluginRegistrations.Seal();
+                _isSealed = true;
+            }
         }
 
         /// <inheritdoc/>
-        public void Dispose() { }
+        public T GetPlugin<T>()
+            where T : IPlugin
+        {
+            _seal.ThrowIfNotSealed();
+
+            if (!_pluginRegistrations.FirstByServiceType.TryGetValue(typeof(T), out var plugin)
+                || plugin is not T typedPlugin) {
+                throw new PluginNotFoundException($"A plugin with service type of \"{typeof(T)}\" was not registered");
+            }
+
+            return typedPlugin;
+        }
+
+        /// <inheritdoc/>
+        public ValueTask DisposeAsync() =>
+            _pluginProvider?.DisposeAsync() ?? ValueTask.CompletedTask;
 
         private class Disposable : IDisposable
         {

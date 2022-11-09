@@ -6,10 +6,9 @@
     public interface IPluginRegistry : IReadOnlyPlugins
     {
         /// <summary>
-        /// Registers a plugin.
+        /// Describes a plugin registration.
         /// </summary>
-        /// <param name="serviceType"></param>
-        /// <param name="plugin"></param>
-        ValueTask<IPluginRegistration> RegisterAsync(Type serviceType, IPlugin plugin);
+        /// <param name="pluginDescriptor"></param>
+        void DescribePluginRegistration(PluginDescriptor pluginDescriptor);
     }
 }

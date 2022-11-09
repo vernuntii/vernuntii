@@ -12,13 +12,15 @@ using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Meta;
 
 namespace Vernuntii.Plugins
 {
     /// <summary>
-    /// The commandline plugin
+    /// The commandline plugin.
     /// </summary>
-    [Plugin<ICommandLinePlugin>]
+    [RegisterPlugin<ICommandLinePlugin>]
+    [Plugin(Order = -3000)]
     public class CommandLinePlugin : Plugin, ICommandLinePlugin
     {
         private static void ConfigureCommandLineBuilder(CommandLineBuilder builder, ILogger logger) =>
@@ -66,9 +68,6 @@ namespace Vernuntii.Plugins
             action is null ? null : CommandHandler.Create(action);
 
         /// <inheritdoc/>
-        public override int? Order => -3000;
-
-        /// <inheritdoc/>
         public ICommandWrapper RootCommand { get; }
 
         /// <inheritdoc/>
@@ -91,10 +90,6 @@ namespace Vernuntii.Plugins
             _rootCommand = new RootCommand();
             RootCommand = new CommandWrapper(_rootCommand, CreateCommandHandler);
         }
-
-        /// <inheritdoc/>
-        protected override void OnAfterRegistration() =>
-            _logger = Plugins.First<ILoggingPlugin>().CreateLogger<ICommandLinePlugin>();
 
         /// <summary>
         /// Called when <see cref="CommandLineEvents.ParseCommandLineArgs"/> is happening.
@@ -167,8 +162,10 @@ namespace Vernuntii.Plugins
         }
 
         /// <inheritdoc/>
-        protected override void OnEvents()
+        protected override void OnExecution()
         {
+            _logger = Plugins.GetPlugin<ILoggingPlugin>().CreateLogger<ICommandLinePlugin>();
+
             Events.SubscribeOnce(CommandLineEvents.SetCommandLineArgs, args => CommandLineArgs = args);
             Events.SubscribeOnce(CommandLineEvents.ParseCommandLineArgs, ParseCommandLineArgs);
             Events.Subscribe(CommandLineEvents.InvokeRootCommand, InvokeRootCommand);

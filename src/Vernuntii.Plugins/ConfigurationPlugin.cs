@@ -1,5 +1,4 @@
-﻿using System.CommandLine;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Configuration;
 using Vernuntii.Configuration.Json;
@@ -8,16 +7,17 @@ using Vernuntii.Extensions;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Meta;
 
 namespace Vernuntii.Plugins
 {
     /// <summary>
     /// The plugin provides a global <see cref="IConfiguration"/> instance.
     /// </summary>
+    [Plugin(Order = -1000)]
+    [PluginDependency<SharedOptionsPlugin>(TryRegister = true)]
     public class ConfigurationPlugin : Plugin, IConfigurationPlugin
     {
-        /// <inheritdoc/>
-        public override int? Order => -1000;
         /// <inheritdoc/>
         public IConfiguration Configuration { get; private set; } = null!;
 
@@ -31,11 +31,35 @@ namespace Vernuntii.Plugins
             private set => _configFile = value;
         }
 
-        private SharedOptionsPlugin _sharedOptions = null!;
-        private ILogger _logger = null!;
-        private IVersionCacheCheckPlugin _cacheCheckPlugin = null!;
+        private SharedOptionsPlugin? _sharedOptions;
+        private ILogger? _logger;
+        private IVersionCacheCheckPlugin? _cacheCheckPlugin;
         private bool _isConfigurationBuilderConfigured;
         private string? _configFile;
+
+        ///// <summary>
+        ///// Constructs this type.
+        ///// </summary>
+        ///// <param name="sharedOptions"></param>
+        ///// <param name="logging"></param>
+        ///// <param name="cacheCheckPlugin"></param>
+        ///// <exception cref="ArgumentNullException"></exception>
+        //public ConfigurationPlugin(
+        //    SharedOptionsPlugin sharedOptions,
+        //    ILoggingPlugin logging,
+        //    IVersionCacheCheckPlugin cacheCheckPlugin)
+        //{
+        //    //_sharedOptions = sharedOptions ?? throw new ArgumentNullException(nameof(sharedOptions));
+        //    //ArgumentNullException.ThrowIfNull(logging);
+        //    //_logger = logging.CreateLogger<ConfigurationPlugin>();
+        //    //_cacheCheckPlugin = cacheCheckPlugin ?? throw new ArgumentNullException(nameof(sharedOptions));
+        //}
+
+        //protected override void OnRegistration(RegistrationContext registrationContext)
+        //{
+        //     registrationContext.PluginRegistry.re<SharedOptionsPlugin>();
+        //    registrationContext.
+        //}
 
         private void EnsureConfiguredConfigurationBuilder()
         {
@@ -45,20 +69,12 @@ namespace Vernuntii.Plugins
         }
 
         /// <inheritdoc/>
-        protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
-            await registrationContext.PluginRegistry.TryRegisterAsync<SharedOptionsPlugin>();
-
-        /// <inheritdoc/>
-        protected override void OnAfterRegistration()
+        protected override void OnExecution()
         {
-            _sharedOptions = Plugins.First<SharedOptionsPlugin>();
-            _logger = Plugins.First<ILoggingPlugin>().CreateLogger<ConfigurationPlugin>();
-            _cacheCheckPlugin = Plugins.First<IVersionCacheCheckPlugin>();
-        }
+            _sharedOptions = Plugins.GetPlugin<SharedOptionsPlugin>();
+            _logger = Plugins.GetPlugin<ILoggingPlugin>().CreateLogger<ConfigurationPlugin>();
+            _cacheCheckPlugin = Plugins.GetPlugin<IVersionCacheCheckPlugin>();
 
-        /// <inheritdoc/>
-        protected override void OnEvents()
-        {
             var configurationBuilder = new ConventionalConfigurationBuilder()
                 .AddConventionalYamlFileFinder()
                 .AddConventionalJsonFileFinder();

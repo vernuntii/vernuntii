@@ -12,12 +12,14 @@ using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Meta;
 
 namespace Vernuntii.Plugins;
 
 /// <summary>
 /// The git plugin.
 /// </summary>
+[PluginDependency<SharedOptionsPlugin>(TryRegister = true)]
 public class GitPlugin : Plugin, IGitPlugin
 {
     private const string DefaultGitPointerFile = "vernuntii.git";
@@ -138,22 +140,6 @@ public class GitPlugin : Plugin, IGitPlugin
         _alternativeGitCommand = null;
     }
 
-    /// <inheritdoc/>
-    protected override async ValueTask OnRegistrationAsync(RegistrationContext registrationContext) =>
-        await registrationContext.PluginRegistry.TryRegisterAsync<SharedOptionsPlugin>();
-
-    /// <inheritdoc/>
-    protected override void OnAfterRegistration()
-    {
-        var commandlinePlugin = Plugins.First<ICommandLinePlugin>();
-        commandlinePlugin.RootCommand.Add(_overridePostPreReleaseOption);
-        commandlinePlugin.RootCommand.Add(_duplicateVersionFailsOption);
-
-        _sharedOptions = Plugins.First<SharedOptionsPlugin>();
-        _nextVersionPlugin = Plugins.First<INextVersionPlugin>();
-        _logger = Plugins.First<ILoggingPlugin>().CreateLogger<GitPlugin>();
-    }
-
     private string ResolveWorkingTreeDirectory()
     {
         string directoryToResolve;
@@ -221,8 +207,16 @@ public class GitPlugin : Plugin, IGitPlugin
     }
 
     /// <inheritdoc/>
-    protected override void OnEvents()
+    protected override void OnExecution()
     {
+        var commandlinePlugin = Plugins.GetPlugin<ICommandLinePlugin>();
+        commandlinePlugin.RootCommand.Add(_overridePostPreReleaseOption);
+        commandlinePlugin.RootCommand.Add(_duplicateVersionFailsOption);
+
+        _sharedOptions = Plugins.GetPlugin<SharedOptionsPlugin>();
+        _nextVersionPlugin = Plugins.GetPlugin<INextVersionPlugin>();
+        _logger = Plugins.GetPlugin<ILoggingPlugin>().CreateLogger<GitPlugin>();
+
         Events.SubscribeOnce(
             CommandLineEvents.ParsedCommandLineArgs,
             parseResult => {

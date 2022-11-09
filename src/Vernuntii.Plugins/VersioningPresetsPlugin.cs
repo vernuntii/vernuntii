@@ -5,6 +5,7 @@ using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Meta;
 using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersioningPresets;
 
@@ -13,6 +14,7 @@ namespace Vernuntii.Plugins
     /// <summary>
     /// A plugin to manage versioning presets.
     /// </summary>
+    [Plugin(Order = -4000)]
     public class VersioningPresetsPlugin : Plugin, IVersioningPresetsPlugin
     {
         /// <summary>
@@ -52,9 +54,6 @@ namespace Vernuntii.Plugins
             return presets;
         }
 
-        /// <inheritdoc/>
-        public override int? Order => -4000;
-
         /// <summary>
         /// <inheritdoc/>
         /// Includes initially all inbuilt presets and others.
@@ -79,7 +78,7 @@ namespace Vernuntii.Plugins
         /// <br/> - <see cref="IConfiguredMessageIndicatorFactoryRegistry"/>
         /// <br/> - <see cref="IHeightConventionRegistry"/>
         /// </summary>
-        protected override void OnEvents()
+        protected override void OnExecution()
         {
             Events.SubscribeOnce(NextVersionEvents.ConfigureGlobalServices, services => {
                 services.AddSingleton(PresetManager);

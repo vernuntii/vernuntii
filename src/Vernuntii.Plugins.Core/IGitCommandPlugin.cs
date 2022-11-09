@@ -1,5 +1,5 @@
 ﻿using Vernuntii.Git.Commands;
-using Vernuntii.PluginSystem;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.Plugins
 {

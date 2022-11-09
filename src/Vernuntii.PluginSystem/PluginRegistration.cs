@@ -1,19 +1,26 @@
-﻿namespace Vernuntii.PluginSystem
+﻿using Vernuntii.PluginSystem.Lifecycle;
+
+namespace Vernuntii.PluginSystem
 {
     internal record class PluginRegistration : IPluginRegistration
     {
         public int PluginId { get; }
-        public Type ServiceType { get; }
-        public IPlugin Plugin { get; }
-        public Type PluginType { get; }
         public bool Succeeded => PluginId >= 0;
+        public Type ImplementationType => _pluginDescriptor.PluginType;
+        public Type ServiceType => _pluginDescriptor.ServiceType;
+        public IPlugin Plugin => _pluginDescriptor.Plugin;
 
-        public PluginRegistration(int pluginId, Type serviceType, IPlugin plugin)
+        public bool ImplementsRegistrationAspect { get; }
+        public bool ImplementsDestructionAspect { get; }
+
+        private PluginDescriptorBase<IPlugin> _pluginDescriptor;
+
+        public PluginRegistration(int pluginId, PluginDescriptorBase<IPlugin> pluginDescriptor)
         {
             PluginId = pluginId;
-            Plugin = plugin ?? throw new ArgumentNullException(nameof(plugin));
-            PluginType = plugin.GetType();
-            ServiceType = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
+            _pluginDescriptor = pluginDescriptor;
+            ImplementsRegistrationAspect = pluginDescriptor.Plugin is IPluginRegistrationAspect;
+            ImplementsDestructionAspect = pluginDescriptor.Plugin is IPluginDestructionAspect;
         }
     }
 }

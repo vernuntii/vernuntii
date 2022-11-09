@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Vernuntii.Plugins.Events;
-using Vernuntii.PluginSystem;
+using Vernuntii.PluginSystem.Lifecycle;
 
 namespace Vernuntii.Plugins
 {

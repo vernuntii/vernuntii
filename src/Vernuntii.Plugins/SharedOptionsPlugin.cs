@@ -68,20 +68,17 @@ namespace Vernuntii.Plugins
         }
 
         /// <inheritdoc/>
-        protected override void OnAfterRegistration()
+        protected override void OnExecution()
         {
-            var versioningPresetsPlugin = Plugins.First<IVersioningPresetsPlugin>();
+            var versioningPresetsPlugin = Plugins.GetPlugin<IVersioningPresetsPlugin>();
 
             _overrideVersioningModeOption = new Option<string?>(new[] { "--override-versioning-mode" })
                 .AddCompletions(_ => versioningPresetsPlugin.PresetManager.VersioningPresets.Names);
 
-            var commandLinePlugin = Plugins.First<ICommandLinePlugin>();
+            var commandLinePlugin = Plugins.GetPlugin<ICommandLinePlugin>();
             commandLinePlugin.RootCommand.Add(_overrideVersioningModeOption);
             commandLinePlugin.RootCommand.Add(_configPathOption);
-        }
 
-        /// <inheritdoc/>
-        protected override void OnEvents() =>
             Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult => {
                 Events.Publish(SharedOptionsEvents.ParseCommandLineArgs);
 
@@ -92,5 +89,6 @@ namespace Vernuntii.Plugins
                 _areCommandLineArgsParsed = true;
                 Events.Publish(SharedOptionsEvents.ParsedCommandLineArgs);
             });
+        }
     }
 }

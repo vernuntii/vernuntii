@@ -39,6 +39,6 @@ internal class ConsoleLocateCommandPlugin : Plugin
         });
     }
 
-    protected override void OnAfterRegistration() =>
-        Plugins.First<ICommandLinePlugin>().RootCommand.Add(locateCommand);
+    protected override void OnExecution() =>
+        Plugins.GetPlugin<ICommandLinePlugin>().RootCommand.Add(locateCommand);
 }

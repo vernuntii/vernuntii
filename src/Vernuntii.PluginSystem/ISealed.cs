@@ -4,14 +4,14 @@
     {
         bool IsSealed { get; }
 
-        public void EnsureNotSealed()
+        public void ThrowIfSealed()
         {
             if (IsSealed) {
                 throw new InvalidOperationException($"The object of type {GetType()} is sealed and cannot be changed anymore");
             }
         }
 
-        public void EnsureSealed()
+        public void ThrowIfNotSealed()
         {
             if (!IsSealed) {
                 throw new InvalidOperationException($"The object of type {GetType()} is not sealed yet");

@@ -135,14 +135,14 @@ namespace Vernuntii.Console.GlobalTool
             }
         }
 
-        protected override void OnAfterRegistration()
+        protected override void OnExecution()
         {
-            Plugins.First<MSBuildIntegrationCommandPlugin>().Command.AddCommand(_command);
+            Plugins.GetPlugin<MSBuildIntegrationCommandPlugin>().Command.AddCommand(_command);
 
-            _loggingPlugin = Plugins.First<ILoggingPlugin>();
+            _loggingPlugin = Plugins.GetPlugin<ILoggingPlugin>();
             _logger = _loggingPlugin.CreateLogger<MSBuildIntegrationLocateCommandPlugin>();
 
-            var nugetActionLogger = Plugins.First<ILoggingPlugin>().CreateLogger<NuGetRunner>();
+            var nugetActionLogger = Plugins.GetPlugin<ILoggingPlugin>().CreateLogger<NuGetRunner>();
             nugetTasks = new NuGetRunner(nugetActionLogger);
         }
     }
