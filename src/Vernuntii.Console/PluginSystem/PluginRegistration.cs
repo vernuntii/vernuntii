@@ -1,6 +1,4 @@
-﻿using Vernuntii.PluginSystem;
-
-namespace Vernuntii.PluginSystem
+﻿namespace Vernuntii.PluginSystem
 {
     internal record class PluginRegistration : IPluginRegistration
     {
@@ -10,7 +8,7 @@ namespace Vernuntii.PluginSystem
         public Type ServiceType => _pluginDescriptor.ServiceType;
         public IPlugin Plugin { get; }
 
-        private PluginDescriptor _pluginDescriptor;
+        private readonly PluginDescriptor _pluginDescriptor;
 
         public PluginRegistration(IPlugin plugin, int pluginId, PluginDescriptor pluginDescriptor)
         {

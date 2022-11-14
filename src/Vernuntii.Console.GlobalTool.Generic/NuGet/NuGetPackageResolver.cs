@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using NuGet.Configuration;
+﻿using NuGet.Configuration;
 
 namespace Vernuntii.Console.GlobalTool.NuGet
 {

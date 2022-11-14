@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vernuntii.Caching
+﻿namespace Vernuntii.Caching
 {
     /// <summary>
     /// The default implementation of <see cref="IMemoryCache"/>.
     /// </summary>
     public class DefaultMemoryCache : IMemoryCache
     {
-        private Dictionary<object, object?> _dictinary = new Dictionary<object, object?>();
+        private readonly Dictionary<object, object?> _dictinary = new();
 
         /// <inheritdoc/>
         public bool TryGetValue<T>(object key, out T value)

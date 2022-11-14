@@ -1,9 +1,9 @@
 ﻿using Vernuntii.MessageConventions;
 using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.MessagesProviders;
-using Vernuntii.VersionIncrementing;
 using Vernuntii.SemVer;
 using Vernuntii.VersionIncrementFlows;
+using Vernuntii.VersionIncrementing;
 using Vernuntii.VersionTransformers;
 using Xunit;
 
@@ -36,7 +36,7 @@ namespace Vernuntii.VersioningPresets
         [MemberData(nameof(BuildIncrementShouldTransformVersionsGenerator))]
         public void BuildIncrementShouldTransformVersions(ISemanticVersion startVersion, bool expectedDownstreamFlow, ISemanticVersion expectedVersion)
         {
-            var preset = new VersioningPreset() {
+            VersioningPreset preset = new() {
                 IncrementMode = VersionIncrementMode.Successive,
                 MessageConvention = new MessageConvention() {
                     MajorIndicators = new[] { TruthyMessageIndicator.Default }
@@ -44,14 +44,14 @@ namespace Vernuntii.VersioningPresets
                 IncrementFlow = VersionIncrementFlow.ZeroMajorDownstream,
             };
 
-            var builder = new VersionIncrementBuilder();
+            VersionIncrementBuilder builder = new();
 
-            var context = new VersionIncrementContext(new SingleVersionCalculationOptions() {
+            VersionIncrementContext context = new(new SingleVersionCalculationOptions() {
                 StartVersion = startVersion,
                 VersioningPreset = preset
             });
 
-            var nextVersion = builder.BuildIncrement(new Message(), context).TransformVersion(startVersion);
+            ISemanticVersion nextVersion = builder.BuildIncrement(new Message(), context).TransformVersion(startVersion);
             Assert.Equal(expectedDownstreamFlow, context.IsVersionDownstreamFlowed);
             Assert.Equal(expectedVersion, nextVersion);
         }

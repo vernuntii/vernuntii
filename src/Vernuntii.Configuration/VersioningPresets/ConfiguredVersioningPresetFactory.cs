@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Vernuntii.Configuration;
 using Vernuntii.Extensions;
-using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersionIncrementing;
@@ -88,7 +87,7 @@ namespace Vernuntii.VersioningPresets
                 messageConvention = basePreset.MessageConvention;
             }
 
-            IHeightConvention? heightConvention = basePreset.HeightConvention;
+            var heightConvention = basePreset.HeightConvention;
             var versionIncrementMode = versioningModeObject.IncrementMode ?? basePreset.IncrementMode;
 
             return new VersioningPreset() {

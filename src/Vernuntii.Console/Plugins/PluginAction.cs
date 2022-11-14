@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Vernuntii.PluginSystem;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Plugins
@@ -35,6 +29,7 @@ namespace Vernuntii.Plugins
             /// <summary>
             /// Creates an instance of this type.
             /// </summary>
+            /// <param name="pluginRegistry"></param>
             /// <param name="handler">
             /// The handler that is called after registration.
             /// </param>

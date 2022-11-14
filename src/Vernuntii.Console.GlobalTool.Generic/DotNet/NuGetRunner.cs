@@ -13,7 +13,7 @@ namespace Vernuntii.Console.GlobalTool.DotNet
         private static DownloadedPackage? GetGlobalPackage(string packageName, string packageVersion) =>
             NuGetPackageResolver.GetGlobalDownloadedPackage(packageName, packageVersion);
 
-        ILogger<NuGetRunner> _logger;
+        private readonly ILogger<NuGetRunner> _logger;
 
         public NuGetRunner(ILogger<NuGetRunner> logger) =>
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

@@ -7,7 +7,7 @@ namespace Vernuntii.PluginSystem
     /// </summary>
     public class PluginExecutor
     {
-        private PluginRegistry _pluginRegistry;
+        private readonly PluginRegistry _pluginRegistry;
         private readonly IPluginEventCache _pluginEvents;
 
         /// <summary>

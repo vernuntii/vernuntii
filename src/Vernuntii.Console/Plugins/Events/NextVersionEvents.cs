@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.PluginSystem.Events;
-using Vernuntii.SemVer;
 using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Plugins.Events
@@ -13,32 +12,32 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when global service collection is about to be configured.
         /// </summary>
-        public readonly static SubjectEvent<IServiceCollection> ConfigureGlobalServices = new SubjectEvent<IServiceCollection>();
+        public static readonly SubjectEvent<IServiceCollection> ConfigureGlobalServices = new();
 
         /// <summary>
         /// Event when global service collection has been configured.
         /// </summary>
-        public readonly static SubjectEvent<IServiceCollection> ConfiguredGlobalServices = new SubjectEvent<IServiceCollection>();
+        public static readonly SubjectEvent<IServiceCollection> ConfiguredGlobalServices = new();
 
         /// <summary>
         /// Event when calculation service collection is created.
         /// </summary>
-        public readonly static SubjectEvent<IServiceCollection> CreatedCalculationServices = new SubjectEvent<IServiceCollection>();
+        public static readonly SubjectEvent<IServiceCollection> CreatedCalculationServices = new();
 
         /// <summary>
         /// Event when calculation service collection has been configured.
         /// </summary>
-        public readonly static SubjectEvent<IServiceCollection> ConfiguredCalculationServices = new SubjectEvent<IServiceCollection>();
+        public static readonly SubjectEvent<IServiceCollection> ConfiguredCalculationServices = new();
 
         /// <summary>
         /// Event when calculation service collection has been configured.
         /// </summary>
-        public readonly static SubjectEvent<IServiceProvider> CreatedCalculationServiceProvider = new SubjectEvent<IServiceProvider>();
+        public static readonly SubjectEvent<IServiceProvider> CreatedCalculationServiceProvider = new();
 
         /// <summary>
         /// Event when next version has been calculated.
         /// </summary>
-        public readonly static SubjectEvent<IVersionCache> CalculatedNextVersion = new SubjectEvent<IVersionCache>();
+        public static readonly SubjectEvent<IVersionCache> CalculatedNextVersion = new();
 
 
     }

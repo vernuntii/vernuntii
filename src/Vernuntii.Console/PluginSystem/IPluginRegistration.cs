@@ -1,6 +1,4 @@
-﻿using Vernuntii.PluginSystem;
-
-namespace Vernuntii.PluginSystem
+﻿namespace Vernuntii.PluginSystem
 {
     /// <summary>
     /// A plugin registration.

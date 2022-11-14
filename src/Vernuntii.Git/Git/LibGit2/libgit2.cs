@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Vernuntii.Git.LibGit2.Helpers;
 
 namespace Vernuntii.Git.LibGit2
@@ -17,7 +11,7 @@ namespace Vernuntii.Git.LibGit2
         private const string LibGit2Binary = "git2-182d0d1";
 
         [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "<Pending>")]
-        private readonly static Lifetime _lifetime;
+        private static readonly Lifetime _lifetime;
 
         static libgit2() => _lifetime = new Lifetime();
 
@@ -224,7 +218,6 @@ namespace Vernuntii.Git.LibGit2
         /// <param name="filters">A loaded git_filter_list (or null)</param>
         /// <param name="repo">The repository to perform the filtering in</param>
         /// <param name="path">The path of the file to filter; a relative path will be taken as relative to the workdir</param>
-        /// <param name="blob">The blob to filter</param>
         [DllImport(LibGit2Binary, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe int git_filter_list_apply_to_file(git_buf outputBuffer, git_filter_list* filters, git_repository* repo, string path);
 
@@ -273,7 +266,7 @@ namespace Vernuntii.Git.LibGit2
         /// <param name="blob">The blob to which the filter will be applied (if known)</param>
         /// <param name="path">Relative path of the file to be filtered</param>
         /// <param name="mode">Filtering direction (WT->ODB or ODB->WT)</param>
-        /// <param name="flags">Combination of `git_filter_flag_t` flags</param>
+        /// <param name="opts"></param>
         /// <returns>0 on success (which could still return NULL if no filters are needed for the requested file) or an error code</returns>
         [DllImport(LibGit2Binary, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe int git_filter_list_load_ext(
@@ -411,6 +404,8 @@ namespace Vernuntii.Git.LibGit2
         /// Get or set a global configuration option for libgit2.
         /// </summary>
         /// <param name="option">The option value to get or set</param>
+        /// <param name="level"></param>
+        /// <param name="buf"></param>
         /// <param name="...">The options to set</param>
         /// <returns>0 on success or an error code</returns>
         [DllImport(LibGit2Binary, CallingConvention = CallingConvention.Cdecl)]
@@ -603,6 +598,9 @@ namespace Vernuntii.Git.LibGit2
         /// <summary>
         /// Return the OID of an ODB object; this is the OID from which the
         // object was read from.
+        /// <summary>
+        /// 
+        /// </summary>
         /// </summary>
         /// <param name="object">The object to lookup the ID of</param>
         /// <returns>A pointer to the object ID</returns>
@@ -664,7 +662,7 @@ namespace Vernuntii.Git.LibGit2
         /// </para>
         /// </summary>
         /// <param name="len_out">Pointer to store the length</param>
-        /// <param name="type_out">Pointer to store the type</param>
+        /// <param name="type"></param>
         /// <param name="odb">Database to search for the object in</param>
         /// <param name="id">ID of the objecft to read</param>
         /// <returns>0 on success, GIT_ENOTFOUND if the object is not in the database, or an error code</returns>
@@ -890,7 +888,7 @@ namespace Vernuntii.Git.LibGit2
         /// Create an iterator for the repository's references.
         /// </summary>
         /// <param name="iterator">Pointer to the iterator that was created</param>
-        /// <param name="index">The index to iterate over</param>
+        /// <param name="repository"></param>
         /// <returns>0 on success or an error code</returns>
         [DllImport(LibGit2Binary, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe int git_reference_iterator_new(out git_reference_iterator* iterator, git_repository* repository);
@@ -1092,7 +1090,7 @@ namespace Vernuntii.Git.LibGit2
         /// </summary>
         private sealed class Lifetime : IDisposable
         {
-            static string GetRuntimeIdentifier()
+            private static string GetRuntimeIdentifier()
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
                     return "linux-x64";
@@ -1105,7 +1103,7 @@ namespace Vernuntii.Git.LibGit2
                 }
             }
 
-            ShutdownFinalizer _shutdownFinalizer;
+            private readonly ShutdownFinalizer _shutdownFinalizer;
 
             [MethodImpl(MethodImplOptions.NoInlining)]
             public Lifetime()
@@ -1122,7 +1120,7 @@ namespace Vernuntii.Git.LibGit2
 
             private sealed class ShutdownFinalizer : CriticalFinalizerObject, IDisposable
             {
-                int _initCounter;
+                private int _initCounter;
 
                 public ShutdownFinalizer(int initCounter) =>
                     _initCounter = initCounter;

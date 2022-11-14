@@ -5,7 +5,7 @@
     /// </summary>
     public class PluginEventCache : IPluginEventCache
     {
-        private EventCache _eventAggregator = new EventCache();
+        private readonly EventCache _eventAggregator = new();
 
         /// <inheritdoc/>
         public T GetEvent<T>(T eventTemplate)

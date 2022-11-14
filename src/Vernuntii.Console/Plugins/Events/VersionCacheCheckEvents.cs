@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Vernuntii.PluginSystem.Events;
+﻿using Vernuntii.PluginSystem.Events;
 using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Plugins.Events
@@ -12,21 +11,21 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when the version cache manager is about to be created.
         /// </summary>
-        public readonly static SubjectEvent CreateVersionCacheManager = new SubjectEvent();
+        public static readonly SubjectEvent CreateVersionCacheManager = new();
 
         /// <summary>
         /// The event when the version cache manager has been created.
         /// </summary>
-        public readonly static SubjectEvent<IVersionCacheManager> CreatedVersionCacheManager = new SubjectEvent<IVersionCacheManager>();
+        public static readonly SubjectEvent<IVersionCacheManager> CreatedVersionCacheManager = new();
 
         /// <summary>
         /// Event before up-to-date check.
         /// </summary>
-        public readonly static SubjectEvent CheckVersionCache = new SubjectEvent();
+        public static readonly SubjectEvent CheckVersionCache = new();
 
         /// <summary>
         /// Event after up-to-date check.
         /// </summary>
-        public readonly static SubjectEvent CheckedVersionCache = new SubjectEvent();
+        public static readonly SubjectEvent CheckedVersionCache = new();
     }
 }

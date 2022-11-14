@@ -8,12 +8,12 @@
         /// <summary>
         /// Parse result with state <see cref="IdentifierParseResultState.InvalidParse"/>.
         /// </summary>
-        public static IdentifierParseResult<T> InvalidParse<T>(T? value) => new IdentifierParseResult<T>(IdentifierParseResultState.InvalidParse, value);
+        public static IdentifierParseResult<T> InvalidParse<T>(T? value) => new(IdentifierParseResultState.InvalidParse, value);
 
         /// <summary>
         /// Parse result with state <see cref="IdentifierParseResultState.ValidParse"/>.
         /// </summary>
-        public static IdentifierParseResult<T> ValidParse<T>(T? value) => new IdentifierParseResult<T>(IdentifierParseResultState.ValidParse, value);
+        public static IdentifierParseResult<T> ValidParse<T>(T? value) => new(IdentifierParseResultState.ValidParse, value);
     }
 
     /// <summary>
@@ -24,22 +24,22 @@
         /// <summary>
         /// Parse result with invalid state <see cref="IdentifierParseResultState.Null"/>.
         /// </summary>
-        public readonly static IdentifierParseResult<T> InvalidNull = new IdentifierParseResult<T>(IdentifierParseResultState.Null);
+        public static readonly IdentifierParseResult<T> InvalidNull = new(IdentifierParseResultState.Null);
 
         /// <summary>
         /// Parse result with valid state <see cref="IdentifierParseResultState.Null"/>.
         /// </summary>
-        public readonly static IdentifierParseResult<T> ValidNull = new IdentifierParseResult<T>(IdentifierParseResultState.Null, IdentifierParseResultState.Null);
+        public static readonly IdentifierParseResult<T> ValidNull = new(IdentifierParseResultState.Null, IdentifierParseResultState.Null);
 
         /// <summary>
         /// Parse result with state <see cref="IdentifierParseResultState.Empty"/>.
         /// </summary>
-        public readonly static IdentifierParseResult<T> InvalidEmpty = new IdentifierParseResult<T>(IdentifierParseResultState.Empty);
+        public static readonly IdentifierParseResult<T> InvalidEmpty = new(IdentifierParseResultState.Empty);
 
         /// <summary>
         /// Parse result with state <see cref="IdentifierParseResultState.WhiteSpace"/>.
         /// </summary>
-        public readonly static IdentifierParseResult<T> InvalidWhiteSpace = new IdentifierParseResult<T>(IdentifierParseResultState.WhiteSpace);
+        public static readonly IdentifierParseResult<T> InvalidWhiteSpace = new(IdentifierParseResultState.WhiteSpace);
 
         /// <inheritdoc/>
         public IdentifierParseResultState State { get; }
@@ -53,7 +53,7 @@
         /// <inheritdoc/>
         public T? Value { get; init; }
 
-        private IdentifierParseResultState _successFlags;
+        private readonly IdentifierParseResultState _successFlags;
 
         internal IdentifierParseResult(IdentifierParseResultState state, IdentifierParseResultState successFlags)
         {

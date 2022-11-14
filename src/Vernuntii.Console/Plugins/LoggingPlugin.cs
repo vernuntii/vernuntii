@@ -1,15 +1,11 @@
 ﻿using System.CommandLine;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using NLog;
 using NLog.Common;
 using NLog.Config;
 using NLog.Extensions.Logging;
-using NLog.Filters;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Vernuntii.Logging;
@@ -44,10 +40,10 @@ namespace Vernuntii.Plugins
             }
         }
 
-        private LoggingConfiguration _loggingConfiguration;
-        private ColoredConsoleTarget _consoleTarget;
-        private Target _asyncConsoleTarget;
-        private BlockTarget _blockTarget;
+        private readonly LoggingConfiguration _loggingConfiguration;
+        private readonly ColoredConsoleTarget _consoleTarget;
+        private readonly Target _asyncConsoleTarget;
+        private readonly BlockTarget _blockTarget;
         private Logger _logger = null!;
         private ILoggerFactory _loggerFactory;
         private Action<ILoggingBuilder> _loggerBinder = null!;
@@ -56,7 +52,7 @@ namespace Vernuntii.Plugins
          * If value is not specified, then log on information level.
          * If value is specified, then log on specified log level.
          */
-        private Option<Verbosity?> verbosityOption = new Option<Verbosity?>(new[] { "--verbosity", "-v" }, parseArgument: result => {
+        private readonly Option<Verbosity?> verbosityOption = new(new[] { "--verbosity", "-v" }, parseArgument: result => {
             if (result.Tokens.Count == 0) {
                 return Verbosity.Information;
             }
@@ -196,6 +192,7 @@ namespace Vernuntii.Plugins
             _loggingConfiguration.LogFactory.Shutdown();
             _loggerFactory.Dispose();
         }
+        /// <inheritdoc/>
 
         public void AddProvider(ILoggerProvider provider) =>
             _loggerFactory.AddProvider(provider);

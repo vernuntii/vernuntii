@@ -8,7 +8,7 @@ namespace Vernuntii.Configuration.Shadowing
         /// <inheritdoc/>
         public IConfigurationProvider RootConfigurationProvider => _configurationProviders[0];
 
-        private List<IConfigurationProvider> _configurationProviders = new List<IConfigurationProvider>();
+        private readonly List<IConfigurationProvider> _configurationProviders = new();
 
         /// <summary>
         /// Creates an instance of <see cref="ShadowedConfigurationProviderBuilder"/>.

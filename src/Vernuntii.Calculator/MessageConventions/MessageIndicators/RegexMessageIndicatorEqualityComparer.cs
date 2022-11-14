@@ -10,7 +10,7 @@ namespace Vernuntii.MessageConventions.MessageIndicators
         /// <summary>
         /// Default instance of this type.
         /// </summary>
-        public new readonly static RegexMessageIndicatorEqualityComparer Default = new RegexMessageIndicatorEqualityComparer();
+        public static new readonly RegexMessageIndicatorEqualityComparer Default = new();
 
         /// <inheritdoc/>
         public override bool Equals(IRegexMessageIndicator? x, IRegexMessageIndicator? y) =>

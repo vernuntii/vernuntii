@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Teronis;
-using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Extensions
 {

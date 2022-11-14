@@ -12,12 +12,12 @@ namespace Vernuntii.SemVer.Parser.Parsers
         /// <summary>
         /// Pre-release identifier parser with strict presets.
         /// </summary>
-        public readonly static PreReleaseIdentifierParser Strict = new PreReleaseIdentifierParser(IdentifierParser.Strict);
+        public static readonly PreReleaseIdentifierParser Strict = new(IdentifierParser.Strict);
 
         /// <summary>
         /// Pre-release identifier parser with erasing aspects: erases invalid leading zeros and invalid alpha-numerics.
         /// </summary>
-        public readonly static PreReleaseIdentifierParser Erase = new PreReleaseIdentifierParser(IdentifierParser.Erase);
+        public static readonly PreReleaseIdentifierParser Erase = new(IdentifierParser.Erase);
 
         private readonly IdentifierParser _identifierParser;
 

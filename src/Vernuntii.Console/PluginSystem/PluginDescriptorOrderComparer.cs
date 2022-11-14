@@ -1,10 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Vernuntii.PluginSystem
+﻿namespace Vernuntii.PluginSystem
 {
     internal class PluginDescriptorOrderComparer : Comparer<PluginDescriptor>
     {
-        public new static readonly PluginDescriptorOrderComparer Default = new();
+        public static new readonly PluginDescriptorOrderComparer Default = new();
 
         /// <inheritdoc/>
         public override int Compare(PluginDescriptor? x, PluginDescriptor? y)

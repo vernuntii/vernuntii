@@ -2,6 +2,6 @@
 {
     internal static class HeightPlaceholderParserFixture
     {
-        internal readonly static IHeightPlaceholderParser DefaultHeightPlaceholderParser = HeightPlaceholderParser.Default;
+        internal static readonly IHeightPlaceholderParser DefaultHeightPlaceholderParser = HeightPlaceholderParser.Default;
     }
 }

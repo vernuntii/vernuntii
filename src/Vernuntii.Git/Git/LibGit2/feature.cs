@@ -1,5 +1,3 @@
-using System;
-
 namespace Vernuntii.Git.LibGit2
 {
     /// <summary>
@@ -26,12 +24,12 @@ namespace Vernuntii.Git.LibGit2
         /// custom transport may still be added by the user to support
         /// ssh regardless of this.
         /// </summary>
-        GIT_FEATURE_SSH     = (1 << 2),
+        GIT_FEATURE_SSH = (1 << 2),
 
         /// <summary>
         /// If set, libgit2 was built with support for sub-second resolution
         /// in file modification times.
         /// </summary>
-        GIT_FEATURE_NSEC    = (1 << 3),
+        GIT_FEATURE_NSEC = (1 << 3),
     }
 }

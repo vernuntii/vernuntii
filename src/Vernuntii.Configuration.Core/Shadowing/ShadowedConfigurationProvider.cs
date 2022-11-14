@@ -12,7 +12,7 @@ namespace Vernuntii.Configuration.Shadowing
         /// <inheritdoc/>
         public IConfigurationProvider RootConfigurationProvider => _configurationProviders[0];
 
-        private List<IConfigurationProvider> _configurationProviders;
+        private readonly List<IConfigurationProvider> _configurationProviders;
 
         /// <summary>
         /// Default constructor.

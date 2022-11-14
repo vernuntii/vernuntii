@@ -11,6 +11,6 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when globales services has been configured.
         /// </summary>
-        public readonly static SubjectEvent<IServiceCollection> ConfiguredGlobalServices = new SubjectEvent<IServiceCollection>();
+        public static readonly SubjectEvent<IServiceCollection> ConfiguredGlobalServices = new();
     }
 }

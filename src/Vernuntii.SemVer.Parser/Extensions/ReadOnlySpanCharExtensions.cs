@@ -7,10 +7,10 @@ namespace Vernuntii.SemVer.Parser.Extensions
         public static bool IsNumeric(this ReadOnlySpan<char> value, out int zeros)
         {
             zeros = 0;
-            bool canIncreaseLeadingZero = true;
+            var canIncreaseLeadingZero = true;
             var preReleaseLength = value.Length;
 
-            for (int i = 0; i < preReleaseLength; i++) {
+            for (var i = 0; i < preReleaseLength; i++) {
                 var currentCharacter = value[i];
 
                 if (!char.IsDigit(currentCharacter)) {

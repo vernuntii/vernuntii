@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Vernuntii.PluginSystem.Events;
+﻿using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Plugins.Events
 {
@@ -11,11 +10,11 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event is happening when the coomand-line args are parsed.
         /// </summary>
-        public readonly static SubjectEvent ParseCommandLineArgs = new SubjectEvent();
+        public static readonly SubjectEvent ParseCommandLineArgs = new();
 
         /// <summary>
         /// Event is happening when the coomand-line args are parsed.
         /// </summary>
-        public readonly static SubjectEvent ParsedCommandLineArgs = new SubjectEvent();
+        public static readonly SubjectEvent ParsedCommandLineArgs = new();
     }
 }

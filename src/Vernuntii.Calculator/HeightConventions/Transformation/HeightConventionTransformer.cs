@@ -50,7 +50,7 @@ namespace Vernuntii.HeightConventions.Transformation
             string dottedIdentifier,
             IReadOnlyList<string> dotSplittedIdentifiers)
         {
-            HashSet<int> usedDots = new HashSet<int>();
+            var usedDots = new HashSet<int>();
 
             applyNextRule:
             var dots = Math.Max(0, dotSplittedIdentifiers.Count - 1);

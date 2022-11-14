@@ -13,7 +13,7 @@ namespace Vernuntii.PluginSystem
         internal const int DefaultOrder = 0;
 
         private static readonly IEqualityComparer<IEnumerable<IPluginDependencyDescriptor>> _pluginDependencyDescriptorCollectionEqualityComparer = new ListEqualityComparer<IPluginDependencyDescriptor>();
-        private static readonly ListEqualityComparer<int> _intEqaulityComparer = new ListEqualityComparer<int>();
+        private static readonly ListEqualityComparer<int> _intEqaulityComparer = new();
 
         /// <summary>
         /// Describes an instantiated plugin whose service and implementation type is <typeparamref name="TService"/>.
@@ -22,7 +22,7 @@ namespace Vernuntii.PluginSystem
         /// <param name="implementation"></param>
         public static PluginDescriptor Create<TService>(TService implementation)
             where TService : IPlugin =>
-            new PluginDescriptor(typeof(TService), implementation);
+            new(typeof(TService), implementation);
 
         /// <summary>
         /// Describes a not yet created plugin whose service and implementation type is <typeparamref name="TPlugin"/>.
@@ -30,7 +30,7 @@ namespace Vernuntii.PluginSystem
         /// <typeparam name="TPlugin"></typeparam>
         public static PluginDescriptor Create<TPlugin>()
             where TPlugin : IPlugin =>
-            new PluginDescriptor(typeof(TPlugin), typeof(TPlugin));
+            new(typeof(TPlugin), typeof(TPlugin));
 
         /// <summary>
         /// Describes a not yet created plugin whose service type is <typeparamref name="TService"/>.
@@ -41,7 +41,7 @@ namespace Vernuntii.PluginSystem
         public static PluginDescriptor Create<TService, TImplementation>(Func<IServiceProvider, TImplementation> implementationFactory)
             where TService : IPlugin
             where TImplementation : class, TService =>
-            new PluginDescriptor(typeof(TService), implementationFactory, typeof(TImplementation));
+            new(typeof(TService), implementationFactory, typeof(TImplementation));
 
         /// <summary>
         /// Describes a not yet created plugin whose service and implementation type is <typeparamref name="TPlugin"/>.
@@ -50,7 +50,7 @@ namespace Vernuntii.PluginSystem
         /// <param name="implementationFactory"></param>
         public static PluginDescriptor Create<TPlugin>(Func<IServiceProvider, TPlugin> implementationFactory)
             where TPlugin : class, IPlugin =>
-            new PluginDescriptor(typeof(TPlugin), implementationFactory, typeof(TPlugin));
+            new(typeof(TPlugin), implementationFactory, typeof(TPlugin));
 
         /// <summary>
         /// The service type the plugin is associated with.

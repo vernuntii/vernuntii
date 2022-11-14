@@ -7,7 +7,7 @@ namespace Vernuntii.VersionPresentation.Serializers
 {
     internal class VersionPresentationIniSerializer : IVersionPresentationSerializer
     {
-        public readonly static VersionPresentationIniSerializer Default = new VersionPresentationIniSerializer();
+        public static readonly VersionPresentationIniSerializer Default = new();
 
         public string? SerializeSemanticVersion(
             object versionPresentation,

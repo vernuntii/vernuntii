@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vernuntii.Git.LibGit2;
+﻿using Vernuntii.Git.LibGit2;
 using Vernuntii.Git.LibGit2.Runtime;
 
 namespace Vernuntii.Git.Commands
@@ -14,8 +9,7 @@ namespace Vernuntii.Git.Commands
 
         // Provide a strongly typed exception when a repository is not
         // found to open.
-        private static readonly Dictionary<git_error_code, Func<string, Exception>> exceptionMap = new Dictionary<git_error_code, Func<string, Exception>>
-        {
+        private static readonly Dictionary<git_error_code, Func<string, Exception>> exceptionMap = new() {
             { git_error_code.GIT_ENOTFOUND, (m) => new RepositoryNotFoundException(m) }
         };
 

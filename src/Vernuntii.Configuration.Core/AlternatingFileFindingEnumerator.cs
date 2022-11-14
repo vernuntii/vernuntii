@@ -8,10 +8,10 @@ namespace Vernuntii.Configuration
 
         public DirectoryInfo? Current => CurrentEnumerator().Current;
 
-        List<IFileFindingEnumerator> _enumerators;
-        IFileFindingEnumerator? _currentEnumerator;
-        int _position = -1;
-        Func<bool> _moveNextFunc;
+        private readonly List<IFileFindingEnumerator> _enumerators;
+        private IFileFindingEnumerator? _currentEnumerator;
+        private int _position = -1;
+        private Func<bool> _moveNextFunc;
 
         object? IEnumerator.Current => Current;
 

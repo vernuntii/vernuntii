@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace Vernuntii.Git.LibGit2
@@ -61,10 +60,8 @@ namespace Vernuntii.Git.LibGit2
         /// <summary>
         /// Current version of the options structure.
         /// </summary>
-        public static int GIT_BLOB_FILTER_OPTIONS_VERSION
-        {
-            get
-            {
+        public static int GIT_BLOB_FILTER_OPTIONS_VERSION {
+            get {
                 return 1;
             }
         }
@@ -72,10 +69,8 @@ namespace Vernuntii.Git.LibGit2
         /// <summary>
         /// The default values for our options structure.
         /// </summary>
-        public static git_blob_filter_options GIT_BLOB_FILTER_OPTIONS_INIT
-        {
-            get
-            {
+        public static git_blob_filter_options GIT_BLOB_FILTER_OPTIONS_INIT {
+            get {
                 return new git_blob_filter_options() {
                     version = GIT_BLOB_FILTER_OPTIONS_VERSION,
                     flags = git_blob_filter_flag_t.GIT_BLOB_FILTER_CHECK_FOR_BINARY

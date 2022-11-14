@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using System.CommandLine.Completions;
 using System.Diagnostics.CodeAnalysis;
 using Vernuntii.Configuration.Json;
 using Vernuntii.Configuration.Yaml;
@@ -7,7 +6,6 @@ using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
 using Vernuntii.PluginSystem.Meta;
-using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Plugins
 {
@@ -54,7 +52,7 @@ namespace Vernuntii.Plugins
         private bool _areCommandLineArgsParsed;
         private Option<string?> _overrideVersioningModeOption = null!;
 
-        private Option<string?> _configPathOption = new Option<string?>(new[] { "--config-path", "-c" }) {
+        private readonly Option<string?> _configPathOption = new(new[] { "--config-path", "-c" }) {
             Description = $"The configuration file path. JSON and YAML is allowed. If a directory is specified instead the configuration file" +
                 $" {YamlConfigurationFileDefaults.YmlFileName}, {YamlConfigurationFileDefaults.YamlFileName} or {JsonConfigurationFileDefaults.JsonFileName}" +
                 " (in each upward directory in this exact order) is searched at specified directory and above."

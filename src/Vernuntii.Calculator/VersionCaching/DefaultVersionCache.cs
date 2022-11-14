@@ -17,7 +17,7 @@ namespace Vernuntii.VersionCaching
         /// <param name="branch"></param>
         /// <param name="creationRetentionTime">Creation retention time used to sum up with "now" (UTC) that represents the expiration time.</param>
         public static DefaultVersionCache Create(ISemanticVersion version, IBranch branch, TimeSpan? creationRetentionTime) =>
-            new DefaultVersionCache(
+            new(
                 version,
                 branch.ShortBranchName,
                 branch.CommitSha,

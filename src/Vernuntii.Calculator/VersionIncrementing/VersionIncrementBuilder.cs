@@ -14,9 +14,9 @@ namespace Vernuntii.VersionIncrementing
             var versioningPreset = context.VersionCalculationOptions.VersioningPreset;
             var messageConvention = versioningPreset.MessageConvention;
 
-            bool isMessageIncrementingMajor = messageConvention.IsMessageIndicatingMajor(messageContent);
-            bool isMessageIncrementingMinor = false;
-            bool isMessageIncrementingPatch = false;
+            var isMessageIncrementingMajor = messageConvention.IsMessageIndicatingMajor(messageContent);
+            var isMessageIncrementingMinor = false;
+            var isMessageIncrementingPatch = false;
 
             if (isMessageIncrementingMajor) {
                 if (context.CanFlowDownstreamMajor) {
@@ -42,8 +42,8 @@ namespace Vernuntii.VersionIncrementing
             var incrementMode = versioningPreset.IncrementMode;
             var isPostVersionPreRelease = context.VersionCalculationOptions.IsPostVersionPreRelease;
             var startVersionCoreAlreadyReleased = context.VersionCalculationOptions.StartVersionCoreAlreadyReleased;
-            bool isHeightConventionApplicable = heightConvention is not null && heightConvention.Position != HeightIdentifierPosition.None;
-            bool allowUnlimitedIncrements = incrementMode == VersionIncrementMode.Successive;
+            var isHeightConventionApplicable = heightConvention is not null && heightConvention.Position != HeightIdentifierPosition.None;
+            var allowUnlimitedIncrements = incrementMode == VersionIncrementMode.Successive;
 
             if (incrementMode != VersionIncrementMode.None) {
                 var allowIncrementBecauseReleaseOrDisabledHeight = !isPostVersionPreRelease || !isHeightConventionApplicable;

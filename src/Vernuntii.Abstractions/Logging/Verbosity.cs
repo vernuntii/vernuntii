@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vernuntii.Logging
+﻿namespace Vernuntii.Logging
 {
     /// <summary>
     /// Specifies the meaning and relative importance of a log event.

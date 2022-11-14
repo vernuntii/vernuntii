@@ -27,10 +27,10 @@ namespace Vernuntii.Console
         public IEnumerable<PluginDescriptor>? PluginDescriptors { get; init; }
 
         private bool _isDisposed;
-        private PluginRegistry _pluginRegistry;
+        private readonly PluginRegistry _pluginRegistry;
         private PluginEventCache? _pluginEvents;
         private PluginExecutor? _pluginExecutor;
-        private ILogger _logger;
+        private readonly ILogger _logger;
         private string[] _args = Array.Empty<string>();
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace Vernuntii.Console
         {
             EnsureHavingPluginEvents();
 
-            int exitCode = (int)ExitCode.NotExecuted;
+            var exitCode = (int)ExitCode.NotExecuted;
             using var exitCodeSubscription = _pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, i => exitCode = i);
 
             _logger.LogTrace("Invoke command-line root command");

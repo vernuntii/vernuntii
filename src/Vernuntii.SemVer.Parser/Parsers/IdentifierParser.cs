@@ -10,8 +10,8 @@ namespace Vernuntii.SemVer.Parser.Parsers
         public delegate bool TryParseNonEmptyIdentifier<T>(string dottedIdentifier, [NotNullWhen(true)] out T? result);
         public delegate IReadOnlyList<SemanticVersionFault> SearchFaultsDelegate(ReadOnlyMemory<char> spar);
 
-        public readonly static IdentifierParser Strict = new IdentifierParser(SemanticVersionNormalizer.NoAction);
-        public readonly static IdentifierParser Erase = new IdentifierParser(SemanticVersionNormalizer.Erase);
+        public static readonly IdentifierParser Strict = new(SemanticVersionNormalizer.NoAction);
+        public static readonly IdentifierParser Erase = new(SemanticVersionNormalizer.Erase);
 
         public static IdentifierParseResult<T> TryParseIdentifier<T>(
             string? identifier,
@@ -49,7 +49,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
             bool lookupNumeric = false)
         {
             var valueLength = value.Length;
-            List<SemanticVersionFault> faults = new List<SemanticVersionFault>();
+            var faults = new List<SemanticVersionFault>();
 
             if (lookupSingleZero && value.HasNumberLeadingZeros(out var zeros)) {
                 IdentifierExpectation expectation;
@@ -62,14 +62,14 @@ namespace Vernuntii.SemVer.Parser.Parsers
 
                 faults.Add(new SemanticVersionFault(expectation, 0..zeros));
             } else {
-                for (int i = 0; i < valueLength; i++) {
+                for (var i = 0; i < valueLength; i++) {
                     var currentCharacter = value[i];
 
                     @continue:
                     ;
 
                     if (lookupBackslashZero && currentCharacter == '\0') {
-                        int faultStartAt = i;
+                        var faultStartAt = i;
 
                         for (i++; i < valueLength; i++) {
                             currentCharacter = value[i];
@@ -84,7 +84,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
                     }
 
                     if (lookupAlphanumeric && !IsContainedInAlphanumericIdentifierCharset(currentCharacter)) {
-                        int faultStartAt = i;
+                        var faultStartAt = i;
 
                         for (i++; i < valueLength; i++) {
                             currentCharacter = value[i];
@@ -99,7 +99,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
                     }
 
                     if (lookupNumeric && !char.IsDigit(currentCharacter)) {
-                        int faultStartAt = i;
+                        var faultStartAt = i;
 
                         for (i++; i < valueLength; i++) {
                             currentCharacter = value[i];
@@ -155,7 +155,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
             var dotSplittedIdentifierArrayLength = dotSplittedIdentifierArray.Length;
             var emptyIdentifiers = 0;
 
-            for (int i = 0; i < dotSplittedIdentifierArrayLength; i++) {
+            for (var i = 0; i < dotSplittedIdentifierArrayLength; i++) {
                 var unresolvedMemory = dotSplittedIdentifierArray[i].AsMemory();
 
                 var success = TryResolveFaults(

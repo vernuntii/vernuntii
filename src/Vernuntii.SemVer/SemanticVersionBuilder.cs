@@ -53,10 +53,10 @@ namespace Vernuntii.SemVer
 
         internal ISemanticVersion BaseVersion { get; }
 
-        uint? _major, _minor, _patch;
-        IReadOnlyCollection<string>? _preReleaseIdentifiers, _buildIdentifiers;
-        string? _prefix, _preRelease, _build;
-        bool _withPrefix, _withPreRelease, _withBuild;
+        private uint? _major, _minor, _patch;
+        private IReadOnlyCollection<string>? _preReleaseIdentifiers, _buildIdentifiers;
+        private string? _prefix, _preRelease, _build;
+        private bool _withPrefix, _withPreRelease, _withBuild;
 
         /// <summary>
         /// Creates an instance of <see cref="SemanticVersionBuilder"/>.

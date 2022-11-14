@@ -10,6 +10,6 @@
         /// </summary>
         /// <param name="messageIndiactor"></param>
         public static RegexMessageIndicatorBuilder With(this IRegexMessageIndicator messageIndiactor) =>
-            new RegexMessageIndicatorBuilder(messageIndiactor);
+            new(messageIndiactor);
     }
 }

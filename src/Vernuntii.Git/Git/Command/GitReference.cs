@@ -10,14 +10,14 @@ namespace Vernuntii.Git.Commands
                 goto exit;
             }
 
-            int firstSpace = value.IndexOf(' ', StringComparison.Ordinal);
+            var firstSpace = value.IndexOf(' ', StringComparison.Ordinal);
 
             if (firstSpace == -1) {
                 goto exit;
             }
 
-            string objectName = value[..firstSpace];
-            string referenceName = value[(firstSpace + 1)..];
+            var objectName = value[..firstSpace];
+            var referenceName = value[(firstSpace + 1)..];
             reference = new GitReference(objectName, referenceName);
             return true;
 

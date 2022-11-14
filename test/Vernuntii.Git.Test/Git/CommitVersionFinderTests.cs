@@ -15,12 +15,12 @@ namespace Vernuntii.Git
         [MemberData(nameof(FindCommitVersionShouldFindLatestVersionGenerator))]
         public void FindCommitVersionShouldFindLatestVersion(string firstTag, string secondTag)
         {
-            using var repository = new TemporaryRepository();
+            using TemporaryRepository repository = new();
             repository.CommitEmpty();
             repository.TagLightweight(firstTag);
             repository.TagLightweight(secondTag);
 
-            var version = new CommitVersionFinder(new CommitVersionFinderOptions(), repository, repository, DefaultCommitVersionFinderLogger)
+            IPositonalCommitVersion? version = new CommitVersionFinder(new CommitVersionFinderOptions(), repository, repository, DefaultCommitVersionFinderLogger)
                 .FindCommitVersion(new CommitVersionFindingOptions());
 
             Assert.NotNull(version);

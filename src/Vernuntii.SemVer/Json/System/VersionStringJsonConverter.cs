@@ -11,7 +11,7 @@ namespace Vernuntii.SemVer.Json.System
         /// <summary>
         /// Default instance of this type.
         /// </summary>
-        public readonly static VersionStringJsonConverter Default = new VersionStringJsonConverter();
+        public static readonly VersionStringJsonConverter Default = new();
 
         /// <inheritdoc/>
         public override SemanticVersion? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

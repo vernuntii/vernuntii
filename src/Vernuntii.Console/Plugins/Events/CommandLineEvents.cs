@@ -11,26 +11,26 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Represents an event for dispatching the command line args.
         /// </summary>
-        public readonly static SubjectEvent<string[]> SetCommandLineArgs = new SubjectEvent<string[]>();
+        public static readonly SubjectEvent<string[]> SetCommandLineArgs = new();
 
         /// <summary>
         /// Event when command line args are getting parsed.
         /// </summary>
-        public readonly static SubjectEvent ParseCommandLineArgs = new SubjectEvent();
+        public static readonly SubjectEvent ParseCommandLineArgs = new();
 
         /// <summary>
         /// Represents an event for dispatching <see cref="ParseResult"/>.
         /// </summary>
-        public readonly static SubjectEvent<ParseResult> ParsedCommandLineArgs = new SubjectEvent<ParseResult>();
+        public static readonly SubjectEvent<ParseResult> ParsedCommandLineArgs = new();
 
         /// <summary>
         /// Event when root command is about to be invoked.
         /// </summary>
-        public readonly static SubjectEvent InvokeRootCommand = new SubjectEvent();
+        public static readonly SubjectEvent InvokeRootCommand = new();
 
         /// <summary>
         /// Event when root command is about to be invoked.
         /// </summary>
-        public readonly static SubjectEvent<int> InvokedRootCommand = new SubjectEvent<int>();
+        public static readonly SubjectEvent<int> InvokedRootCommand = new();
     }
 }

@@ -8,7 +8,7 @@ namespace Vernuntii.VersionIncrementFlows
         /// <summary>
         /// Default instance of this type.
         /// </summary>
-        public new readonly static VersionIncrementFlowEqualityComparer Default = new VersionIncrementFlowEqualityComparer();
+        public static new readonly VersionIncrementFlowEqualityComparer Default = new();
 
         /// <inheritdoc/>
         public override bool Equals(IVersionIncrementFlow? x, IVersionIncrementFlow? y) =>

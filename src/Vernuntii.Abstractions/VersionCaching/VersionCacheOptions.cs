@@ -13,7 +13,7 @@
         /// <summary>
         /// Default internal cache last access retention time.
         /// </summary>
-        public readonly static TimeSpan DefaultInternalCacheLastAccessRetentionTime = TimeSpan.FromSeconds(15);
+        public static readonly TimeSpan DefaultInternalCacheLastAccessRetentionTime = TimeSpan.FromSeconds(15);
 
         /// <inheritdoc/>
         public string InternalCacheId { get; set; } = DefaultInternalCacheId;

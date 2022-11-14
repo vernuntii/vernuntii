@@ -1,5 +1,4 @@
-﻿using System;
-using Moq;
+﻿using Moq;
 using Vernuntii.SemVer;
 using Xunit;
 
@@ -10,30 +9,30 @@ namespace Vernuntii.HeightConventions.Transformation
         [Fact]
         public void TransformThrowsBecauseHeightPositionNoneNotExisting()
         {
-            var placeholderParserMock = new Mock<IHeightPlaceholderParser>();
-            var heightConvention = Mock.Of<IHeightConvention>(x => x.Position == HeightIdentifierPosition.None);
-            var transformer = new HeightConventionTransformer(heightConvention, Mock.Of<IHeightPlaceholderParser>());
+            Mock<IHeightPlaceholderParser> placeholderParserMock = new();
+            IHeightConvention heightConvention = Mock.Of<IHeightConvention>(x => x.Position == HeightIdentifierPosition.None);
+            HeightConventionTransformer transformer = new(heightConvention, Mock.Of<IHeightPlaceholderParser>());
 
-            var invalidOperationError = Assert.IsType<InvalidOperationException>(Record.Exception(() => transformer.Transform(Mock.Of<ISemanticVersion>())));
+            InvalidOperationException invalidOperationError = Assert.IsType<InvalidOperationException>(Record.Exception(() => transformer.Transform(Mock.Of<ISemanticVersion>())));
             Assert.Equal("The height position \"None\" does not exist", invalidOperationError.Message, StringComparer.InvariantCulture);
         }
 
         [Fact]
         public void TransformThrowsBecauseNotExistingDotRule()
         {
-            var placeholderParserMock = new Mock<IHeightPlaceholderParser>();
+            Mock<IHeightPlaceholderParser> placeholderParserMock = new();
 
-            var heightConvention = Mock.Of<IHeightConvention>(x =>
+            IHeightConvention heightConvention = Mock.Of<IHeightConvention>(x =>
                 x.Position == HeightIdentifierPosition.PreRelease
                 && x.Rules == HeightRuleDictionary.Empty);
 
-            var transformer = new HeightConventionTransformer(heightConvention, Mock.Of<IHeightPlaceholderParser>());
+            HeightConventionTransformer transformer = new(heightConvention, Mock.Of<IHeightPlaceholderParser>());
 
-            var version = Mock.Of<ISemanticVersion>(x =>
+            ISemanticVersion version = Mock.Of<ISemanticVersion>(x =>
                 x.PreRelease == ""
                 && x.PreReleaseIdentifiers == new string[] { "" });
 
-            var invalidOperationError = Assert.IsType<InvalidOperationException>(Record.Exception(() => transformer.Transform(version)));
+            InvalidOperationException invalidOperationError = Assert.IsType<InvalidOperationException>(Record.Exception(() => transformer.Transform(version)));
             Assert.Contains("A height rule for 0 dots does not exist", invalidOperationError.Message, StringComparison.InvariantCulture);
         }
 
@@ -42,42 +41,42 @@ namespace Vernuntii.HeightConventions.Transformation
         [InlineData(new object[] { ".{y}" })]
         public void TransformThrowsBecauseMoreThanOneEmptyIdentifier(string template)
         {
-            var placeholderParserMock = new Mock<IHeightPlaceholderParser>();
+            Mock<IHeightPlaceholderParser> placeholderParserMock = new();
 
-            var heightConvention = Mock.Of<IHeightConvention>(x =>
+            IHeightConvention heightConvention = Mock.Of<IHeightConvention>(x =>
                 x.Position == HeightIdentifierPosition.PreRelease
                 && x.Rules == new HeightRuleDictionary(new[]{
                     new HeightRule(1, template)
                 }));
 
-            var transformer = new HeightConventionTransformer(heightConvention, DefaultHeightPlaceholderParser);
+            HeightConventionTransformer transformer = new(heightConvention, DefaultHeightPlaceholderParser);
 
-            var version = Mock.Of<ISemanticVersion>(x =>
+            ISemanticVersion version = Mock.Of<ISemanticVersion>(x =>
                 x.PreRelease == "."
                 && x.PreReleaseIdentifiers == new string[] { "", "" });
 
-            var invalidOperationError = Assert.IsType<InvalidOperationException>(Record.Exception(() => transformer.Transform(version)));
+            InvalidOperationException invalidOperationError = Assert.IsType<InvalidOperationException>(Record.Exception(() => transformer.Transform(version)));
             Assert.Contains("The height indicator cannot be used when expanding", invalidOperationError.Message, StringComparison.InvariantCulture);
         }
 
         [Fact]
         public void TransformDoesTemplateOnlyHeight()
         {
-            var placeholderParserMock = new Mock<IHeightPlaceholderParser>();
+            Mock<IHeightPlaceholderParser> placeholderParserMock = new();
 
-            var heightConvention = new HeightConvention(HeightIdentifierPosition.PreRelease) {
+            HeightConvention heightConvention = new(HeightIdentifierPosition.PreRelease) {
                 Rules = new HeightRuleDictionary(new[] {
                     new HeightRule(0, "{y}")
                 })
             };
 
-            var transformer = new HeightConventionTransformer(heightConvention, DefaultHeightPlaceholderParser);
+            HeightConventionTransformer transformer = new(heightConvention, DefaultHeightPlaceholderParser);
 
-            var version = Mock.Of<ISemanticVersion>(x =>
+            ISemanticVersion version = Mock.Of<ISemanticVersion>(x =>
                 x.PreRelease == "2"
                 && x.PreReleaseIdentifiers == new string[] { "2" });
 
-            var transformResult = transformer.Transform(version);
+            HeightConventionTransformResult transformResult = transformer.Transform(version);
             Assert.Equal(heightConvention, transformResult.Convention);
             Assert.Equal(new string[] { "2" }, transformResult.Identifiers);
             Assert.Equal(0, transformResult.HeightIndex);

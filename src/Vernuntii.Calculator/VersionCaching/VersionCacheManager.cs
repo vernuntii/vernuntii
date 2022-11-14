@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Git;
-using Vernuntii.Git.Commands;
 using Vernuntii.SemVer;
 using Vernuntii.Text.Json;
 
@@ -75,7 +69,7 @@ namespace Vernuntii.VersionCaching
                 lastAccessRetentionTime ??= cacheOptions.InternalCacheLastAccessRetentionTime;
             }
 
-            bool useLastAccessRetentionTime = lastAccessRetentionTime != null;
+            var useLastAccessRetentionTime = lastAccessRetentionTime != null;
 
             _cacheDirectory = cacheDirectory;
             CacheId = cacheId;
@@ -191,10 +185,10 @@ namespace Vernuntii.VersionCaching
 
         private class RecacheIndicator : IDisposable
         {
-            private DefaultVersionCache? _versionCache;
+            private readonly DefaultVersionCache? _versionCache;
             public string? RecacheReason { get; }
 
-            private bool _isRecacheRequired;
+            private readonly bool _isRecacheRequired;
 
             [MemberNotNullWhen(true, nameof(RecacheReason))]
             public bool IsRecacheRequired(
@@ -206,7 +200,7 @@ namespace Vernuntii.VersionCaching
                 return _isRecacheRequired;
             }
 
-            private IManagedValueWriter<DefaultVersionCache> _versionCacheWriter;
+            private readonly IManagedValueWriter<DefaultVersionCache> _versionCacheWriter;
 
             public RecacheIndicator(
                 DefaultVersionCache? versionCache,

@@ -15,11 +15,11 @@
         /// <returns>-1 if not found</returns>
         public static int BinarySearch<T>(this IReadOnlyList<T> items, T item, IComparer<T> comparer)
         {
-            int minIndex = 0;
-            int maxIndex = items.Count - 1;
+            var minIndex = 0;
+            var maxIndex = items.Count - 1;
 
             while (minIndex <= maxIndex) {
-                int mid = (minIndex + maxIndex) / 2;
+                var mid = (minIndex + maxIndex) / 2;
                 var compare = comparer.Compare(item, items[mid]);
 
                 if (compare == 0) {

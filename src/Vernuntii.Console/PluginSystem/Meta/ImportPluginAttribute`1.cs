@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Vernuntii.PluginSystem.Meta
+﻿namespace Vernuntii.PluginSystem.Meta
 {
     /// <summary>
     /// Attribute to announce that the plugin (and implemented plugin services) to which this attribute

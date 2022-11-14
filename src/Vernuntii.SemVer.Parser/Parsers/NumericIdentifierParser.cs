@@ -13,12 +13,12 @@ namespace Vernuntii.SemVer.Parser.Parsers
         /// <summary>
         /// A numeric identifier parser with strict presets.
         /// </summary>
-        public readonly static NumericIdentifierParser Strict = new NumericIdentifierParser(IdentifierParser.Strict);
+        public static readonly NumericIdentifierParser Strict = new(IdentifierParser.Strict);
 
         /// <summary>
         /// A numeric identifier parser with erasing aspects: erases invalid leading zeros and invalid alpha-numerics.
         /// </summary>
-        public readonly static NumericIdentifierParser Erase = new NumericIdentifierParser(IdentifierParser.Erase);
+        public static readonly NumericIdentifierParser Erase = new(IdentifierParser.Erase);
 
         private readonly IdentifierParser _identifierParser;
 

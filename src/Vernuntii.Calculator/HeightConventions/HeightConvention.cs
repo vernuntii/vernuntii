@@ -11,12 +11,12 @@ namespace Vernuntii.HeightConventions
         /// <summary>
         /// Height convention where height is nowhere.
         /// </summary>
-        public readonly static HeightConvention None = new HeightConvention(HeightIdentifierPosition.None);
+        public static readonly HeightConvention None = new(HeightIdentifierPosition.None);
 
         /// <summary>
         /// Height convention with height in pre-release after first dot.
         /// </summary>
-        public readonly static HeightConvention InPreReleaseAfterFirstDot = new HeightConvention(HeightIdentifierPosition.PreRelease) {
+        public static readonly HeightConvention InPreReleaseAfterFirstDot = new(HeightIdentifierPosition.PreRelease) {
             Rules = HeightRuleDictionary.AfterFirstDotRules
         };
 

@@ -12,7 +12,7 @@
         /// <inheritdoc/>
         public IEnumerable<TItem> Items => NamedItems.Values;
 
-        internal Dictionary<string, TItem> NamedItems = new Dictionary<string, TItem>(StringComparer.InvariantCultureIgnoreCase);
+        internal Dictionary<string, TItem> NamedItems = new(StringComparer.InvariantCultureIgnoreCase);
 
         /// <inheritdoc/>
         public void AddItem(string name, TItem item) =>

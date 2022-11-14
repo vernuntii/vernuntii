@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vernuntii.SemVer;
-using Vernuntii.VersionCaching;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Vernuntii.VersionCaching
 {
@@ -17,7 +10,7 @@ namespace Vernuntii.VersionCaching
         /// <summary>
         /// Default instance of this type.
         /// </summary>
-        public readonly static VersionRecacheIndicator Default = new VersionRecacheIndicator();
+        public static readonly VersionRecacheIndicator Default = new();
 
         private static bool IsExpiredSinceCreation(DateTime expirationTime) =>
             DateTime.UtcNow > expirationTime;

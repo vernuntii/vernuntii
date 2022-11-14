@@ -10,7 +10,7 @@ namespace Vernuntii.MessageConventions
         /// <summary>
         /// An empty instance that does not have a single message indicator.
         /// </summary>
-        public readonly static MessageConvention None = new MessageConvention();
+        public static readonly MessageConvention None = new();
 
         private static bool SequenceEqual(IEnumerable<IMessageIndicator>? x, IEnumerable<IMessageIndicator>? y) =>
             ReferenceEquals(x, y)

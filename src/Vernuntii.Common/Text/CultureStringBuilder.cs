@@ -13,7 +13,7 @@ namespace Vernuntii.Text
         /// Creates a string builder with <see cref="CultureInfo.InvariantCulture"/> as default.
         /// </summary>
         public static CultureStringBuilder Invariant() =>
-            new CultureStringBuilder(CultureInfo.InvariantCulture);
+            new(CultureInfo.InvariantCulture);
 
         private readonly StringBuilder _stringBuilder;
         private readonly CultureInfo _culture;

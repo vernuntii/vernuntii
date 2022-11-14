@@ -1,5 +1,3 @@
-using System;
-
 namespace Vernuntii.Git.LibGit2
 {
     /// <summary>
@@ -11,7 +9,8 @@ namespace Vernuntii.Git.LibGit2
     /// <summary>
     /// Basic types for a Git reference.
     /// </summary>
-    public enum git_reference_t {
+    public enum git_reference_t
+    {
         /// <summary>
         /// An invalid reference.
         /// </summary>

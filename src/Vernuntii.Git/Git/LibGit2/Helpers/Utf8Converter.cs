@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Vernuntii.Git.LibGit2.Helpers
 {
@@ -11,26 +7,26 @@ namespace Vernuntii.Git.LibGit2.Helpers
     /// The Utf8Converter service provides callers with static methods
     /// to convert from managed strings to and from UTF8 byte arrays.
     /// </summary>
-    public class Utf8Converter
+    public static class Utf8Converter
     {
         // Try to be conservative in what we send and liberal in what we
         // accept; avoid sending invalid strings that can't be marshaled
         // to UTF, but always try to create a string for end-users from
         // native data.
-        private static Encoding toNativeEncoding = new UTF8Encoding(false, true);
-        private static Encoding fromNativeEncoding = new UTF8Encoding(false, false);
+        private static readonly Encoding toNativeEncoding = new UTF8Encoding(false, true);
+        private static readonly Encoding fromNativeEncoding = new UTF8Encoding(false, false);
 
         /// <summary>
         /// Create a null-terminated UTF8 byte array representing the
         /// given managed string.
         /// </summary>
-        public unsafe static IntPtr ToNative(string str)
+        public static unsafe IntPtr ToNative(string str)
         {
             if (str == null) {
                 return IntPtr.Zero;
             }
 
-            int length = toNativeEncoding.GetByteCount(str);
+            var length = toNativeEncoding.GetByteCount(str);
             var buffer = (byte*)Marshal.AllocHGlobal(length + 1).ToPointer();
 
             if (length > 0) {
@@ -47,9 +43,9 @@ namespace Vernuntii.Git.LibGit2.Helpers
         /// Create managed string from the null-terminated UTF8 byte array
         /// representing a native string.
         /// </summary>
-        public unsafe static string FromNative(byte* buf)
+        public static unsafe string FromNative(byte* buf)
         {
-            byte* end = buf;
+            var end = buf;
 
             if (buf == null) {
                 return null!;

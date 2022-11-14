@@ -8,12 +8,12 @@ namespace Vernuntii.MessageConventions.MessageIndicators
     public record ConventionalCommitsMessageIndicator : RegexMessageIndicatorBase
     {
         private static Regex SinglelineRegex(string pattern) =>
-            new Regex(pattern, RegexOptions.Singleline);
+            new(pattern, RegexOptions.Singleline);
 
         /// <summary>
         /// Default instance of type this type.
         /// </summary>
-        public readonly static ConventionalCommitsMessageIndicator Default = new ConventionalCommitsMessageIndicator();
+        public static readonly ConventionalCommitsMessageIndicator Default = new();
 
         /// <inheritdoc/>
         public override string IndicatorName { get; } = nameof(InbuiltMessageIndicator.ConventionalCommits);

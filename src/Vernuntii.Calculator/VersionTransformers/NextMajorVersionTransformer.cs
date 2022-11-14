@@ -11,7 +11,7 @@ namespace Vernuntii.VersionTransformers
         /// <summary>
         /// Default instance.
         /// </summary>
-        public readonly static NextMajorVersionTransformer Default = new NextMajorVersionTransformer();
+        public static readonly NextMajorVersionTransformer Default = new();
 
         bool IVersionTransformer.DoesNotTransform => false;
 
@@ -19,7 +19,7 @@ namespace Vernuntii.VersionTransformers
         /// <inheritdoc/>
         /// </summary>
         /// <param name="version"></param>
-        public ISemanticVersion TransformVersion(ISemanticVersion version) => 
+        public ISemanticVersion TransformVersion(ISemanticVersion version) =>
             version.With().Version(version.Major + 1, 0, 0).ToVersion();
     }
 }

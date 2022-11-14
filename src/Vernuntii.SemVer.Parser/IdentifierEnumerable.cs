@@ -10,7 +10,7 @@ namespace Vernuntii.SemVer.Parser
         /// <summary>
         /// Returns an empty instance of <see cref="IdentifierEnumerable"/>.
         /// </summary>
-        public readonly static IdentifierEnumerable Empty = new IdentifierEnumerable(Array.Empty<string>());
+        public static readonly IdentifierEnumerable Empty = new(Array.Empty<string>());
 
         private readonly string[] _identifiers;
 

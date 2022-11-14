@@ -8,7 +8,7 @@ namespace Vernuntii
     internal class SingleVersionCalculation : ISingleVersionCalculation
     {
         private readonly ISingleVersionCalculator _calculator;
-        private SingleVersionCalculationOptions _calculationOptions;
+        private readonly SingleVersionCalculationOptions _calculationOptions;
 
         /// <summary>
         /// Default constructor.

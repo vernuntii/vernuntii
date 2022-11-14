@@ -21,7 +21,7 @@ namespace Vernuntii.PluginSystem
             _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnExecution)} was not called yet");
 
         private IPluginEventCache? _eventAggregator;
-        private List<IDisposable> _disposables = new List<IDisposable>();
+        private readonly List<IDisposable> _disposables = new();
 
         /// <summary>
         /// Adds a disposable that gets disposed when the plugin gets disposed.

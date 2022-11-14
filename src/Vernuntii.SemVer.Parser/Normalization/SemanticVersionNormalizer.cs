@@ -12,11 +12,11 @@ namespace Vernuntii.SemVer.Parser.Normalization
         /// <summary>
         /// Removes partial or fully the content depending on expectation and range.
         /// </summary>
-        public readonly static ISemanticVersionNormalizer Erase = new FixingSemanticVersionNormalizer(FixFaultByErasing);
+        public static readonly ISemanticVersionNormalizer Erase = new FixingSemanticVersionNormalizer(FixFaultByErasing);
         /// <summary>
         /// No normalization is happening, so output is equal to input.
         /// </summary>
-        public readonly static ISemanticVersionNormalizer NoAction = new NoActionSemanticVersionNormalizer();
+        public static readonly ISemanticVersionNormalizer NoAction = new NoActionSemanticVersionNormalizer();
 
         private static void FixFaultByErasing(Span<char> value, SemanticVersionFault fault)
         {
@@ -33,7 +33,7 @@ namespace Vernuntii.SemVer.Parser.Normalization
         {
             public bool TrimPreReleaseDots => true;
 
-            private FixFaultAction _fixFault;
+            private readonly FixFaultAction _fixFault;
 
             internal FixingSemanticVersionNormalizer(FixFaultAction fixFault) =>
                 _fixFault = fixFault;
@@ -41,18 +41,18 @@ namespace Vernuntii.SemVer.Parser.Normalization
             /// <inheritdoc/>
             public ReadOnlyMemory<char> NormalizeFaults(ReadOnlyMemory<char> value, IReadOnlyList<SemanticVersionFault> faults)
             {
-                int newLength = 0;
+                var newLength = 0;
 
                 return string.Create(value.Length, value, (newValue, value) => {
                     value.Span.CopyTo(newValue);
 
-                    for (int i = faults.Count - 1; i >= 0; i--) {
+                    for (var i = faults.Count - 1; i >= 0; i--) {
                         _fixFault(newValue, faults[i]);
                     }
 
-                    int newValueLength = newValue.Length;
+                    var newValueLength = newValue.Length;
 
-                    for (int i = 0; i < newValueLength; i++) {
+                    for (var i = 0; i < newValueLength; i++) {
                         if (newValue[i] != '\0') {
                             if (newLength != i) {
                                 newValue[newLength] = newValue[i];

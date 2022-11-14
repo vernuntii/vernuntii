@@ -14,7 +14,7 @@ namespace Vernuntii.SemVer
         /// </summary>
         /// <param name="version"></param>
         public static SemanticVersionBuilder With(this ISemanticVersion version) =>
-            new SemanticVersionBuilder(version);
+            new(version);
 
         /// <summary>
         /// Gets Parser or default.

@@ -10,7 +10,7 @@ namespace Vernuntii.VersionTransformers
         /// <summary>
         /// Default instance.
         /// </summary>
-        public readonly static NoneVersionTransformer Default = new NoneVersionTransformer();
+        public static readonly NoneVersionTransformer Default = new();
 
         bool IVersionTransformer.DoesNotTransform => true;
 

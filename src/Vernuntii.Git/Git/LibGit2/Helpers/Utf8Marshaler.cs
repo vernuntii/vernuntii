@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace Vernuntii.Git.LibGit2.Helpers
 {
@@ -32,8 +27,8 @@ namespace Vernuntii.Git.LibGit2.Helpers
         /// </summary>
         public const string FromNative = "FromNative";
 
-        private static readonly Utf8Marshaler fromNativeInstance = new Utf8Marshaler(false);
-        private static readonly Utf8Marshaler toNativeInstance = new Utf8Marshaler(true);
+        private static readonly Utf8Marshaler fromNativeInstance = new(false);
+        private static readonly Utf8Marshaler toNativeInstance = new(true);
 
         private readonly bool cleanup;
 

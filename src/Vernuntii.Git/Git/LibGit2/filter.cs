@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace Vernuntii.Git.LibGit2
@@ -13,7 +12,7 @@ namespace Vernuntii.Git.LibGit2
     /// </summary>
     public enum git_filter_mode_t
     {
-    	GIT_FILTER_TO_WORKTREE = 0,
+        GIT_FILTER_TO_WORKTREE = 0,
         GIT_FILTER_TO_ODB = 1,
 
         GIT_FILTER_SMUDGE = GIT_FILTER_TO_WORKTREE,
@@ -80,10 +79,8 @@ namespace Vernuntii.Git.LibGit2
         /// <summary>
         /// Current version of the options structure.
         /// </summary>
-        public static int GIT_FILTER_OPTIONS_VERSION
-        {
-            get
-            {
+        public static int GIT_FILTER_OPTIONS_VERSION {
+            get {
                 return 1;
             }
         }
@@ -91,10 +88,8 @@ namespace Vernuntii.Git.LibGit2
         /// <summary>
         /// The default values for our options structure.
         /// </summary>
-        public static git_filter_options GIT_FILTER_OPTIONS_INIT
-        {
-            get
-            {
+        public static git_filter_options GIT_FILTER_OPTIONS_INIT {
+            get {
                 return new git_filter_options() {
                     version = GIT_FILTER_OPTIONS_VERSION,
                     flags = git_filter_flags_t.GIT_FILTER_DEFAULT

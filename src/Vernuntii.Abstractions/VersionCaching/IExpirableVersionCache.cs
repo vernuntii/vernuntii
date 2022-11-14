@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Vernuntii.VersionCaching
+﻿namespace Vernuntii.VersionCaching
 {
     /// <summary>
     /// The attributes regarding the version foundation.

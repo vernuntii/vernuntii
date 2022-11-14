@@ -3,10 +3,10 @@
     internal class KeyValuePairEqualityComparer<TKey, TValue> : EqualityComparer<KeyValuePair<TKey, TValue>>
         where TKey : notnull
     {
-        public new static KeyValuePairEqualityComparer<TKey, TValue> Default = new KeyValuePairEqualityComparer<TKey, TValue>(EqualityComparer<TKey>.Default);
+        public static new KeyValuePairEqualityComparer<TKey, TValue> Default = new(EqualityComparer<TKey>.Default);
 
         public static KeyValuePairEqualityComparer<TKey, TValue> Create(IEqualityComparer<TKey> keyComparer) =>
-            new KeyValuePairEqualityComparer<TKey, TValue>(keyComparer);
+            new(keyComparer);
 
         private readonly IEqualityComparer<TKey> _keyComparer;
 

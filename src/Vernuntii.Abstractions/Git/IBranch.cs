@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Vernuntii.Git
+﻿namespace Vernuntii.Git
 {
     /// <summary>
     /// Represents a git branch.

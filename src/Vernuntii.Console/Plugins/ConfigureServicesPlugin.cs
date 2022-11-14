@@ -16,7 +16,7 @@ namespace Vernuntii.Plugins
         /// <param name="eventTemplate"></param>
         public static ConfigureServicesPlugin<TServices> FromEvent<TServices>(SubjectEvent<TServices> eventTemplate)
             where TServices : IServiceCollection =>
-            new ConfigureServicesPlugin<TServices>(eventTemplate);
+            new(eventTemplate);
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ namespace Vernuntii.Plugins
         where TServices : IServiceCollection
     {
         private readonly SubjectEvent<TServices> _eventTemplate;
-        private List<Action<IServiceCollection>> _configureServicesActions = new List<Action<IServiceCollection>>();
+        private readonly List<Action<IServiceCollection>> _configureServicesActions = new();
 
         /// <summary>
         /// Creates an instance of this type.

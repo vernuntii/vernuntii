@@ -8,7 +8,7 @@
         /// <summary>
         /// Creates a default prefix allowlist containing: "v"
         /// </summary>
-        public readonly static PrefixAllowlist Default = Create("v");
+        public static readonly PrefixAllowlist Default = Create("v");
 
         /// <summary>
         /// Creates an instance of type <paramref name="allowedPrefixes"/>
@@ -16,7 +16,7 @@
         /// </summary>
         /// <param name="allowedPrefixes"></param>
         public static PrefixAllowlist Create(params string[] allowedPrefixes) =>
-            new PrefixAllowlist(allowedPrefixes);
+            new(allowedPrefixes);
 
         /// <summary>
         /// Collection of allowed prefixes.

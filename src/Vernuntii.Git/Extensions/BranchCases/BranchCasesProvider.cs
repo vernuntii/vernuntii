@@ -2,9 +2,9 @@
 using Microsoft.Collections.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Teronis;
 using Vernuntii.Git;
 using Vernuntii.Text.RegularExpressions;
-using Teronis;
 
 namespace Vernuntii.Extensions.BranchCases
 {
@@ -86,7 +86,7 @@ namespace Vernuntii.Extensions.BranchCases
                 throw new InvalidOperationException("A branch case has not been added");
             }
 
-            OrderedDictionary<object, IBranchCase> caseArgumentsDictionary = new OrderedDictionary<object, IBranchCase>();
+            var caseArgumentsDictionary = new OrderedDictionary<object, IBranchCase>();
 
             foreach (var (branchName, caseArguments) in branchCases) {
                 object searchKey;

@@ -8,12 +8,12 @@
         /// <summary>
         /// An instance where each version part does not flow.
         /// </summary>
-        public readonly static VersionIncrementFlow None = new VersionIncrementFlow();
+        public static readonly VersionIncrementFlow None = new();
 
         /// <summary>
         /// An instance where every version part flows downstream when major is zero.
         /// </summary>
-        public readonly static VersionIncrementFlow ZeroMajorDownstream = new VersionIncrementFlow() {
+        public static readonly VersionIncrementFlow ZeroMajorDownstream = new() {
             Condition = VersionIncrementFlowCondition.ZeroMajor,
             MajorFlow = VersionIncrementFlowMode.Downstream,
             MinorFlow = VersionIncrementFlowMode.Downstream

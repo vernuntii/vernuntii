@@ -8,7 +8,7 @@
         /// <summary>
         /// Default instance.
         /// </summary>
-        public readonly static PrefixMajorSlicer Default = new PrefixMajorSlicer();
+        public static readonly PrefixMajorSlicer Default = new();
 
         /// <inheritdoc/>
         public void Slice(ReadOnlySpan<char> value, out string prefix, out string major)

@@ -1,13 +1,12 @@
-﻿using Vernuntii.HeightConventions;
-using Vernuntii.HeightConventions.Transformation;
-using Xunit;
+﻿using Xunit;
 
 namespace Vernuntii.VersionTransformers
 {
     public class NextHeightNumberTransformerTests
     {
         [Fact]
-        public void test() {
+        public void test()
+        {
             //var convention = new HeightConvention(HeightIdentifierPosition.PreRelease) {
             //    HideInitialHeight = true,
             //    Rules = HeightRuleDictionary.AfterFirstDotRules

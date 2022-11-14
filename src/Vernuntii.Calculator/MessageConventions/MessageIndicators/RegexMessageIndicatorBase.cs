@@ -18,7 +18,7 @@ namespace Vernuntii.MessageConventions.MessageIndicators
         /// Builder for creating a copy of this instance.
         /// </summary>
         public RegexMessageIndicatorBuilder With =>
-            new RegexMessageIndicatorBuilder(this);
+            new(this);
 
         /// <inheritdoc/>
         protected override bool IsMessageIndicatingMajor(string message) =>

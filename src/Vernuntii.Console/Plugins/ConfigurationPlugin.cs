@@ -32,8 +32,8 @@ namespace Vernuntii.Plugins
         }
 
         private readonly IPluginRegistry _pluginRegistry;
-        private SharedOptionsPlugin _sharedOptions;
-        private ILogger _logger;
+        private readonly SharedOptionsPlugin _sharedOptions;
+        private readonly ILogger _logger;
         private bool _isConfigurationBuilderConfigured;
         private string? _configFile;
 

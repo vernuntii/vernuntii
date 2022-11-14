@@ -1,6 +1,6 @@
 ﻿using Vernuntii.HeightConventions;
-using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.MessageConventions;
+using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersionIncrementing;
 
@@ -16,7 +16,7 @@ namespace Vernuntii.VersioningPresets
         /// <br/> - none message indicators and
         /// <br/> - <see cref="VersionIncrementMode.None"/>
         /// </summary>
-        public readonly static VersioningPreset Manual = new VersioningPreset();
+        public static readonly VersioningPreset Manual = new();
 
         /// <summary>
         /// Continuous delivery preset consisting of
@@ -24,7 +24,7 @@ namespace Vernuntii.VersioningPresets
         /// <br/> - <see cref="TruthyMessageIndicator"/> for patch and
         /// <br/> - <see cref="VersionIncrementMode.Consecutive"/>
         /// </summary>
-        public readonly static VersioningPreset ContinuousDelivery = new VersioningPreset() {
+        public static readonly VersioningPreset ContinuousDelivery = new() {
             IncrementMode = VersionIncrementMode.Consecutive,
             MessageConvention = new MessageConvention() {
                 MajorIndicators = new[] { FalsyMessageIndicator.Default },
@@ -37,7 +37,7 @@ namespace Vernuntii.VersioningPresets
         /// <summary>
         /// Default reset. Equivalent to <see cref="ContinuousDelivery"/>.
         /// </summary>
-        public readonly static VersioningPreset Default = ContinuousDelivery;
+        public static readonly VersioningPreset Default = ContinuousDelivery;
 
         /// <summary>
         /// Continuous deployment preset consisting of
@@ -45,7 +45,7 @@ namespace Vernuntii.VersioningPresets
         /// <br/> - <see cref="TruthyMessageIndicator"/> for patch and
         /// <br/> - <see cref="VersionIncrementMode.Successive"/>
         /// </summary>
-        public readonly static VersioningPreset ContinuousDeployment = new VersioningPreset() {
+        public static readonly VersioningPreset ContinuousDeployment = new() {
             IncrementMode = VersionIncrementMode.Successive,
             MessageConvention = new MessageConvention() {
                 MajorIndicators = new[] { FalsyMessageIndicator.Default },
@@ -60,7 +60,7 @@ namespace Vernuntii.VersioningPresets
         /// <br/> - <see cref="ConventionalCommitsMessageIndicator"/> for version core and
         /// <br/> - <see cref="VersionIncrementMode.Consecutive"/>
         /// </summary>
-        public readonly static VersioningPreset ConventionalCommitsDelivery = new VersioningPreset() {
+        public static readonly VersioningPreset ConventionalCommitsDelivery = new() {
             IncrementMode = VersionIncrementMode.Consecutive,
             MessageConvention = new MessageConvention() {
                 MajorIndicators = new[] { ConventionalCommitsMessageIndicator.Default },
@@ -75,7 +75,7 @@ namespace Vernuntii.VersioningPresets
         /// <br/> - <see cref="ConventionalCommitsMessageIndicator"/> for version core and
         /// <br/> - <see cref="VersionIncrementMode.Successive"/>
         /// </summary>
-        public readonly static VersioningPreset ConventionalCommitsDeployment = new VersioningPreset() {
+        public static readonly VersioningPreset ConventionalCommitsDeployment = new() {
             IncrementMode = VersionIncrementMode.Successive,
             MessageConvention = new MessageConvention() {
                 MajorIndicators = new[] { ConventionalCommitsMessageIndicator.Default },

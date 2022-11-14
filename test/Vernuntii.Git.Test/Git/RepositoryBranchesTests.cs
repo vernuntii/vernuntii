@@ -7,7 +7,7 @@ namespace Vernuntii.Git
         [Fact]
         public void BranchesShouldContainHead()
         {
-            using var repository = new TemporaryRepository();
+            using TemporaryRepository repository = new();
             repository.CommitEmpty();
             repository.CommitEmpty();
             repository.Checkout("HEAD~");
@@ -17,7 +17,7 @@ namespace Vernuntii.Git
         [Fact]
         public void BranchesShouldNotContainHead()
         {
-            using var repository = new TemporaryRepository();
+            using TemporaryRepository repository = new();
             repository.CommitEmpty();
             Assert.Null(repository.Branches["HEAD"]);
         }

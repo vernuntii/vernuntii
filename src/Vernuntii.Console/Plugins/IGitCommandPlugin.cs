@@ -1,6 +1,4 @@
-﻿using Vernuntii.Git.Commands;
-using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem;
+﻿using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Plugins
 {

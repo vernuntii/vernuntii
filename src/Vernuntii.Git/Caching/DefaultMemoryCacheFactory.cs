@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
-
-namespace Vernuntii.Caching
+﻿namespace Vernuntii.Caching
 {
     /// <summary>
     /// Defualt implementation of <see cref="IMemoryCacheFactory"/>.
@@ -16,7 +8,7 @@ namespace Vernuntii.Caching
         /// <summary>
         /// The default instance of this type.
         /// </summary>
-        public readonly static DefaultMemoryCacheFactory Default = new DefaultMemoryCacheFactory();
+        public static readonly DefaultMemoryCacheFactory Default = new();
 
         /// <inheritdoc/>
         public IMemoryCache Create() => new DefaultMemoryCache();

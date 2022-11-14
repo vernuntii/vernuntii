@@ -12,9 +12,9 @@ namespace Vernuntii
 {
     public class ReleaseFromTagTests : IDisposable
     {
-        private TemporaryRepository _temporaryRepository = new TemporaryRepository(DefaultTemporaryRepositoryLogger);
-        private VernuntiiRunner _vernuntii;
-        private ConfigureServicesPlugin<IServiceCollection> _configurableCalculationServices = ConfigureServicesPlugin.FromEvent(GitEvents.ConfiguredCalculationServices);
+        private readonly TemporaryRepository _temporaryRepository = new(DefaultTemporaryRepositoryLogger);
+        private readonly VernuntiiRunner _vernuntii;
+        private readonly ConfigureServicesPlugin<IServiceCollection> _configurableCalculationServices = ConfigureServicesPlugin.FromEvent(GitEvents.ConfiguredCalculationServices);
 
         public ReleaseFromTagTests()
         {
@@ -37,10 +37,10 @@ namespace Vernuntii
         {
             _temporaryRepository.CommitEmpty();
 
-            var versionCache = await _vernuntii.RunAsync();
+            VersionCaching.IVersionCache versionCache = await _vernuntii.RunAsync();
             _temporaryRepository.TagLightweight(versionCache.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
 
-            var snapshotVersion = _temporaryRepository
+            ICommitVersion snapshotVersion = _temporaryRepository
                 .GetCommitVersions(unsetCache: true)
                 .Single();
 
@@ -51,9 +51,9 @@ namespace Vernuntii
         public async Task ReleaseExplicitFromTag()
         {
             _temporaryRepository.CommitEmpty();
-            var releaseVersion = "0.1.0";
+            string releaseVersion = "0.1.0";
             _temporaryRepository.TagLightweight(releaseVersion);
-            var versionCache = await _vernuntii.RunAsync();
+            VersionCaching.IVersionCache versionCache = await _vernuntii.RunAsync();
             Assert.Equal(releaseVersion, versionCache.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
         }
 

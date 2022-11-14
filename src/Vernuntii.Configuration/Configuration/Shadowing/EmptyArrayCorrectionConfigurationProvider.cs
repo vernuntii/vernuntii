@@ -9,7 +9,7 @@ namespace Vernuntii.Configuration.Shadowing
     /// </summary>
     internal class EmptyArrayCorrectionConfigurationProvider : ConfigurationProvider, IEnumerable<string>
     {
-        private readonly List<string?> _parentPaths = new List<string?>();
+        private readonly List<string?> _parentPaths = new();
         private readonly IConfigurationProvider _originConfigurationProvider;
 
         public EmptyArrayCorrectionConfigurationProvider(IConfigurationProvider originConfigurationProvider) =>

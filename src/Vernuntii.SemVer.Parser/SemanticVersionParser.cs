@@ -12,14 +12,14 @@ namespace Vernuntii.SemVer.Parser
         /// <summary>
         /// A strict version parser of the Semantic Versioning specification.
         /// </summary>
-        public readonly static SemanticVersionParser Strict = new SemanticVersionParser();
+        public static readonly SemanticVersionParser Strict = new();
 
         /// <summary>
         /// A strict version parser of the Semantic Versioning specification.
         /// If the parser hits invalid leading zeros or invalid alpha-numerics
         /// then they get erased.
         /// </summary>
-        public readonly static SemanticVersionParser Erase = new SemanticVersionParser() {
+        public static readonly SemanticVersionParser Erase = new() {
             VersionParser = NumericIdentifierParser.Erase,
             BuildParser = BuildIdentifierParser.Erase,
             PreReleaseParser = PreReleaseIdentifierParser.Erase,

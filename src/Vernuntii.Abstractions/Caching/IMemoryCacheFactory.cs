@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Extensions.Caching.Memory;
-
-namespace Vernuntii.Caching
+﻿namespace Vernuntii.Caching
 {
     /// <summary>
     /// Responsible to create a new memory cache.

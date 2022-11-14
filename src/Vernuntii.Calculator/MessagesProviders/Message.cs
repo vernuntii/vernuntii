@@ -1,5 +1,4 @@
 ﻿using Vernuntii.Logging;
-using Vernuntii.MessagesProviders;
 
 namespace Vernuntii.MessagesProviders
 {

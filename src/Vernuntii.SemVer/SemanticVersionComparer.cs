@@ -31,8 +31,8 @@
             int result;
 
             // Check for numeric versions
-            bool isPreReleaseNumeric = int.TryParse(preRelease, out var versionNumber);
-            bool isOtherPreReleaseNumeric = int.TryParse(otherPreRelease, out var otherVersionNumber);
+            var isPreReleaseNumeric = int.TryParse(preRelease, out var versionNumber);
+            var isOtherPreReleaseNumeric = int.TryParse(otherPreRelease, out var otherVersionNumber);
 
             // If both versions are numeric we can compare as numbers
             if (isPreReleaseNumeric && isOtherPreReleaseNumeric) {
@@ -58,13 +58,13 @@
         /// </summary>
         private static int ComparePreReleaseIdentifiers(IEnumerable<string> identifiers, IEnumerable<string> otherIdentifiers)
         {
-            int result = 0;
+            var result = 0;
 
             var identifierEnumerator = identifiers.GetEnumerator();
             var otherIdentifierEnumerator = otherIdentifiers.GetEnumerator();
 
-            bool hasNextIdentifier = identifierEnumerator.MoveNext();
-            bool hasNextOtherIdentifier = otherIdentifierEnumerator.MoveNext();
+            var hasNextIdentifier = identifierEnumerator.MoveNext();
+            var hasNextOtherIdentifier = otherIdentifierEnumerator.MoveNext();
 
             while (hasNextIdentifier || hasNextOtherIdentifier) {
                 if (!hasNextIdentifier && hasNextOtherIdentifier) {
@@ -93,13 +93,13 @@
         /// </summary>
         private static int CompareBuildIdentifiers(IEnumerable<string> identifiers, IEnumerable<string> otherIdentifiers)
         {
-            int result = 0;
+            var result = 0;
 
             var identifierEnumerator = identifiers.GetEnumerator();
             var otherIdentifierEnumerator = otherIdentifiers.GetEnumerator();
 
-            bool hasNextIdentifier = identifierEnumerator.MoveNext();
-            bool hasNextOtherIdentifier = otherIdentifierEnumerator.MoveNext();
+            var hasNextIdentifier = identifierEnumerator.MoveNext();
+            var hasNextOtherIdentifier = otherIdentifierEnumerator.MoveNext();
 
             while (hasNextIdentifier || hasNextOtherIdentifier) {
                 if (!hasNextIdentifier && hasNextOtherIdentifier) {
@@ -174,7 +174,7 @@
                 return 0;
             }
 
-            HashCode hashCode = new HashCode();
+            var hashCode = new HashCode();
             hashCode.Add(obj.Major);
             hashCode.Add(obj.Minor);
             hashCode.Add(obj.Patch);

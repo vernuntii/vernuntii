@@ -1,8 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using CSF.Collections;
-using Vernuntii.PluginSystem.Meta;
-
-namespace Vernuntii.PluginSystem
+﻿namespace Vernuntii.PluginSystem
 {
     /// <summary>
     /// The base plugin descriptor.
@@ -11,6 +7,6 @@ namespace Vernuntii.PluginSystem
     public record PluginDescriptorBase<T>
         where T : IPlugin?
     {
-        
+
     }
 }

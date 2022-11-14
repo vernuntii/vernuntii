@@ -8,7 +8,7 @@
         /// <summary>
         /// Default instance of type this type.
         /// </summary>
-        public readonly static TruthyMessageIndicator Default = new TruthyMessageIndicator();
+        public static readonly TruthyMessageIndicator Default = new();
 
         /// <inheritdoc/>
         public bool IsMessageIndicating(string? message, VersionPart partToIndicate) => true;

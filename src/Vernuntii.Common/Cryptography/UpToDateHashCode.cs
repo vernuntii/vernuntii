@@ -1,12 +1,4 @@
-﻿using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using K4os.Hash.xxHash;
-using Standart.Hash.xxHash;
+﻿using K4os.Hash.xxHash;
 
 namespace Vernuntii.Cryptography
 {
@@ -15,7 +7,7 @@ namespace Vernuntii.Cryptography
     /// </summary>
     public class UpToDateHashCode
     {
-        private List<string> _files = new List<string>();
+        private readonly List<string> _files = new();
 
         /// <summary>
         /// Adds files in a directory to check.

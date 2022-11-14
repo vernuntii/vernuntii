@@ -6,7 +6,7 @@ namespace Vernuntii.Configuration
 {
     public class ConfigurationFixture
     {
-        public static readonly ConfigurationFixture Default = new ConfigurationFixture();
+        public static readonly ConfigurationFixture Default = new();
 
         private static IConfiguration FindConfigurationFile(IConventionalFileFinder fileFinder, string directoryPath, string fileName) =>
             new ConventionalConfigurationBuilder()

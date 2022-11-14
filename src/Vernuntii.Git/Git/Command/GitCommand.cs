@@ -10,7 +10,7 @@ namespace Vernuntii.Git.Commands
     public class GitCommand : IGitCommand
     {
         private bool _isDisposed;
-        private Lazy<LibGit2Command> _libGit2;
+        private readonly Lazy<LibGit2Command> _libGit2;
 
         /// <inheritdoc/>
         public string WorkingTreeDirectory { get; }
@@ -26,7 +26,7 @@ namespace Vernuntii.Git.Commands
             _libGit2 = new Lazy<LibGit2Command>(() => new LibGit2Command(workingTreeDirectory));
         }
 
-        private GitProcessStartInfo CreateStartInfo(string? args) => new GitProcessStartInfo(args, WorkingTreeDirectory);
+        private GitProcessStartInfo CreateStartInfo(string? args) => new(args, WorkingTreeDirectory);
 
         /// <summary>
         /// Executes the git command.
@@ -129,8 +129,8 @@ namespace Vernuntii.Git.Commands
                         continue;
                     }
 
-                    string[] strArray = line.Split(' ');
-                    string referenceName = strArray[1];
+                    var strArray = line.Split(' ');
+                    var referenceName = strArray[1];
 
                     yield return new Branch(
                         commitSha: strArray[0],
@@ -165,20 +165,20 @@ namespace Vernuntii.Git.Commands
                     continue;
                 }
 
-                int firstSpace = line.IndexOf(' ', StringComparison.Ordinal);
+                var firstSpace = line.IndexOf(' ', StringComparison.Ordinal);
 
                 if (firstSpace == -1) {
                     break;
                 }
 
-                string sha = line[..firstSpace];
-                string subject = line[(firstSpace + 1)..];
+                var sha = line[..firstSpace];
+                var subject = line[(firstSpace + 1)..];
                 yield return new Commit(sha, subject);
             }
 
             string BuildArguments()
             {
-                CultureStringBuilder stringBuilder = CultureStringBuilder.Invariant();
+                var stringBuilder = CultureStringBuilder.Invariant();
                 stringBuilder.Append($"log {branchName ?? "HEAD"}");
 
                 if (!string.IsNullOrEmpty(sinceCommit)) {
@@ -212,10 +212,10 @@ namespace Vernuntii.Git.Commands
         internal readonly struct NullableQuote
         {
             public static NullableQuote DoubleQuoted(string content) =>
-                new NullableQuote($"\"{content}\"");
+                new($"\"{content}\"");
 
             public static NullableQuote SingleQuoted(string content) =>
-                new NullableQuote($"'{content}'");
+                new($"'{content}'");
 
             public string? Content { get; }
 
@@ -234,10 +234,10 @@ namespace Vernuntii.Git.Commands
         internal readonly struct Quote
         {
             public static Quote DoubleQuoted(string message) =>
-                new Quote($"\"{message}\"");
+                new($"\"{message}\"");
 
             public static Quote SingleQuoted(string message) =>
-                new Quote($"'{message}'");
+                new($"'{message}'");
 
             public string Content => _content ?? throw new InvalidOperationException("Quote is not set");
 

@@ -10,11 +10,11 @@ internal class ConsoleLocateCommandPlugin : Plugin
 {
     private readonly ICommandLinePlugin _commandLine;
 
-    private Argument<ConsoleFileLocation> locateArgument = new Argument<ConsoleFileLocation>("locate") {
+    private readonly Argument<ConsoleFileLocation> locateArgument = new("locate") {
         Description = "The file location you are asking for."
     };
 
-    private Command locateCommand;
+    private readonly Command locateCommand;
 
     public ConsoleLocateCommandPlugin(ICommandLinePlugin commandLine)
     {

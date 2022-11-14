@@ -1,17 +1,14 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Text.Encodings.Web;
 using System.Text.Json;
-using Vernuntii.SemVer.Json;
-using Teronis.IO.FileLocking;
-using Vernuntii.SemVer.Json.System;
 using System.Text.Json.Serialization;
+using Teronis.IO.FileLocking;
 
 namespace Vernuntii.Text.Json
 {
     internal sealed class JsonFile<T> : IDisposable, IManagedValueWriter<T>
         where T : class
     {
-        public readonly static FileStreamLocker FileStreamLocker = new FileStreamLocker(new LockFileSystem());
+        public static readonly FileStreamLocker FileStreamLocker = new(new LockFileSystem());
 
         public JsonSerializerContext SerializerContext { get; }
 

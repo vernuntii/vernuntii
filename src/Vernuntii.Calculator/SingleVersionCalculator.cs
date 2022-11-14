@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Vernuntii.MessagesProviders;
-using Vernuntii.VersionIncrementing;
 using Vernuntii.SemVer;
+using Vernuntii.VersionIncrementing;
 using Vernuntii.VersionTransformers;
 
 namespace Vernuntii;

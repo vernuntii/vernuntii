@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Console.GlobalTool.DotNet;
 using Vernuntii.Console.GlobalTool.NuGet;
@@ -22,26 +17,26 @@ namespace Vernuntii.Console.GlobalTool
         private readonly MSBuildIntegrationCommandPlugin _msbuildIntegrationCommandPlugin;
         private readonly ILoggingPlugin _loggingPlugin;
         private readonly ILogger<MSBuildIntegrationLocateCommandPlugin> _logger;
-        private Command _command;
+        private readonly Command _command;
         private NuGetRunner _nugetRunner = null!;
 
-        private Argument<MSBuildFileLocation> locateArgument = new Argument<MSBuildFileLocation>("locate") {
+        private readonly Argument<MSBuildFileLocation> locateArgument = new("locate") {
             Description = "The file location you are asking for."
         };
 
-        private Option<string?> packageNameOption = new Option<string?>(new[] { "--package-name" }, () => VernuntiiConsoleMSBuild) {
+        private readonly Option<string?> packageNameOption = new(new[] { "--package-name" }, () => VernuntiiConsoleMSBuild) {
             Description = $"A variant of {VernuntiiConsoleMSBuild} to use."
         };
 
-        private Option<string?> packageVersionOption = new Option<string?>(new[] { "--package-version" }) {
+        private readonly Option<string?> packageVersionOption = new(new[] { "--package-version" }) {
             Description = $"The pacakge version of {VernuntiiConsoleMSBuild} or variant to use."
         };
 
-        private Option<bool> downloadPackageOption = new Option<bool>(new[] { "--download-package" }) {
+        private readonly Option<bool> downloadPackageOption = new(new[] { "--download-package" }) {
             Description = $"Downloads {VernuntiiConsoleMSBuild} or variant in case it is not."
         };
 
-        private Option<string?> packageSourceOption = new Option<string?>(new[] { "--package-source" }) {
+        private readonly Option<string?> packageSourceOption = new(new[] { "--package-source" }) {
             Description = $"Sets the NuGet-specific packageSource for {VernuntiiConsoleMSBuild} or variant." +
                 $"Either url e.g. https://api.nuget.org/v3/index.json (default) or a directory containing packages." +
                 $"Multiple sources are allowed when separating values by a semicolon."

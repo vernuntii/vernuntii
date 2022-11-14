@@ -13,12 +13,12 @@ namespace Vernuntii.Plugins
     {
         public VersionCacheOptions CacheOptions { get; set; } = new VersionCacheOptions();
 
-        private Option<string> _cacheIdOption = new Option<string>(new string[] { "--cache-id" }) {
+        private readonly Option<string> _cacheIdOption = new(new string[] { "--cache-id" }) {
             Description = "The non-case-sensitive cache id is used to cache the version informations once and load them on next accesses." +
                 $" If cache id is not specified it is implicitly the internal cache id: {VersionCacheOptions.DefaultInternalCacheId}"
         };
 
-        private Option<TimeSpan?> _cacheCreationRetentionTimeOption = new Option<TimeSpan?>(new string[] { "--cache-creation-retention-time" }, parseArgument: result => {
+        private readonly Option<TimeSpan?> _cacheCreationRetentionTimeOption = new(new string[] { "--cache-creation-retention-time" }, parseArgument: result => {
             if (result.Tokens.Count == 0 || result.Tokens[0].Value == string.Empty) {
                 return null; // = internal default is taken
             }
@@ -28,7 +28,7 @@ namespace Vernuntii.Plugins
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        private Option<TimeSpan?> _cacheLastAccessRetentionTimeOption = new Option<TimeSpan?>(new string[] { "--cache-last-access-retention-time" }, parseArgument: result => {
+        private readonly Option<TimeSpan?> _cacheLastAccessRetentionTimeOption = new(new string[] { "--cache-last-access-retention-time" }, parseArgument: result => {
             if (result.Tokens.Count == 0 || result.Tokens[0].Value == string.Empty) {
                 return null; // = feature won't be used
             }

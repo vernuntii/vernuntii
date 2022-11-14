@@ -11,7 +11,7 @@ namespace Vernuntii.VersionTransformers
         /// <summary>
         /// Default instance.
         /// </summary>
-        public readonly static NextMinorVersionTransformer Default = new NextMinorVersionTransformer();
+        public static readonly NextMinorVersionTransformer Default = new();
 
         bool IVersionTransformer.DoesNotTransform => false;
 

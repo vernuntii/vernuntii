@@ -7,7 +7,7 @@ namespace Vernuntii
     {
         public IServiceCollection Services { get; }
 
-        public SingleVersionCalculationFeatures(IServiceCollection services) => 
+        public SingleVersionCalculationFeatures(IServiceCollection services) =>
             Services = services;
     }
 }

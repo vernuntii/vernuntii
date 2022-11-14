@@ -8,7 +8,7 @@ namespace Vernuntii.Extensions.BranchCases
     {
         private const string DefaultBranchCaseKey = "";
 
-        private static List<RegexEscape> CreateDefaultPreReleaseEscapes() => new List<RegexEscape>() {
+        private static List<RegexEscape> CreateDefaultPreReleaseEscapes() => new() {
             new RegexEscape("/[A-Z]/", static value => value.ToLower(CultureInfo.InvariantCulture)),
             new RegexEscape("///", static _ => "-")
         };
@@ -16,7 +16,7 @@ namespace Vernuntii.Extensions.BranchCases
         public IReadOnlyDictionary<string, IBranchCase> BranchCases => _branchCases;
         public IReadOnlyCollection<IRegexEscape>? DefaultPreReleaseEscapes { get; }
 
-        Dictionary<string, IBranchCase> _branchCases = new Dictionary<string, IBranchCase>();
+        private readonly Dictionary<string, IBranchCase> _branchCases = new();
 
         public void AddBranchCase(IBranchCase branchCase)
         {

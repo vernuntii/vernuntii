@@ -13,7 +13,7 @@ namespace Vernuntii.Git.Commands
 
         public void SetConfig(NullableQuote name, NullableQuote value)
         {
-            var args = CultureStringBuilder.Invariant();
+            CultureStringBuilder args = CultureStringBuilder.Invariant();
             args.Append("config");
             args.Append($" {name}");
             args.Append($" {value}");
@@ -28,7 +28,7 @@ namespace Vernuntii.Git.Commands
         /// <param name="allowEmptyMessage"></param>
         public void Commit(NullableQuote message = default, bool allowEmpty = false, bool allowEmptyMessage = false)
         {
-            var args = CultureStringBuilder.Invariant();
+            CultureStringBuilder args = CultureStringBuilder.Invariant();
             args.Append("commit");
 
             if (message.Content != null) {
@@ -48,7 +48,7 @@ namespace Vernuntii.Git.Commands
 
         public void TagLightweight(NullableQuote tagName, NullableQuote commit = default)
         {
-            var args = CultureStringBuilder.Invariant();
+            CultureStringBuilder args = CultureStringBuilder.Invariant();
             args.Append("tag");
             args.Append($" {tagName}");
 
@@ -66,7 +66,7 @@ namespace Vernuntii.Git.Commands
         /// <param name="depth"></param>
         public void Clone(NullableQuote url, int? depth = null)
         {
-            var args = CultureStringBuilder.Invariant();
+            CultureStringBuilder args = CultureStringBuilder.Invariant();
             args.Append("clone");
 
             if (depth != null) {
@@ -79,7 +79,7 @@ namespace Vernuntii.Git.Commands
 
         public void Checkout(Quote branchName)
         {
-            var args = CultureStringBuilder.Invariant();
+            CultureStringBuilder args = CultureStringBuilder.Invariant();
             args.Append($"checkout {branchName}");
             ExecuteCommandThenSucceed(args);
         }

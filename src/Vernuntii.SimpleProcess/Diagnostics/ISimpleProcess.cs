@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Vernuntii.Diagnostics
+﻿namespace Vernuntii.Diagnostics
 {
     /// <summary>
     /// A process.

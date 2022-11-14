@@ -65,22 +65,22 @@ public class GitPlugin : Plugin, IGitPlugin
     /// </summary>
     public IGitCommand GitCommand => _gitCommand ?? throw new InvalidOperationException($"The event \"{nameof(GitEvents.ResolvedGitWorkingTreeDirectory)}\" was not yet called");
 
-    private SharedOptionsPlugin _sharedOptions = null!;
+    private readonly SharedOptionsPlugin _sharedOptions = null!;
     private IConfiguration _configuration = null!;
     private IGitCommand? _gitCommand;
-    private INextVersionPlugin _nextVersionPlugin = null!;
+    private readonly INextVersionPlugin _nextVersionPlugin = null!;
     private IOneSignal _configuredConfigurationBuilderEventSignal = null!;
 
-    private Option<string?> _overridePostPreReleaseOption = new Option<string?>(new[] { "--override-post-pre-release" });
+    private readonly Option<string?> _overridePostPreReleaseOption = new(new[] { "--override-post-pre-release" });
 
-    private Option<bool> _duplicateVersionFailsOption = new Option<bool>(new string[] { "--duplicate-version-fails" }) {
+    private readonly Option<bool> _duplicateVersionFailsOption = new(new string[] { "--duplicate-version-fails" }) {
         Description = $"If the produced version exists as tag already then the exit code will be {(int)ExitCode.VersionDuplicate}."
     };
 
     private string? _overridePostPreRelease;
     private bool _duplicateVersionFails;
     private string? _workingTreeDirectory;
-    private ILogger _logger = null!;
+    private readonly ILogger _logger = null!;
     private IGitDirectoryResolver? _gitDirectoryResolver;
     private IRepository? _alternativeRepository;
     private IGitCommand? _alternativeGitCommand;

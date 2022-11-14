@@ -8,7 +8,7 @@ namespace Vernuntii.VersionTransformers
         [Fact]
         public void TransformVersionShouldHavePreRelease()
         {
-            var expectedPreRelease = "alpha";
+            string expectedPreRelease = "alpha";
 
             SemanticVersion expected = SemanticVersion.Zero.With
                 .Version(2, 2, 3)
@@ -18,8 +18,8 @@ namespace Vernuntii.VersionTransformers
                 .Version(2, 2, 3)
                 .PreRelease("beta");
 
-            var transformer = new PreReleaseTransformer(expectedPreRelease);
-            var actual = transformer.TransformVersion(versionToTransform);
+            PreReleaseTransformer transformer = new(expectedPreRelease);
+            ISemanticVersion actual = transformer.TransformVersion(versionToTransform);
             Assert.Equal(expected, actual);
         }
     }

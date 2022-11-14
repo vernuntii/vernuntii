@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vernuntii.Git.LibGit2.Runtime
+﻿namespace Vernuntii.Git.LibGit2.Runtime
 {
     /// <summary>
     /// Disposable pattern for objects that manage the lifecycle of

@@ -5,14 +5,14 @@ namespace Vernuntii.PluginSystem
 {
     internal class PluginLoadContext : AssemblyLoadContext
     {
-        private AssemblyDependencyResolver _resolver;
+        private readonly AssemblyDependencyResolver _resolver;
 
         public PluginLoadContext(string pluginAssemblyPath) =>
             _resolver = new AssemblyDependencyResolver(pluginAssemblyPath);
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
+            var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
 
             if (assemblyPath != null) {
                 return LoadFromAssemblyPath(assemblyPath);
@@ -23,7 +23,7 @@ namespace Vernuntii.PluginSystem
 
         protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
         {
-            string? libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+            var libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
 
             if (libraryPath != null) {
                 return LoadUnmanagedDllFromPath(libraryPath);

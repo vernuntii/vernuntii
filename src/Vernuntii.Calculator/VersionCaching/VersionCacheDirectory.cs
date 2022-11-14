@@ -1,8 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Teronis.IO.FileLocking;
-using Vernuntii.SemVer;
-using Vernuntii.Text.Json;
-using Vernuntii.VersionCaching;
 
 namespace Vernuntii.VersionCaching
 {
@@ -16,8 +12,8 @@ namespace Vernuntii.VersionCaching
         /// <inheritdoc/>
         public string? CacheDirectoryPath { get; private set; }
 
-        private VersionCacheDirectoryOptions _options;
-        private string _baseDirectory;
+        private readonly VersionCacheDirectoryOptions _options;
+        private readonly string _baseDirectory;
 
         /// <summary>
         /// Creates an instance of this type.

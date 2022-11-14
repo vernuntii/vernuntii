@@ -31,7 +31,7 @@
         /// Gets the absolute directory path of file or directory above beginning from the parent directory of <paramref name="beginningDirectory"/>, unless <paramref name="includeBeginningDirectory"/> is true.
         /// </summary>
         public static UpwardDirectoryAccessor FindUpwardDirectory(UpwardDirectoryPredicate directoryPredicate, DirectoryInfo beginningDirectory, bool includeBeginningDirectory = false) =>
-            new UpwardDirectoryAccessor(CreateUpwardDirectoryEnumerator(directoryPredicate, beginningDirectory, includeBeginningDirectory));
+            new(CreateUpwardDirectoryEnumerator(directoryPredicate, beginningDirectory, includeBeginningDirectory));
 
         private static bool ContainsFile(DirectoryInfo directoryInfo, string fileNameWithExtension)
         {

@@ -25,7 +25,7 @@ namespace Vernuntii.VersioningPresets
         /// <inheritdoc/>
         public IHeightConventionRegistry HeightConventions => _manager;
 
-        private Manager _manager = new Manager();
+        private readonly Manager _manager = new();
 
         /// <summary>
         /// Adds a preset with name and what it can actually map.
@@ -54,12 +54,12 @@ namespace Vernuntii.VersioningPresets
             IConfiguredMessageIndicatorFactoryRegistry,
             IHeightConventionRegistry
         {
-            private NamedItemRegistry<IVersioningPreset> _versioningPresets = new NamedItemRegistry<IVersioningPreset>();
-            private NamedItemRegistry<IVersionIncrementFlow> _incrementFlows = new NamedItemRegistry<IVersionIncrementFlow>();
-            private NamedItemRegistry<IMessageConvention> _messageConventions = new NamedItemRegistry<IMessageConvention>();
-            private NamedItemRegistry<IMessageIndicator> _messageIndicators = new NamedItemRegistry<IMessageIndicator>();
-            private NamedItemRegistry<IConfiguredMessageIndicatorFactory> _configuredMessageIndicatorFactories = new NamedItemRegistry<IConfiguredMessageIndicatorFactory>();
-            private NamedItemRegistry<IHeightConvention> _heightConventions = new NamedItemRegistry<IHeightConvention>();
+            private readonly NamedItemRegistry<IVersioningPreset> _versioningPresets = new();
+            private readonly NamedItemRegistry<IVersionIncrementFlow> _incrementFlows = new();
+            private readonly NamedItemRegistry<IMessageConvention> _messageConventions = new();
+            private readonly NamedItemRegistry<IMessageIndicator> _messageIndicators = new();
+            private readonly NamedItemRegistry<IConfiguredMessageIndicatorFactory> _configuredMessageIndicatorFactories = new();
+            private readonly NamedItemRegistry<IHeightConvention> _heightConventions = new();
 
             IEnumerable<string> INamedItemRegistry<IVersioningPreset>.Names => _versioningPresets.Names;
             IEnumerable<string> INamedItemRegistry<IVersionIncrementFlow>.Names => _incrementFlows.Names;

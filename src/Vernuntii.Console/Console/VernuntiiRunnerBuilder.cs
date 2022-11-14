@@ -29,11 +29,11 @@ namespace Vernuntii.Console
             services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(Logger<>)));
         }
 
-        private List<Action<IPluginProviderBuilder>> _configurePluginProviderBuilderActions = new() {
+        private readonly List<Action<IPluginProviderBuilder>> _configurePluginProviderBuilderActions = new() {
             AddDefaultPlugins
         };
 
-        private List<Action<IServiceCollection>> _configurePluginServicesActions = new() {
+        private readonly List<Action<IServiceCollection>> _configurePluginServicesActions = new() {
             AddPluginServices
         };
 

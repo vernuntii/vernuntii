@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Xunit;
+﻿using Xunit;
 
 namespace Vernuntii.HeightConventions.Transformation
 {
@@ -18,8 +17,8 @@ namespace Vernuntii.HeightConventions.Transformation
         [MemberData(nameof(AllowedPlaceholderGenerator))]
         public void ParseResultShouldMatch(HeightPlaceholderType expectedPlaceholderType, object? expectedPlaceholderContent, string placeholder)
         {
-            var parser = new HeightPlaceholderParser();
-            var actualPlaceholderType = parser.Parse(placeholder, out var actualPlaceholderContent);
+            HeightPlaceholderParser parser = new();
+            HeightPlaceholderType actualPlaceholderType = parser.Parse(placeholder, out object? actualPlaceholderContent);
 
             Assert.Equal(expectedPlaceholderType, actualPlaceholderType);
             Assert.Equal(expectedPlaceholderContent, actualPlaceholderContent);

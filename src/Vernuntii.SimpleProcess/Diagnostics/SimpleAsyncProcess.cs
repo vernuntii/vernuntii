@@ -24,12 +24,12 @@
             EnsureProcessStarted();
 
             if (!ShouldStreamOutput) {
-                string endAsync = await Process.StandardOutput.ReadToEndAsync();
+                var endAsync = await Process.StandardOutput.ReadToEndAsync();
                 ReceiveOutput(endAsync);
             }
 
             if (!ShouldStreamError) {
-                string endAsync = await Process.StandardError.ReadToEndAsync();
+                var endAsync = await Process.StandardError.ReadToEndAsync();
                 ReceiveError(endAsync);
             }
 

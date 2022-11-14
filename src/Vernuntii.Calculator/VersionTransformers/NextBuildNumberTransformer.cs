@@ -5,7 +5,7 @@ namespace Vernuntii.VersionTransformers
 {
     internal class NextBuildNumberTransformer : IVersionTransformer
     {
-        public readonly static NextBuildNumberTransformer Default = new NextBuildNumberTransformer();
+        public static readonly NextBuildNumberTransformer Default = new();
 
         bool IVersionTransformer.DoesNotTransform => false;
 

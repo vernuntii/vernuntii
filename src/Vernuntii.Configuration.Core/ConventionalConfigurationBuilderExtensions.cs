@@ -9,7 +9,7 @@ namespace Vernuntii.Configuration
     public static class ConventionalConfigurationBuilderExtensions
     {
         private static HashSet<string> EliminateDuplicates(IEnumerable<string> fileNames) =>
-            new HashSet<string>(fileNames);
+            new(fileNames);
 
         /// <summary>
         /// Tries to add the first existing file with the help of current <see cref="IConventionalConfigurationBuilder.ConventionalFileFinders"/>.

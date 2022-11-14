@@ -36,10 +36,10 @@ namespace Vernuntii.IO
             path == null ? null : new AnyPath(path);
 
         public static AnyPath operator /(AnyPath path, string appendix) =>
-            new AnyPath(Path.Combine(path ?? "", appendix));
+            new(Path.Combine(path ?? "", appendix));
 
         public static FilePath operator +(AnyPath path, string fileName) =>
-            new FilePath(Path.Combine(path ?? "", fileName));
+            new(Path.Combine(path ?? "", fileName));
 
         public override string ToString() => PathString;
     }

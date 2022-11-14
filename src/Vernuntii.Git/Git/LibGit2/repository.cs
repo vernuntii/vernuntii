@@ -1,5 +1,3 @@
-using System;
-
 namespace Vernuntii.Git.LibGit2
 {
     /// <summary>

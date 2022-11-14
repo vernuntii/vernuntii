@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem;
 using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Plugins

@@ -8,9 +8,9 @@ namespace Vernuntii.SemVer.Parser.Slicing
         /// <summary>
         /// Default instance of <see cref="SemanticVersionSlicer"/>.
         /// </summary>
-        public readonly static SemanticVersionSlicer Default = new SemanticVersionSlicer(PrefixMajorSlicer.Default);
+        public static readonly SemanticVersionSlicer Default = new(PrefixMajorSlicer.Default);
 
-        private IPrefixMajorSlicer _prefixMajorSlicer;
+        private readonly IPrefixMajorSlicer _prefixMajorSlicer;
 
         /// <summary>
         /// Created an instance of this type.

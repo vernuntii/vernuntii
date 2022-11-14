@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Vernuntii.HeightConventions;
+﻿using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.VersionIncrementFlows;
@@ -11,11 +9,11 @@ namespace Vernuntii.Plugins
 {
     public class VersioningPresetsPluginTests
     {
-        private readonly static VersioningPresetsPlugin DefaultPlugin = new VersioningPresetsPlugin();
+        private static readonly VersioningPresetsPlugin DefaultPlugin = new();
 
         public static IEnumerable<object[]> DefaultPresetNames()
         {
-            foreach (var name in Enum.GetNames<InbuiltVersioningPreset>()) {
+            foreach (string name in Enum.GetNames<InbuiltVersioningPreset>()) {
                 yield return new[] { name };
             }
         }
@@ -27,7 +25,7 @@ namespace Vernuntii.Plugins
 
         public static IEnumerable<object[]> DefaultIncrementFlowNames()
         {
-            foreach (var name in Enum.GetNames<InbuiltVersionIncrementFlow>()) {
+            foreach (string name in Enum.GetNames<InbuiltVersionIncrementFlow>()) {
                 yield return new[] { name };
             }
         }
@@ -40,7 +38,7 @@ namespace Vernuntii.Plugins
 
         private static IEnumerable<object[]> DefaultMessageConventionNames()
         {
-            foreach (var name in Enum.GetNames<InbuiltMessageConvention>()) {
+            foreach (string name in Enum.GetNames<InbuiltMessageConvention>()) {
                 yield return new[] { name };
             }
         }
@@ -53,7 +51,7 @@ namespace Vernuntii.Plugins
 
         public static IEnumerable<object[]> DefaultHeightConventionNames()
         {
-            foreach (var name in Enum.GetNames<InbuiltHeightConvention>()) {
+            foreach (string name in Enum.GetNames<InbuiltHeightConvention>()) {
                 yield return new[] { name };
             }
         }
@@ -66,7 +64,7 @@ namespace Vernuntii.Plugins
 
         public static IEnumerable<object[]> DefaultMessageIndicatorNames()
         {
-            foreach (var name in Enum.GetNames<InbuiltMessageIndicator>()) {
+            foreach (string name in Enum.GetNames<InbuiltMessageIndicator>()) {
                 yield return new[] { name };
             }
         }
@@ -78,7 +76,7 @@ namespace Vernuntii.Plugins
 
         private static IEnumerable<object[]> DefaultConfiguredMessageIndicatorFactoryNames()
         {
-            foreach (var name in Enum.GetNames<InbuiltConfiguredMessageIndicatorFactory>()) {
+            foreach (string name in Enum.GetNames<InbuiltConfiguredMessageIndicatorFactory>()) {
                 yield return new[] { name };
             }
         }

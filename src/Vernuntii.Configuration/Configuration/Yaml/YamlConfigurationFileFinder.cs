@@ -8,7 +8,7 @@ namespace Vernuntii.Configuration.Yaml
     /// </summary>
     public class YamlConfigurationFileFinder : ConventionalFileFinderBase
     {
-        private readonly static string[] DefaultFileNames = new[] {
+        private static readonly string[] DefaultFileNames = new[] {
             YamlConfigurationFileDefaults.YmlFileName,
             YamlConfigurationFileDefaults.YamlFileName
         };

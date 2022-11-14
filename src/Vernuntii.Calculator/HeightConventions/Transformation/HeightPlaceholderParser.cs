@@ -2,7 +2,7 @@
 {
     internal class HeightPlaceholderParser : IHeightPlaceholderParser
     {
-        public readonly static HeightPlaceholderParser Default = new HeightPlaceholderParser();
+        public static readonly HeightPlaceholderParser Default = new();
 
         public HeightPlaceholderType Parse(ReadOnlySpan<char> placeholder, out object? placeholderContent)
         {

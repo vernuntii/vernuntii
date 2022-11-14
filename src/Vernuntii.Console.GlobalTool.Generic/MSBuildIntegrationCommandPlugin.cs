@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.CommandLine;
 using Vernuntii.Plugins;
 using Vernuntii.PluginSystem;
 
@@ -14,7 +9,7 @@ namespace Vernuntii.Console.GlobalTool
         public Command Command => command;
 
         private readonly ICommandLinePlugin _commandLine;
-        private Command command;
+        private readonly Command command;
 
         public MSBuildIntegrationCommandPlugin(ICommandLinePlugin commandLine)
         {

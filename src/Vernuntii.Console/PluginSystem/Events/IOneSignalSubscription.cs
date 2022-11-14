@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vernuntii.PluginSystem.Events
+﻿namespace Vernuntii.PluginSystem.Events
 {
     /// <summary>
     /// Represents a subscription that can be signaled once.

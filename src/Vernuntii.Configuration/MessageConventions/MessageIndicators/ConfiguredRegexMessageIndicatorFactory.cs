@@ -12,7 +12,7 @@ namespace Vernuntii.MessageConventions.MessageIndicators
         /// <summary>
         /// The default instance.
         /// </summary>
-        public readonly static ConfiguredRegexMessageIndicatorFactory Default = new ConfiguredRegexMessageIndicatorFactory();
+        public static readonly ConfiguredRegexMessageIndicatorFactory Default = new();
 
         /// <inheritdoc/>
         public IMessageIndicator Create(IConfiguration indicatorConfiguration, string indicatorName, VersionPart versionPart)

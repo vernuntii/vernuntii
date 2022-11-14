@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Teronis.IO;
-using Vernuntii.Configuration.IO;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Vernuntii.Git
 {

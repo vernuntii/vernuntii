@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Teronis;
 using Vernuntii.Extensions.Configurers;
 using Vernuntii.Text.RegularExpressions;
-using Teronis;
 
 namespace Vernuntii.Extensions.BranchCases
 {
@@ -110,7 +110,7 @@ namespace Vernuntii.Extensions.BranchCases
                 }
 
                 // Define search pre-release.
-                string? searchPreRelease = activeBranchCaseArguments.SearchPreRelease ?? preRelease;
+                var searchPreRelease = activeBranchCaseArguments.SearchPreRelease ?? preRelease;
 
                 // Escape search pre-release.
                 searchPreRelease = RegexUtils.Escape(searchPreRelease, activeBranchCaseArguments.SearchPreReleaseEscapes

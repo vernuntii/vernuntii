@@ -12,31 +12,31 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when fully qualified git directory has been resolved.
         /// </summary>
-        public readonly static SubjectEvent<string> ResolvedGitWorkingTreeDirectory = new SubjectEvent<string>();
+        public static readonly SubjectEvent<string> ResolvedGitWorkingTreeDirectory = new();
 
         /// <summary>
         /// Event is happening when the git command has been created.
         /// </summary>
-        public readonly static SubjectEvent<IGitCommand> CreatedGitCommand = new SubjectEvent<IGitCommand>();
+        public static readonly SubjectEvent<IGitCommand> CreatedGitCommand = new();
 
         /// <summary>
         /// Event when global service collection is about to be configured.
         /// </summary>
-        public readonly static SubjectEvent<IServiceCollection> ConfiguringGlobalServices = new SubjectEvent<IServiceCollection>();
+        public static readonly SubjectEvent<IServiceCollection> ConfiguringGlobalServices = new();
 
         /// <summary>
         /// Event when global service collection has been configured.
         /// </summary>
-        public readonly static SubjectEvent<IServiceCollection> ConfiguredGlobalServices = new SubjectEvent<IServiceCollection>();
+        public static readonly SubjectEvent<IServiceCollection> ConfiguredGlobalServices = new();
 
         /// <summary>
         /// Event when calculation service collection is about to be configured.
         /// </summary>
-        public readonly static SubjectEvent<IServiceCollection> ConfiguringCalculationServices = new SubjectEvent<IServiceCollection>();
+        public static readonly SubjectEvent<IServiceCollection> ConfiguringCalculationServices = new();
 
         /// <summary>
         /// Event when calculation service collection has been configured.
         /// </summary>
-        public readonly static SubjectEvent<IServiceCollection> ConfiguredCalculationServices = new SubjectEvent<IServiceCollection>();
+        public static readonly SubjectEvent<IServiceCollection> ConfiguredCalculationServices = new();
     }
 }

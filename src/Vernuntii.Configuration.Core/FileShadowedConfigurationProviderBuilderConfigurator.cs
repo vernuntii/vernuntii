@@ -12,7 +12,7 @@ namespace Vernuntii.Configuration
         /// <inheritdoc/>
         public FileInfo FileInfo { get; }
 
-        private IShadowedConfigurationProviderBuilderConfigurator _internalShadowedConfigurationProviderBuilding;
+        private readonly IShadowedConfigurationProviderBuilderConfigurator _internalShadowedConfigurationProviderBuilding;
 
         /// <summary>
         /// Creates an instance of <see cref="FileShadowedConfigurationProviderBuilderConfigurator"/>.

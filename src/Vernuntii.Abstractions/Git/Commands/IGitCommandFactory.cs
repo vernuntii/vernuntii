@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Vernuntii.Git.Commands
+﻿namespace Vernuntii.Git.Commands
 {
     /// <summary>
     /// The factory for an instance of <see cref="IGitCommand"/>.

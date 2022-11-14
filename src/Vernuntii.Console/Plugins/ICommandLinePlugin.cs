@@ -1,8 +1,6 @@
-﻿using System.CommandLine;
-using System.CommandLine.Builder;
+﻿using System.CommandLine.Builder;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Plugins.CommandLine;
-using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Plugins;

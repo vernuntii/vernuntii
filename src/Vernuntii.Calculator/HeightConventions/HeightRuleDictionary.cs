@@ -12,12 +12,12 @@ namespace Vernuntii.HeightConventions
         /// <summary>
         /// Empty dictionary without any rules.
         /// </summary>
-        public readonly static HeightRuleDictionary Empty = new HeightRuleDictionary();
+        public static readonly HeightRuleDictionary Empty = new();
 
         /// <summary>
         /// Default rules for one dotted string.
         /// </summary>
-        public readonly static HeightRuleDictionary AfterFirstDotRules = new HeightRuleDictionary(new[] {
+        public static readonly HeightRuleDictionary AfterFirstDotRules = new(new[] {
             new HeightRule(0, "{}."),
             new HeightRule(1, "{0}.{y}")
         });
@@ -27,7 +27,7 @@ namespace Vernuntii.HeightConventions
         /// <inheritdoc/>
         public int Count => _rules.Count;
 
-        private OrderedDictionary<int, IHeightRule> _rules = new OrderedDictionary<int, IHeightRule>();
+        private readonly OrderedDictionary<int, IHeightRule> _rules = new();
 
         private HeightRuleDictionary()
         {

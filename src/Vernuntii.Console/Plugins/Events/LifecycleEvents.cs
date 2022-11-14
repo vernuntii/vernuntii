@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vernuntii.PluginSystem.Events;
+﻿using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Plugins.Events
 {
@@ -15,11 +10,11 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// The event is called whenever a run starts.
         /// </summary>
-        public readonly static SubjectEvent BeforeEveryRun = new SubjectEvent();
+        public static readonly SubjectEvent BeforeEveryRun = new();
 
         /// <summary>
         /// The event is called when a next run starts.
         /// </summary>
-        public readonly static SubjectEvent BeforeNextRun = new SubjectEvent();
+        public static readonly SubjectEvent BeforeNextRun = new();
     }
 }

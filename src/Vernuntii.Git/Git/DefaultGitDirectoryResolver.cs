@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Teronis.IO;
-using Vernuntii.Configuration.IO;
+﻿using Vernuntii.Configuration.IO;
 
 namespace Vernuntii.Git
 {
@@ -17,7 +11,7 @@ namespace Vernuntii.Git
         /// <summary>
         /// Instance instance of this type.
         /// </summary>
-        public readonly static DefaultGitDirectoryResolver Default = new DefaultGitDirectoryResolver();
+        public static readonly DefaultGitDirectoryResolver Default = new();
 
         private const string GitFolderOrFileName = ".git";
 

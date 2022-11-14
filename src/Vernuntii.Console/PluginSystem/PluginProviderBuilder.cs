@@ -32,7 +32,7 @@ namespace Vernuntii.PluginSystem
 
         public IEnumerable<PluginDescriptor> PluginDescriptors => _uniquePluginDescriptors.Values;
 
-        private Dictionary<(Type ServiceType, Type ImplementationType), PluginDescriptor> _uniquePluginDescriptors;
+        private readonly Dictionary<(Type ServiceType, Type ImplementationType), PluginDescriptor> _uniquePluginDescriptors;
 
         public PluginProviderBuilder() =>
             _uniquePluginDescriptors = new Dictionary<(Type ServiceType, Type ImplementationType), PluginDescriptor>();

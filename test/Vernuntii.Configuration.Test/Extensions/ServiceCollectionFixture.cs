@@ -12,12 +12,12 @@ namespace Vernuntii.Extensions
 {
     internal static class ServiceCollectionFixture
     {
-        public readonly static VersioningPresetsPlugin DefaultVersioningPresetsPlugin = new VersioningPresetsPlugin();
-        public readonly static IVersioningPresetManager DefaultPresetManager = DefaultVersioningPresetsPlugin.PresetManager;
-        public readonly static ConfiguredMessageConventionFactory DefaultConfiguredMessageConventionFactory = new ConfiguredMessageConventionFactory(DefaultPresetManager);
-        public readonly static ConfiguredVersionIncrementFlowFactory DefaultConfiguredIncrementFlowFactory = new ConfiguredVersionIncrementFlowFactory(DefaultPresetManager);
+        public static readonly VersioningPresetsPlugin DefaultVersioningPresetsPlugin = new();
+        public static readonly IVersioningPresetManager DefaultPresetManager = DefaultVersioningPresetsPlugin.PresetManager;
+        public static readonly ConfiguredMessageConventionFactory DefaultConfiguredMessageConventionFactory = new(DefaultPresetManager);
+        public static readonly ConfiguredVersionIncrementFlowFactory DefaultConfiguredIncrementFlowFactory = new(DefaultPresetManager);
 
-        public readonly static ConfiguredVersioningPresetFactory DefaultConfiguredVersioningPresetFactory = new ConfiguredVersioningPresetFactory(
+        public static readonly ConfiguredVersioningPresetFactory DefaultConfiguredVersioningPresetFactory = new(
             DefaultPresetManager,
             DefaultConfiguredMessageConventionFactory,
             DefaultConfiguredIncrementFlowFactory);
@@ -62,7 +62,7 @@ namespace Vernuntii.Extensions
 
         public static IBranchCasesProvider CreateBranchCasesProvider(string directory, string fileName, bool tryCreateVersioningPresetExtension = false)
         {
-            var services = CreateBranchCasesProviderServices(directory, fileName);
+            IServiceCollection services = CreateBranchCasesProviderServices(directory, fileName);
             ConfigureServiceCollection(services, tryCreateVersioningPresetExtension: tryCreateVersioningPresetExtension);
             return CreateBranchCasesProvider(services);
         }

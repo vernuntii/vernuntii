@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vernuntii.Git
+﻿namespace Vernuntii.Git
 {
     /// <summary>
     /// A provider that returns its parameter.
@@ -14,7 +8,7 @@ namespace Vernuntii.Git
         /// <summary>
         /// The default instance of this type.
         /// </summary>
-        public readonly static GitDirectoryPassthrough Instance = new GitDirectoryPassthrough();
+        public static readonly GitDirectoryPassthrough Instance = new();
 
         private GitDirectoryPassthrough()
         {

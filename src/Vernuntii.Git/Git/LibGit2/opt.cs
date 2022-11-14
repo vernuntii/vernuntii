@@ -1,5 +1,3 @@
-using System;
-
 namespace Vernuntii.Git.LibGit2
 {
     /// <summary>
@@ -228,6 +226,9 @@ namespace Vernuntii.Git.LibGit2
         /// packfiles, and the negotiation of them when talking to a
         /// remote server.  Offset deltas store a delta base location as
         // an offset into the packfile from the current location, which
+        /// <summary>
+        /// 
+        /// </summary>
         /// provides a shorter encoding and thus smaller resultant
         /// packfiles.  This does not disable the ability to read
         /// offset deltas if a packfile containing one is encountered.

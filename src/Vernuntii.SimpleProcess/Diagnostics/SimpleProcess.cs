@@ -29,7 +29,7 @@ namespace Vernuntii.Diagnostics
           bool shouldStreamError = false,
           bool shouldThrowOnNonZeroCode = false)
         {
-            using SimpleProcess simpleProcess = new SimpleProcess(
+            using var simpleProcess = new SimpleProcess(
                 startInfo,
                 outputReceived,
                 shouldStreamOutput,
@@ -85,9 +85,9 @@ namespace Vernuntii.Diagnostics
           bool shouldStreamError = false,
           bool shouldThrowOnNonZeroCode = false)
         {
-            StringBuilder outputBuilder = new StringBuilder();
+            var outputBuilder = new StringBuilder();
 
-            using SimpleProcess simpleProcess = new SimpleProcess(
+            using var simpleProcess = new SimpleProcess(
                 startInfo,
                 output => outputBuilder.Append(output),
                 errorReceived: errorReceived,
@@ -113,7 +113,7 @@ namespace Vernuntii.Diagnostics
           bool shouldStreamError = false,
           bool shouldThrowOnNonZeroCode = false)
         {
-            StringBuilder outputBuilder = new StringBuilder();
+            var outputBuilder = new StringBuilder();
 
             using var process = new SimpleAsyncProcess(
                 startInfo,
@@ -288,7 +288,7 @@ namespace Vernuntii.Diagnostics
         protected NonZeroExitCodeException CreateNonZeroExitCodeException()
         {
             EnsureProcessCreated();
-            bool isErrorEmpty = _errorBuilder.Length == 0;
+            var isErrorEmpty = _errorBuilder.Length == 0;
             _errorBuilder.Insert(0, ProcessStartInfoUtils.GetExecutionInfoText(_processStartInfo) + (isErrorEmpty ? "" : Environment.NewLine));
             return new NonZeroExitCodeException(Process.ExitCode, _errorBuilder.ToString());
         }

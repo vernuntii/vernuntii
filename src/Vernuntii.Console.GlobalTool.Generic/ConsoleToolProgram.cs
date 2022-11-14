@@ -1,7 +1,4 @@
-﻿using System.CommandLine;
-using System.CommandLine.NamingConventionBinder;
-using Vernuntii.Plugins;
-using Vernuntii.PluginSystem;
+﻿using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Console.GlobalTool;
 

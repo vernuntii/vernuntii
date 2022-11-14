@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using YamlDotNet.Core.Tokens;
 using Vernuntii.Caching;
 
 namespace Vernuntii.Git.Commands
@@ -81,7 +75,7 @@ namespace Vernuntii.Git.Commands
             Interlocked.Exchange(ref _memoryCache, _memoryCacheFactory.Create());
         }
 
-        public void Dispose() => 
+        public void Dispose() =>
             UnderlyingCommand.Dispose();
     }
 }

@@ -2,21 +2,17 @@
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Autofac.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Autofac;
-using Vernuntii.Caching;
 using Vernuntii.Console;
 using Vernuntii.Extensions;
 using Vernuntii.Git;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
-using Vernuntii.PluginSystem.Meta;
 using Vernuntii.VersionCaching;
 using Vernuntii.VersionPresentation;
 using Vernuntii.VersionPresentation.Serializers;
@@ -31,9 +27,9 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         public int? ExitCodeOnSuccess { get; set; }
 
-        private Stopwatch _loadingVersionStopwatch = new Stopwatch();
-        private SharedOptionsPlugin _sharedOptions = null!;
-        private IVersionCacheCheckPlugin _versionCacheCheckPlugin = null!;
+        private readonly Stopwatch _loadingVersionStopwatch = new();
+        private readonly SharedOptionsPlugin _sharedOptions = null!;
+        private readonly IVersionCacheCheckPlugin _versionCacheCheckPlugin = null!;
         private readonly ILogger _logger;
         private readonly ICommandLinePlugin _commandLine;
         private IConfiguration _configuration = null!;
@@ -41,30 +37,29 @@ namespace Vernuntii.Plugins
 
         #region command line options
 
-        const string presentationPartsOptionLongAlias = "--presentation-parts";
-
-        const string presentationKindAndPartsHelpText =
+        private const string presentationPartsOptionLongAlias = "--presentation-parts";
+        private const string presentationKindAndPartsHelpText =
             $" If using \"{nameof(VersionPresentationKind.Value)}\" only one part of the presentation can be displayed" +
             $" (e.g. {presentationPartsOptionLongAlias} {nameof(VersionPresentationPart.Minor)})." +
             $" If using \"{nameof(VersionPresentationKind.Complex)}\" one or more parts of the presentation can be displayed" +
             $" (e.g. {presentationPartsOptionLongAlias} {nameof(VersionPresentationPart.Minor)},{nameof(VersionPresentationPart.Major)}).";
 
-        private Option<VersionPresentationKind> _presentationKindOption = new Option<VersionPresentationKind>(new[] { "--presentation-kind" }, () =>
+        private readonly Option<VersionPresentationKind> _presentationKindOption = new(new[] { "--presentation-kind" }, () =>
             VersionPresentationStringBuilder.DefaultPresentationKind) {
             Description = "The kind of presentation." + presentationKindAndPartsHelpText
         };
 
-        private Option<VersionPresentationPart> _presentationPartsOption = new Option<VersionPresentationPart>(new[] { presentationPartsOptionLongAlias }, () =>
+        private readonly Option<VersionPresentationPart> _presentationPartsOption = new(new[] { presentationPartsOptionLongAlias }, () =>
             VersionPresentationStringBuilder.DefaultPresentationPart) {
             Description = "The parts of the presentation to be displayed." + presentationKindAndPartsHelpText
         };
 
-        private Option<VersionPresentationView> _presentationViewOption = new Option<VersionPresentationView>(new[] { "--presentation-view" }, () =>
+        private readonly Option<VersionPresentationView> _presentationViewOption = new(new[] { "--presentation-view" }, () =>
             VersionPresentationStringBuilder.DefaultPresentationSerializer) {
             Description = "The view of presentation."
         };
 
-        private Option<bool> _emptyCachesOption = new Option<bool>(new string[] { "--empty-caches" }) {
+        private readonly Option<bool> _emptyCachesOption = new(new string[] { "--empty-caches" }) {
             Description = "Empties all caches where version informations are stored. This happens before the cache process itself."
         };
 

@@ -164,7 +164,7 @@ namespace Vernuntii.VersionIncrementing
             /// </summary>
             public uint? HeightNumber { get; }
 
-            private bool _isIncremented;
+            private readonly bool _isIncremented;
 
             /// <summary>
             /// Creates an instance of this type.

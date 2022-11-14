@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using Teronis.IO.FileLocking;
-using Vernuntii.Cryptography;
+using Microsoft.Extensions.Logging;
 using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
-using Vernuntii.VersionCaching;
-using System.CommandLine;
-using System.Globalization;
-using System.Diagnostics.CodeAnalysis;
 using Vernuntii.PluginSystem.Meta;
+using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Plugins
 {

@@ -7,7 +7,7 @@ namespace Vernuntii.Configuration
     /// </summary>
     internal class FileFinder : IFileFinder
     {
-        internal readonly static FileFinder Default = new FileFinder();
+        internal static readonly FileFinder Default = new();
 
         private static void CheckDirectoryExists(string directoryPath)
         {

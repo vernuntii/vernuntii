@@ -22,7 +22,7 @@ namespace Vernuntii.Configuration
         /// <inheritdoc/>
         public IList<IConventionalFileFinder> ConventionalFileFinders { get; } = new List<IConventionalFileFinder>();
 
-        private readonly ConfigurationBuilder _configurationBuilder = new ConfigurationBuilder();
+        private readonly ConfigurationBuilder _configurationBuilder = new();
         private IFileFinder _fileFinder = Configuration.FileFinder.Default;
 
         /// <inheritdoc/>

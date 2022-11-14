@@ -64,22 +64,22 @@ namespace Vernuntii.SemVer.Parser
 
         public static IEnumerable<object?[]> TryParseShouldParseStrictGenerator()
         {
-            var parser = new SemanticVersionParser();
+            SemanticVersionParser parser = new();
 
-            foreach (var item in TryParseShouldParseStrictSucceededGenerator(parser)) {
+            foreach (object?[] item in TryParseShouldParseStrictSucceededGenerator(parser)) {
                 yield return item;
             }
 
-            foreach (var item in TryParseShouldNotParseStrictFailedGenerator(parser)) {
+            foreach (object?[] item in TryParseShouldNotParseStrictFailedGenerator(parser)) {
                 yield return item;
             }
         }
 
         public static IEnumerable<object?[]> TryParseShouldParseEraseGenerator()
         {
-            var parser = SemanticVersionParser.Erase;
+            SemanticVersionParser parser = SemanticVersionParser.Erase;
 
-            foreach (var item in TryParseShouldParseStrictSucceededGenerator(parser)) {
+            foreach (object?[] item in TryParseShouldParseStrictSucceededGenerator(parser)) {
                 yield return item;
             }
 
@@ -118,7 +118,7 @@ namespace Vernuntii.SemVer.Parser
         [MemberData(nameof(TryParseShouldParseEraseGenerator))]
         public void TryParseShouldParse(SemanticVersionParser parser, string value, ParseResult assumedResult)
         {
-            var parseResult = parser.TryParse(value, out var prefix, out var major, out var minor, out var patch, out var preReleaseIdentifiers, out var build);
+            bool parseResult = parser.TryParse(value, out string? prefix, out uint? major, out uint? minor, out uint? patch, out IEnumerable<string>? preReleaseIdentifiers, out IEnumerable<string>? build);
             Assert.Equal(assumedResult.Result, parseResult);
             Assert.Equal(assumedResult.Prefix, prefix);
             Assert.Equal(assumedResult.Major, major);

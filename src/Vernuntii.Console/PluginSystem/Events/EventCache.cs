@@ -7,12 +7,12 @@ namespace Vernuntii.PluginSystem.Events
     /// </summary>
     public class EventCache : IEventCache
     {
-        private readonly Dictionary<object, object> _eventDictionary = new Dictionary<object, object>();
-        private readonly object _lockObject = new object();
+        private readonly Dictionary<object, object> _eventDictionary = new();
+        private readonly object _lockObject = new();
 
         private bool TryGetEvent<T>(object key, [NotNullWhen(true)] out T? typedEvent)
         {
-            if (_eventDictionary.TryGetValue(key, out object? eventObject)) {
+            if (_eventDictionary.TryGetValue(key, out var eventObject)) {
                 typedEvent = (T)eventObject;
                 return true;
             }

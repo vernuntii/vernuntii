@@ -171,7 +171,7 @@ namespace Vernuntii.SemVer
         /// <summary>
         /// Builder for creating a copy of this instance.
         /// </summary>
-        public SemanticVersionBuilder With => new SemanticVersionBuilder(this);
+        public SemanticVersionBuilder With => new(this);
 
         /// <summary>
         /// This parser was used at creation of this instance and it gets inherited

@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace Vernuntii.Configuration
+﻿namespace Vernuntii.Configuration
 {
     internal static class ConfigurationFilePaths
     {
-        private static AnyPath RootDir = AppContext.BaseDirectory;
+        private static readonly AnyPath RootDir = AppContext.BaseDirectory;
 
         internal static AnyPath FilesystemDir = RootDir / "filesystem";
         internal static AnyPath FileFinderDir = FilesystemDir / "file-finder";

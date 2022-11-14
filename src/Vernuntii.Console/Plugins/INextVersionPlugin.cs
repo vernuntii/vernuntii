@@ -1,6 +1,4 @@
-﻿using Vernuntii.Caching;
-using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem;
+﻿using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Plugins
 {

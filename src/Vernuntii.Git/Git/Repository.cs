@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using Vernuntii.Git.Commands;
-using Teronis.IO;
-using Vernuntii.SemVer;
 using Vernuntii.Caching;
+using Vernuntii.Git.Commands;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.Git
 {
@@ -15,7 +14,7 @@ namespace Vernuntii.Git
         internal CachingGitCommand GitCommand => _gitCommand ??= CreateCommand();
 
         private bool _areCommitVersionsInitialized;
-        private RepositoryOptions _options;
+        private readonly RepositoryOptions _options;
         private readonly IMemoryCacheFactory _memoryCacheFactory;
         private readonly ILogger<Repository> _logger;
         private CachingGitCommand? _gitCommand;

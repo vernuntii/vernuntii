@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vernuntii.Git.LibGit2.Helpers;
+﻿using Vernuntii.Git.LibGit2.Helpers;
 
 namespace Vernuntii.Git.LibGit2.Runtime
 {
@@ -14,8 +9,7 @@ namespace Vernuntii.Git.LibGit2.Runtime
     internal static class Ensure
     {
         // Default map of native error codes to managed exceptions.
-        private static readonly Dictionary<git_error_code, Func<string, Exception>> _gitErrorToExceptionFactoryMappings = new Dictionary<git_error_code, Func<string, Exception>>
-        {
+        private static readonly Dictionary<git_error_code, Func<string, Exception>> _gitErrorToExceptionFactoryMappings = new() {
             { git_error_code.GIT_EUSER, (m) => new UserCancelledException(m) },
             { git_error_code.GIT_EBAREREPO, (m) => new BareRepositoryException(m) },
             { git_error_code.GIT_EEXISTS, (m) => new ItemExistsException(m) },
@@ -47,7 +41,7 @@ namespace Vernuntii.Git.LibGit2.Runtime
         /// </summary>
         /// <param name="o">The object to validate.</param>
         /// <param name="name">The name of the object to use in messages.</param>
-        public unsafe static void ArgumentNotNull(void* o, string name)
+        public static unsafe void ArgumentNotNull(void* o, string name)
         {
             if (o == null) {
                 throw new ArgumentNullException(name);
@@ -59,6 +53,7 @@ namespace Vernuntii.Git.LibGit2.Runtime
         /// by a <paramref name="validation"/> function.
         /// </summary>
         /// <param name="validation">The validation function to apply</param>
+        /// <param name="name"></param>
         /// <param name="message">The message used when the argument does not conform</param>
         public static void ArgumentConformsTo(Func<bool> validation, string name, string message)
         {
@@ -176,7 +171,7 @@ namespace Vernuntii.Git.LibGit2.Runtime
         /// has not been disposed.
         /// </summary>
         /// <param name="wrapper">The native object wrapper to validate.</param>
-        public unsafe static void NotDisposed(NativeDisposable wrapper)
+        public static unsafe void NotDisposed(NativeDisposable wrapper)
         {
             if (wrapper.IsDisposed) {
                 throw new ObjectDisposedException(wrapper.GetType().Name);
@@ -189,7 +184,7 @@ namespace Vernuntii.Git.LibGit2.Runtime
         /// </summary>
         /// <param name="nativeObject">The object to validate.</param>
         /// <param name="name">The name of the object to use in messages.</param>
-        public unsafe static void NotDisposed(void* nativeObject, string name)
+        public static unsafe void NotDisposed(void* nativeObject, string name)
         {
             if (nativeObject == null) {
                 throw new ObjectDisposedException(name);
@@ -206,7 +201,7 @@ namespace Vernuntii.Git.LibGit2.Runtime
         public static T NativeCall<T>(Func<T> call, NativeDisposable obj)
         {
             NotDisposed(obj);
-            T ret = call();
+            var ret = call();
             GC.KeepAlive(obj);
             return ret;
         }
@@ -289,7 +284,7 @@ namespace Vernuntii.Git.LibGit2.Runtime
         private static unsafe void HandleNativeError(int nativeReturnCode, Dictionary<git_error_code, Func<string, Exception>>? customExceptions)
         {
             Func<string, Exception> exceptionBuilder = (m) => new DoggedException(m);
-            git_error_code code = (git_error_code)nativeReturnCode;
+            var code = (git_error_code)nativeReturnCode;
 
             if (customExceptions != null && customExceptions.ContainsKey(code)) {
                 exceptionBuilder = customExceptions[code];
@@ -302,7 +297,7 @@ namespace Vernuntii.Git.LibGit2.Runtime
 
         private static unsafe string GetNativeErrorMessage()
         {
-            git_error* error = libgit2.git_error_last();
+            var error = libgit2.git_error_last();
 
             if (error == null || error->message == null) {
                 return "Unknown error in libgit2";
