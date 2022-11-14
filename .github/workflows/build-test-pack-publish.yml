@@ -38,7 +38,7 @@ env:
   MSBUILD_VERBOSITY: Minimal
   MSBUILD_CONFIGURATION: Release
   CACHE_ID: GITHUB_VERSION_CACHE
-  DOTNET_VERSION: "6.0.x"
+  DOTNET_VERSION: "7.0.x"
   DRY_RUN: ${{ github.event.inputs.dry-run == 'true' && 'true' || 'false' }}
   PRE_BUILT_ARTIFACTS_NAME: "pre-built_artifacts"
   MSBUILD_INTEGRATION_NAME: Vernuntii.Console.MSBuild.Orphan
