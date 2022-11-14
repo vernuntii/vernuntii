@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Vernuntii.Console\Vernuntii.Console.csproj" />
-    <ProjectReference Include="..\..\src\Vernuntii.Plugins\Vernuntii.Plugins.csproj" />
     <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
   </ItemGroup>
 
