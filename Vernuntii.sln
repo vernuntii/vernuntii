@@ -43,14 +43,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.win-x64",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Git", "src\Vernuntii.Git\Vernuntii.Git.csproj", "{2862B85B-2865-4537-86D5-98A7371F1F86}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Plugins", "src\Vernuntii.Plugins\Vernuntii.Plugins.csproj", "{AEF3DAB6-7988-4954-8CD6-13F732B050EC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Plugins.Core", "src\Vernuntii.Plugins.Core\Vernuntii.Plugins.Core.csproj", "{47154D90-6E63-41AB-894D-279821C49275}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.PluginSystem", "src\Vernuntii.PluginSystem\Vernuntii.PluginSystem.csproj", "{B98582F4-AF54-4477-984C-734EE1788B47}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.PluginSystem.Core", "src\Vernuntii.PluginSystem.Core\Vernuntii.PluginSystem.Core.csproj", "{B92157EF-255D-47B3-85A7-99CEB43427C7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.SemVer", "src\Vernuntii.SemVer\Vernuntii.SemVer.csproj", "{9407EDE3-CD9C-4537-BC97-B0B64E07C2EE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.SemVer.Abstractions", "src\Vernuntii.SemVer.Abstractions\Vernuntii.SemVer.Abstractions.csproj", "{964B385B-5DF6-4910-927D-118BE7B505F0}"
@@ -89,7 +81,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.MSBuild.Test", "test\Vernuntii.Console.MSBuild.Test\Vernuntii.Console.MSBuild.Test.csproj", "{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.PluginSystem.Abstractions", "src\Vernuntii.PluginSystem.Abstractions\Vernuntii.PluginSystem.Abstractions.csproj", "{70C0242A-D03F-427C-81A1-6E0F80CAF201}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.PluginSystem.Test", "test\Vernuntii.PluginSystem.Test\Vernuntii.PluginSystem.Test.csproj", "{FE7B3F15-917C-4134-A7FE-72E841FCB650}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -173,22 +165,6 @@ Global
 		{2862B85B-2865-4537-86D5-98A7371F1F86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2862B85B-2865-4537-86D5-98A7371F1F86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2862B85B-2865-4537-86D5-98A7371F1F86}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AEF3DAB6-7988-4954-8CD6-13F732B050EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AEF3DAB6-7988-4954-8CD6-13F732B050EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AEF3DAB6-7988-4954-8CD6-13F732B050EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AEF3DAB6-7988-4954-8CD6-13F732B050EC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{47154D90-6E63-41AB-894D-279821C49275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{47154D90-6E63-41AB-894D-279821C49275}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{47154D90-6E63-41AB-894D-279821C49275}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{47154D90-6E63-41AB-894D-279821C49275}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B98582F4-AF54-4477-984C-734EE1788B47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B98582F4-AF54-4477-984C-734EE1788B47}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B98582F4-AF54-4477-984C-734EE1788B47}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B98582F4-AF54-4477-984C-734EE1788B47}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B92157EF-255D-47B3-85A7-99CEB43427C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B92157EF-255D-47B3-85A7-99CEB43427C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B92157EF-255D-47B3-85A7-99CEB43427C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B92157EF-255D-47B3-85A7-99CEB43427C7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9407EDE3-CD9C-4537-BC97-B0B64E07C2EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9407EDE3-CD9C-4537-BC97-B0B64E07C2EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9407EDE3-CD9C-4537-BC97-B0B64E07C2EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -241,10 +217,10 @@ Global
 		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{70C0242A-D03F-427C-81A1-6E0F80CAF201}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{70C0242A-D03F-427C-81A1-6E0F80CAF201}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{70C0242A-D03F-427C-81A1-6E0F80CAF201}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{70C0242A-D03F-427C-81A1-6E0F80CAF201}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE7B3F15-917C-4134-A7FE-72E841FCB650}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE7B3F15-917C-4134-A7FE-72E841FCB650}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE7B3F15-917C-4134-A7FE-72E841FCB650}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE7B3F15-917C-4134-A7FE-72E841FCB650}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -260,6 +236,7 @@ Global
 		{4CF5435D-DD1E-4416-B601-7AAE3B91D165} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 		{CB381944-92E0-4336-A723-5498D8F1EE0D} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
+		{FE7B3F15-917C-4134-A7FE-72E841FCB650} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2888C95-8ED3-44F8-BD54-15A071471147}

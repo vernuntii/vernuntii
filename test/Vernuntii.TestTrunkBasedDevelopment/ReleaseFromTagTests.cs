@@ -18,20 +18,18 @@ namespace Vernuntii
 
         public ReleaseFromTagTests()
         {
-            _vernuntii = new VernuntiiRunner() {
-                ConsoleArgs = new[] {
+            _vernuntii = new VernuntiiRunnerBuilder()
+                .ConfigurePlugins(plugins => {
+                    plugins.Add(PluginAction.WhenExecuting<IGitPlugin>.CreatePluginDescriptor(plugin => plugin.SetAlternativeRepository(
+                        _temporaryRepository,
+                        _temporaryRepository.GitCommand)));
+
+                    plugins.Add(PluginDescriptor.Create(_configurableCalculationServices));
+                })
+                .Build(new[] {
                     "--config-path",
                     "ReleaseFromTag.yml",
-
-                },
-                PluginDescriptors = new[] {
-                    PluginDescriptor.Create(
-                        new PluginAction.AfterRegistration<IGitPlugin>(plugin => plugin.SetAlternativeRepository(
-                            _temporaryRepository,
-                            _temporaryRepository.GitCommand))),
-                    PluginDescriptor.Create(_configurableCalculationServices)
-                }
-            };
+                });
         }
 
         [Fact, Priority(0)]

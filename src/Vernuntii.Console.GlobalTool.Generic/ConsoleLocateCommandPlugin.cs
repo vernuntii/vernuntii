@@ -8,13 +8,15 @@ namespace Vernuntii.Console.GlobalTool;
 
 internal class ConsoleLocateCommandPlugin : Plugin
 {
+    private readonly ICommandLinePlugin _commandLine;
+
     private Argument<ConsoleFileLocation> locateArgument = new Argument<ConsoleFileLocation>("locate") {
         Description = "The file location you are asking for."
     };
 
     private Command locateCommand;
 
-    public ConsoleLocateCommandPlugin()
+    public ConsoleLocateCommandPlugin(ICommandLinePlugin commandLine)
     {
         locateCommand = new Command("locate") {
             locateArgument
@@ -37,8 +39,9 @@ internal class ConsoleLocateCommandPlugin : Plugin
             System.Console.WriteLine(filePath);
             return 0;
         });
+        _commandLine = commandLine;
     }
 
     protected override void OnExecution() =>
-        Plugins.GetPlugin<ICommandLinePlugin>().RootCommand.Add(locateCommand);
+        _commandLine.RootCommand.Add(locateCommand);
 }

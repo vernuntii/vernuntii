@@ -3,15 +3,23 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Vernuntii.Console</RootNamespace>
+    <RootNamespace>Vernuntii</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CSF.CollectionComparers" Version="1.1.1" />
+    <PackageReference Include="NLog" Version="5.0.5" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.1.0" />
+    <PackageReference Include="SoftCircuits.OrderedDictionary" Version="2.1.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
+    <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta3.22114.1" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Autofac\Vernuntii.Autofac.csproj" />
-    <ProjectReference Include="..\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj" />
-    <ProjectReference Include="..\Vernuntii.Plugins\Vernuntii.Plugins.csproj" />
+    <ProjectReference Include="..\Vernuntii.Configuration\Vernuntii.Configuration.csproj" />
     <ProjectReference Include="..\Vernuntii.Git\Vernuntii.Git.csproj" />
     <ProjectReference Include="..\Vernuntii.Calculator\Vernuntii.Calculator.csproj" />
-    <ProjectReference Include="..\Vernuntii.PluginSystem\Vernuntii.PluginSystem.csproj" />
   </ItemGroup>
 </Project>

@@ -19,10 +19,11 @@ namespace Vernuntii.Console.GlobalTool
 
         public Command Command => _command;
 
+        private readonly MSBuildIntegrationCommandPlugin _msbuildIntegrationCommandPlugin;
+        private readonly ILoggingPlugin _loggingPlugin;
+        private readonly ILogger<MSBuildIntegrationLocateCommandPlugin> _logger;
         private Command _command;
-        private ILoggingPlugin _loggingPlugin = null!;
-        private ILogger _logger = null!;
-        private NuGetRunner nugetTasks = null!;
+        private NuGetRunner _nugetRunner = null!;
 
         private Argument<MSBuildFileLocation> locateArgument = new Argument<MSBuildFileLocation>("locate") {
             Description = "The file location you are asking for."
@@ -46,7 +47,7 @@ namespace Vernuntii.Console.GlobalTool
                 $"Multiple sources are allowed when separating values by a semicolon."
         };
 
-        public MSBuildIntegrationLocateCommandPlugin()
+        public MSBuildIntegrationLocateCommandPlugin(MSBuildIntegrationCommandPlugin msbuildIntegrationCommandPlugin, ILoggingPlugin loggingPlugin)
         {
             _command = new Command("locate") {
                 locateArgument,
@@ -57,6 +58,9 @@ namespace Vernuntii.Console.GlobalTool
             };
 
             _command.Handler = CommandHandler.Create(OnInvokeCommand);
+            _msbuildIntegrationCommandPlugin = msbuildIntegrationCommandPlugin;
+            _loggingPlugin = loggingPlugin;
+            _logger = _loggingPlugin.CreateLogger<MSBuildIntegrationLocateCommandPlugin>();
         }
 
         // Parameter names are bound to naming convention, do not change!
@@ -108,8 +112,10 @@ namespace Vernuntii.Console.GlobalTool
 
             DownloadedPackage GetGlobalPackage()
             {
+                _nugetRunner ??= new NuGetRunner(_loggingPlugin.CreateLogger<NuGetRunner>());
+
                 try {
-                    return nugetTasks.GetGlobalPackage(
+                    return _nugetRunner.GetGlobalPackage(
                         packageName,
                         packageVersion,
                         downloadPackage: downloadPackage,
@@ -135,15 +141,7 @@ namespace Vernuntii.Console.GlobalTool
             }
         }
 
-        protected override void OnExecution()
-        {
-            Plugins.GetPlugin<MSBuildIntegrationCommandPlugin>().Command.AddCommand(_command);
-
-            _loggingPlugin = Plugins.GetPlugin<ILoggingPlugin>();
-            _logger = _loggingPlugin.CreateLogger<MSBuildIntegrationLocateCommandPlugin>();
-
-            var nugetActionLogger = Plugins.GetPlugin<ILoggingPlugin>().CreateLogger<NuGetRunner>();
-            nugetTasks = new NuGetRunner(nugetActionLogger);
-        }
+        protected override void OnExecution() =>
+            _msbuildIntegrationCommandPlugin.Command.AddCommand(_command);
     }
 }

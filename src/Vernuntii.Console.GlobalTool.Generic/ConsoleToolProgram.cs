@@ -14,21 +14,19 @@ public static class ConsoleToolProgram
     /// Runs console application.
     /// </summary>
     /// <param name="args">arguments</param>
-    /// <param name="pluginDescriptors"></param>
+    /// <param name="configureBuilder"></param>
     /// <returns>exit code</returns>
-    public static async Task<int> RunAsync(string[] args, IEnumerable<PluginDescriptor>? pluginDescriptors = null)
+    public static async Task<int> RunAsync(string[] args, Action<IVernuntiiRunnerBuilder>? configureBuilder = null)
     {
-        var pluginsToPrepend = new[] {
-            PluginDescriptor.Create<ConsoleLocateCommandPlugin>(),
-            PluginDescriptor.Create<MSBuildIntegrationCommandPlugin>(),
-            PluginDescriptor.Create<MSBuildIntegrationLocateCommandPlugin>(),
-        };
+        var vernuntiiRunnerBuilder = new VernuntiiRunnerBuilder()
+            .ConfigurePlugins(plugins => {
+                plugins.Add(PluginDescriptor.Create<ConsoleLocateCommandPlugin>());
+                plugins.Add(PluginDescriptor.Create<MSBuildIntegrationCommandPlugin>());
+                plugins.Add(PluginDescriptor.Create<MSBuildIntegrationLocateCommandPlugin>());
+            });
 
-        await using var vernuntiiRunner = new VernuntiiRunner() {
-            ConsoleArgs = args,
-            PluginDescriptors = pluginDescriptors is null ? pluginsToPrepend : pluginsToPrepend.Concat(pluginDescriptors)
-        };
-
+        configureBuilder?.Invoke(vernuntiiRunnerBuilder);
+        await using var vernuntiiRunner = vernuntiiRunnerBuilder.Build(args);
         return await vernuntiiRunner.RunConsoleAsync();
     }
 

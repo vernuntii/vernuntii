@@ -13,12 +13,16 @@ namespace Vernuntii.Console.GlobalTool
     {
         public Command Command => command;
 
+        private readonly ICommandLinePlugin _commandLine;
         private Command command;
 
-        public MSBuildIntegrationCommandPlugin() =>
+        public MSBuildIntegrationCommandPlugin(ICommandLinePlugin commandLine)
+        {
             command = new Command("msbuild-integration");
+            _commandLine = commandLine ?? throw new ArgumentNullException(nameof(commandLine));
+        }
 
         protected override void OnExecution() =>
-            Plugins.GetPlugin<ICommandLinePlugin>().RootCommand.Add(command);
+            _commandLine.RootCommand.Add(command);
     }
 }
