@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Vernuntii.Console.Generic": {
+      "commandName": "Project",
+      "commandLineArgs": "--verbosity Debug"
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    }
+  }
+}

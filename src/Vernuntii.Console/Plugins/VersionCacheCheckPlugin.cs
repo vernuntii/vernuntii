@@ -80,7 +80,7 @@ namespace Vernuntii.Plugins
             }
         }
 
-        private void OnVersionCheck()
+        private void OnVersionCacheCheck()
         {
             if (!_versionHashFile.IsRecacheRequired(out var versionCache)) {
                 _versionCache = versionCache;
@@ -106,7 +106,7 @@ namespace Vernuntii.Plugins
 
             Events.SubscribeOnce(
                 VersionCacheCheckEvents.CheckVersionCache,
-                OnVersionCheck);
+                OnVersionCacheCheck);
 
             Events.SubscribeOnce(GlobalServicesEvents.ConfigureServices,
                 services => services.AddSingleton<IVersionCacheManager>(_versionCacheManager));

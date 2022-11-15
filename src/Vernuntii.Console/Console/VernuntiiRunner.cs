@@ -107,7 +107,7 @@ namespace Vernuntii.Console
 
             if (_runOnce) {
                 _pluginEvents.Publish(LifecycleEvents.BeforeNextRun);
-                //_pluginEvents.Publish(VersionCacheCheckEvents.CheckVersionCache);
+                _pluginEvents.Publish(VersionCacheCheckEvents.CheckVersionCache);
             }
 
             return null;
