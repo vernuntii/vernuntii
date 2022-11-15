@@ -1,13 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Vernuntii.Git;
 using Vernuntii.Plugins;
-using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Console.GlobalTool.Benchmark
 {
@@ -24,20 +18,20 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
             _repository.CommitEmpty();
         }
 
-        private VernuntiiRunner CreateRunner(string cacheId) => new VernuntiiRunner() {
-            ConsoleArgs = new[] {
+        private VernuntiiRunner CreateRunner(string cacheId) => new VernuntiiRunnerBuilder()
+            .ConfigurePlugins(plugins => {
+                plugins.Add(PluginAction.WhenExecuting<IGitPlugin>.CreatePluginDescriptor(plugin =>
+                    plugin.SetAlternativeRepository(_repository, _repository.GitCommand)));
+
+                plugins.Add(PluginAction.WhenExecuting<ILoggingPlugin>.CreatePluginDescriptor(plugin =>
+                    plugin.WriteToStandardError = false));
+            })
+            .Build(new[] {
                 "--cache-id",
                 cacheId,
                 "--verbosity",
                 "Verbose"
-            },
-            PluginDescriptors = new[] {
-                PluginDescriptor.Create(new PluginAction.AfterRegistration<IGitPlugin>(plugin =>
-                    plugin.SetAlternativeRepository(_repository, _repository.GitCommand))),
-                PluginDescriptor.Create(new PluginAction.AfterRegistration<ILoggingPlugin>(plugin =>
-                    plugin.WriteToStandardError = false))
-            }
-        };
+            });
 
         private VernuntiiRunner CreateStaticRunner() => CreateRunner(nameof(VernuntiiRunnerBenchmarks));
 

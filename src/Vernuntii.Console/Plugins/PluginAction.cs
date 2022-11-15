@@ -21,7 +21,7 @@ namespace Vernuntii.Plugins
             /// <param name="handler"></param>
             /// <returns></returns>
             public static PluginDescriptor CreatePluginDescriptor(Action<TPlugin> handler) =>
-                PluginDescriptor.Create(sp => ActivatorUtilities.CreateInstance<WhenExecuting<IGitPlugin>>(sp, handler));
+                PluginDescriptor.Create(sp => ActivatorUtilities.CreateInstance<WhenExecuting<TPlugin>>(sp, handler));
 
             private readonly IPluginRegistry _pluginRegistry;
             private Action<TPlugin> _handler { get; }
