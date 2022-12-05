@@ -155,7 +155,7 @@ jobs:
       - name: Set version from environment as output parameter
         id: semantic-version
         run: >
-          echo "::set-output name=semantic-version::${{ env.Vernuntii_SemanticVersion }}"
+          echo "semantic-version=${{ env.Vernuntii_SemanticVersion }}" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Pack projects
@@ -198,7 +198,7 @@ jobs:
       - name: Push nupkg's
         id: push-nupkg
         if: ${{ steps.download-artifacts.outcome == 'success' && env.DRY_RUN == 'false' }}
-        run: echo "::set-output name=console::$(dotnet nuget push '**/*.nupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)"
+        run: echo "console=$(dotnet nuget push '**/*.nupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)" >> $GITHUB_OUTPUT
         shell: bash
         continue-on-error: true
 
@@ -215,7 +215,7 @@ jobs:
       - name: Push snupkg's
         id: push-snupkg
         if: ${{ steps.download-artifacts.outcome == 'success' && env.DRY_RUN == 'false' }}
-        run: echo "::set-output name=console::$(dotnet nuget push '**/*.snupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)"
+        run: echo "console=$(dotnet nuget push '**/*.snupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate)" >> $GITHUB_OUTPUT
         shell: bash
         continue-on-error: true
 
