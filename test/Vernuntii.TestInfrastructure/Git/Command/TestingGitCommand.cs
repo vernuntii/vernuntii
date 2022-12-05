@@ -17,7 +17,7 @@ namespace Vernuntii.Git.Commands
             args.Append("config");
             args.Append($" {name}");
             args.Append($" {value}");
-            ExecuteCommandThenSucceed(args);
+            ExecuteCommand(args);
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Vernuntii.Git.Commands
                 args.Append($" --allow-empty-message");
             }
 
-            ExecuteCommandThenSucceed(args);
+            ExecuteCommand(args);
         }
 
         public void TagLightweight(NullableQuote tagName, NullableQuote commit = default)
@@ -56,7 +56,7 @@ namespace Vernuntii.Git.Commands
                 args.Append($" {commit}");
             }
 
-            ExecuteCommandThenSucceed(args);
+            ExecuteCommand(args);
         }
 
         /// <summary>
@@ -74,14 +74,14 @@ namespace Vernuntii.Git.Commands
             }
 
             args.Append($" {url} {(Quote)WorkingTreeDirectory}");
-            ExecuteCommandThenSucceed(args);
+            ExecuteCommand(args);
         }
 
         public void Checkout(Quote branchName)
         {
             CultureStringBuilder args = CultureStringBuilder.Invariant();
             args.Append($"checkout {branchName}");
-            ExecuteCommandThenSucceed(args);
+            ExecuteCommand(args);
         }
     }
 }

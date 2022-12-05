@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using Vernuntii.Diagnostics;
+﻿using Kenet.SimpleProcess;
+using Microsoft.Extensions.Logging;
 
 namespace Vernuntii.Console.GlobalTool.Extensions
 {

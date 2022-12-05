@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text;
+using Kenet.SimpleProcess;
+using Microsoft.Extensions.Logging;
 using Vernuntii.Console.GlobalTool.Extensions;
 using Vernuntii.Console.GlobalTool.NuGet;
-using Vernuntii.Diagnostics;
 using Vernuntii.Logging;
 
 namespace Vernuntii.Console.GlobalTool.DotNet
@@ -54,22 +55,14 @@ namespace Vernuntii.Console.GlobalTool.DotNet
 
                 File.WriteAllText(restoreProjectFile, restoreProjectContent);
 
-#pragma warning disable CA2254 // Template should be a static expression
-                SimpleProcess.StartThenWaitForExit(
-                    new SimpleProcessStartInfo(
-                        "dotnet",
-                        args: $"restore {restoreProjectFile} --verbosity {verbosity.ToDotNetVerbosity()}").LogDebug(_logger),
-                    outputReceived: message => {
-                        if (!string.IsNullOrEmpty(message)) {
-                            _logger.LogDebug(message);
-                        }
-                    },
-                    errorReceived: message => {
-                        if (!string.IsNullOrEmpty(message)) {
-                            _logger.LogError(message);
-                        }
-                    });
-#pragma warning restore CA2254 // Template should be a static expression
+                ProcessExecutorBuilder.CreateDefault(
+                        SimpleProcessStartInfo.NewBuilder("dotnet") 
+                            .WithOSIndependentArguments("restore", restoreProjectFile, "--verbosity", verbosity.ToDotNetVerbosity())
+                            .Build()
+                            .LogDebug(_logger))
+                    .AddOutputWriter(bytes => _logger.LogDebug(Encoding.UTF8.GetString(bytes)))
+                    .AddErrorWriter(bytes => _logger.LogError(Encoding.UTF8.GetString(bytes)))
+                    .RunToCompletion();
             } finally {
                 File.Delete(restoreProjectFile);
             }

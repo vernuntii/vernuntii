@@ -7,7 +7,7 @@ namespace Vernuntii.SemVer
     /// <summary>
     /// A strict semantic version implementation.
     /// </summary>
-    public record SemanticVersion : ISemanticVersion, ISemanticVersionParserProvider, IComparable<SemanticVersion>, IEquatable<SemanticVersion>
+    public record SemanticVersion : ISemanticVersion, ISemanticVersionParserProvider, IComparable<SemanticVersion>
     {
         internal static readonly string[] EmptyIdentifiers = Array.Empty<string>();
 

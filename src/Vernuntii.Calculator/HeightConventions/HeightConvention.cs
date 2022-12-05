@@ -6,7 +6,7 @@ namespace Vernuntii.HeightConventions
     /// <summary>
     /// The height convention describes where a height can be placed.
     /// </summary>
-    public sealed record class HeightConvention : IHeightConvention, IEquatable<HeightConvention>
+    public sealed record class HeightConvention : IHeightConvention
     {
         /// <summary>
         /// Height convention where height is nowhere.
