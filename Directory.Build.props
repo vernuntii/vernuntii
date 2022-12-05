@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Authors Condition="'$(Authors)' == ''">Teneko .NET Tools</Authors>
-    <Copyright Condition="'$(Copyright)' == ''">Copyright (c) 2021 Teneko .NET Tools</Copyright>
+    <Authors Condition="'$(Authors)' == ''">Vernuntii authors and contributors</Authors>
+    <Copyright Condition="'$(Copyright)' == ''">Copyright (c) 2021 Vernuntii authors and contributors</Copyright>
     <Product Condition="'$(Product)' == ''">$(MSBuildProjectName)</Product>
     <PackageLicenseFile Condition="'$(PackageLicenseFile)' == ''">LICENSE</PackageLicenseFile>
     <PackageIcon Condition="'$(PackageIcon)' == ''">icon.png</PackageIcon>
     <LangVersion Condition="'$(LangVersion)' == ''">preview</LangVersion>
-    <TeronisDotNetEditorConfigBasePackageVersion>0.3.0-alpha.4</TeronisDotNetEditorConfigBasePackageVersion>
+    <TeronisDotNetEditorConfigBasePackageVersion>0.3.0-alpha.5</TeronisDotNetEditorConfigBasePackageVersion>
     <!-- CA1848: For high-performance logging scenarios, use the LoggerMessage pattern. -->
     <NoWarn>$(NoWarn);CA1848</NoWarn>
     <Nullable>enable</Nullable>
