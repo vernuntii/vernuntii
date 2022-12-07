@@ -141,7 +141,7 @@ namespace Vernuntii.Console.MSBuild
                 BranchName = version.BranchName;
                 CommitSha = version.CommitSha;
             } catch (Exception error) {
-                Log.LogError(error.Message ?? "An error occurred while executing console process");
+                Log.LogError($"Error during console process execution: {error}");
                 return false;
             }
 
