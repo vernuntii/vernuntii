@@ -50,7 +50,7 @@ public class GitCommand : IGitCommand
         using var boundary = new ProcessBoundary();
 
         ProcessExecutorBuilder.CreateDefault(CreateStartInfo(args))
-            .WriteToBuffer(builder => builder.AddOutputWriter, out var bufferOwner, boundary)
+            .WriteToBufferReader(builder => builder.AddOutputWriter, out var bufferOwner, boundary)
             .RunToCompletion();
 
         return Encoding.UTF8.GetString(bufferOwner.WrittenMemory.Span).TrimEnd();
@@ -66,7 +66,7 @@ public class GitCommand : IGitCommand
         using var boundary = new ProcessBoundary();
 
         ProcessExecutorBuilder.CreateDefault(CreateStartInfo(args))
-            .WriteToBuffer(builder => builder.AddOutputWriter, out var bufferOwner, boundary)
+            .WriteToBufferReader(builder => builder.AddOutputWriter, out var bufferOwner, boundary)
             .RunToCompletion();
 
         return Encoding.UTF8.GetString(bufferOwner.WrittenMemory.Span).Split("\n").ToList();

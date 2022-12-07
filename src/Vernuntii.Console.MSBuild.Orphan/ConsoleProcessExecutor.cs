@@ -34,9 +34,8 @@ namespace Vernuntii.Console
 
             using var boundary = new ProcessBoundary();
 
-            _ = new ProcessExecutorBuilder(startInfo)
-                .WithExitCode(0)
-                .WriteToBuffer(x => x.AddOutputWriter, out var outputBuffer, boundary)
+            _ = ProcessExecutorBuilder.CreateDefault(startInfo)
+                .WriteToBufferReader(x => x.AddOutputWriter, out var outputBuffer, boundary)
                 .AddErrorWriter(bytes => {
                     var line = Encoding.UTF8.GetString(bytes);
 
