@@ -256,13 +256,13 @@ VersioningMode: <preset:string> or <preset:object> (optional)
 
 Available values for `<preset:string>`:
 
-- `Default`: resolves internally to `ContinousDelivery`
-- `ContinousDelivery`
-  - `MessageConvention`: `Continous` (see [`<message-convention:string>`][message-convention-string])
+- `Default`: resolves internally to `ContinuousDelivery`
+- `ContinuousDelivery`
+  - `MessageConvention`: `Continuous` (see [`<message-convention:string>`][message-convention-string])
   - `IncrementMode`: `Consecutive` (see [`<increment-mode:string>`][increment-mode-string])
   - `IncrementFlow`: `None` (see [`<increment-flow:string>`][increment-flow-string])
-- `ContinousDeployment`
-  - `MessageConvention`: `Continous` (see [`<message-convention:string>`][message-convention-string])
+- `ContinuousDeployment`
+  - `MessageConvention`: `Continuous` (see [`<message-convention:string>`][message-convention-string])
   - `IncrementMode`: `Successive` (see [`<increment-mode:string>`][increment-mode-string])
   - `IncrementFlow`: `None` (see [`<increment-flow:string>`][increment-flow-string])
 - `ConventionalCommitsDelivery`
@@ -281,7 +281,7 @@ Available values for `<preset:string>`:
 If `VersioningMode` is not set its default is:
 
 ```yaml
-VersioningMode: Default # 'Default' resolves internally to 'ContinousDelivery'
+VersioningMode: Default # 'Default' resolves internally to 'ContinuousDelivery'
 ```
 
 ## Schema → `<preset:object>`
@@ -317,7 +317,7 @@ VersioningMode:
 Available values for `<message-convention:string>`:
 
 - `Manual`: same as `<message-convention>` of preset `Manual`.
-- `Continous`: same as `<message-convention>` of preset `Continous*`.
+- `Continuous`: same as `<message-convention>` of preset `Continuous*`.
   - Major indicator: `Falsy` (see [`<message-indicator:string>`][message-indicator-string])
   - Minor indicator: `Falsy` (see [`<message-indicator:string>`][message-indicator-string])
   - Patch indicator: `Truthy` (see [`<message-indicator:string>`][message-indicator-string])
@@ -479,7 +479,7 @@ Overwrite preset.
 ```yaml
 VersioningMode:
   Preset: ConventionalCommitsDelivery
-  MessageConvention: Continous # Overwrites "MessageConvention" of preset
+  MessageConvention: Continuous # Overwrites "MessageConvention" of preset
   IncrementMode: Successive # Overwrites "IncrementMode" of preset
 
   # When a major is about to be incremented it won't, instead the minor is incremented. This does not trigger minor flow.
@@ -496,7 +496,7 @@ Custom message convention in branch develop.
 Branches:
   - IfBranch: develop
     VersioningMode:
-      Preset: ContinousDelivery
+      Preset: ContinuousDelivery
       MessageConvention:
         MajorIndicators: Falsy # Ok, we want major to never increment.
         MinorIndicators:

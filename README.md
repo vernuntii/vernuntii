@@ -39,7 +39,7 @@ Vernuntii (latin for versionable messages) is your tool to get rid of manually v
 Using only [MSBuild Integration][msbuild-nuget-package-docs] because
 
 - You are author of one or more projects whose resulting packages need to be versioned by Vernuntii
-- You do not need to coordinate the versioning "from above" like Nuke, Cake or any continous integration platform
+- You do not need to coordinate the versioning "from above" like Nuke, Cake or any ontinuous integration platform
 - After publishing the packages with the calculated version from Vernuntii you are willing to create manually the git tag
 
 #### Use case #2
@@ -73,7 +73,7 @@ So we first assume a configuration file that is empty or not even existing. In t
 
 ```yaml
 # /vernuntii.yml
-VersioningMode: ContinousDelivery # What's that? I'll explain.
+VersioningMode: ContinuousDelivery # What's that? I'll explain.
 ```
 
 We also assume we are in the branch `main`. Now we move on to the logic.
@@ -81,8 +81,8 @@ We also assume we are in the branch `main`. Now we move on to the logic.
 1. If the current commit has one or more lightweight git tags with a SemVer-compatible version string as tag name then the **latest** version of these versions is used and the next bullet points are skipped.
 2. If the current commit *does not* have one SemVer-compatible version then the next version is about to be calculated, so we take a look to `git log` and go from current commit backwards and search for the latest version.
 3. If the latest version has been found, then this version serves as start version, otherwise the default version `0.1.0-main.0` is assumed and next bullet points are skipped.
-4. If a pre-release is given then as `ContinousDelivery` indicates, we assume a human triggered release workflow or in other words: we only need the next version when the program is in an actual delivery state. So we once <ins>increment height by one</ins>. If the height was `0`, then it won't exceed `1` in this calculation. Why height and not patch? Because of the word "Continous". Yes, the program in a delivery state and we just want continously calculate the next version but without soil the version core, so we increment the height.
-5. If a pre-release is not given then as `ContinousDelivery` indicates, we once <ins>increment the patch by one</ins>. If the patch was `0`, then it won't exceed `1` in this calculation. Why patch? Because a change in version core signalizes a *new release*. Why only patch? First of all, there are different [versioning modes][configuration-versioning-modes] but `ContinousDelivery` is one of the more feasible workflows that are easy introducable, so if you want for example introduce a minor or major release, you would have to adjust the versioning preset to apply <ins>your convention</ins> that affects not only patch anymore or you create a tag that reflects the next minor or major release and [vernuntii will just consider it][self-version-adaptivity] in next version calculation.
+4. If a pre-release is given then as `ContinuousDelivery` indicates, we assume a human triggered release workflow or in other words: we only need the next version when the program is in an actual delivery state. So we once <ins>increment height by one</ins>. If the height was `0`, then it won't exceed `1` in this calculation. Why height and not patch? Because of the word "Continuous". Yes, the program in a delivery state and we just want ontinuously calculate the next version but without soil the version core, so we increment the height.
+5. If a pre-release is not given then as `ContinuousDelivery` indicates, we once <ins>increment the patch by one</ins>. If the patch was `0`, then it won't exceed `1` in this calculation. Why patch? Because a change in version core signalizes a *new release*. Why only patch? First of all, there are different [versioning modes][configuration-versioning-modes] but `ContinuousDelivery` is one of the more feasible workflows that are easy introducable, so if you want for example introduce a minor or major release, you would have to adjust the versioning preset to apply <ins>your convention</ins> that affects not only patch anymore or you create a tag that reflects the next minor or major release and [vernuntii will just consider it][self-version-adaptivity] in next version calculation.
 
 <!-- omit in toc -->
 # Table of contents
