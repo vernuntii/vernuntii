@@ -1,21 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- <Sdk Name="Microsoft.Build.CentralPackageVersions" Version="2.0.1" /> -->
-
-  <PropertyGroup>
-    <IsPackable Condition="'$(IsPackable)' == ''">false</IsPackable>
-  </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" Condition="$(IsPackable)" />
-    <PackageReference Include="Teronis.MSBuild.Packaging.ProjectBuildInPackage" Version="1.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Kenet.CSharp.Conventions.Base" Version="$(TeronisDotNetEditorConfigBasePackageVersion)">
+    <PackageReference Include="Kenet.CSharp.Conventions.Base">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+  <PropertyGroup>
+		<AllowPackageReferenceWithVersion>true</AllowPackageReferenceWithVersion>
+	</PropertyGroup>
+
+	<!-- #region Workaround -->
+	<!-- TODO: Remove this region after https://github.com/microsoft/MSBuildSdks/pull/203 is merged -->
+	<ItemGroup Condition=" '$(AllowPackageReferenceWithVersion)' == 'true' ">
+		<!-- Store package references with version to avoid check -->
+		<_OriginalPackageReferenceWithVersion Include="@(PackageReference->HasMetadata('Version'))" />
+		<PackageReference Remove="@(_OriginalPackageReferenceWithVersion)" />
+	</ItemGroup>
+
+	<Target Name="RestoreOriginalPackageReferenceWithVersion" AfterTargets="CheckPackageReferences" Condition=" '$(AllowPackageReferenceWithVersion)' == 'true' AND @(_OriginalPackageReferenceWithVersion->Count()) > 0 ">
+		<!-- Restore staged package references -->
+		<ItemGroup>
+			<PackageReference Include="@(_OriginalPackageReferenceWithVersion)" />
+		</ItemGroup>
+	</Target>
+	<!-- #endregion -->
+
+  <Sdk Name="Microsoft.Build.CentralPackageVersions" Version="2.1.3" />
 
 </Project>

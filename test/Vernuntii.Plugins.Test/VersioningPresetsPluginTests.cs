@@ -36,7 +36,7 @@ namespace Vernuntii.Plugins
         public void PresetManagerShouldHaveDefaultIncrementFlows(string incrementFlowName) =>
             Assert.True(DefaultPlugin.PresetManager.IncrementFlows.ContainsName(incrementFlowName));
 
-        private static IEnumerable<object[]> DefaultMessageConventionNames()
+        public static IEnumerable<object[]> DefaultMessageConventionNames()
         {
             foreach (string name in Enum.GetNames<InbuiltMessageConvention>()) {
                 yield return new[] { name };
@@ -74,7 +74,7 @@ namespace Vernuntii.Plugins
         public void PresetManagerShouldHaveDefaultMessageIndicators(string messageIndicatorName) =>
             Assert.True(DefaultPlugin.PresetManager.MessageIndicators.ContainsName(messageIndicatorName));
 
-        private static IEnumerable<object[]> DefaultConfiguredMessageIndicatorFactoryNames()
+        public static IEnumerable<object[]> DefaultConfiguredMessageIndicatorFactoryNames()
         {
             foreach (string name in Enum.GetNames<InbuiltConfiguredMessageIndicatorFactory>()) {
                 yield return new[] { name };

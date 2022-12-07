@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using FluentAssertions;
+using Xunit;
 
 namespace Vernuntii.SemVer.Parser
 {
@@ -118,14 +119,14 @@ namespace Vernuntii.SemVer.Parser
         [MemberData(nameof(TryParseShouldParseEraseGenerator))]
         public void TryParseShouldParse(SemanticVersionParser parser, string value, ParseResult assumedResult)
         {
-            bool parseResult = parser.TryParse(value, out string? prefix, out uint? major, out uint? minor, out uint? patch, out IEnumerable<string>? preReleaseIdentifiers, out IEnumerable<string>? build);
-            Assert.Equal(assumedResult.Result, parseResult);
-            Assert.Equal(assumedResult.Prefix, prefix);
-            Assert.Equal(assumedResult.Major, major);
-            Assert.Equal(assumedResult.Minor, minor);
-            Assert.Equal(assumedResult.Patch, patch);
-            Assert.Equal(assumedResult.PreReleaseIdentifiers, preReleaseIdentifiers, StringComparer.Ordinal);
-            Assert.Equal(assumedResult.Build, build, StringComparer.Ordinal);
+            var parseResult = parser.TryParse(value, out string? prefix, out uint? major, out uint? minor, out uint? patch, out IEnumerable<string>? preReleaseIdentifiers, out IEnumerable<string>? build);
+            parseResult.Should().Be(assumedResult.Result);
+            prefix.Should().BeEquivalentTo(assumedResult.Prefix);
+            major.Should().Be(assumedResult.Major);
+            minor.Should().Be(assumedResult.Minor);
+            patch.Should().Be(assumedResult.Patch);
+            preReleaseIdentifiers.Should().Equal(assumedResult.PreReleaseIdentifiers);
+            build.Should().Equal(assumedResult.Build);
         }
 
         public record ParseResult

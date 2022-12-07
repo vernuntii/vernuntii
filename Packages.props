@@ -1,0 +1,45 @@
+<Project>
+
+  <ItemGroup>
+    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.1.1" />
+    <PackageReference Update="Teronis.MSBuild.Packaging.ProjectBuildInPackage" Version="1.0.0" />
+    <PackageReference Update="BenchmarkDotNet" Version="0.13.1" />
+    <PackageReference Update="Kenet.CSharp.Conventions.Base" Version="0.3.0-alpha.5" />
+    <PackageReference Update="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
+    <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Update="Teronis.Nullable" Version="1.0.0" />
+    <PackageReference Update="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageReference Update="Microsoft.Experimental.Collections" Version="1.0.6-e190117-3" />
+    <PackageReference Update="Teronis.NetStandard.Core" Version="0.1.8-alpha.223" />
+    <PackageReference Update="YamlDotNet" Version="11.2.1" />
+    <PackageReference Update="K4os.Hash.xxHash" Version="1.0.7" />
+    <PackageReference Update="Standart.Hash.xxHash" Version="3.1.0" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+    <PackageReference Update="NetEscapades.Configuration.Yaml" Version="2.2.0" />
+    <PackageReference Update="Microsoft.Extensions.Configuration" Version="6.0.1" />
+    <PackageReference Update="CSF.CollectionComparers" Version="1.1.1" />
+    <PackageReference Update="NLog" Version="5.0.5" />
+    <PackageReference Update="NLog.Extensions.Logging" Version="5.1.0" />
+    <PackageReference Update="SoftCircuits.OrderedDictionary" Version="2.1.0" />
+    <PackageReference Update="System.CommandLine" Version="2.0.0-beta3.22114.1" />
+    <PackageReference Update="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta3.22114.1" />
+    <PackageReference Update="System.Reactive" Version="5.0.0" />
+    <PackageReference Update="Kenet.SimpleProcess" Version="0.1.2-alpha.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+		<PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.2.0" />
+		<PackageReference Update="Moq" Version="4.17.2" />
+		<PackageReference Update="xunit" Version="2.4.2" />
+		<PackageReference Update="xunit.runner.visualstudio" Version="2.4.5" />
+		<PackageReference Update="coverlet.collector" Version="3.1.2" />
+		<PackageReference Update="Xunit.Priority" Version="1.1.6" />
+    <PackageReference Update="FluentAssertions" Version="6.8.0" />
+  </ItemGroup>
+
+</Project>

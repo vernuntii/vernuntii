@@ -7,7 +7,6 @@
     <PackageLicenseFile Condition="'$(PackageLicenseFile)' == ''">LICENSE</PackageLicenseFile>
     <PackageIcon Condition="'$(PackageIcon)' == ''">icon.png</PackageIcon>
     <LangVersion Condition="'$(LangVersion)' == ''">preview</LangVersion>
-    <TeronisDotNetEditorConfigBasePackageVersion>0.3.0-alpha.5</TeronisDotNetEditorConfigBasePackageVersion>
     <!-- CA1848: For high-performance logging scenarios, use the LoggerMessage pattern. -->
     <NoWarn>$(NoWarn);CA1848</NoWarn>
     <Nullable>enable</Nullable>
