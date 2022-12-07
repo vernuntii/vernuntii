@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text;
 using System.Text.Json;
+using Kenet.SimpleProcess;
 using Microsoft.Build.Utilities;
-using Vernuntii.Diagnostics;
 
 namespace Vernuntii.Console
 {
@@ -32,15 +32,24 @@ namespace Vernuntii.Console
             var startInfo = new ConsoleProcessStartInfo(_consoleExecutablePath,
                 args: CreateConsoleArguments());
 
-            var output = SimpleProcess.StartThenWaitForExitThenReadOutput(
-                startInfo,
-                errorReceived: line => {
+            using var boundary = new ProcessBoundary();
+
+            _ = new ProcessExecutorBuilder(startInfo)
+                .WithExitCode(0)
+                .WriteToBuffer(x => x.AddOutputWriter, out var outputBuffer, boundary)
+                .AddErrorWriter(bytes => {
+                    var line = Encoding.UTF8.GetString(bytes);
+
                     if (!string.IsNullOrWhiteSpace(line)) {
                         // Well, Vernuntii writes logger messages to error stream to
-                        // make an distinction from the actual "next-version"-output.
+                        // make an distinction from the actual "next-version"-output,
+                        // so do not write here to error stream!
                         _logger.LogMessage(line);
                     }
-                });
+                })
+                .RunToCompletion();
+
+            var output = Encoding.UTF8.GetString(outputBuffer.WrittenSpan, outputBuffer.WrittenCount);
 
             try {
                 return JsonSerializer.Deserialize<VersionPresentation>(output) ?? throw new InvalidOperationException();

@@ -6,13 +6,13 @@
 		<IsTestProject>false</IsTestProject>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\..\src\Vernuntii.Console.MSBuild\Vernuntii.Console.MSBuild.csproj" />
-	</ItemGroup>
-
 	<PropertyGroup>
 		<_TestDirectory>$(MSBuildProjectDirectory)/bin/Test</_TestDirectory>
 	</PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Vernuntii.Console.MSBuild\Vernuntii.Console.MSBuild.csproj" />
+  </ItemGroup>
 
 	<Target Name="_CleanTest">
 		<RemoveDir Directories="$(_TestDirectory)" />

@@ -1,8 +1,8 @@
-﻿using Vernuntii.Diagnostics;
+﻿using Kenet.SimpleProcess;
 
 namespace Vernuntii.Console
 {
-    internal class ConsoleProcessStartInfo : SimpleProcessStartInfo
+    internal record ConsoleProcessStartInfo : SimpleProcessStartInfo
     {
         private static bool IsDynamicLinkLibrary(string fileNameOrPath) =>
             fileNameOrPath.EndsWith(".dll", System.StringComparison.OrdinalIgnoreCase);
@@ -26,8 +26,10 @@ namespace Vernuntii.Console
         }
 
         public ConsoleProcessStartInfo(string fileNameOrPath, string? args = null, string? workingDirectory = null)
-            : base(GetFileNameOrPath(fileNameOrPath), GetArguments(fileNameOrPath, args), workingDirectory)
+            : base(GetFileNameOrPath(fileNameOrPath))
         {
+            Arguments = GetArguments(fileNameOrPath, args);
+            WorkingDirectory = workingDirectory;
         }
     }
 }

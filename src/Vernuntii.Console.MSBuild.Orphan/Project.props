@@ -16,16 +16,17 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\Vernuntii.SimpleProcess\Vernuntii.SimpleProcess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.9.0" PrivateAssets="all" />
     <PackageReference Include="System.Text.Json" Version="5.0.1" />
+    <PackageReference Include="Kenet.SimpleProcess" Version="0.1.3" />
   </ItemGroup>
 
   <ItemGroup>

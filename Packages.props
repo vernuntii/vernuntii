@@ -5,6 +5,7 @@
     <PackageReference Update="Teronis.MSBuild.Packaging.ProjectBuildInPackage" Version="1.0.0" />
     <PackageReference Update="BenchmarkDotNet" Version="0.13.1" />
     <PackageReference Update="Kenet.CSharp.Conventions.Base" Version="0.3.0-alpha.5" />
+    <PackageReference Update="Kenet.CSharp.Conventions.Test" Version="0.3.0-alpha.5" />
     <PackageReference Update="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0" />
     <PackageReference Update="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
     <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
