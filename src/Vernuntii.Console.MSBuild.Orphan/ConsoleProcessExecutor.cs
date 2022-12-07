@@ -34,7 +34,7 @@ namespace Vernuntii.Console
 
             using var boundary = new ProcessBoundary();
 
-            using var execution = new ProcessExecutorBuilder(startInfo)
+            _ = new ProcessExecutorBuilder(startInfo)
                 .WithExitCode(0)
                 .WriteToBuffer(x => x.AddOutputWriter, out var outputBuffer, boundary)
                 .AddErrorWriter(bytes => {
@@ -47,10 +47,8 @@ namespace Vernuntii.Console
                         _logger.LogMessage(line);
                     }
                 })
-                .Build()
-                .Run();
+                .RunToCompletion();
 
-            _ = execution.RunToCompletion();
             var output = Encoding.UTF8.GetString(outputBuffer.WrittenSpan, outputBuffer.WrittenCount);
 
             try {
