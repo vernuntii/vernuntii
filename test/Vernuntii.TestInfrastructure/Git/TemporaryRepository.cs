@@ -39,10 +39,10 @@ namespace Vernuntii.Git
 
         internal override Func<string, GitCommand> CreateCommandFactory()
         {
-            string gitDirectory = _options.RepositoryOptions.GitWorkingTreeDirectory;
+            var gitDirectory = _options.RepositoryOptions.GitWorkingTreeDirectory;
             Directory.CreateDirectory(_options.RepositoryOptions.GitWorkingTreeDirectory);
             TestingGitCommand gitCommand = new(gitDirectory);
-            CloneOptions? cloneOptions = _options.CloneOptions;
+            var cloneOptions = _options.CloneOptions;
 
             if (cloneOptions != null) {
                 gitCommand.Clone(cloneOptions.SourceUrl(), cloneOptions.Depth);
@@ -87,11 +87,11 @@ namespace Vernuntii.Git
             }
 
             if (disposing && _options.DeleteOnDispose) {
-                string gitDirectory = _options.RepositoryOptions.GitWorkingTreeDirectory;
+                var gitDirectory = _options.RepositoryOptions.GitWorkingTreeDirectory;
 
                 if (Directory.Exists(gitDirectory)
                     && (!_options.DeleteOnlyTempDirectory || ContainsBasePath(gitDirectory, Path.GetTempPath()))) {
-                    foreach (string filePath in Directory.EnumerateFiles(gitDirectory, "*", SearchOption.AllDirectories)) {
+                    foreach (var filePath in Directory.EnumerateFiles(gitDirectory, "*", SearchOption.AllDirectories)) {
                         File.SetAttributes(filePath, FileAttributes.Normal);
                     }
 
@@ -100,7 +100,7 @@ namespace Vernuntii.Git
 
                 static bool ContainsBasePath(string subPath, string basePath)
                 {
-                    string relativePath = Path.GetRelativePath(basePath, subPath);
+                    var relativePath = Path.GetRelativePath(basePath, subPath);
                     return !relativePath.StartsWith('.') && !Path.IsPathRooted(relativePath);
                 }
             }

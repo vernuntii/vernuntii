@@ -15,7 +15,7 @@ namespace Vernuntii.Configuration
 
         public static IEnumerable<object[]> VersioningModeStringShouldMatchPresetGenerator()
         {
-            foreach (IBranchCase value in CreateBranchCasesProvider(VersioningModeDir, VersioningModeStringFileName, tryCreateVersioningPresetExtension: true).BranchCases.Values) {
+            foreach (var value in CreateBranchCasesProvider(VersioningModeDir, VersioningModeStringFileName, tryCreateVersioningPresetExtension: true).BranchCases.Values) {
                 yield return new object[] {
                      DefaultPresetManager.VersioningPresets.GetItem(value.GetConfigurationExtension().GetValue<string>(ConfiguredVersioningPresetFactory.DefaultVersioningModeKey)
                         ?? nameof(InbuiltVersioningPreset.Default)),
@@ -33,7 +33,7 @@ namespace Vernuntii.Configuration
 
         public static IEnumerable<object[]> InvalidVersioningModeObjectShouldThrowGenerator()
         {
-            IReadOnlyDictionary<string, IBranchCase> branchCases = CreateBranchCasesProvider(VersioningModeDir, VersioningModeObjectInvalidFileName).NestedBranchCases;
+            var branchCases = CreateBranchCasesProvider(VersioningModeDir, VersioningModeObjectInvalidFileName).NestedBranchCases;
 
             yield return new object[] {
                  nameof(IVersioningPreset.IncrementMode),
@@ -56,14 +56,14 @@ namespace Vernuntii.Configuration
             string expectedArgumentExceptionFieldName,
             Func<IVersioningPreset> presetExtensionFactory)
         {
-            Exception error = Record.Exception(presetExtensionFactory);
-            ConfigurationValidationException argumentException = Assert.IsType<ConfigurationValidationException>(error);
+            var error = Record.Exception(presetExtensionFactory);
+            var argumentException = Assert.IsType<ConfigurationValidationException>(error);
             Assert.Contains(expectedArgumentExceptionFieldName, argumentException.Message, StringComparison.Ordinal);
         }
 
         public static IEnumerable<object[]> ValidVersioningModeObjectShouldMatchGenerator()
         {
-            IReadOnlyDictionary<string, IBranchCase> branchCases = CreateBranchCasesProvider(VersioningModeDir, VersioningModeObjectValidFileName, tryCreateVersioningPresetExtension: true).NestedBranchCases;
+            var branchCases = CreateBranchCasesProvider(VersioningModeDir, VersioningModeObjectValidFileName, tryCreateVersioningPresetExtension: true).NestedBranchCases;
 
             yield return new object[] {
                  VersioningPreset.ConventionalCommitsDelivery,

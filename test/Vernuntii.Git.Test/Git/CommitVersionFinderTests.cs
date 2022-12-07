@@ -20,7 +20,7 @@ namespace Vernuntii.Git
             repository.TagLightweight(firstTag);
             repository.TagLightweight(secondTag);
 
-            IPositonalCommitVersion? version = new CommitVersionFinder(new CommitVersionFinderOptions(), repository, repository, DefaultCommitVersionFinderLogger)
+            var version = new CommitVersionFinder(new CommitVersionFinderOptions(), repository, repository, DefaultCommitVersionFinderLogger)
                 .FindCommitVersion(new CommitVersionFindingOptions());
 
             Assert.NotNull(version);

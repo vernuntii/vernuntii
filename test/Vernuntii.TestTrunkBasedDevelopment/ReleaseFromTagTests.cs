@@ -37,10 +37,10 @@ namespace Vernuntii
         {
             _temporaryRepository.CommitEmpty();
 
-            VersionCaching.IVersionCache versionCache = await _vernuntii.RunAsync();
+            var versionCache = await _vernuntii.RunAsync();
             _temporaryRepository.TagLightweight(versionCache.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
 
-            ICommitVersion snapshotVersion = _temporaryRepository
+            var snapshotVersion = _temporaryRepository
                 .GetCommitVersions(unsetCache: true)
                 .Single();
 
@@ -51,9 +51,9 @@ namespace Vernuntii
         public async Task ReleaseExplicitFromTag()
         {
             _temporaryRepository.CommitEmpty();
-            string releaseVersion = "0.1.0";
+            var releaseVersion = "0.1.0";
             _temporaryRepository.TagLightweight(releaseVersion);
-            VersionCaching.IVersionCache versionCache = await _vernuntii.RunAsync();
+            var versionCache = await _vernuntii.RunAsync();
             Assert.Equal(releaseVersion, versionCache.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
         }
 

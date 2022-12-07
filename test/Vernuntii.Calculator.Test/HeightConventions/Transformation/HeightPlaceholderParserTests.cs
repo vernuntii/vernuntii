@@ -18,7 +18,7 @@ namespace Vernuntii.HeightConventions.Transformation
         public void ParseResultShouldMatch(HeightPlaceholderType expectedPlaceholderType, object? expectedPlaceholderContent, string placeholder)
         {
             HeightPlaceholderParser parser = new();
-            HeightPlaceholderType actualPlaceholderType = parser.Parse(placeholder, out object? actualPlaceholderContent);
+            var actualPlaceholderType = parser.Parse(placeholder, out var actualPlaceholderContent);
 
             Assert.Equal(expectedPlaceholderType, actualPlaceholderType);
             Assert.Equal(expectedPlaceholderContent, actualPlaceholderContent);

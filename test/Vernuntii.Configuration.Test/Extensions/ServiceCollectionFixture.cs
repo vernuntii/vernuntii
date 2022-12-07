@@ -62,7 +62,7 @@ namespace Vernuntii.Extensions
 
         public static IBranchCasesProvider CreateBranchCasesProvider(string directory, string fileName, bool tryCreateVersioningPresetExtension = false)
         {
-            IServiceCollection services = CreateBranchCasesProviderServices(directory, fileName);
+            var services = CreateBranchCasesProviderServices(directory, fileName);
             ConfigureServiceCollection(services, tryCreateVersioningPresetExtension: tryCreateVersioningPresetExtension);
             return CreateBranchCasesProvider(services);
         }

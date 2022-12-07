@@ -51,7 +51,7 @@ namespace Vernuntii.VersioningPresets
                 VersioningPreset = preset
             });
 
-            ISemanticVersion nextVersion = builder.BuildIncrement(new Message(), context).TransformVersion(startVersion);
+            var nextVersion = builder.BuildIncrement(new Message(), context).TransformVersion(startVersion);
             Assert.Equal(expectedDownstreamFlow, context.IsVersionDownstreamFlowed);
             Assert.Equal(expectedVersion, nextVersion);
         }

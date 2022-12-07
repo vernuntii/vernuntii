@@ -18,10 +18,10 @@ namespace Vernuntii.VersionPresentation
             VersionPresentationKind presentationKind,
             VersionPresentationView presentationView)
         {
-            IVersionCache foundation = Mock.Of<IVersionCache>(x =>
+            var foundation = Mock.Of<IVersionCache>(x =>
                 x.Version.Equals(SemanticVersion.Zero));
 
-            string formattedVersion = new VersionPresentationStringBuilder(foundation)
+            var formattedVersion = new VersionPresentationStringBuilder(foundation)
                 .UsePresentationKind(presentationKind)
                 .UsePresentationPart(VersionPresentationPart.SemanticVersion)
                 .UsePresentationView(presentationView)

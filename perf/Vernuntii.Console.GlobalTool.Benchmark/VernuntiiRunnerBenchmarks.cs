@@ -8,7 +8,7 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
     [SimpleJob(RunStrategy.Monitoring)]
     public class VernuntiiRunnerBenchmarks
     {
-        private TemporaryRepository _repository = null!;
+        private readonly TemporaryRepository _repository = null!;
         private string _randomCacheId = null!;
 
         public VernuntiiRunnerBenchmarks()

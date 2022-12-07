@@ -19,25 +19,25 @@ namespace Vernuntii.Configuration
         [Fact]
         public void MessageIndicatorObjectShouldThrowDueToMissingName()
         {
-            IBranchCase branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsListInvalidFileName).NestedBranchCases["MissingName"];
+            var branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsListInvalidFileName).NestedBranchCases["MissingName"];
 
-            Exception error = Record.Exception(() => branchCase
+            var error = Record.Exception(() => branchCase
                 .SetVersioningPresetExtensionFactory(DefaultConfiguredVersioningPresetFactory)
                 .GetVersioningPresetExtension());
 
-            ConfigurationValidationException configurationValidationError = Assert.IsType<ConfigurationValidationException>(error);
+            var configurationValidationError = Assert.IsType<ConfigurationValidationException>(error);
             Assert.Contains("indicator name", error.Message, System.StringComparison.Ordinal);
         }
 
         [Fact]
         public void RegexMessageIndicatorListWithNameAsItemShouldMatch()
         {
-            IBranchCase branchCase = CreateBranchCasesProvider(
+            var branchCase = CreateBranchCasesProvider(
                 MessageIndicatorsDir,
                 MessageIndicatorsListValidFileName,
                 tryCreateVersioningPresetExtension: true).NestedBranchCases["NameAsItem"];
 
-            VersioningPreset expectedVersioningPreset = VersioningPreset.Manual with {
+            var expectedVersioningPreset = VersioningPreset.Manual with {
                 MessageConvention = MessageConvention.None with {
                     MajorIndicators = new[] {
                         ConventionalCommitsMessageIndicator.Default
@@ -51,12 +51,12 @@ namespace Vernuntii.Configuration
         [Fact]
         public void RegexMessageIndicatorObjectShouldMatch()
         {
-            IBranchCase branchCase = CreateBranchCasesProvider(
+            var branchCase = CreateBranchCasesProvider(
                 MessageIndicatorsDir,
                 MessageIndicatorsListValidFileName,
                 tryCreateVersioningPresetExtension: true).NestedBranchCases["RegexObject"];
 
-            VersioningPreset expectedVersioningPreset = VersioningPreset.Manual with {
+            var expectedVersioningPreset = VersioningPreset.Manual with {
                 MessageConvention = MessageConvention.None with {
                     MajorIndicators = new[] {
                         RegexMessageIndicator.Empty.With.MajorRegex("test").ToIndicator()
@@ -70,7 +70,7 @@ namespace Vernuntii.Configuration
         [Fact]
         public void RegexMessageIndicatorStringShouldThrow()
         {
-            IBranchCase branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringInvalidFileName).NestedBranchCases["RegexShouldBeObject"];
+            var branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringInvalidFileName).NestedBranchCases["RegexShouldBeObject"];
 
             Assert.IsType<ConfigurationValidationException>(Record.Exception(() => branchCase
                 .SetVersioningPresetExtensionFactory(DefaultConfiguredVersioningPresetFactory)
@@ -80,7 +80,7 @@ namespace Vernuntii.Configuration
         [Fact]
         public void NotInbuiltMessageIndicatorStringShouldThrow()
         {
-            IBranchCase branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringInvalidFileName).NestedBranchCases["StringThatDoesNotExist"];
+            var branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringInvalidFileName).NestedBranchCases["StringThatDoesNotExist"];
             Assert.IsType<ItemMissingException>(Record.Exception(() => branchCase
                 .SetVersioningPresetExtensionFactory(DefaultConfiguredVersioningPresetFactory)
                 .GetVersioningPresetExtension()));
@@ -88,7 +88,7 @@ namespace Vernuntii.Configuration
 
         public static IEnumerable<object[]> ValidMessageIndicatorStringShouldMatchGenerator()
         {
-            IReadOnlyDictionary<string, IBranchCase> branchCases = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringValidFileName, tryCreateVersioningPresetExtension: true).NestedBranchCases;
+            var branchCases = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringValidFileName, tryCreateVersioningPresetExtension: true).NestedBranchCases;
 
             yield return new object[] {
                  VersioningPreset.Manual with {

@@ -8,8 +8,8 @@ namespace Vernuntii.VersionTransformers
         [Fact]
         public void TransformVersionShouldCalculateNextMinor()
         {
-            SemanticVersion expected = SemanticVersion.Zero.With.Version(2, 3, 0).ToVersion();
-            ISemanticVersion actual = new NextMinorVersionTransformer().TransformVersion(SemanticVersion.Zero.With.Version(2, 2, 1));
+            var expected = SemanticVersion.Zero.With.Version(2, 3, 0).ToVersion();
+            var actual = new NextMinorVersionTransformer().TransformVersion(SemanticVersion.Zero.With.Version(2, 2, 1));
             Assert.Equal(expected, actual);
         }
     }

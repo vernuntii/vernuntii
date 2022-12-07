@@ -56,7 +56,7 @@ namespace Vernuntii.Console.GlobalTool.DotNet
                 File.WriteAllText(restoreProjectFile, restoreProjectContent);
 
                 ProcessExecutorBuilder.CreateDefault(
-                        SimpleProcessStartInfo.NewBuilder("dotnet") 
+                        SimpleProcessStartInfo.NewBuilder("dotnet")
                             .WithOSIndependentArguments("restore", restoreProjectFile, "--verbosity", verbosity.ToDotNetVerbosity())
                             .Build()
                             .LogDebug(_logger))

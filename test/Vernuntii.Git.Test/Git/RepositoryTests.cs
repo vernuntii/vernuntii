@@ -19,7 +19,7 @@ namespace Vernuntii.Git
                 },
             };
 
-            using TemporaryRepository shallow = new TemporaryRepository(shallowOptions, DefaultTemporaryRepositoryLogger).Resolve();
+            using var shallow = new TemporaryRepository(shallowOptions, DefaultTemporaryRepositoryLogger).Resolve();
             _ = Assert.IsType<ShallowRepositoryException>(Record.Exception(() => new Repository(shallowOptions.RepositoryOptions, DefaultTemporaryRepositoryLogger).Resolve()));
         }
 
@@ -27,7 +27,7 @@ namespace Vernuntii.Git
         public void RepositoryResolveShouldNotThrowShallowRepositoryException()
         {
             TemporaryRepositoryOptions originOptions = new();
-            using TemporaryRepository origin = new TemporaryRepository(originOptions, DefaultTemporaryRepositoryLogger).Resolve();
+            using var origin = new TemporaryRepository(originOptions, DefaultTemporaryRepositoryLogger).Resolve();
 
             Assert.Null(Record.Exception(() => new Repository(originOptions.RepositoryOptions, DefaultTemporaryRepositoryLogger).Resolve()));
         }

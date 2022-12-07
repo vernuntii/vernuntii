@@ -26,8 +26,8 @@ namespace Vernuntii.SemVer.Parser.Slicing
         [MemberData(nameof(TrySliceShouldSliceGenerator))]
         public void TrySliceShouldSlice(string value, SliceResult assumedResult)
         {
-            SemanticVersionSlicer versionSeparater = SemanticVersionSlicer.Default;
-            Assert.Equal(assumedResult.Result, versionSeparater.TrySlice(value, out string? prefix, out string? major, out string? minor, out string? patch, out string? preRelease, out string? build));
+            var versionSeparater = SemanticVersionSlicer.Default;
+            Assert.Equal(assumedResult.Result, versionSeparater.TrySlice(value, out var prefix, out var major, out var minor, out var patch, out var preRelease, out var build));
             Assert.Equal(assumedResult.Prefix, prefix);
             Assert.Equal(assumedResult.Major, major);
             Assert.Equal(assumedResult.Minor, minor);
