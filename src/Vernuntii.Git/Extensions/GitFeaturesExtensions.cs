@@ -13,7 +13,9 @@ namespace Vernuntii.Extensions
     public static class GitFeaturesExtensions
     {
         /// <summary>
-        /// Adds an instance of <see cref="IRepository"/>.
+        /// Adds an instance of <see cref="Repository"/> as <see cref="IRepository"/> if <see cref="IRepository"/> has not been added before.
+        /// Then <see cref="ICommitsAccessor"/>, <see cref="ICommitTagsAccessor"/> and <see cref="ICommitVersionsAccessor"/> are associated
+        /// wit this <see cref="IRepository"/> instance, in case any of these interfaces have not been added before.
         /// </summary>
         /// <param name="options"></param>
         /// <param name="configureOptions"></param>

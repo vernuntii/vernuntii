@@ -22,24 +22,24 @@ namespace Vernuntii.PluginSystem.Events
         }
 
         /// <inheritdoc/>
-        public TEvent GetEvent<TEvent>(TEvent eventTemplate)
+        public TEvent GetEvent<TEvent>(TEvent uniqueEvent)
             where TEvent : IEventFactory
         {
             {
                 // Choose fastest way without locking and
                 // when first failing then initialize event.
-                if (TryGetEvent<TEvent>(eventTemplate, out var typedEvent)) {
+                if (TryGetEvent<TEvent>(uniqueEvent, out var typedEvent)) {
                     return typedEvent;
                 }
             }
 
             lock (_lockObject) {
-                if (TryGetEvent<TEvent>(eventTemplate, out var typedEvent)) {
+                if (TryGetEvent<TEvent>(uniqueEvent, out var typedEvent)) {
                     return typedEvent;
                 }
 
-                typedEvent = (TEvent)eventTemplate.CreateEvent();
-                _eventDictionary.Add(eventTemplate, typedEvent);
+                typedEvent = (TEvent)uniqueEvent.CreateEvent();
+                _eventDictionary.Add(uniqueEvent, typedEvent);
                 return typedEvent;
             }
         }

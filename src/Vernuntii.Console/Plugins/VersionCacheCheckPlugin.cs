@@ -42,7 +42,7 @@ namespace Vernuntii.Plugins
         private VersionCacheManager _versionCacheManager = null!;
         private VersionHashFile _versionHashFile = null!;
         private IVersionCache? _versionCache;
-        private bool isVersionChecked;
+        private bool _isVersionChecked;
 
         public VersionCacheCheckPlugin(
             IConfigurationPlugin configurationPlugin,
@@ -75,7 +75,7 @@ namespace Vernuntii.Plugins
 
         private void EnsureHavingVersionChecked()
         {
-            if (!isVersionChecked) {
+            if (!_isVersionChecked) {
                 throw new InvalidOperationException("The version cache check has not been processed (If you depend on it you need to arrange your stuff after that check)");
             }
         }
@@ -86,7 +86,7 @@ namespace Vernuntii.Plugins
                 _versionCache = versionCache;
             }
 
-            isVersionChecked = true;
+            _isVersionChecked = true;
             Events.Publish(VersionCacheCheckEvents.CheckedVersionCache);
         }
 

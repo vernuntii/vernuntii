@@ -8,8 +8,8 @@
         private readonly EventCache _eventAggregator = new();
 
         /// <inheritdoc/>
-        public T GetEvent<T>(T eventTemplate)
+        public T GetEvent<T>(T uniqueEvent)
             where T : IEventFactory =>
-            _eventAggregator.GetEvent(eventTemplate);
+            _eventAggregator.GetEvent(uniqueEvent);
     }
 }

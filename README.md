@@ -247,13 +247,7 @@ Vernuntii uses [Vernuntii.SemVer.Parser][vernuntii-semver-parser-nuget] to parse
 
 ### Issues I am working on
 
-This is my work list. :slightly_smiling_face:
-
-- Allow configuring the height convention
-- Allow setting initial or explicit version prefix
-- Allow additional custom prefixes that differ from `v`
-- Finish plugin system
-- Write tests, tests and more tests
+You can follow the tasks in this [GitHub project](https://github.com/orgs/vernuntii/projects/2/views/1).
 
 ## License
 
