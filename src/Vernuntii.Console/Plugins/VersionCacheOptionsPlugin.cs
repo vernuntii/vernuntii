@@ -63,10 +63,10 @@ namespace Vernuntii.Plugins
                 " hours is used.";
 
             _cacheLastAccessRetentionTimeOption.Description = "The cache retention time since last access. If the time span since last access is greater than the" +
-            " retention time then the version informations is reloaded. Null or empty means this feature is disabled except" +
-            $" if the cache id is implictly or explictly equals to the internal cache id, then the default last access retention time of" +
-            $" {CacheOptions.InternalCacheLastAccessRetentionTime.ToString("s\\.f", CultureInfo.InvariantCulture)}s" +
-            " is used.";
+                " retention time then the version informations is reloaded. Null or empty means this feature is disabled except" +
+                $" if the cache id is implictly or explictly equals to the internal cache id, then the default last access retention time of" +
+                $" {CacheOptions.InternalCacheLastAccessRetentionTime.ToString("s\\.f", CultureInfo.InvariantCulture)}s" +
+                " is used.";
 
             _commandLinePlugin.RootCommand.Add(_cacheCreationRetentionTimeOption);
             _commandLinePlugin.RootCommand.Add(_cacheLastAccessRetentionTimeOption);

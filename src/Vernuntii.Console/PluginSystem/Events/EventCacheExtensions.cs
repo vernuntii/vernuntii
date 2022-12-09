@@ -12,44 +12,44 @@ namespace Vernuntii.PluginSystem.Events
         /// </summary>
         /// <typeparam name="TPayload"></typeparam>
         /// <param name="eventCache"></param>
-        /// <param name="eventTemplate"></param>
+        /// <param name="uniqueKey"></param>
         /// <param name="onNext"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
-        public static IDisposable Subscribe<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> eventTemplate, Action<TPayload> onNext) =>
-            eventCache.GetEvent(eventTemplate).Subscribe(onNext);
+        public static IDisposable Subscribe<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> uniqueKey, Action<TPayload> onNext) =>
+            eventCache.GetEvent(uniqueKey).Subscribe(onNext);
 
         /// <summary>
         /// Subscribes an element handler to an observable sequence.
         /// </summary>
         /// <param name="eventCache"></param>
-        /// <param name="eventTemplate"></param>
+        /// <param name="uniqueKey"></param>
         /// <param name="onNext"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
-        public static IDisposable Subscribe(this IEventCache eventCache, SubjectEvent eventTemplate, Action onNext) =>
-            eventCache.GetEvent(eventTemplate).Subscribe(_ => onNext());
+        public static IDisposable Subscribe(this IEventCache eventCache, SubjectEvent uniqueKey, Action onNext) =>
+            eventCache.GetEvent(uniqueKey).Subscribe(_ => onNext());
 
         /// <summary>
         /// Subscribes an element handler to an observable sequence. Once called the element handler gets disposed and won't be called again.
         /// </summary>
         /// <typeparam name="TPayload"></typeparam>
         /// <param name="eventCache"></param>
-        /// <param name="eventTemplate"></param>
+        /// <param name="uniqueKey"></param>
         /// <param name="onNext"></param>
         /// <param name="onNextCondition"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
-        public static IOneSignalSubscription SubscribeOnce<TPayload>(
+        public static IEventSubscription SubscribeOnce<TPayload>(
             this IEventCache eventCache,
-            SubjectEvent<TPayload> eventTemplate,
+            SubjectEvent<TPayload> uniqueKey,
             Action<TPayload> onNext,
             Func<bool>? onNextCondition = null)
         {
-            var subscription = new OneSignalSubscription();
+            var subscription = new EventSubscription();
 
             subscription.Disposable = eventCache
-                .GetEvent(eventTemplate)
+                .GetEvent(uniqueKey)
                 .Take(1)
                 .Subscribe(payload => {
-                    subscription.SignaledOnce = true;
+                    subscription.IncrementCounter();
 
                     if (onNextCondition?.Invoke() ?? true) {
                         onNext(payload);
@@ -63,23 +63,23 @@ namespace Vernuntii.PluginSystem.Events
         /// Subscribes an element handler to an observable sequence. Once called the element handler gets disposed and won't be called again.
         /// </summary>
         /// <param name="eventCache"></param>
-        /// <param name="eventTemplate"></param>
+        /// <param name="uniqueKey"></param>
         /// <param name="onNext"></param>
         /// <param name="onNextCondition"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
-        public static IOneSignalSubscription SubscribeOnce(
+        public static IEventSubscription SubscribeOnce(
             this IEventCache eventCache,
-            SubjectEvent eventTemplate,
+            SubjectEvent uniqueKey,
             Action onNext,
             Func<bool>? onNextCondition = null)
         {
-            var subscription = new OneSignalSubscription();
+            var subscription = new EventSubscription();
 
             subscription.Disposable = eventCache
-                .GetEvent(eventTemplate)
+                .GetEvent(uniqueKey)
                 .Take(1)
                 .Subscribe(_ => {
-                    subscription.SignaledOnce = true;
+                    subscription.IncrementCounter();
 
                     if (onNextCondition?.Invoke() ?? true) {
                         onNext();
@@ -93,13 +93,13 @@ namespace Vernuntii.PluginSystem.Events
         /// Publishes an event.
         /// </summary>
         /// <typeparam name="TPayload"></typeparam>
-        public static void Publish<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> eventTemplate, TPayload payload) =>
-            eventCache.GetEvent(eventTemplate).Publish(payload);
+        public static void Publish<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> uniqueEvent, TPayload payload) =>
+            eventCache.GetEvent(uniqueEvent).Publish(payload);
 
         /// <summary>
         /// Publishes an event.
         /// </summary>
-        public static void Publish(this IEventCache eventCache, SubjectEvent eventTemplate) =>
-            eventCache.GetEvent(eventTemplate).Publish();
+        public static void Publish(this IEventCache eventCache, SubjectEvent uniqueEvent) =>
+            eventCache.GetEvent(uniqueEvent).Publish();
     }
 }

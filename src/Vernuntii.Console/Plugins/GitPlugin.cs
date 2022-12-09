@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -37,7 +38,7 @@ public class GitPlugin : Plugin, IGitPlugin
         get => _workingTreeDirectory ?? throw new InvalidOperationException("Working tree directory is not set");
 
         set {
-            EnsureBeingBeforeConfiguredConfigurationBuilderEvent();
+            EnsureNotHavingConfiguredConfigurationBuilder();
             EnsureUnsetAlternativeRepository();
             _workingTreeDirectory = value;
         }
@@ -53,7 +54,7 @@ public class GitPlugin : Plugin, IGitPlugin
         get => _gitDirectoryResolver;
 
         set {
-            EnsureBeingBeforeConfiguredConfigurationBuilderEvent();
+            EnsureNotHavingConfiguredConfigurationBuilder();
             EnsureUnsetAlternativeRepository();
             _gitDirectoryResolver = value;
         }
@@ -66,10 +67,9 @@ public class GitPlugin : Plugin, IGitPlugin
     public IGitCommand GitCommand => _gitCommand ?? throw new InvalidOperationException($"The event \"{nameof(GitEvents.ResolvedGitWorkingTreeDirectory)}\" was not yet called");
 
     private readonly SharedOptionsPlugin _sharedOptions = null!;
-    private IConfiguration _configuration = null!;
     private IGitCommand? _gitCommand;
     private readonly INextVersionPlugin _nextVersionPlugin = null!;
-    private IOneSignal _configuredConfigurationBuilderEventSignal = null!;
+    private ISignalCounter _configuredConfigurationBuilderEventSignal = null!;
 
     private readonly Option<string?> _overridePostPreReleaseOption = new(new[] { "--override-post-pre-release" });
 
@@ -77,8 +77,6 @@ public class GitPlugin : Plugin, IGitPlugin
         Description = $"If the produced version exists as tag already then the exit code will be {(int)ExitCode.VersionDuplicate}."
     };
 
-    private string? _overridePostPreRelease;
-    private bool _duplicateVersionFails;
     private string? _workingTreeDirectory;
     private readonly ILogger _logger = null!;
     private IGitDirectoryResolver? _gitDirectoryResolver;
@@ -103,9 +101,9 @@ public class GitPlugin : Plugin, IGitPlugin
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    private void EnsureBeingBeforeConfiguredConfigurationBuilderEvent()
+    private void EnsureNotHavingConfiguredConfigurationBuilder()
     {
-        if (_configuredConfigurationBuilderEventSignal?.SignaledOnce ?? false) {
+        if (_configuredConfigurationBuilderEventSignal.IsOnceSignaled()) {
             throw new InvalidOperationException($"The event \"{nameof(ConfigurationEvents.ConfiguredConfigurationBuilder)}\" was already called");
         }
     }
@@ -138,7 +136,7 @@ public class GitPlugin : Plugin, IGitPlugin
     /// <inheritdoc/>
     public void SetAlternativeRepository(IRepository repository, IGitCommand gitCommand)
     {
-        EnsureBeingBeforeConfiguredConfigurationBuilderEvent();
+        EnsureNotHavingConfiguredConfigurationBuilder();
         EnsureUnsetGitDirectoryResolver();
         EnsureUnsetWorkingTreeDirectory();
 
@@ -153,7 +151,7 @@ public class GitPlugin : Plugin, IGitPlugin
     /// <inheritdoc/>
     public void UnsetAlternativeRepository()
     {
-        EnsureBeingBeforeConfiguredConfigurationBuilderEvent();
+        EnsureNotHavingConfiguredConfigurationBuilder();
         _alternativeRepository = null;
         _alternativeGitCommand = null;
     }
@@ -205,35 +203,9 @@ public class GitPlugin : Plugin, IGitPlugin
         Events.Publish(GitEvents.CreatedGitCommand, _gitCommand);
     }
 
-    private void OnConfigureGlobalServices(IServiceCollection services)
-    {
-        Events.Publish(GitEvents.ConfiguringGlobalServices, services);
-
-        if (HavingAlternativeRepository()) {
-            services.TryAddSingleton(_alternativeRepository);
-        }
-
-        services.ConfigureVernuntii(features => features
-            .ConfigureGit(features => features
-                .AddRepository(options => {
-                    options.GitWorkingTreeDirectory = WorkingTreeDirectory;
-                    options.GitDirectoryResolver = GitDirectoryPassthrough.Instance;
-                })
-                .UseConfigurationDefaults(_configuration)));
-
-        Events.Publish(GitEvents.ConfiguredGlobalServices, services);
-    }
-
     /// <inheritdoc/>
     protected override void OnExecution()
     {
-        Events.SubscribeOnce(
-            CommandLineEvents.ParsedCommandLineArgs,
-            parseResult => {
-                _overridePostPreRelease = parseResult.GetValueForOption(_overridePostPreReleaseOption);
-                _duplicateVersionFails = parseResult.GetValueForOption(_duplicateVersionFailsOption);
-            });
-
         _configuredConfigurationBuilderEventSignal = Events.SubscribeOnce(
             ConfigurationEvents.ConfiguredConfigurationBuilder,
             OnAfterConfiguredConfigurationBuilder);
@@ -242,50 +214,87 @@ public class GitPlugin : Plugin, IGitPlugin
             .AddOptions<RepositoryOptions>()
                 .Configure(options => options.GitCommandFactory = new GitCommandProvider(GitCommand)));
 
-        Events.SubscribeOnce(
-            ConfigurationEvents.CreatedConfiguration,
-            configuration => _configuration = configuration);
+        Observable.CombineLatest(
+                Events.GetEvent(ConfigurationEvents.CreatedConfiguration).Take(1),
+                Events.GetEvent(NextVersionEvents.ConfiguredGlobalServices),
+                (configuration, services) => (configuration, services))
+            .Subscribe(result => {
+                var (configuration, services) = result;
+                Events.Publish(GitEvents.ConfiguringGlobalServices, services);
 
-        Events.SubscribeOnce(NextVersionEvents.ConfiguredGlobalServices, OnConfigureGlobalServices);
+                if (HavingAlternativeRepository()) {
+                    services.TryAddSingleton(_alternativeRepository);
+                }
 
-        Events.Subscribe(NextVersionEvents.ConfiguredCalculationServices, services => {
-            Events.Publish(GitEvents.ConfiguringCalculationServices, services);
-
-            services.ConfigureVernuntii(features => features
-                .ConfigureGit(git => git
-                    .UseLatestCommitVersion()
-                    .UseActiveBranchCaseDefaults()
-                    .UseCommitMessagesProvider()));
-
-            if (!_sharedOptions.ShouldOverrideVersioningMode) {
-                services.ConfigureVernuntii(vernuntii => vernuntii
-                    .ConfigureGit(git => git
-                        .UseActiveBranchCaseVersioningMode()));
-            }
-
-            if (_overridePostPreRelease != null) {
                 services.ConfigureVernuntii(features => features
                     .ConfigureGit(features => features
-                        .ConfigurePreRelease(configurer => configurer
-                            .SetPostPreRelease(_overridePostPreRelease))));
-            }
+                        .AddRepository(options => {
+                            options.GitWorkingTreeDirectory = WorkingTreeDirectory;
+                            options.GitDirectoryResolver = GitDirectoryPassthrough.Instance;
+                        })
+                        .UseConfigurationDefaults(configuration)));
 
-            Events.Publish(GitEvents.ConfiguredCalculationServices, services);
-        });
+                Events.Publish(GitEvents.ConfiguredGlobalServices, services);
+            });
 
-        IRepository repository = null!;
+        var firstCommandLineParseResult = Events.GetEvent(CommandLineEvents.ParsedCommandLineArgs);
 
-        Events.Subscribe(
-                NextVersionEvents.CreatedCalculationServiceProvider,
-                sp => repository = sp.GetRequiredService<IRepository>());
+        Observable.CombineLatest(
+                firstCommandLineParseResult.Select(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)),
+                Events.GetEvent(NextVersionEvents.ConfiguredCalculationServices),
+                (overridePostPreRelease, services) => (overridePostPreRelease, services))
+            .Subscribe(result => {
+                var (overridePostPreRelease, services) = result;
+                Events.Publish(GitEvents.ConfiguringCalculationServices, services);
 
-        Events.Subscribe(
-            NextVersionEvents.CalculatedNextVersion, versionCache => {
-                if (_duplicateVersionFails && repository.HasCommitVersion(versionCache.Version)) {
+                services.ConfigureVernuntii(features => features
+                    .ConfigureGit(git => git
+                        .UseLatestCommitVersion()
+                        .UseActiveBranchCaseDefaults()
+                        .UseCommitMessagesProvider()));
+
+                if (!_sharedOptions.ShouldOverrideVersioningMode) {
+                    services.ConfigureVernuntii(vernuntii => vernuntii
+                        .ConfigureGit(git => git
+                            .UseActiveBranchCaseVersioningMode()));
+                }
+
+                if (overridePostPreRelease != null) {
+                    services.ConfigureVernuntii(features => features
+                        .ConfigureGit(features => features
+                            .ConfigurePreRelease(configurer => configurer
+                                .SetPostPreRelease(overridePostPreRelease))));
+                }
+
+                Events.Publish(GitEvents.ConfiguredCalculationServices, services);
+            });
+
+        var eachRepository = Events.GetEvent(NextVersionEvents.CreatedCalculationServiceProvider).Select(sp => sp.GetRequiredService<IRepository>());
+
+        // Sets the exit code to indicate version duplicate in case of version duplicate
+        Observable.CombineLatest(
+                firstCommandLineParseResult.Select(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)),
+                Observable.Zip(
+                    eachRepository,
+                    Events.GetEvent(NextVersionEvents.CalculatedNextVersion),
+                    (repository, versionCache) => (repository, versionCache)),
+                (duplicateVersionFails, zipResult) => (duplicateVersionFails, zipResult))
+            .Subscribe(result => {
+                var (duplicateVersionFails, (repository, versionCache)) = result;
+
+                if (duplicateVersionFails && repository.HasCommitVersion(versionCache.Version)) {
                     _nextVersionPlugin.ExitCodeOnSuccess = (int)ExitCode.VersionDuplicate;
                 }
             });
 
-        Events.Subscribe(LifecycleEvents.BeforeNextRun, () => repository?.UnsetCache());
+        // Reset repository cache *before* the next run starts
+        Observable.Zip(
+                eachRepository,
+                Events.GetEvent(LifecycleEvents.BeforeNextRun),
+                (repository, _) => (repository, _))
+            .Subscribe(result => {
+                var (repository, _) = result;
+                repository.UnsetCache();
+            });
     }
 }

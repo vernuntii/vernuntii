@@ -1,9 +1,9 @@
 ﻿namespace Vernuntii.PluginSystem.Events
 {
     /// <summary>
-    /// Represents a subscription that can be signaled once.
+    /// Represents an event subscription that can be revoked by disposing it.
     /// </summary>
-    public interface IOneSignalSubscription : IOneSignal, IDisposable
+    public interface IEventSubscription : ISignalCounter, IDisposable
     {
         /// <summary>
         /// <see langword="true"/> if subscription has been disposed.

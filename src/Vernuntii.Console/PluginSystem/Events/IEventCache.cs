@@ -10,7 +10,7 @@
         /// </summary>
         /// <typeparam name="TEvent"></typeparam>
         /// <returns>Either existing or new event.</returns>
-        TEvent GetEvent<TEvent>(TEvent eventTemplate)
+        TEvent GetEvent<TEvent>(TEvent uniqueEvent)
             where TEvent : IEventFactory;
     }
 }
