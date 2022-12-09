@@ -7,16 +7,17 @@ namespace Vernuntii.SemVer.Parser.Parsers
 {
     internal class IdentifierParser
     {
-        public delegate bool TryParseNonEmptyIdentifier<T>(string dottedIdentifier, [NotNullWhen(true)] out T? result);
+        public delegate bool TryParseNonEmptyIdentifier<T>(SemanticVersionPart versionPart, string dottedIdentifier, [NotNullWhen(true)] out T? result);
         public delegate IReadOnlyList<SemanticVersionFault> SearchFaultsDelegate(ReadOnlyMemory<char> spar);
 
         public static readonly IdentifierParser Strict = new(SemanticVersionNormalizer.NoAction);
         public static readonly IdentifierParser Erase = new(SemanticVersionNormalizer.Erase);
 
         public static IdentifierParseResult<T> TryParseIdentifier<T>(
+            SemanticVersionPart versionPart,
             string? identifier,
             TryParseNonEmptyIdentifier<T> tryParse,
-            bool allowNull = false)
+            bool allowNull)
         {
             if (identifier == null) {
                 if (allowNull) {
@@ -28,7 +29,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
                 return IdentifierParseResult<T>.InvalidEmpty;
             } else if (string.IsNullOrWhiteSpace(identifier)) {
                 return IdentifierParseResult<T>.InvalidWhiteSpace;
-            } else if (!tryParse(identifier, out var preReleaseIdentifiers)) {
+            } else if (!tryParse(versionPart, identifier, out var preReleaseIdentifiers)) {
                 return IdentifierParseResult.InvalidParse(preReleaseIdentifiers);
             } else {
                 return IdentifierParseResult.ValidParse(preReleaseIdentifiers);
@@ -37,8 +38,8 @@ namespace Vernuntii.SemVer.Parser.Parsers
 
         private static bool IsContainedInAlphanumericIdentifierCharset(char character) =>
             character == Hyphen
-            || (character >= A && character <= Z)
-            || (character >= a && character <= z)
+            || (character >= UpperA && character <= UpperZ)
+            || (character >= LowerA && character <= LowerZ)
             || char.IsDigit(character);
 
         public static IReadOnlyList<SemanticVersionFault> SearchFaults(
@@ -122,13 +123,13 @@ namespace Vernuntii.SemVer.Parser.Parsers
 
         public IdentifierParser(ISemanticVersionNormalizer normalizer) => Normalizer = normalizer;
 
-        public bool TryResolveFaults(ReadOnlyMemory<char> valueMemory, SearchFaultsDelegate searchFaults, out ReadOnlyMemory<char> result)
+        public bool TryResolveFaults(SemanticVersionPart versionPart, ReadOnlyMemory<char> valueMemory, SearchFaultsDelegate searchFaults, out ReadOnlyMemory<char> result)
         {
             recheck:
             var faults = searchFaults(valueMemory);
 
             if (faults.Count != 0) {
-                var normalizedMemory = Normalizer.NormalizeFaults(valueMemory, faults);
+                var normalizedMemory = Normalizer.NormalizeFaults(versionPart, valueMemory, faults);
 
                 if (valueMemory.Span.Equals(normalizedMemory.Span, StringComparison.Ordinal)) {
                     goto exit;
@@ -147,6 +148,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
         }
 
         public bool TryParseDottedIdentifier(
+            SemanticVersionPart versionPart,
             string dottedIdentifier,
             [NotNullWhen(true)] out IEnumerable<string>? dotSplittedIdentifiers,
             bool lookupSingleZero = false)
@@ -159,6 +161,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
                 var unresolvedMemory = dotSplittedIdentifierArray[i].AsMemory();
 
                 var success = TryResolveFaults(
+                    versionPart,
                     unresolvedMemory,
                     value => SearchFaults(
                         value.Span,

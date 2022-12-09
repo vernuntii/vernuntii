@@ -3,16 +3,16 @@
 namespace Vernuntii.SemVer.Parser
 {
     /// <summary>
-    /// Extension methods for <see cref="INotNullableIdentifierParseResult{T}"/>.
+    /// Extension methods for <see cref="IRequiredIdentifierParseResult{T}"/>.
     /// </summary>
-    public static class NotNullableIdentifierParseResultExtensions
+    public static class RequiredIdentifierParseResultExtensions
     {
         /// <summary>
         /// Checks if state has any successful state.
         /// </summary>
         /// <param name="parseResult"></param>
         /// <param name="value"></param>
-        public static bool DeconstructSuccess<T>(this INotNullableIdentifierParseResult<T> parseResult, [NotNullWhen(true)] out T? value)
+        public static bool DeconstructSuccess<T>(this IRequiredIdentifierParseResult<T> parseResult, [NotNullWhen(true)] out T? value)
         {
             value = parseResult.Value;
 
@@ -32,7 +32,7 @@ namespace Vernuntii.SemVer.Parser
         /// </summary>
         /// <param name="parseResult"></param>
         /// <param name="value"></param>
-        public static bool DeconstructFailure<T>(this INotNullableIdentifierParseResult<T> parseResult, [NotNullWhen(false)] out T? value)
+        public static bool DeconstructFailure<T>(this IRequiredIdentifierParseResult<T> parseResult, [NotNullWhen(false)] out T? value)
         {
             value = parseResult.Value;
 

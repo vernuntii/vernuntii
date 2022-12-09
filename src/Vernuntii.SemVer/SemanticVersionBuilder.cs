@@ -26,9 +26,9 @@ namespace Vernuntii.SemVer
             }
         }
 
-        internal static uint ParseVersionNumber(INumericIdentifierParser parser, uint versionNumber)
+        internal static uint ParseVersionNumber(INumericIdentifierParser parser, SemanticVersionPart versionPart, uint versionNumber)
         {
-            if (parser.TryParseNumericIdentifier(StringifyVersionNumber(versionNumber)).DeconstructFailure(out var wrappedVersionNumber)) {
+            if (parser.TryParseNumericIdentifier(versionPart, StringifyVersionNumber(versionNumber)).DeconstructFailure(out var wrappedVersionNumber)) {
                 throw new SemanticVersionBuilderException("Version number is not valid");
             }
 
@@ -36,10 +36,11 @@ namespace Vernuntii.SemVer
         }
 
         internal static IReadOnlyList<string> ParseDottedIdentifier(
+            SemanticVersionPart versionPart,
             IDottedIdentifierParser dottedIdentifierParser,
             string? newDottedIdentifier)
         {
-            if (dottedIdentifierParser.TryParseDottedIdentifier(newDottedIdentifier).DeconstructFailure(out var identifierEnumerable, SemanticVersion.EmptyIdentifiers)) {
+            if (dottedIdentifierParser.TryParseDottedIdentifier(versionPart, newDottedIdentifier).DeconstructFailure(out var identifierEnumerable, SemanticVersion.EmptyIdentifiers)) {
                 throw new SemanticVersionBuilderException("Dotted identifier is not valid");
             }
 
@@ -47,9 +48,10 @@ namespace Vernuntii.SemVer
         }
 
         internal static IReadOnlyList<string> ParseDotSplittedIdentifier(
+            SemanticVersionPart versionPart,
             IDottedIdentifierParser dottedIdentifierParser,
             IReadOnlyCollection<string>? newdotSplittedIdentifiers) =>
-            ParseDottedIdentifier(dottedIdentifierParser, CombineDotSplitted(newdotSplittedIdentifiers));
+            ParseDottedIdentifier(versionPart, dottedIdentifierParser, CombineDotSplitted(newdotSplittedIdentifiers));
 
         internal ISemanticVersion BaseVersion { get; }
 
@@ -151,22 +153,23 @@ namespace Vernuntii.SemVer
             return new SemanticVersion(
                 parser,
                 prefix,
-                SelectVersionNumber(_major, BaseVersion.Major),
-                SelectVersionNumber(_minor, BaseVersion.Minor),
-                SelectVersionNumber(_patch, BaseVersion.Patch),
-                SelectDottedIdentifiers(parser.PreReleaseParser, _withPreRelease, BaseVersion.PreReleaseIdentifiers, _preRelease, _preReleaseIdentifiers),
-                SelectDottedIdentifiers(parser.BuildParser, _withBuild, BaseVersion.BuildIdentifiers, _build, _buildIdentifiers));
+                SelectVersionNumber(SemanticVersionPart.Major, _major, BaseVersion.Major),
+                SelectVersionNumber(SemanticVersionPart.Minor, _minor, BaseVersion.Minor),
+                SelectVersionNumber(SemanticVersionPart.Patch, _patch, BaseVersion.Patch),
+                SelectDottedIdentifiers(SemanticVersionPart.PreRelease, parser.PreReleaseParser, _withPreRelease, BaseVersion.PreReleaseIdentifiers, _preRelease, _preReleaseIdentifiers),
+                SelectDottedIdentifiers(SemanticVersionPart.Build, parser.BuildParser, _withBuild, BaseVersion.BuildIdentifiers, _build, _buildIdentifiers));
 
-            uint SelectVersionNumber(uint? newVersionNumber, uint baseVersionNumber)
+            uint SelectVersionNumber(SemanticVersionPart versionPart, uint? newVersionNumber, uint baseVersionNumber)
             {
                 if (!newVersionNumber.HasValue) {
                     return baseVersionNumber;
                 }
 
-                return ParseVersionNumber(parser.VersionParser, newVersionNumber.Value);
+                return ParseVersionNumber(parser.VersionParser, versionPart, newVersionNumber.Value);
             }
 
             IReadOnlyList<string> SelectDottedIdentifiers(
+                SemanticVersionPart versionPart,
                 IDottedIdentifierParser dottedIdentifierParser,
                 bool useNewDottedIdentifier,
                 IReadOnlyList<string> baseDottedIdentifiers,
@@ -178,10 +181,10 @@ namespace Vernuntii.SemVer
                 }
 
                 if (newDottedIdentifier != null) {
-                    return ParseDottedIdentifier(dottedIdentifierParser, newDottedIdentifier);
+                    return ParseDottedIdentifier(versionPart, dottedIdentifierParser, newDottedIdentifier);
                 }
 
-                return ParseDotSplittedIdentifier(dottedIdentifierParser, newDotSplittedIdentifiers);
+                return ParseDotSplittedIdentifier(versionPart, dottedIdentifierParser, newDotSplittedIdentifiers);
             }
         }
 

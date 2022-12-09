@@ -48,6 +48,12 @@ namespace Vernuntii.HeightConventions.Transformation
         public string GetHeight() =>
             Identifiers[HeightIndex];
 
+        private SemanticVersionPart GetVersionPart() => Convention.Position switch {
+            HeightIdentifierPosition.PreRelease => SemanticVersionPart.PreRelease,
+            HeightIdentifierPosition.Build => SemanticVersionPart.Build,
+            _ => SemanticVersionPart.None
+        };
+
         /// <summary>
         /// Tries to parse height.
         /// </summary>
@@ -55,6 +61,6 @@ namespace Vernuntii.HeightConventions.Transformation
         /// <param name="height"></param>
         /// <returns>True if height is number.</returns>
         public bool TryParseHeight(INumericIdentifierParser versionNumberParser, out uint? height) =>
-            versionNumberParser.TryParseNumericIdentifier(GetHeight()).DeconstructSuccess(out height);
+            versionNumberParser.TryParseNumericIdentifier(GetVersionPart(), GetHeight()).DeconstructSuccess(out height);
     }
 }

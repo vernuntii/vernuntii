@@ -1,8 +1,13 @@
-﻿namespace Vernuntii.SemVer.Parser
+﻿using Vernuntii.SemVer.Parser.Normalization;
+
+namespace Vernuntii.SemVer.Parser
 {
     /// <summary>
     /// Represents a fault.
     /// </summary>
+    /// <remarks>
+    /// Required for <see cref="ISemanticVersionNormalizer.NormalizeFaults(ReadOnlyMemory{char}, IReadOnlyList{SemanticVersionFault})"/>.
+    /// </remarks>
     public readonly struct SemanticVersionFault
     {
         /// <summary>

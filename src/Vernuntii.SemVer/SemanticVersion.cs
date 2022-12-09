@@ -107,19 +107,19 @@ namespace Vernuntii.SemVer
         /// <inheritdoc/>
         public uint Major {
             get => _major;
-            init => _major = ParseVersionNumber(Parser.VersionParser, value);
+            init => _major = ParseVersionNumber(Parser.VersionParser, SemanticVersionPart.Major, value);
         }
 
         /// <inheritdoc/>
         public uint Minor {
             get => _minor;
-            init => _minor = ParseVersionNumber(Parser.VersionParser, value);
+            init => _minor = ParseVersionNumber(Parser.VersionParser, SemanticVersionPart.Minor, value);
         }
 
         /// <inheritdoc/>
         public uint Patch {
             get => _patch;
-            init => _patch = ParseVersionNumber(Parser.VersionParser, value);
+            init => _patch = ParseVersionNumber(Parser.VersionParser, SemanticVersionPart.Patch, value);
         }
 
         /// <inheritdoc/>
@@ -128,7 +128,7 @@ namespace Vernuntii.SemVer
 
             init {
                 _preRelease = null;
-                _preReleaseIdentifiers = ParseDotSplittedIdentifier(Parser.PreReleaseParser, value);
+                _preReleaseIdentifiers = ParseDotSplittedIdentifier(SemanticVersionPart.PreRelease, Parser.PreReleaseParser, value);
             }
         }
 
@@ -138,7 +138,7 @@ namespace Vernuntii.SemVer
 
             init {
                 _preRelease = null;
-                _preReleaseIdentifiers = ParseDottedIdentifier(Parser.PreReleaseParser, value);
+                _preReleaseIdentifiers = ParseDottedIdentifier(SemanticVersionPart.PreRelease, Parser.PreReleaseParser, value);
             }
         }
 
@@ -151,7 +151,7 @@ namespace Vernuntii.SemVer
 
             init {
                 _build = null;
-                _buildIdentifiers = ParseDotSplittedIdentifier(Parser.BuildParser, value);
+                _buildIdentifiers = ParseDotSplittedIdentifier(SemanticVersionPart.Build, Parser.BuildParser, value);
             }
         }
 
@@ -161,7 +161,7 @@ namespace Vernuntii.SemVer
 
             init {
                 _build = null;
-                _buildIdentifiers = ParseDottedIdentifier(Parser.BuildParser, value);
+                _buildIdentifiers = ParseDottedIdentifier(SemanticVersionPart.Build, Parser.BuildParser, value);
             }
         }
 

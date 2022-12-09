@@ -30,11 +30,11 @@ namespace Vernuntii.SemVer.Parser.Parsers
         public BuildIdentifierParser(ISemanticVersionNormalizer normalizer)
             : this(new IdentifierParser(normalizer)) { }
 
-        private bool TryParseNonEmptyBuild(string build, [NotNullWhen(true)] out IEnumerable<string>? result) =>
-            _identifierParser.TryParseDottedIdentifier(build, out result);
+        private bool TryParseNonEmptyBuild(SemanticVersionPart versionPart, string build, [NotNullWhen(true)] out IEnumerable<string>? result) =>
+            _identifierParser.TryParseDottedIdentifier(versionPart, build, out result);
 
         /// <inheritdoc/>
-        public INullableIdentifierParseResult<IEnumerable<string>> TryParseDottedIdentifier(string? dottedIdentifier) =>
-            TryParseIdentifier<IEnumerable<string>>(dottedIdentifier, TryParseNonEmptyBuild, allowNull: true);
+        public IOptionalIdentifierParseResult<IEnumerable<string>> TryParseDottedIdentifier(SemanticVersionPart versionPart, string? dottedIdentifier) =>
+            TryParseIdentifier<IEnumerable<string>>(versionPart, dottedIdentifier, TryParseNonEmptyBuild, allowNull: true);
     }
 }

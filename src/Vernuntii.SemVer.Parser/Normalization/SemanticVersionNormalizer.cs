@@ -13,6 +13,7 @@ namespace Vernuntii.SemVer.Parser.Normalization
         /// Removes partial or fully the content depending on expectation and range.
         /// </summary>
         public static readonly ISemanticVersionNormalizer Erase = new FixingSemanticVersionNormalizer(FixFaultByErasing);
+
         /// <summary>
         /// No normalization is happening, so output is equal to input.
         /// </summary>
@@ -39,7 +40,7 @@ namespace Vernuntii.SemVer.Parser.Normalization
                 _fixFault = fixFault;
 
             /// <inheritdoc/>
-            public ReadOnlyMemory<char> NormalizeFaults(ReadOnlyMemory<char> value, IReadOnlyList<SemanticVersionFault> faults)
+            public ReadOnlyMemory<char> NormalizeFaults(SemanticVersionPart versionPart, ReadOnlyMemory<char> value, IReadOnlyList<SemanticVersionFault> faults)
             {
                 var newLength = 0;
 
@@ -70,7 +71,7 @@ namespace Vernuntii.SemVer.Parser.Normalization
         {
             public bool TrimPreReleaseDots => false;
 
-            public ReadOnlyMemory<char> NormalizeFaults(ReadOnlyMemory<char> value, IReadOnlyList<SemanticVersionFault> faults) =>
+            public ReadOnlyMemory<char> NormalizeFaults(SemanticVersionPart versionPart, ReadOnlyMemory<char> value, IReadOnlyList<SemanticVersionFault> faults) =>
                 value;
         }
     }

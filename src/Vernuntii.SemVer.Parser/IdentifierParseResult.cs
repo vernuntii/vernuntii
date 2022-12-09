@@ -19,7 +19,7 @@
     /// <summary>
     /// Represents the parse result.
     /// </summary>
-    public sealed class IdentifierParseResult<T> : IIdentifierParseResult<T>, INullableIdentifierParseResult<T>, INotNullableIdentifierParseResult<T>
+    public sealed class IdentifierParseResult<T> : IIdentifierParseResult<T>, IOptionalIdentifierParseResult<T>, IRequiredIdentifierParseResult<T>
     {
         /// <summary>
         /// Parse result with invalid state <see cref="IdentifierParseResultState.Null"/>.

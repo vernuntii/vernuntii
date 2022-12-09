@@ -10,6 +10,6 @@
         /// </summary>
         /// <param name="numericIdentifier"></param>
         /// <returns>Valid parse result if successful.</returns>
-        INotNullableIdentifierParseResult<uint?> TryParseNumericIdentifier(string? numericIdentifier);
+        IRequiredIdentifierParseResult<uint?> TryParseNumericIdentifier(SemanticVersionPart versionPart, string? numericIdentifier);
     }
 }

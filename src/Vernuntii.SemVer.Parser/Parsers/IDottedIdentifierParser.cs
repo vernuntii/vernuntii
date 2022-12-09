@@ -10,6 +10,6 @@
         /// </summary>
         /// <param name="dottedIdentifier"></param>
         /// <returns>Valid parse result if successful.</returns>
-        INullableIdentifierParseResult<IEnumerable<string>> TryParseDottedIdentifier(string? dottedIdentifier);
+        IOptionalIdentifierParseResult<IEnumerable<string>> TryParseDottedIdentifier(SemanticVersionPart versionPart, string? dottedIdentifier);
     }
 }

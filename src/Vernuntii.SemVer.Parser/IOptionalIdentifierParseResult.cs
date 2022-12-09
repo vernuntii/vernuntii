@@ -4,7 +4,7 @@
     /// Represents the parse result.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface INullableIdentifierParseResult<T> : IIdentifierParseResult<T>
+    public interface IOptionalIdentifierParseResult<T> : IIdentifierParseResult<T>
     {
     }
 }

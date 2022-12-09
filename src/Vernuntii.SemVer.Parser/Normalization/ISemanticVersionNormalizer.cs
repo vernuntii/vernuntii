@@ -13,9 +13,10 @@
         /// <summary>
         /// Normalizes <paramref name="value"/>.
         /// </summary>
+        /// <param name="part">The affected part of the semantic version string.</param>
         /// <param name="value">The value in which <paramref name="faults"/> are found.</param>
         /// <param name="faults">List of non-overlapping faults within <paramref name="value"/>.</param>
         /// <returns>Normalized version of <paramref name="value"/>.</returns>
-        ReadOnlyMemory<char> NormalizeFaults(ReadOnlyMemory<char> value, IReadOnlyList<SemanticVersionFault> faults);
+        ReadOnlyMemory<char> NormalizeFaults(SemanticVersionPart versionPart, ReadOnlyMemory<char> value, IReadOnlyList<SemanticVersionFault> faults);
     }
 }

@@ -87,19 +87,19 @@ namespace Vernuntii.SemVer.Parser
                 goto major;
             }
 
-            if (VersionParser.TryParseNumericIdentifier(majorString).DeconstructFailure(out major)) {
+            if (VersionParser.TryParseNumericIdentifier(SemanticVersionPart.Major, majorString).DeconstructFailure(out major)) {
                 goto major;
             }
 
-            if (VersionParser.TryParseNumericIdentifier(minorString).DeconstructFailure(out minor)) {
+            if (VersionParser.TryParseNumericIdentifier(SemanticVersionPart.Minor, minorString).DeconstructFailure(out minor)) {
                 goto minor;
             }
 
-            if (VersionParser.TryParseNumericIdentifier(patchString).DeconstructFailure(out patch)) {
+            if (VersionParser.TryParseNumericIdentifier(SemanticVersionPart.Patch, patchString).DeconstructFailure(out patch)) {
                 goto patch;
             }
 
-            switch (PreReleaseParser.TryParseDottedIdentifier(preReleaseString).Deconstruct(out preReleaseIdentifiers)) {
+            switch (PreReleaseParser.TryParseDottedIdentifier(SemanticVersionPart.PreRelease, preReleaseString).Deconstruct(out preReleaseIdentifiers)) {
                 case IdentifierParseResultState.Null:
                 case IdentifierParseResultState.ValidParse:
                     break;
@@ -110,7 +110,7 @@ namespace Vernuntii.SemVer.Parser
                     goto build;
             }
 
-            switch (BuildParser.TryParseDottedIdentifier(buildString).Deconstruct(out buildIdentifiers)) {
+            switch (BuildParser.TryParseDottedIdentifier(SemanticVersionPart.Build, buildString).Deconstruct(out buildIdentifiers)) {
                 case IdentifierParseResultState.Null:
                 case IdentifierParseResultState.ValidParse:
                     break;

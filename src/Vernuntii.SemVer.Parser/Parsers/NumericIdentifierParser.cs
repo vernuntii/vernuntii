@@ -31,9 +31,10 @@ namespace Vernuntii.SemVer.Parser.Parsers
         public NumericIdentifierParser(ISemanticVersionNormalizer normalizer)
             : this(new IdentifierParser(normalizer)) { }
 
-        private bool TryParseNonEmptyNumericIdentifier(ReadOnlyMemory<char> numericIdentifierSpan, out uint versionNumber)
+        private bool TryParseNonEmptyNumericIdentifier(SemanticVersionPart versionPart, ReadOnlyMemory<char> numericIdentifierSpan, out uint versionNumber)
         {
             var success = _identifierParser.TryResolveFaults(
+                versionPart,
                 numericIdentifierSpan,
                 value => SearchFaults(
                     value.Span,
@@ -50,9 +51,9 @@ namespace Vernuntii.SemVer.Parser.Parsers
             return uint.TryParse(result.Span, NumberStyles.None, NumberFormatInfo.InvariantInfo, out versionNumber);
         }
 
-        private bool TryParseNonEmptyNumericIdentifier(string? numericIdentifierString, [NotNullWhen(true)] out uint? versionNumber)
+        private bool TryParseNonEmptyNumericIdentifier(SemanticVersionPart versionPart, string? numericIdentifierString, [NotNullWhen(true)] out uint? versionNumber)
         {
-            if (TryParseNonEmptyNumericIdentifier(numericIdentifierString.AsMemory(), out var result)) {
+            if (TryParseNonEmptyNumericIdentifier(versionPart, numericIdentifierString.AsMemory(), out var result)) {
                 versionNumber = result;
                 return true;
             }
@@ -62,7 +63,7 @@ namespace Vernuntii.SemVer.Parser.Parsers
         }
 
         /// <inheritdoc/>
-        public INotNullableIdentifierParseResult<uint?> TryParseNumericIdentifier(string? numericIdentifier) =>
-            TryParseIdentifier<uint?>(numericIdentifier, TryParseNonEmptyNumericIdentifier);
+        public IRequiredIdentifierParseResult<uint?> TryParseNumericIdentifier(SemanticVersionPart versionPart, string? numericIdentifier) =>
+            TryParseIdentifier<uint?>(versionPart, numericIdentifier, TryParseNonEmptyNumericIdentifier, allowNull: false);
     }
 }
