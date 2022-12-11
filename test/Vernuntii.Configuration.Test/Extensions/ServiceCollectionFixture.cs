@@ -34,19 +34,17 @@ namespace Vernuntii.Extensions
                 .TryAddSingleton(presetManager ?? DefaultPresetManager);
 
             if (gitConfiguration != null) {
-                services
-                    .ConfigureVernuntii(features => features
-                    .ConfigureGit(features => features
+                services.ScopeToVernuntii(features => features
+                    .ScopeToGit(features => features
                         .AddRepository()
                         .UseConfigurationDefaults(gitConfiguration)));
             }
 
             if (tryCreateVersioningPresetExtension) {
-                services
-                    .ConfigureVernuntii(features => features
-                        .ConfigureGit(features => features
-                            .ConfigureBranchCases(branchCases => branchCases
-                            .TryCreateVersioningPresetExtension())));
+                services.ScopeToVernuntii(features => features
+                    .ScopeToGit(features => features
+                        .ConfigureBranchCases(branchCases => branchCases
+                        .TryCreateVersioningPresetExtension())));
             }
 
             return services;

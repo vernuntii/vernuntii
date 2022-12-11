@@ -9,9 +9,9 @@ namespace Vernuntii.SemVer
     /// </summary>
     public record SemanticVersion : ISemanticVersion, ISemanticVersionParserProvider, IComparable<SemanticVersion>
     {
-        internal static readonly string[] EmptyIdentifiers = Array.Empty<string>();
+        internal static readonly string[] s_emptyIdentifiers = Array.Empty<string>();
 
-        private static string CombineDotSplitted(IReadOnlyList<string>? values) =>
+        internal static string CombineDotSplitted(IEnumerable<string>? values) =>
             values is null
             ? string.Empty
             : string.Join('.', values);
@@ -196,8 +196,8 @@ namespace Vernuntii.SemVer
         {
             Parser = SemanticVersionParser.Strict;
             _prefix = string.Empty;
-            _preReleaseIdentifiers = EmptyIdentifiers;
-            _buildIdentifiers = EmptyIdentifiers;
+            _preReleaseIdentifiers = s_emptyIdentifiers;
+            _buildIdentifiers = s_emptyIdentifiers;
         }
 
         /// <summary>
@@ -224,8 +224,8 @@ namespace Vernuntii.SemVer
         {
             Parser = parser ?? throw new ArgumentNullException(nameof(parser));
             _prefix = string.Empty;
-            _preReleaseIdentifiers = EmptyIdentifiers;
-            _buildIdentifiers = EmptyIdentifiers;
+            _preReleaseIdentifiers = s_emptyIdentifiers;
+            _buildIdentifiers = s_emptyIdentifiers;
         }
 
         /// <summary>
@@ -252,8 +252,8 @@ namespace Vernuntii.SemVer
             _major = major;
             _minor = minor;
             _patch = patch;
-            _preReleaseIdentifiers = preReleaseIdentifiers ?? EmptyIdentifiers;
-            _buildIdentifiers = buildIdentifiers ?? EmptyIdentifiers;
+            _preReleaseIdentifiers = preReleaseIdentifiers ?? s_emptyIdentifiers;
+            _buildIdentifiers = buildIdentifiers ?? s_emptyIdentifiers;
         }
 
         /// <summary>
@@ -293,12 +293,12 @@ namespace Vernuntii.SemVer
         public override string ToString() => this.Format(SemanticVersionFormat.SemanticVersion);
 
         /// <inheritdoc/>
-        public virtual bool Equals(SemanticVersion? other) =>
+        public virtual bool Equals([NotNullWhen(true)] ISemanticVersion? other) =>
             SemanticVersionComparer.VersionReleaseBuild.Equals(this, other);
 
         /// <inheritdoc/>
-        public virtual bool Equals(ISemanticVersion? other) =>
-            SemanticVersionComparer.VersionReleaseBuild.Equals(this, other);
+        public virtual bool Equals([NotNullWhen(true)] SemanticVersion? other) =>
+            Equals((ISemanticVersion?)other);
 
         /// <inheritdoc/>
         public override int GetHashCode() =>

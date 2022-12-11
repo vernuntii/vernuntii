@@ -1,4 +1,6 @@
-﻿using Vernuntii.SemVer;
+﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionTransformers
 {
@@ -7,37 +9,68 @@ namespace Vernuntii.VersionTransformers
     /// </summary>
     public class PreReleaseTransformer : IPreReleaseTransformer
     {
+        internal static bool IsPreRelease([NotNullWhen(true)] string? preRelease) =>
+            !string.IsNullOrWhiteSpace(preRelease);
+
+        private static int CountDots(ReadOnlySpan<char> identifier)
+        {
+            var enumerator = identifier.GetEnumerator();
+            var dots = 0;
+
+            while (enumerator.MoveNext()) {
+                if (enumerator.Current == '.') {
+                    dots++;
+                }
+            }
+
+            return dots;
+        }
+
+        /// <summary>
+        /// A transformer that removes the pre-release.
+        /// </summary>
+        public static readonly PreReleaseTransformer Release = new PreReleaseTransformer(preRelease: null);
+
         /// <inheritdoc/>
         public string? ProspectivePreRelease { get; }
 
+        /// <inheritdoc/>
+        [MemberNotNullWhen(true, nameof(ProspectivePreRelease))]
+        public bool IsTransformationResultingIntoPreRelease { get; }
+
         bool IVersionTransformer.DoesNotTransform => false;
+
+        /// <inheritdoc/>
+        public int ProspectivePreReleaseDots { get; }
 
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="preRelease"></param>
-        public PreReleaseTransformer(string? preRelease) =>
-            ProspectivePreRelease = preRelease;
+        public PreReleaseTransformer(string? preRelease)
+        {
+            IsTransformationResultingIntoPreRelease = IsPreRelease(preRelease);
+            ProspectivePreRelease = IsTransformationResultingIntoPreRelease ? preRelease : null;
+            ProspectivePreReleaseDots = IsTransformationResultingIntoPreRelease ? CountDots(ProspectivePreRelease) : 0;
+        }
 
         /// <inheritdoc/>
         public ISemanticVersion TransformVersion(ISemanticVersion version)
         {
-            if (string.IsNullOrEmpty(ProspectivePreRelease)) {
+            if (!IsTransformationResultingIntoPreRelease) {
                 return version.With().PreRelease(default(string)).ToVersion();
             }
 
-            var currentIdentifiers = version.PreReleaseIdentifiers.ToArray();
-            var prospectiveIdentifiers = ProspectivePreRelease.Split('.').ToArray();
+            /* We want to preserve last pre-release positions who are not affected by replacement */
 
-            if (prospectiveIdentifiers.Length >= currentIdentifiers.Length) {
-                return version.With().PreRelease(prospectiveIdentifiers).ToVersion();
+            if (ProspectivePreReleaseDots + 1 >= version.PreReleaseIdentifiers.Count) {
+                return version.With().PreRelease(ProspectivePreRelease).ToVersion();
             }
 
-            for (var i = 0; i < prospectiveIdentifiers.Length; i++) {
-                currentIdentifiers[i] = prospectiveIdentifiers[i];
-            }
-
-            return version.With().PreRelease(currentIdentifiers).ToVersion();
+            var newIdentifiers = version.PreReleaseIdentifiers.ToArray();
+            var replacingIdentifiers = ProspectivePreRelease.Split('.').ToArray();
+            replacingIdentifiers.CopyTo(newIdentifiers.AsSpan());
+            return version.With().PreRelease(newIdentifiers).ToVersion();
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Vernuntii.VersionIncrementing
         public IEnumerable<IVersionTransformer> BuildIncrement(IMessage message, VersionIncrementContext context)
         {
             var messageContent = message.Content;
-            var versioningPreset = context.VersionCalculationOptions.VersioningPreset;
+            var versioningPreset = context.VersioningPreset;
             var messageConvention = versioningPreset.MessageConvention;
 
             var isMessageIncrementingMajor = messageConvention.IsMessageIndicatingMajor(messageContent);
@@ -40,13 +40,32 @@ namespace Vernuntii.VersionIncrementing
 
             var heightConvention = versioningPreset.HeightConvention;
             var incrementMode = versioningPreset.IncrementMode;
-            var isPostVersionPreRelease = context.VersionCalculationOptions.IsPostVersionPreRelease;
-            var startVersionCoreAlreadyReleased = context.VersionCalculationOptions.StartVersionCoreAlreadyReleased;
+            var isPostVersionPreRelease = context.IsPostVersionPreRelease;
+            var startVersionCoreAlreadyReleased = context.IsStartVersionCoreAlreadyReleased;
             var isHeightConventionApplicable = heightConvention is not null && heightConvention.Position != HeightIdentifierPosition.None;
             var allowUnlimitedIncrements = incrementMode == VersionIncrementMode.Successive;
+            var skipVersionCoreIncrementationDueToPreReleaseAdaption = false;
 
-            if (incrementMode != VersionIncrementMode.None) {
-                var allowIncrementBecauseReleaseOrDisabledHeight = !isPostVersionPreRelease || !isHeightConventionApplicable;
+            if (context.IsStartVersionPreReleaseAlternating) {
+                yield return context.PostVersionPreReleaseTransformer;
+
+                if (!startVersionCoreAlreadyReleased && context.StartVersion.IsPreRelease) {
+                    if (isMessageIncrementingMajor && context.IsRightSideOfMajorOfCurrentVersionCoreZeroed) {
+                        skipVersionCoreIncrementationDueToPreReleaseAdaption = true;
+                    }
+
+                    if (isMessageIncrementingMinor && context.IsRightSideOfMinorOfCurrentVersionCoreZeroed) {
+                        skipVersionCoreIncrementationDueToPreReleaseAdaption = true;
+                    }
+
+                    if (isMessageIncrementingPatch) {
+                        skipVersionCoreIncrementationDueToPreReleaseAdaption = true;
+                    }
+                } // else: the version core has been already released, so we cannot use it again
+            }
+
+            if (incrementMode != VersionIncrementMode.None && !skipVersionCoreIncrementationDueToPreReleaseAdaption) {
+                var allowVersionCoreIncrementationBecauseReleaseOrDisabledHeight = !isPostVersionPreRelease || !isHeightConventionApplicable;
 
                 if (CanIncrementVersion(
                     isMessageIncrementingVersion: isMessageIncrementingMajor,
@@ -67,12 +86,13 @@ namespace Vernuntii.VersionIncrementing
                     bool isMessageIncrementingVersion,
                     bool doesCurrentVersionContainsIncrement)
                 {
+                    // Only if the message indicates an incrementation and ..
                     return isMessageIncrementingVersion
-                        // and if version core is reserved we want to increment at least once
-                        && (startVersionCoreAlreadyReleased && !doesCurrentVersionContainsIncrement
-                            // or 
-                            || allowIncrementBecauseReleaseOrDisabledHeight
-                                && (allowUnlimitedIncrements || !doesCurrentVersionContainsIncrement));
+                        // .. if version core is reserved we want to increment at least once, ..
+                        && ((startVersionCoreAlreadyReleased && !doesCurrentVersionContainsIncrement)
+                            // .. or if incrementing the version core is allowed by convention
+                            || (allowVersionCoreIncrementationBecauseReleaseOrDisabledHeight
+                                && (allowUnlimitedIncrements || !doesCurrentVersionContainsIncrement)));
                 }
             }
 

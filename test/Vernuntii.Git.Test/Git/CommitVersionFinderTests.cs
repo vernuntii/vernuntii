@@ -1,4 +1,5 @@
-﻿using Vernuntii.SemVer;
+﻿using Vernuntii.Extensions;
+using Vernuntii.SemVer;
 using Xunit;
 
 namespace Vernuntii.Git
@@ -20,8 +21,8 @@ namespace Vernuntii.Git
             repository.TagLightweight(firstTag);
             repository.TagLightweight(secondTag);
 
-            var version = new CommitVersionFinder(new CommitVersionFinderOptions(), repository, repository, DefaultCommitVersionFinderLogger)
-                .FindCommitVersion(new CommitVersionFindingOptions());
+            var version = new LatestCommitVersionFinder(new CommitVersionFinderOptions(), repository, repository, DefaultCommitVersionFinderLogger)
+                .FindCommitVersion(new FoundCommitVersionOptions());
 
             Assert.NotNull(version);
             Assert.Equal(SemanticVersion.OneMinor, version!, SemanticVersionComparer.VersionReleaseBuild);

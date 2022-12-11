@@ -6,9 +6,9 @@
     public class CommitTag : ICommitTag, IEquatable<CommitTag>
     {
         /// <inheritdoc/>
-        public string CommitSha { get; }
+        public string CommitSha { get; init; }
         /// <inheritdoc/>
-        public string TagName { get; }
+        public string TagName { get; init; }
 
         /// <summary>
         /// Creates an instance of <see cref="CommitTag"/>.

@@ -1,26 +1,26 @@
 ﻿namespace Vernuntii.Extensions
 {
     /// <summary>
-    /// Extension methods for <see cref="IGitFeatures"/>.
+    /// Extension methods for <see cref="IGitServicesScope"/>.
     /// </summary>
     public static class GitFeaturesServicesExtensions
     {
         /// <summary>
-        /// Configures an instance of <see cref="IGitFeatures"/>.
+        /// Configures an instance of <see cref="IGitServicesScope"/>.
         /// </summary>
         /// <param name="features"></param>
-        /// <param name="configureFeatures"></param>
+        /// <param name="configure"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public static IVernuntiiFeatures ConfigureGit(this IVernuntiiFeatures features, Action<IGitFeatures> configureFeatures)
+        public static IVernuntiiServicesScope ScopeToGit(this IVernuntiiServicesScope features, Action<IGitServicesScope> configure)
         {
             var services = features.Services;
 
-            if (configureFeatures is null) {
-                throw new ArgumentNullException(nameof(configureFeatures));
+            if (configure is null) {
+                throw new ArgumentNullException(nameof(configure));
             }
 
-            var options = new GitFeatures(services);
-            configureFeatures(options);
+            var options = new GitServicesScope(services);
+            configure(options);
             return features;
         }
     }

@@ -46,7 +46,7 @@ namespace Vernuntii.VersioningPresets
 
             VersionIncrementBuilder builder = new();
 
-            VersionIncrementContext context = new(new SingleVersionCalculationOptions() {
+            VersionIncrementContext context = new(new VersionIncrementationOptions() {
                 StartVersion = startVersion,
                 VersioningPreset = preset
             });

@@ -19,7 +19,7 @@ namespace Vernuntii.MessageConventions.MessageIndicators
         {
             var indicatorObject = indicatorConfiguration.Get<IndicatorObject>();
 
-            if (indicatorObject.Pattern == null) {
+            if (indicatorObject?.Pattern == null) {
                 throw new ConfigurationValidationException($"Regular expression pattern cannot be null (Message indicator = {indicatorName})");
             }
 

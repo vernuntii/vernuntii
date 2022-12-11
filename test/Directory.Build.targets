@@ -1,21 +1,33 @@
 <Project>
 
-	<ItemGroup Condition="$(MSBuildProjectName.EndsWith('.Test')) OR '$(IsTestProject)' == 'true'">
-		<PackageReference Include="Microsoft.NET.Test.Sdk" />
-		<PackageReference Include="Moq" />
+  <PropertyGroup>
+    <IsTestProject Condition="$(MSBuildProjectName.EndsWith('.Test')) OR '$(IsTestProject)' == 'true'">true</IsTestProject>
+    <UseTestConvention Condition="'$(IsTestProject)' == 'true' OR '$(UseTestConvention)' == 'true'">true</UseTestConvention>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(UseTestConvention)' == 'true'">
+    <PackageReference Include="Kenet.CSharp.Conventions.Test">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
     <PackageReference Include="Xunit.Priority" />
-		<PackageReference Include="xunit" />
-		<PackageReference Include="xunit.runner.visualstudio">
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-		<PackageReference Include="coverlet.collector">
+    <PackageReference Include="coverlet.collector">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" />
-	</ItemGroup>
+  </ItemGroup>
 
   <Import Project="../Directory.Build.targets" />
-	
+
 </Project>

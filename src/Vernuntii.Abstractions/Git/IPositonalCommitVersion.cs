@@ -3,7 +3,7 @@
     /// <summary>
     /// A commit version relative to a start.
     /// </summary>
-    public interface IPositonalCommitVersion : ICommitVersion
+    public interface IPositonalCommitVersion : ICommitVersion, IEquatable<IPositonalCommitVersion>
     {
         /// <summary>
         /// The gap at what the commit version has been found.

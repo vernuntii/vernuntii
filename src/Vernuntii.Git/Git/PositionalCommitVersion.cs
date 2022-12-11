@@ -1,4 +1,5 @@
-﻿using Vernuntii.SemVer;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.Git
 {
@@ -21,9 +22,29 @@ namespace Vernuntii.Git
             CommitGap = commitGap;
 
         /// <inheritdoc/>
-        public PositionalCommitVersion(ISemanticVersion version, string commitSha, int commitGap)
-            : base(version, commitSha) =>
+        public PositionalCommitVersion(string commitSha, int commitGap, ISemanticVersion version)
+            : base(commitSha, version) =>
             CommitGap = commitGap;
+
+        /// <inheritdoc/>
+        public virtual bool Equals([NotNullWhen(true)] IPositonalCommitVersion? other) =>
+            base.Equals(other)
+            && CommitGap == other.CommitGap;
+
+        /// <inheritdoc/>
+        public sealed override bool Equals([NotNullWhen(true)] ICommitVersion? other) =>
+            other is ICommitVersion otherCommitVersion
+            ? Equals(otherCommitVersion)
+            : base.Equals(other);
+
+        /// <inheritdoc/>
+        public virtual bool Equals([NotNullWhen(true)] PositionalCommitVersion? other) =>
+            Equals((IPositonalCommitVersion?)other);
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => HashCode.Combine(
+            base.GetHashCode(),
+            CommitGap.GetHashCode());
 
         /// <inheritdoc/>
         public override string ToString() =>

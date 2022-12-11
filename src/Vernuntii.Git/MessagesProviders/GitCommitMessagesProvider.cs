@@ -18,18 +18,27 @@ public class GitCommitMessagesProvider : IMessagesProvider
                 : commit.Subject) + "\""
         });
 
-    private readonly ICommitsAccessor _commitReader;
+    private readonly ICommitsAccessor _commitsAccessor;
     private readonly GitCommitMessagesProviderOptions _options;
 
     /// <summary>
     /// Initializes an instance of <see cref="GitCommitMessagesProvider"/>.
     /// </summary>
-    /// <param name="commitReader"></param>
+    /// <param name="commitsAccessor"></param>
     /// <param name="options"></param>
-    public GitCommitMessagesProvider(ICommitsAccessor commitReader, GitCommitMessagesProviderOptions options)
+    public GitCommitMessagesProvider(ICommitsAccessor commitsAccessor, GitCommitMessagesProviderOptions options)
     {
-        _commitReader = commitReader;
+        _commitsAccessor = commitsAccessor;
         _options = options;
+    }
+
+    /// <summary>
+    /// Initializes an instance of <see cref="GitCommitMessagesProvider"/>.
+    /// </summary>
+    /// <param name="commitsAccessor"></param>
+    public GitCommitMessagesProvider(ICommitsAccessor commitsAccessor)
+        : this(commitsAccessor, new GitCommitMessagesProviderOptions())
+    {
     }
 
     /// <summary>
@@ -38,10 +47,10 @@ public class GitCommitMessagesProvider : IMessagesProvider
     public IEnumerable<IMessage> GetMessages()
     {
         // Query commits from back (oldest first) to forth (newest latest)
-        foreach (var commit in _commitReader.GetCommits(
+        foreach (var commit in _commitsAccessor.GetCommits(
             branchName: _options.BranchName,
             sinceCommit: _options.SinceCommit,
-            reverse: true)) {
+            fromOldToNew: true)) {
             yield return new Message() {
                 Content = commit.Subject,
                 DebugMessageFactory = CreateDebugMessage(commit)

@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Extensions.BranchCases
 {
-    internal class BranchCasesFeatures : IBranchCasesFeatures
+    internal class BranchCasesFeatures : IBranchCasesServicesScope
     {
         public IServiceCollection Services { get; }
 

@@ -3,7 +3,7 @@
 namespace Vernuntii.Extensions.BranchCases
 {
     /// <summary>
-    /// Extension methods for <see cref="IBranchCasesFeatures"/>.
+    /// Extension methods for <see cref="IBranchCasesServicesScope"/>.
     /// </summary>
     public static class BranchCasesFeaturesExtensions
     {
@@ -12,7 +12,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// </summary>
         /// <param name="features"></param>
         /// <param name="configureBranchCase"></param>
-        public static IBranchCasesFeatures ForEach(this IBranchCasesFeatures features, Action<IBranchCase> configureBranchCase)
+        public static IBranchCasesServicesScope ForEach(this IBranchCasesServicesScope features, Action<IBranchCase> configureBranchCase)
         {
             features.Services.AddOptions<BranchCasesOptions>()
                 .Configure(options => {
@@ -29,7 +29,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// </summary>
         /// <param name="features"></param>
         /// <param name="configureBranchCase"></param>
-        public static IBranchCasesFeatures ForEach<TDependency>(this IBranchCasesFeatures features, Action<IBranchCase, TDependency> configureBranchCase)
+        public static IBranchCasesServicesScope ForEach<TDependency>(this IBranchCasesServicesScope features, Action<IBranchCase, TDependency> configureBranchCase)
             where TDependency : class
         {
             features.Services.AddOptions<BranchCasesOptions>()
@@ -47,7 +47,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// </summary>
         /// <param name="features"></param>
         /// <param name="configureBranchCase"></param>
-        public static IBranchCasesFeatures ForEach<TDependency1, TDependency2>(this IBranchCasesFeatures features, Action<IBranchCase, TDependency1, TDependency2> configureBranchCase)
+        public static IBranchCasesServicesScope ForEach<TDependency1, TDependency2>(this IBranchCasesServicesScope features, Action<IBranchCase, TDependency1, TDependency2> configureBranchCase)
             where TDependency1 : class
             where TDependency2 : class
         {

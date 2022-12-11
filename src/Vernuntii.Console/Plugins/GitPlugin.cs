@@ -1,7 +1,6 @@
 ﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -226,8 +225,8 @@ public class GitPlugin : Plugin, IGitPlugin
                     services.TryAddSingleton(_alternativeRepository);
                 }
 
-                services.ConfigureVernuntii(features => features
-                    .ConfigureGit(features => features
+                services.ScopeToVernuntii(features => features
+                    .ScopeToGit(features => features
                         .AddRepository(options => {
                             options.GitWorkingTreeDirectory = WorkingTreeDirectory;
                             options.GitDirectoryResolver = GitDirectoryPassthrough.Instance;
@@ -247,22 +246,22 @@ public class GitPlugin : Plugin, IGitPlugin
                 var (overridePostPreRelease, services) = result;
                 Events.Publish(GitEvents.ConfiguringCalculationServices, services);
 
-                services.ConfigureVernuntii(features => features
-                    .ConfigureGit(git => git
+                services.ScopeToVernuntii(features => features
+                    .ScopeToGit(git => git
                         .UseLatestCommitVersion()
                         .UseActiveBranchCaseDefaults()
                         .UseCommitMessagesProvider()));
 
                 if (!_sharedOptions.ShouldOverrideVersioningMode) {
-                    services.ConfigureVernuntii(vernuntii => vernuntii
-                        .ConfigureGit(git => git
+                    services.ScopeToVernuntii(vernuntii => vernuntii
+                        .ScopeToGit(git => git
                             .UseActiveBranchCaseVersioningMode()));
                 }
 
                 if (overridePostPreRelease != null) {
-                    services.ConfigureVernuntii(features => features
-                        .ConfigureGit(features => features
-                            .ConfigurePreRelease(configurer => configurer
+                    services.ScopeToVernuntii(features => features
+                        .ScopeToGit(features => features
+                            .Configure(configurer => configurer
                                 .SetPostPreRelease(overridePostPreRelease))));
                 }
 

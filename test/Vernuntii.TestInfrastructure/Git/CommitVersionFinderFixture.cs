@@ -4,6 +4,6 @@ namespace Vernuntii.Git
 {
     public static class CommitVersionFinderFixture
     {
-        public static readonly ILogger<CommitVersionFinder> DefaultCommitVersionFinderLogger = LoggerFactory.CreateLogger<CommitVersionFinder>();
+        public static readonly ILogger<LatestCommitVersionFinder> DefaultCommitVersionFinderLogger = LoggerFactory.CreateLogger<LatestCommitVersionFinder>();
     }
 }

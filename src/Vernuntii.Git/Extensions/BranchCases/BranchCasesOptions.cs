@@ -41,7 +41,7 @@ namespace Vernuntii.Extensions.BranchCases
 
         internal class PostConfiguration : IPostConfigureOptions<BranchCasesOptions>
         {
-            void IPostConfigureOptions<BranchCasesOptions>.PostConfigure(string _, BranchCasesOptions options)
+            void IPostConfigureOptions<BranchCasesOptions>.PostConfigure(string? _, BranchCasesOptions options)
             {
                 if (options._branchCases.TryGetValue(DefaultBranchCaseKey, out var branchCase) && branchCase.PreReleaseEscapes == null) {
                     options._branchCases[DefaultBranchCaseKey] = new BranchCase(branchCase) with {

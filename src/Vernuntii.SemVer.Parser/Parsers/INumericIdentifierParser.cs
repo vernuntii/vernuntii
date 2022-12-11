@@ -8,6 +8,7 @@
         /// <summary>
         /// Tries to parse a numeric identifier.
         /// </summary>
+        /// <param name="versionPart"></param>
         /// <param name="numericIdentifier"></param>
         /// <returns>Valid parse result if successful.</returns>
         IRequiredIdentifierParseResult<uint?> TryParseNumericIdentifier(SemanticVersionPart versionPart, string? numericIdentifier);

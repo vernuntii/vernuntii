@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- <PropertyGroup>
-    <_IsTestProject Condition="$(MSBuildProjectName.EndsWith('.Test')) OR '$(IsTestProject)' == 'true'">true</_IsTestProject>
-  </PropertyGroup> -->
-
-  <!-- <ItemGroup>
-    <PackageReference Include="Kenet.CSharp.Conventions.Base" Condition="'$(_IsTestProject)' != 'true'">
+  <ItemGroup Condition="'$(UseTestConvention)' != 'true'">
+    <PackageReference Include="Kenet.CSharp.Conventions.Base">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Kenet.CSharp.Conventions.Test" Condition="'$(_IsTestProject)' == 'true'">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup> -->
+  </ItemGroup>
 
   <PropertyGroup>
 		<AllowPackageReferenceWithVersion>true</AllowPackageReferenceWithVersion>

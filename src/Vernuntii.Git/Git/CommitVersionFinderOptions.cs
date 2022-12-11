@@ -1,7 +1,7 @@
 ﻿namespace Vernuntii.Git
 {
     /// <summary>
-    /// The options for <see cref="CommitVersionFinder"/>
+    /// The options for <see cref="LatestCommitVersionFinder"/>
     /// </summary>
     public sealed class CommitVersionFinderOptions
     {

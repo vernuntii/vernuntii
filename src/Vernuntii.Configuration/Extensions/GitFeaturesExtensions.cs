@@ -4,7 +4,7 @@ using Vernuntii.Extensions.BranchCases;
 namespace Vernuntii.Extensions
 {
     /// <summary>
-    /// Extension methods for <see cref="IGitFeatures"/>
+    /// Extension methods for <see cref="IGitServicesScope"/>
     /// </summary>
     public static class GitFeaturesExtensions
     {
@@ -17,8 +17,8 @@ namespace Vernuntii.Extensions
         /// <param name="features"></param>
         /// <param name="configuration"></param>
         /// <param name="configureBranchCase"></param>
-        public static IGitFeatures UseConfigurationDefaults(
-            this IGitFeatures features,
+        public static IGitServicesScope UseConfigurationDefaults(
+            this IGitServicesScope features,
             IConfiguration configuration,
             Action<IBranchCase>? configureBranchCase = null) => features
                 .AddBranchCases(configuration, configuration.GetSection(BranchesSectionKey).GetChildren(), configureBranchCase);

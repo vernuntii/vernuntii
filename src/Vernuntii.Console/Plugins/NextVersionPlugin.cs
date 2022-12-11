@@ -89,14 +89,14 @@ namespace Vernuntii.Plugins
             var calculationServiceProvider = _globalServiceProvider.CreateScope(services => {
                 Events.Publish(NextVersionEvents.CreatedCalculationServices, services);
 
-                services.ConfigureVernuntii(features => features
-                    .AddSingleVersionCalculator()
-                    .AddSingleVersionCalculation(features => features
+                services.ScopeToVernuntii(features => features
+                    .AddVersionIncrementer()
+                    .AddVersionIncrementation(features => features
                         .TryOverrideStartVersion(_configuration)));
 
                 if (_sharedOptions.ShouldOverrideVersioningMode) {
-                    services.ConfigureVernuntii(features => features
-                        .AddSingleVersionCalculation(features => features
+                    services.ScopeToVernuntii(features => features
+                        .AddVersionIncrementation(features => features
                             .UseVersioningMode(_sharedOptions.OverrideVersioningMode)));
                 }
 
@@ -116,10 +116,10 @@ namespace Vernuntii.Plugins
             } else {
                 using var calculationServiceProvider = CreateCalculationServiceProvider();
                 var repository = calculationServiceProvider.GetRequiredService<IRepository>();
-                var versionCalculation = calculationServiceProvider.GetRequiredService<ISingleVersionCalculation>();
+                var versionCalculation = calculationServiceProvider.GetRequiredService<IVersionIncrementation>();
                 var versionCacheManager = calculationServiceProvider.GetRequiredService<IVersionCacheManager>();
 
-                var newVersion = versionCalculation.GetVersion();
+                var newVersion = versionCalculation.GetIncrementedVersion();
                 var newBranch = repository.GetActiveBranch();
 
                 // get cache or calculate version.

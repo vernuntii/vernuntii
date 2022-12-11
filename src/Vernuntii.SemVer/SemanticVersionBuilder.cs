@@ -40,7 +40,7 @@ namespace Vernuntii.SemVer
             IDottedIdentifierParser dottedIdentifierParser,
             string? newDottedIdentifier)
         {
-            if (dottedIdentifierParser.TryParseDottedIdentifier(versionPart, newDottedIdentifier).DeconstructFailure(out var identifierEnumerable, SemanticVersion.EmptyIdentifiers)) {
+            if (dottedIdentifierParser.TryParseDottedIdentifier(versionPart, newDottedIdentifier).DeconstructFailure(out var identifierEnumerable, SemanticVersion.s_emptyIdentifiers)) {
                 throw new SemanticVersionBuilderException("Dotted identifier is not valid");
             }
 
@@ -50,8 +50,8 @@ namespace Vernuntii.SemVer
         internal static IReadOnlyList<string> ParseDotSplittedIdentifier(
             SemanticVersionPart versionPart,
             IDottedIdentifierParser dottedIdentifierParser,
-            IReadOnlyCollection<string>? newdotSplittedIdentifiers) =>
-            ParseDottedIdentifier(versionPart, dottedIdentifierParser, CombineDotSplitted(newdotSplittedIdentifiers));
+            IReadOnlyCollection<string>? newDotSplittedIdentifiers) =>
+            ParseDottedIdentifier(versionPart, dottedIdentifierParser, CombineDotSplitted(newDotSplittedIdentifiers));
 
         internal ISemanticVersion BaseVersion { get; }
 
@@ -103,7 +103,9 @@ namespace Vernuntii.SemVer
             return this;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Sets the "pre-release"-part of the version.
+        /// </summary>
         public SemanticVersionBuilder PreRelease(string? preRelease)
         {
             _preRelease = preRelease == string.Empty ? null : preRelease;
@@ -122,6 +124,19 @@ namespace Vernuntii.SemVer
         }
 
         /// <inheritdoc/>
+        public SemanticVersionBuilder PreRelease(params string[] preReleaseIdentifiers) =>
+            PreRelease((IReadOnlyCollection<string>)preReleaseIdentifiers);
+
+        /// <summary>
+        /// Unsets the "pre-release"-part of the version.
+        /// </summary>
+        public SemanticVersionBuilder WithoutPreRelease() =>
+            PreRelease(default(string));
+
+        /// <summary>
+        /// Sets the "build"-part of the version.
+        /// </summary>
+        /// <param name="build"></param>
         public SemanticVersionBuilder Build(string? build)
         {
             _build = build == string.Empty ? null : build;
@@ -138,6 +153,22 @@ namespace Vernuntii.SemVer
             _withBuild = true;
             return this;
         }
+
+        /// <inheritdoc/>
+        public SemanticVersionBuilder Build(params string[] buildIdentifiers) =>
+            PreRelease((IReadOnlyCollection<string>)buildIdentifiers);
+
+        /// <summary>
+        /// Unsets the "build"-part of the version.
+        /// </summary>
+        public SemanticVersionBuilder WithoutBuild() =>
+            Build(default(string));
+
+        /// <summary>
+        /// Unsets the "pre-release"-part and the "build"-part of the version. 
+        /// </summary>
+        public SemanticVersionBuilder WithOnlyCore() =>
+            WithoutPreRelease().WithoutBuild();
 
         private SemanticVersion BuildByParsing(ISemanticVersionParser parser)
         {

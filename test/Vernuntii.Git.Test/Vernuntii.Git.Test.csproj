@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Vernuntii.Console\Vernuntii.Console.csproj" />
     <ProjectReference Include="..\..\src\Vernuntii.Git\Vernuntii.Git.csproj" />
     <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
   </ItemGroup>

@@ -1,5 +1,8 @@
-﻿using Vernuntii.HeightConventions.Transformation;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vernuntii.HeightConventions.Transformation;
 using Vernuntii.SemVer;
+using Vernuntii.VersioningPresets;
+using Vernuntii.VersionTransformers;
 
 namespace Vernuntii.VersionIncrementing
 {
@@ -8,16 +11,35 @@ namespace Vernuntii.VersionIncrementing
     /// </summary>
     public record VersionIncrementContext
     {
+        /// <inheritdoc cref="VersionIncrementationOptions.VersioningPreset"/>
+        public IVersioningPreset VersioningPreset => _incremenationOptions.VersioningPreset;
+
+        /// <inheritdoc cref="VersionIncrementationOptions.StartVersion"/>
+        public ISemanticVersion StartVersion => _incremenationOptions.StartVersion;
+
+        /// <inheritdoc cref="VersionIncrementationOptions.IsPostVersionPreRelease"/>
+        public bool IsPostVersionPreRelease => _incremenationOptions.IsPostVersionPreRelease;
+
+        /// <inheritdoc cref="VersionIncrementationOptions.IsStartVersionCoreAlreadyReleased"/>
+        public bool IsStartVersionCoreAlreadyReleased => _incremenationOptions.IsStartVersionCoreAlreadyReleased;
+
         /// <summary>
-        /// The options of on-going calculation.
+        /// The transformer used for changing the pre-release to a desired one.
         /// </summary>
-        public SingleVersionCalculationOptions VersionCalculationOptions { get; }
+        public IPreReleaseTransformer? PostVersionPreReleaseTransformer => _incremenationOptions.PostTransformer;
+
+        /// <summary>
+        /// If <see langword="true"/>, then it indicates, that the start version will be changing from pre-release
+        /// to release or vice versa, or the non-null pre-release is changing to a different non-null pre-release.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(PostVersionPreReleaseTransformer))]
+        public bool IsStartVersionPreReleaseAlternating { get; }
 
         /// <summary>
         /// The current version before the next transformation is applied.
         /// </summary>
         public ISemanticVersion CurrentVersion {
-            get => _currentVersion ?? VersionCalculationOptions.StartVersion;
+            get => _currentVersion ?? _incremenationOptions.StartVersion;
 
             init {
                 _currentVersion = value;
@@ -54,6 +76,18 @@ namespace Vernuntii.VersionIncrementing
             _doesCurrentVersionContainsHeightIncrement ??= CurrentVersionContainsHeightIncrement();
 
         /// <summary>
+        /// Current version is equivalent to "major.0.0".
+        /// </summary>
+        public bool IsRightSideOfMajorOfCurrentVersionCoreZeroed =>
+            CurrentVersion.Minor == 0 && CurrentVersion.Patch == 0;
+
+        /// <summary>
+        /// Current version is equivalent to "major.minor.0".
+        /// </summary>
+        public bool IsRightSideOfMinorOfCurrentVersionCoreZeroed =>
+            CurrentVersion.Minor == 0 && CurrentVersion.Patch == 0;
+
+        /// <summary>
         /// The height identifier transformer.
         /// </summary>
         public HeightConventionTransformer HeightIdentifierTransformer { get; }
@@ -62,23 +96,33 @@ namespace Vernuntii.VersionIncrementing
         /// <see langword="true"/> if major of current version is zero and versioning preset allows right shifting.
         /// </summary>
         public bool CanFlowDownstreamMajor => _canFlowDownstreamMajor ??=
-            VersionCalculationOptions.VersioningPreset.IncrementFlow.Condition == VersionIncrementFlows.VersionIncrementFlowCondition.ZeroMajor
-            && VersionCalculationOptions.StartVersion.Major == 0
-            && VersionCalculationOptions.VersioningPreset.IncrementFlow.MajorFlow == VersionIncrementFlows.VersionIncrementFlowMode.Downstream;
+            _incremenationOptions.VersioningPreset.IncrementFlow.Condition == VersionIncrementFlows.VersionIncrementFlowCondition.ZeroMajor
+            && _incremenationOptions.StartVersion.Major == 0
+            && _incremenationOptions.VersioningPreset.IncrementFlow.MajorFlow == VersionIncrementFlows.VersionIncrementFlowMode.Downstream;
 
         /// <summary>
         /// <see langword="true"/> if minor of current version is zero and versioning preset allows right shifting.
         /// </summary>
         public bool CanFlowDownstreamMinor => _canFlowDownstreamMinor ??=
-            VersionCalculationOptions.VersioningPreset.IncrementFlow.Condition == VersionIncrementFlows.VersionIncrementFlowCondition.ZeroMajor
-            && VersionCalculationOptions.StartVersion.Major == 0
-            && VersionCalculationOptions.VersioningPreset.IncrementFlow.MinorFlow == VersionIncrementFlows.VersionIncrementFlowMode.Downstream;
+            _incremenationOptions.VersioningPreset.IncrementFlow.Condition == VersionIncrementFlows.VersionIncrementFlowCondition.ZeroMajor
+            && _incremenationOptions.StartVersion.Major == 0
+            && _incremenationOptions.VersioningPreset.IncrementFlow.MinorFlow == VersionIncrementFlows.VersionIncrementFlowMode.Downstream;
 
         /// <summary>
         /// <see langword="true"/> if indicator of next version has been right shifted. For debug and test puposes.
         /// </summary>
         internal bool IsVersionDownstreamFlowed { get; set; }
 
+        internal bool? IsCurrentVersionPreReleaseAlreadyAdapted { get; }
+
+        private bool? IsCurrentVersionEquivalentToStartVersion => !IsCurrentVersionPreReleaseAlreadyAdapted.HasValue
+            ? null // Won't be ever release
+            : IsCurrentVersionPreReleaseAlreadyAdapted.Value && SemanticVersionComparer.Version.Equals(CurrentVersion, StartVersion);
+
+        /// <summary>
+        /// The options of on-going calculation.
+        /// </summary>
+        private VersionIncrementationOptions _incremenationOptions;
         private ISemanticVersion? _currentVersion;
         private bool? _doesCurrentVersionContainsMajorIncrement;
         private bool? _doesCurrentVersionContainsMinorIncrement;
@@ -91,9 +135,23 @@ namespace Vernuntii.VersionIncrementing
         /// Creates an instance of this type.
         /// </summary>
         /// <param name="versionCalculationOptions"></param>
-        public VersionIncrementContext(SingleVersionCalculationOptions versionCalculationOptions)
+        public VersionIncrementContext(VersionIncrementationOptions versionCalculationOptions)
         {
-            VersionCalculationOptions = versionCalculationOptions;
+            _incremenationOptions = versionCalculationOptions;
+
+            IsStartVersionPreReleaseAlternating = !_incremenationOptions.IsPostTransformerUsable
+                ? false
+                : _incremenationOptions.PostTransformer.IsTransformationResultingIntoPreRelease != StartVersion.IsPreRelease
+                    || (_incremenationOptions.PostTransformer.IsTransformationResultingIntoPreRelease && StartVersion.IsPreRelease
+                        // True if the pre-release of start version does not start with prospective pre-release
+                        && !_incremenationOptions.PostTransformer.StartsWithProspectivePreRelease(StartVersion.PreReleaseIdentifiers));
+
+            IsCurrentVersionPreReleaseAlreadyAdapted = IsStartVersionPreReleaseAlternating
+                // First current version can never be adapted
+                ? null
+                // Current version is not adaptable
+                : false;
+
             HeightIdentifierTransformer = versionCalculationOptions.CreateHeightIdentifierTransformer();
         }
 
@@ -103,7 +161,14 @@ namespace Vernuntii.VersionIncrementing
         /// <param name="context"></param>
         public VersionIncrementContext(VersionIncrementContext context)
         {
-            VersionCalculationOptions = context.VersionCalculationOptions;
+            _incremenationOptions = context._incremenationOptions;
+            IsStartVersionPreReleaseAlternating = context.IsStartVersionPreReleaseAlternating;
+
+            IsCurrentVersionPreReleaseAlreadyAdapted = !context.IsCurrentVersionPreReleaseAlreadyAdapted.HasValue
+                // Current version is still not adaptable
+                ? null
+                : context.IsCurrentVersionPreReleaseAlreadyAdapted ?? PostVersionPreReleaseTransformer!.StartsWithProspectivePreRelease(StartVersion.PreReleaseIdentifiers);
+
             HeightIdentifierTransformer = context.HeightIdentifierTransformer;
             _currentVersion = context.CurrentVersion;
             _doesCurrentVersionContainsMajorIncrement = context._doesCurrentVersionContainsMajorIncrement;
@@ -113,23 +178,28 @@ namespace Vernuntii.VersionIncrementing
         }
 
         private bool CurrentVersionContainsMajorIncrement() =>
-            CurrentVersion.Major > VersionCalculationOptions.StartVersion.Major;
+            (IsCurrentVersionEquivalentToStartVersion.GetValueOrDefault(false)
+                && IsRightSideOfMajorOfCurrentVersionCoreZeroed)
+            || CurrentVersion.Major > _incremenationOptions.StartVersion.Major;
 
         private bool CurrentVersionContainsMinorIncrement() =>
-            DoesCurrentVersionContainsMajorIncrement
-            || CurrentVersion.Major == VersionCalculationOptions.StartVersion.Major
-                && CurrentVersion.Minor > VersionCalculationOptions.StartVersion.Minor;
+            (IsCurrentVersionEquivalentToStartVersion.GetValueOrDefault(false)
+                && IsRightSideOfMinorOfCurrentVersionCoreZeroed)
+            || DoesCurrentVersionContainsMajorIncrement
+            || CurrentVersion.Major == _incremenationOptions.StartVersion.Major
+                && CurrentVersion.Minor > _incremenationOptions.StartVersion.Minor;
 
         private bool CurrentVersionContainsPatchIncrement() =>
-            DoesCurrentVersionContainsMajorIncrement
+            IsCurrentVersionEquivalentToStartVersion.GetValueOrDefault(false)
+            || DoesCurrentVersionContainsMajorIncrement
             || DoesCurrentVersionContainsMinorIncrement
-            || CurrentVersion.Major == VersionCalculationOptions.StartVersion.Major
-                && CurrentVersion.Minor == VersionCalculationOptions.StartVersion.Minor
-                && CurrentVersion.Patch > VersionCalculationOptions.StartVersion.Patch;
+            || CurrentVersion.Major == _incremenationOptions.StartVersion.Major
+                && CurrentVersion.Minor == _incremenationOptions.StartVersion.Minor
+                && CurrentVersion.Patch > _incremenationOptions.StartVersion.Patch;
 
         private VersionHeightInformations CurrentVersionContainsHeightIncrement()
         {
-            var startVersionTransformResult = HeightIdentifierTransformer.Transform(VersionCalculationOptions.StartVersion);
+            var startVersionTransformResult = HeightIdentifierTransformer.Transform(_incremenationOptions.StartVersion);
             var currentVersionTransformResult = HeightIdentifierTransformer.Transform(CurrentVersion);
             var versionNumberParser = CurrentVersion.GetParserOrStrict().VersionParser;
 

@@ -42,7 +42,7 @@ namespace Vernuntii.VersionIncrementFlows
             if (section.Value(out var sectionValue)) {
                 incrementFlow = PresetManager.IncrementFlows.GetItem(sectionValue ?? nameof(InbuiltVersionIncrementFlow.None));
             } else {
-                incrementFlow = section.Get<VersionIncrementFlow>();
+                incrementFlow = section.Get<VersionIncrementFlow>() ?? throw new InvalidOperationException("Configuration section could not be parsed as version increment flow");
             }
 
             return true;

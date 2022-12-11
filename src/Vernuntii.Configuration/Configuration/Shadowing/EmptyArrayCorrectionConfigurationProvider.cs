@@ -23,8 +23,9 @@ namespace Vernuntii.Configuration.Shadowing
             _parentPaths.Add(parentPath);
 
         private bool IsKeyShadowable(string? key) =>
-            _parentPaths.Any(x => RegexUtils.IsMatch(key, x))
-                && _originConfigurationProvider.TryGet(key, out var value);
+            key != null
+            && _parentPaths.Any(x => RegexUtils.IsMatch(key, x))
+            && _originConfigurationProvider.TryGet(key, out var value);
 
         public override bool TryGet(string key, out string value)
         {

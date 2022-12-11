@@ -3,7 +3,7 @@
     /// <summary>
     /// The options for <see cref="GitCommitMessagesProvider"/>.
     /// </summary>
-    public record GitCommitMessagesProviderOptions
+    public class GitCommitMessagesProviderOptions
     {
         /// <summary>
         /// The since-commit where to start reading from.

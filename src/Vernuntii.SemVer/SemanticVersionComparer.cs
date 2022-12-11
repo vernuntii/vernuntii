@@ -6,7 +6,7 @@
     public sealed class SemanticVersionComparer : ISemanticVersionComparer
     {
         /// <summary>
-        /// A comparer that uses only the version numbers.
+        /// A comparer that uses only the version core for comparison.
         /// </summary>
         public static readonly ISemanticVersionComparer Version = new SemanticVersionComparer(SemanticVersionComparisonMode.Version);
 
@@ -19,111 +19,6 @@
         /// A version comparer that follows SemVer 2.0.0 rules.
         /// </summary>
         public static readonly ISemanticVersionComparer VersionReleaseBuild = new SemanticVersionComparer(SemanticVersionComparisonMode.VersionReleaseBuild);
-
-        #region private static methods
-
-        /// <summary>
-        /// Pre-release identifiers are compared as numbers if they are numeric, otherwise they will be compared
-        /// as strings.
-        /// </summary>
-        private static int ComparePreReleaseIdentifier(string preRelease, string otherPreRelease)
-        {
-            int result;
-
-            // Check for numeric versions
-            var isPreReleaseNumeric = int.TryParse(preRelease, out var versionNumber);
-            var isOtherPreReleaseNumeric = int.TryParse(otherPreRelease, out var otherVersionNumber);
-
-            // If both versions are numeric we can compare as numbers
-            if (isPreReleaseNumeric && isOtherPreReleaseNumeric) {
-                result = versionNumber.CompareTo(otherVersionNumber);
-            } else if (isPreReleaseNumeric || isOtherPreReleaseNumeric) {
-                // Numeric pre-release identifiers come before string pre-release identifiers
-                if (isPreReleaseNumeric) {
-                    result = -1;
-                } else {
-                    result = 1;
-                }
-            } else {
-                // We can ignore 2.0.0 case sensitive comparison, instead compare insensitively as specified in 2.1.0.
-                // See https://github.com/semver/semver/pull/276 for more.
-                result = StringComparer.OrdinalIgnoreCase.Compare(preRelease, otherPreRelease);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Compares pre-release identifiers.
-        /// </summary>
-        private static int ComparePreReleaseIdentifiers(IEnumerable<string> identifiers, IEnumerable<string> otherIdentifiers)
-        {
-            var result = 0;
-
-            var identifierEnumerator = identifiers.GetEnumerator();
-            var otherIdentifierEnumerator = otherIdentifiers.GetEnumerator();
-
-            var hasNextIdentifier = identifierEnumerator.MoveNext();
-            var hasNextOtherIdentifier = otherIdentifierEnumerator.MoveNext();
-
-            while (hasNextIdentifier || hasNextOtherIdentifier) {
-                if (!hasNextIdentifier && hasNextOtherIdentifier) {
-                    return -1;
-                }
-
-                if (hasNextIdentifier && !hasNextOtherIdentifier) {
-                    return 1;
-                }
-
-                result = ComparePreReleaseIdentifier(identifierEnumerator.Current, otherIdentifierEnumerator.Current);
-
-                if (result != 0) {
-                    return result;
-                }
-
-                hasNextIdentifier = identifierEnumerator.MoveNext();
-                hasNextOtherIdentifier = otherIdentifierEnumerator.MoveNext();
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Compares build identifiers.
-        /// </summary>
-        private static int CompareBuildIdentifiers(IEnumerable<string> identifiers, IEnumerable<string> otherIdentifiers)
-        {
-            var result = 0;
-
-            var identifierEnumerator = identifiers.GetEnumerator();
-            var otherIdentifierEnumerator = otherIdentifiers.GetEnumerator();
-
-            var hasNextIdentifier = identifierEnumerator.MoveNext();
-            var hasNextOtherIdentifier = otherIdentifierEnumerator.MoveNext();
-
-            while (hasNextIdentifier || hasNextOtherIdentifier) {
-                if (!hasNextIdentifier && hasNextOtherIdentifier) {
-                    return -1;
-                }
-
-                if (hasNextIdentifier && !hasNextOtherIdentifier) {
-                    return 1;
-                }
-
-                result = StringComparer.Ordinal.Compare(identifierEnumerator.Current, otherIdentifierEnumerator.Current);
-
-                if (result != 0) {
-                    return result;
-                }
-
-                hasNextIdentifier = identifierEnumerator.MoveNext();
-                hasNextOtherIdentifier = otherIdentifierEnumerator.MoveNext();
-            }
-
-            return result;
-        }
-
-        #endregion
 
         /// <summary>
         /// Gets comparer via <paramref name="comparisonMode"/>.
@@ -142,6 +37,15 @@
         /// </summary>
         public static int Compare(ISemanticVersion? x, ISemanticVersion? y, SemanticVersionComparisonMode SemanticVersionComparisonMode) =>
             GetComparer(SemanticVersionComparisonMode).Compare(x, y);
+
+        /// <summary>
+        /// The pre-release comparer. Is by default <see cref="PreReleaseIdentifierComparer.Default"/>.
+        /// </summary>
+        public IDotSplittedIdentifierComparer PreReleaseComparer { get; init; } = PreReleaseIdentifierComparer.Default;
+        /// <summary>
+        /// The pre-release comparer. Is by default <see cref="PreReleaseIdentifierComparer.Default"/>.
+        /// </summary>
+        public IDotSplittedIdentifierComparer BuildComparer { get; init; } = BuildIdentifierComparer.Default;
 
         private readonly SemanticVersionComparisonMode _comparisonMode;
 
@@ -181,11 +85,11 @@
 
             if ((_comparisonMode == SemanticVersionComparisonMode.VersionRelease || _comparisonMode == SemanticVersionComparisonMode.VersionReleaseBuild)
                 && obj.IsPreRelease) {
-                hashCode.Add(obj.PreRelease, StringComparer.OrdinalIgnoreCase);
+                hashCode.Add(PreReleaseComparer.GetHashCode(obj.PreRelease));
             }
 
             if (_comparisonMode == SemanticVersionComparisonMode.VersionReleaseBuild && obj.HasBuild) {
-                hashCode.Add(obj.Build, StringComparer.Ordinal);
+                hashCode.Add(BuildComparer.GetHashCode(obj.Build));
             }
 
             return hashCode.ToHashCode();
@@ -239,7 +143,7 @@
                     }
 
                     if (x.IsPreRelease && y.IsPreRelease) {
-                        result = ComparePreReleaseIdentifiers(x.PreReleaseIdentifiers, y.PreReleaseIdentifiers);
+                        result = PreReleaseComparer.Compare(x.PreReleaseIdentifiers, y.PreReleaseIdentifiers);
 
                         if (result != 0) {
                             return result;
@@ -248,7 +152,7 @@
 
                     // Compare build
                     if (_comparisonMode == SemanticVersionComparisonMode.VersionReleaseBuild) {
-                        result = CompareBuildIdentifiers(x.BuildIdentifiers, y.BuildIdentifiers);
+                        result = BuildComparer.Compare(x.BuildIdentifiers, y.BuildIdentifiers);
 
                         if (result != 0) {
                             return result;

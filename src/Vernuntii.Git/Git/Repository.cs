@@ -110,7 +110,7 @@ namespace Vernuntii.Git
             if (!_areCommitVersionsInitialized) {
                 foreach (var commitTag in GetCommitTags()) {
                     if (SemanticVersion.TryParse(commitTag.TagName, out var version)) {
-                        _commitVersions.Add(new CommitVersion(version, commitTag.CommitSha));
+                        _commitVersions.Add(new CommitVersion(commitTag.CommitSha, version));
                     }
                 }
 

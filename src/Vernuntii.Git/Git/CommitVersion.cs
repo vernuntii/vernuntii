@@ -1,4 +1,5 @@
-﻿using Vernuntii.SemVer;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.Git
 {
@@ -22,9 +23,29 @@ namespace Vernuntii.Git
         /// </summary>
         /// <param name="version"></param>
         /// <param name="commitSha"></param>
-        public CommitVersion(ISemanticVersion version, string commitSha)
+        public CommitVersion(string commitSha, ISemanticVersion version)
             : base(version) =>
             CommitSha = commitSha ?? throw new ArgumentNullException(nameof(commitSha));
+
+        /// <inheritdoc/>
+        public virtual bool Equals([NotNullWhen(true)] ICommitVersion? other) =>
+            base.Equals(other)
+            && StringComparer.InvariantCultureIgnoreCase.Equals(CommitSha, other.CommitSha);
+
+        /// <inheritdoc/>
+        public sealed override bool Equals([NotNullWhen(true)] ISemanticVersion? other) => 
+            other is ICommitVersion otherCommitVersion
+            ? Equals(otherCommitVersion)
+            : base.Equals(other);
+
+        /// <inheritdoc/>
+        public virtual bool Equals([NotNullWhen(true)] CommitVersion? other) =>
+            Equals((ICommitVersion?)other);
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => HashCode.Combine(
+            base.GetHashCode(),
+            CommitSha.GetHashCode(StringComparison.InvariantCultureIgnoreCase));
 
         /// <inheritdoc/>
         public override string ToString() =>

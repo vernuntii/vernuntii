@@ -2,17 +2,17 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Teronis;
-using Vernuntii.Extensions.Configurers;
+using Vernuntii.Git;
 using Vernuntii.Text.RegularExpressions;
 
 namespace Vernuntii.Extensions.BranchCases
 {
     /// <summary>
-    /// Extension methods for <see cref="IGitFeatures"/>.
+    /// Extension methods for <see cref="IGitServicesScope"/>.
     /// </summary>
     public static class GitFeaturesExtensions
     {
-        private static IGitFeatures AddBranchCaseArgumentsProvider(this IGitFeatures extensions)
+        private static IGitServicesScope AddBranchCaseArgumentsProvider(this IGitServicesScope extensions)
         {
             var services = extensions.Services;
 
@@ -29,7 +29,7 @@ namespace Vernuntii.Extensions.BranchCases
         /// </summary>
         /// <param name="features"></param>
         /// <param name="branchCaseArgumentsList"></param>
-        public static IGitFeatures AddBranchCases(this IGitFeatures features, IEnumerable<IBranchCase> branchCaseArgumentsList)
+        public static IGitServicesScope AddBranchCases(this IGitServicesScope features, IEnumerable<IBranchCase> branchCaseArgumentsList)
         {
             features.AddBranchCaseArgumentsProvider();
 
@@ -52,8 +52,8 @@ namespace Vernuntii.Extensions.BranchCases
         /// <param name="features"></param>
         /// <param name="branchCases"></param>
         /// <param name="additionalBranchCases"></param>
-        public static IGitFeatures AddBranchCases(
-            this IGitFeatures features,
+        public static IGitServicesScope AddBranchCases(
+            this IGitServicesScope features,
             IBranchCase branchCases,
             IEnumerable<IBranchCase> additionalBranchCases)
         {
@@ -71,13 +71,11 @@ namespace Vernuntii.Extensions.BranchCases
 
         /// <summary>
         /// Applies settings of active branch case by calling:
-        /// <br/><see cref="ISinceCommitConfigurer.SetVersionFindingSinceCommit(string?)"/>
-        /// <br/><see cref="ISinceCommitConfigurer.SetMessageReadingSinceCommit(string?)"/>
-        /// <br/><see cref="IBranchNameConfigurer.SetVersionFindingSinceCommit(string?)"/>
-        /// <br/><see cref="IBranchNameConfigurer.SetMessageReadingSinceCommit(string?)"/>
-        /// <br/><see cref="IPreReleaseConfigurer.SetSearchPreRelease(string?)"/>:
+        /// <br/><see cref="IGitConfigurer.SetSinceCommit(string?)"/>
+        /// <br/><see cref="IGitConfigurer.SetBranch(string?)"/>
+        /// <br/><see cref="IGitConfigurer.SetSearchPreRelease(string?)"/>:
         /// Either <see cref="IBranchCase.SearchPreRelease"/> or pre-release as explained below is taken.
-        /// <br/><see cref="IPreReleaseConfigurer.SetPostPreRelease(string?)"/>:
+        /// <br/><see cref="IGitConfigurer.SetPostPreRelease(string?)"/>:
         /// If <see cref="IBranchCase.PreRelease"/> has no value, so is null and therefore is not "" is specified the value
         /// of <see cref="IBranchCase.Branch"/> or the active branch is taken.
         /// If "" (default) then no pre-release is taken. The non-empty pre-release that is taken by the one or the other way is used
@@ -85,26 +83,20 @@ namespace Vernuntii.Extensions.BranchCases
         /// otherwise only "&lt;major>.&lt;minor>.&lt;patch>"-versions are considered.
         /// </summary>
         /// <param name="features"></param>
-        public static IGitFeatures UseActiveBranchCaseDefaults(this IGitFeatures features) => features
-            .ConfigureSinceCommit(configurer => {
-                var branchCaseArguments = configurer.ServiceProvider.GetActiveBranchCase();
-                configurer.SetVersionFindingSinceCommit(branchCaseArguments.SinceCommit);
-                configurer.SetMessageReadingSinceCommit(branchCaseArguments.SinceCommit);
-            })
-            .ConfigureBranchName(configurer => {
-                var branchCaseArguments = configurer.ServiceProvider.GetActiveBranchCase();
-                configurer.SetVersionFindingSinceCommit(branchCaseArguments.Branch);
-                configurer.SetMessageReadingSinceCommit(branchCaseArguments.Branch);
-            })
-            .ConfigurePreRelease(configurer => {
+        public static IGitServicesScope UseActiveBranchCaseDefaults(this IGitServicesScope features) => features
+            .Configure(configurer => {
                 var defaultBranchCaseArguments = configurer.ServiceProvider.GetDefaultBranchCase();
                 var activeBranchCaseArguments = configurer.ServiceProvider.GetActiveBranchCase();
+                var repository = configurer.ServiceProvider.GetRequiredService<IRepository>();
+
+                configurer.SetSinceCommit(activeBranchCaseArguments.SinceCommit);
+                configurer.SetBranch(activeBranchCaseArguments.Branch);
 
                 // Define pre-release.
                 var preRelease = activeBranchCaseArguments.PreRelease;
 
                 if (preRelease == null) {
-                    preRelease = activeBranchCaseArguments.Branch ?? configurer.Repository.GetActiveBranch().ShortBranchName;
+                    preRelease = activeBranchCaseArguments.Branch ?? repository.GetActiveBranch().ShortBranchName;
                 } else if (preRelease == "") {
                     preRelease = null;
                 }

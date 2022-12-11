@@ -13,7 +13,7 @@
         /// <summary>
         /// Normalizes <paramref name="value"/>.
         /// </summary>
-        /// <param name="part">The affected part of the semantic version string.</param>
+        /// <param name="versionPart"></param>
         /// <param name="value">The value in which <paramref name="faults"/> are found.</param>
         /// <param name="faults">List of non-overlapping faults within <paramref name="value"/>.</param>
         /// <returns>Normalized version of <paramref name="value"/>.</returns>

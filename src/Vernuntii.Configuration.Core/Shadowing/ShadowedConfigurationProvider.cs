@@ -30,7 +30,7 @@ namespace Vernuntii.Configuration.Shadowing
         }
 
         /// <inheritdoc/>
-        public bool TryGet(string key, out string value)
+        public bool TryGet(string key, out string? value)
         {
             for (var i = _configurationProviders.Count - 1; i >= 0; i--) {
                 var configurationProvider = _configurationProviders[i];
@@ -45,7 +45,7 @@ namespace Vernuntii.Configuration.Shadowing
         }
 
         /// <inheritdoc/>
-        public void Set(string key, string value) => RootConfigurationProvider.Set(key, value);
+        public void Set(string key, string? value) => RootConfigurationProvider.Set(key, value);
 
         /// <inheritdoc/>
         public void Load() => RootConfigurationProvider.Load();
@@ -54,7 +54,7 @@ namespace Vernuntii.Configuration.Shadowing
         public IChangeToken GetReloadToken() => RootConfigurationProvider.GetReloadToken();
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetChildKeys(IEnumerable<string> earlierKeys, string parentPath) =>
+        public IEnumerable<string> GetChildKeys(IEnumerable<string> earlierKeys, string? parentPath) =>
             _configurationProviders.Aggregate(
                 earlierKeys,
                 (earlierKeysAccumulated, configurationProvider) =>

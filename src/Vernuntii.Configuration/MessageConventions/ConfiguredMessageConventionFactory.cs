@@ -71,7 +71,7 @@ namespace Vernuntii.MessageConventions
 
                 if (!indicatorSection.Value(out indicatorName)) {
                     var indicatorObject = indicatorSection.Get<MessageIndicatorObject>();
-                    indicatorName = indicatorObject.Name;
+                    indicatorName = indicatorObject?.Name;
                 }
 
                 if (string.IsNullOrEmpty(indicatorName)) {

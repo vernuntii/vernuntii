@@ -1,26 +1,26 @@
 ﻿namespace Vernuntii.Extensions.BranchCases
 {
     /// <summary>
-    /// Extension methods for <see cref="IGitFeatures"/>.
+    /// Extension methods for <see cref="IGitServicesScope"/>.
     /// </summary>
     public static class BranchCasesFeaturesServicesExtensions
     {
         /// <summary>
-        /// Configures an instance of <see cref="IBranchCasesFeatures"/>.
+        /// Configures an instance of <see cref="IBranchCasesServicesScope"/>.
         /// </summary>
         /// <param name="features"></param>
-        /// <param name="configureFeatures"></param>
+        /// <param name="configure"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public static IGitFeatures ConfigureBranchCases(this IGitFeatures features, Action<IBranchCasesFeatures> configureFeatures)
+        public static IGitServicesScope ConfigureBranchCases(this IGitServicesScope features, Action<IBranchCasesServicesScope> configure)
         {
             var services = features.Services;
 
-            if (configureFeatures is null) {
-                throw new ArgumentNullException(nameof(configureFeatures));
+            if (configure is null) {
+                throw new ArgumentNullException(nameof(configure));
             }
 
             var options = new BranchCasesFeatures(services);
-            configureFeatures(options);
+            configure(options);
             return features;
         }
     }
