@@ -1,5 +1,5 @@
 {
   "additionalProbingPaths": [
-    "C:\\repos\\vernuntii\\vernuntii\\src\\Vernuntii.Console.GlobalTool.win-x64\\bin\\Debug\\net7.0\\win-x64\\runtimes\\win-x64\\native"
+    "C:\\repos\\vernuntii\\vernuntii\\src\\Vernuntii.Console.GlobalTool.win-x64\\bin\\Debug\\net6.0\\win-x64\\runtimes\\win-x64\\native"
   ]
 }

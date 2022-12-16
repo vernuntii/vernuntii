@@ -4,7 +4,10 @@ namespace Vernuntii.Git;
 
 internal class VersionIncrementerTestSuiteOptions
 {
-    public required IVersioningPreset VersioningPreset { get; init; }
+    public IVersioningPreset VersioningPreset { get; }
     public string? SearchPreRelease { get; init; }
     public string? PostPreRelease { get; init; }
+
+    public VersionIncrementerTestSuiteOptions(IVersioningPreset versioningPreset) =>
+        VersioningPreset = versioningPreset;
 }

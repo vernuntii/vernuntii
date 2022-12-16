@@ -7,7 +7,6 @@
     <Product Condition="'$(Product)' == ''">$(MSBuildProjectName)</Product>
     <PackageLicenseFile Condition="'$(PackageLicenseFile)' == ''">LICENSE</PackageLicenseFile>
     <PackageIcon Condition="'$(PackageIcon)' == ''">icon.png</PackageIcon>
-    <LangVersion Condition="'$(LangVersion)' == ''">preview</LangVersion>
     <!-- CA1848: For high-performance logging scenarios, use the LoggerMessage pattern. -->
     <NoWarn>$(NoWarn);CA1848</NoWarn>
     <Nullable>enable</Nullable>
@@ -24,5 +23,7 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
+
+  <Import Project="../Directory.Build.props" />
 
 </Project>

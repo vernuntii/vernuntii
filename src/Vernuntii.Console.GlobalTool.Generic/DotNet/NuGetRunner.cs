@@ -23,7 +23,7 @@ namespace Vernuntii.Console.GlobalTool.DotNet
             <Project Sdk="Microsoft.NET.Sdk">
 
                 <PropertyGroup>
-                    <TargetFramework>net7.0</TargetFramework>
+                    <TargetFramework>net6.0</TargetFramework>
                     <RestoreSources>{{PackageSources}}</RestoreSources>
                 </PropertyGroup>
   

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Collections.ObjectModel;
+using Microsoft.Extensions.DependencyInjection;
 using SoftCircuits.Collections;
 
 namespace Vernuntii.PluginSystem
@@ -25,7 +26,7 @@ namespace Vernuntii.PluginSystem
                 //logger.LogTrace("Added plugin registration: {ServiceType} ({PluginType})", pluginRegistration.ServiceType, pluginRegistration.ImplementationType);
             }
 
-            return orderlyPluginRegistrations.AsReadOnly();
+            return new ReadOnlyDictionary<Type, IPluginRegistration>(orderlyPluginRegistrations);
         }
 
         public PluginRegistry Create(Action<IServiceCollection> postConfigureServices)

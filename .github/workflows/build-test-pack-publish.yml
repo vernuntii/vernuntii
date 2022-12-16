@@ -38,7 +38,7 @@ env:
   MSBUILD_VERBOSITY: Normal
   MSBUILD_CONFIGURATION: Release
   CACHE_ID: GITHUB_VERSION_CACHE
-  DOTNET_VERSION: "7.0.x"
+  DOTNET_VERSION: "6.0.x"
   DRY_RUN: ${{ github.event.inputs.dry-run == 'true' && 'true' || 'false' }}
   PRE_BUILT_ARTIFACTS_NAME: "pre-built_artifacts"
   MSBUILD_INTEGRATION_NAME: Vernuntii.Console.MSBuild.Orphan
@@ -200,8 +200,9 @@ jobs:
         if: ${{ steps.download-artifacts.outcome == 'success' && env.DRY_RUN == 'false' }}
         run: |
           echo 'console<<EOF' >> $GITHUB_OUTPUT
-          dotnet nuget push '**/*.nupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate >> $GITHUB_OUTPUT
+          $(dotnet nuget push '**/*.nupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate >> $GITHUB_OUTPUT) || EXIT_CODE=$?
           echo 'EOF' >> $GITHUB_OUTPUT
+          exit $EXIT_CODE
         shell: bash
         continue-on-error: true
 
@@ -220,8 +221,9 @@ jobs:
         if: ${{ steps.download-artifacts.outcome == 'success' && env.DRY_RUN == 'false' }}
         run: |
           echo 'console<<EOF' >> $GITHUB_OUTPUT
-          dotnet nuget push '**/*.snupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate >> $GITHUB_OUTPUT
+          $(dotnet nuget push '**/*.snupkg' --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate >> $GITHUB_OUTPUT) || EXIT_CODE=$?
           echo 'EOF' >> $GITHUB_OUTPUT
+          exit $EXIT_CODE
         shell: bash
         continue-on-error: true
 

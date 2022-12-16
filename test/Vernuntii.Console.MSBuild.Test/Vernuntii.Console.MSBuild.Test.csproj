@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <IsTestProject>false</IsTestProject>
   </PropertyGroup>
@@ -51,9 +51,9 @@
       <_PackageSubPath Include="$(_PackageDirectory)/buildMultiTargeting/Vernuntii.Console.MSBuild.props" />
       <_PackageSubPath Include="$(_PackageDirectory)/buildMultiTargeting/Vernuntii.Console.MSBuild.targets" />
       <_PackageSubPath Include="$(_PackageDirectory)/deps/msbuild/netstandard2.0" />
-      <_PackageSubPath Include="$(_PackageDirectory)/deps/console/net7.0/linux-x64" />
-      <_PackageSubPath Include="$(_PackageDirectory)/deps/console/net7.0/win-x64" />
-      <_PackageSubPath Include="$(_PackageDirectory)/deps/console/net7.0/osx-x64" />
+      <_PackageSubPath Include="$(_PackageDirectory)/deps/console/net6.0/linux-x64" />
+      <_PackageSubPath Include="$(_PackageDirectory)/deps/console/net6.0/win-x64" />
+      <_PackageSubPath Include="$(_PackageDirectory)/deps/console/net6.0/osx-x64" />
     </ItemGroup>
 
     <Error Text="File or directory was expected to exist: %(_PackageSubPath.Identity)" Condition="!Exists('%(_PackageSubPath.Identity)')" />

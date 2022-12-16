@@ -15,8 +15,7 @@ public class ContinuousDeliveryWithoutHeightConventionTests
     [Fact]
     public async Task Pre_release_should_become_release_and_reuse_version_core()
     {
-        using var testSuite = new VersionIncrementerTestSuite(new VersionIncrementerTestSuiteOptions() {
-            VersioningPreset = s_continuousDeliveryWithoutHeightConvention,
+        using var testSuite = new VersionIncrementerTestSuite(new VersionIncrementerTestSuiteOptions(s_continuousDeliveryWithoutHeightConvention) {
             SearchPreRelease = "alpha",
             PostPreRelease = ""
         });
@@ -32,8 +31,7 @@ public class ContinuousDeliveryWithoutHeightConventionTests
     [Fact]
     public async Task Release_should_become_pre_release_with_bumped_patch()
     {
-        using var testSuite = new VersionIncrementerTestSuite(new VersionIncrementerTestSuiteOptions() {
-            VersioningPreset = s_continuousDeliveryWithoutHeightConvention,
+        using var testSuite = new VersionIncrementerTestSuite(new VersionIncrementerTestSuiteOptions(s_continuousDeliveryWithoutHeightConvention) {
             PostPreRelease = "alpha"
         });
 
@@ -48,8 +46,7 @@ public class ContinuousDeliveryWithoutHeightConventionTests
     [Fact]
     public async Task Release_should_not_change()
     {
-        using var testSuite = new VersionIncrementerTestSuite(new VersionIncrementerTestSuiteOptions() {
-            VersioningPreset = s_continuousDeliveryWithoutHeightConvention,
+        using var testSuite = new VersionIncrementerTestSuite(new VersionIncrementerTestSuiteOptions(s_continuousDeliveryWithoutHeightConvention) {
             PostPreRelease = "",
         });
 
@@ -62,8 +59,7 @@ public class ContinuousDeliveryWithoutHeightConventionTests
     [Fact]
     public async Task Pre_release_should_remain_pre_release_with_bumped_patch()
     {
-        using var testSuite = new VersionIncrementerTestSuite(new VersionIncrementerTestSuiteOptions() {
-            VersioningPreset = s_continuousDeliveryWithoutHeightConvention,
+        using var testSuite = new VersionIncrementerTestSuite(new VersionIncrementerTestSuiteOptions(s_continuousDeliveryWithoutHeightConvention) {
             PostPreRelease = "alpha",
         });
 
@@ -78,8 +74,7 @@ public class ContinuousDeliveryWithoutHeightConventionTests
     [Fact]
     public async Task Pre_release_should_remain_pre_release_but_with_adapted_pre_release()
     {
-        using var testSuite = new VersionIncrementerTestSuite(new VersionIncrementerTestSuiteOptions() {
-            VersioningPreset = s_continuousDeliveryWithoutHeightConvention,
+        using var testSuite = new VersionIncrementerTestSuite(new VersionIncrementerTestSuiteOptions(s_continuousDeliveryWithoutHeightConvention) {
             PostPreRelease = "beta",
         });
 

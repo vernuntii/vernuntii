@@ -6,5 +6,7 @@
 		<Nullable>enable</Nullable>
 		<NoWarn>RCS1124</NoWarn>
 	</PropertyGroup>
+
+  <Import Project="../Directory.Build.props" />
 	
 </Project>
