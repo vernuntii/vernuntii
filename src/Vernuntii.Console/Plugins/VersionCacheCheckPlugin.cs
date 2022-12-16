@@ -64,7 +64,7 @@ namespace Vernuntii.Plugins
 
             _versionCacheManager = new VersionCacheManager(
                 versionCacheDirectory,
-                new VersionRecacheIndicator(),
+                new VersionCacheEvaluator(),
                 _versionCacheOptionsPlugin.CacheOptions,
                 _versionCacheManagerLogger);
 

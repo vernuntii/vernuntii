@@ -24,7 +24,7 @@ namespace Vernuntii.VersionCaching
         private readonly TimeSpan? _creationRetentionTime;
         private readonly bool _useLastAccessRetentionTime;
         private readonly TimeSpan? _lastAccessRetentionTime;
-        private readonly IVersionRecacheIndicator _recacheIndicator;
+        private readonly IVersionCacheEvaluator _recacheIndicator;
         private readonly bool _emptyCaches;
         private readonly ILogger<VersionCacheManager> _logger;
 
@@ -37,7 +37,7 @@ namespace Vernuntii.VersionCaching
         /// <param name="logger"></param>
         public VersionCacheManager(
             IVersionCacheDirectory cacheDirectory,
-            IVersionRecacheIndicator versionRecacheIndicator,
+            IVersionCacheEvaluator versionRecacheIndicator,
             IVersionCacheOptions cacheOptions,
             ILogger<VersionCacheManager> logger)
         {
@@ -110,7 +110,7 @@ namespace Vernuntii.VersionCaching
             }
         }
 
-        private RecacheIndicator GetRecacheIndicator()
+        private RecacheIndicator GetRecacheIndicator(ISemanticVersion? comparableVersion)
         {
             _ = TryGetCache(
                 out var versionCache,
@@ -124,6 +124,7 @@ namespace Vernuntii.VersionCaching
                         versionCache,
                         _useLastAccessRetentionTime,
                         _lastAccessRetentionTime,
+                        comparableVersion,
                         out var recacheReason),
                     recacheReason);
             } catch {
@@ -135,7 +136,7 @@ namespace Vernuntii.VersionCaching
         /// <inheritdoc/>
         public bool IsRecacheRequired([NotNullWhen(false)] out IVersionCache? versionCache)
         {
-            using var indicator = GetRecacheIndicator();
+            using var indicator = GetRecacheIndicator(comparableVersion: null);
 
             if (indicator.IsRecacheRequired(out var concreteVersionCache, out var versionCacheWriter) is var isRecacheRequired
                 && concreteVersionCache != null
@@ -162,7 +163,7 @@ namespace Vernuntii.VersionCaching
             //    _logger.LogInformation("Emptied the caches where the version informations were stored");
             //}
 
-            using var indicator = GetRecacheIndicator();
+            using var indicator = GetRecacheIndicator(newVersion);
 
             if (indicator.IsRecacheRequired(out var versionCache, out var versionCacheWriter)) {
                 versionCache = DefaultVersionCache.Create(newVersion, newBranch, _creationRetentionTime);

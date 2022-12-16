@@ -2,7 +2,7 @@
   "profiles": {
     "Vernuntii.Console.Generic": {
       "commandName": "Project",
-      "commandLineArgs": "--verbosity Debug --empty-caches"
+      "commandLineArgs": "--verbosity Debug --empty-caches "
     },
     "WSL": {
       "commandName": "WSL2",

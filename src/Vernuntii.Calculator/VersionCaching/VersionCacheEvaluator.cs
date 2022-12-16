@@ -1,35 +1,31 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.VersionCaching
 {
     /// <summary>
     /// Accesses an instance of version cache.
     /// </summary>
-    public sealed class VersionRecacheIndicator : IVersionRecacheIndicator
+    public sealed class VersionCacheEvaluator : IVersionCacheEvaluator
     {
         /// <summary>
         /// Default instance of this type.
         /// </summary>
-        public static readonly VersionRecacheIndicator Default = new();
+        public static readonly VersionCacheEvaluator Default = new();
 
         private static bool IsExpiredSinceCreation(DateTime expirationTime) =>
             DateTime.UtcNow > expirationTime;
 
-        private static bool IsCacheExpiredSinceCreation2(IExpirableVersionCache versionCache) =>
-            versionCache.ExpirationTime != null && IsExpiredSinceCreation(versionCache.ExpirationTime.Value);
-
         private static bool IsExpiredSinceLastAccess(DateTime? lastAccessTime, TimeSpan? retentionTime) =>
             lastAccessTime == null || DateTime.UtcNow > lastAccessTime + retentionTime;
-
-        private static bool IsCacheExpiredSinceLastAccess2(IExpirableVersionCache versionCache, bool useLastAccessRetentionTime, TimeSpan? lastAccessRetentionTime) =>
-            useLastAccessRetentionTime && IsExpiredSinceLastAccess(versionCache.LastAccessTime, lastAccessRetentionTime);
 
         /// <summary>
         /// Checks if cache expired since creation.
         /// </summary>
         /// <param name="versionCache"></param>
-        public bool IsCacheExpiredSinceCreation([NotNullWhen(true)] IExpirableVersionCache? versionCache) =>
-            versionCache != null && IsCacheExpiredSinceCreation2(versionCache);
+        private bool IsCacheExpiredSinceCreation([NotNullWhen(true)] IExpirableVersionCache? versionCache) =>
+            versionCache != null
+            && versionCache.ExpirationTime != null && IsExpiredSinceCreation(versionCache.ExpirationTime.Value);
 
         /// <summary>
         /// Checks if cache exoured since last access.
@@ -37,24 +33,19 @@ namespace Vernuntii.VersionCaching
         /// <param name="versionCache"></param>
         /// <param name="useLastAccessRetentionTime"></param>
         /// <param name="lastAccessRetentionTime"></param>
-        public bool IsCacheExpiredSinceLastAccess(
+        private bool IsCacheExpiredSinceLastAccess(
             [NotNullWhen(true)] IExpirableVersionCache? versionCache,
             bool useLastAccessRetentionTime,
             TimeSpan? lastAccessRetentionTime) =>
             versionCache != null
-            && IsCacheExpiredSinceLastAccess2(versionCache, useLastAccessRetentionTime, lastAccessRetentionTime);
+            && useLastAccessRetentionTime && IsExpiredSinceLastAccess(versionCache.LastAccessTime, lastAccessRetentionTime);
 
-        /// <summary>
-        /// Checks if cache is expired.
-        /// </summary>
-        /// <param name="versionCache"></param>
-        /// <param name="useLastAccessRetentionTime"></param>
-        /// <param name="lastAccessRetentionTime"></param>
-        /// <param name="recacheReason"></param>
+        /// <inheritdoc/>
         public bool IsRecacheRequired(
             [NotNullWhen(false)] IExpirableVersionCache? versionCache,
             bool useLastAccessRetentionTime,
             TimeSpan? lastAccessRetentionTime,
+            ISemanticVersion? comparableVersion,
             [NotNullWhen(true)] out string? recacheReason)
         {
             if (versionCache is null) {
@@ -63,6 +54,8 @@ namespace Vernuntii.VersionCaching
                 recacheReason = "Expiration time";
             } else if (IsCacheExpiredSinceLastAccess(versionCache, useLastAccessRetentionTime, lastAccessRetentionTime)) {
                 recacheReason = "Last access time";
+            } else if (!SemanticVersionComparer.VersionReleaseBuild.Equals(comparableVersion, versionCache.Version)) {
+                recacheReason = "Version change";
             } else {
                 recacheReason = null;
             }

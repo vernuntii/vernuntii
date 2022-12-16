@@ -12,6 +12,7 @@ namespace Vernuntii.VersionCaching
         /// The version.
         /// </summary>
         TVersion Version { get; }
+
         /// <summary>
         /// The branch name.
         /// </summary>

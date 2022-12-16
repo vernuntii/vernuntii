@@ -36,6 +36,7 @@ namespace Vernuntii.VersionCaching
         public DateTime? LastAccessTime { get; set; }
 
         ISemanticVersion IVersionCache<ISemanticVersion>.Version => Version;
+        ISemanticVersion IExpirableVersionCache.Version => Version;
 
         /// <summary>
         /// Creates an instance of this.
