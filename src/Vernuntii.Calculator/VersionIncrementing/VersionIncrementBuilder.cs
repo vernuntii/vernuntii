@@ -46,6 +46,11 @@ namespace Vernuntii.VersionIncrementing
             var allowUnlimitedIncrements = incrementMode == VersionIncrementMode.Successive;
             var skipVersionCoreIncrementationDueToPreReleaseAdaption = false;
 
+            // Here we try to reuse the possible not-yet-released start version core in case of switch from pre-release to release.
+            // If we can reuse it, then we remember its implicit major, minor or patch version incrementation by applying the post pre-release transformer, which will turn
+            // pre-release into being adapted.
+            // If the implicit incrementation happened in this run, then we skip any version core incrementation.
+            // The next runs, we rely on implicit major, minor or patch incrementation due to pre-release adaption.
             if (context.IsPreReleaseAdaptionOfStartVersionCoreEquivalentCurrentVersionRequired && !startVersionCoreAlreadyReleased && context.StartVersion.IsPreRelease) {
                 if (isMessageIncrementingMajor && context.IsRightSideOfMajorOfCurrentVersionCoreZeroed) {
                     skipVersionCoreIncrementationDueToPreReleaseAdaption = true;
