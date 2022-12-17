@@ -35,13 +35,11 @@ namespace Vernuntii.PluginSystem.Events
         /// <param name="eventCache"></param>
         /// <param name="uniqueEvent"></param>
         /// <param name="onNext"></param>
-        /// <param name="onNextCondition"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
         public static IEventSubscription OnNextEvent<TPayload>(
             this IEventCache eventCache,
             SubjectEvent<TPayload> uniqueEvent,
-            Action<TPayload> onNext,
-            Func<bool>? onNextCondition = null)
+            Action<TPayload> onNext)
         {
             var subscription = new EventSubscription();
 
@@ -50,10 +48,7 @@ namespace Vernuntii.PluginSystem.Events
                 .Take(1)
                 .Subscribe(payload => {
                     subscription.IncrementCounter();
-
-                    if (onNextCondition?.Invoke() ?? true) {
-                        onNext(payload);
-                    }
+                    onNext(payload);
                 });
 
             return subscription;
@@ -65,13 +60,11 @@ namespace Vernuntii.PluginSystem.Events
         /// <param name="eventCache"></param>
         /// <param name="uniqueEvent"></param>
         /// <param name="onNext"></param>
-        /// <param name="onNextCondition"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
         public static IEventSubscription OnNextEvent(
             this IEventCache eventCache,
             SubjectEvent uniqueEvent,
-            Action onNext,
-            Func<bool>? onNextCondition = null)
+            Action onNext)
         {
             var subscription = new EventSubscription();
 
@@ -80,10 +73,7 @@ namespace Vernuntii.PluginSystem.Events
                 .Take(1)
                 .Subscribe(_ => {
                     subscription.IncrementCounter();
-
-                    if (onNextCondition?.Invoke() ?? true) {
-                        onNext();
-                    }
+                    onNext();
                 });
 
             return subscription;

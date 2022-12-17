@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Reactive.Linq;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Configuration;
 using Vernuntii.Configuration.Json;
@@ -44,30 +45,6 @@ namespace Vernuntii.Plugins
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        ///// <summary>
-        ///// Constructs this type.
-        ///// </summary>
-        ///// <param name="sharedOptions"></param>
-        ///// <param name="logging"></param>
-        ///// <param name="cacheCheckPlugin"></param>
-        ///// <exception cref="ArgumentNullException"></exception>
-        //public ConfigurationPlugin(
-        //    SharedOptionsPlugin sharedOptions,
-        //    ILoggingPlugin logging,
-        //    IVersionCacheCheckPlugin cacheCheckPlugin)
-        //{
-        //    //_sharedOptions = sharedOptions ?? throw new ArgumentNullException(nameof(sharedOptions));
-        //    //ArgumentNullException.ThrowIfNull(logging);
-        //    //_logger = logging.CreateLogger<ConfigurationPlugin>();
-        //    //_cacheCheckPlugin = cacheCheckPlugin ?? throw new ArgumentNullException(nameof(sharedOptions));
-        //}
-
-        //protected override void OnRegistration(RegistrationContext registrationContext)
-        //{
-        //     registrationContext.PluginRegistry.re<SharedOptionsPlugin>();
-        //    registrationContext.
-        //}
-
         private void EnsureConfiguredConfigurationBuilder()
         {
             if (!_isConfigurationBuilderConfigured) {
@@ -107,15 +84,12 @@ namespace Vernuntii.Plugins
                 Events.FireEvent(ConfigurationEvents.ConfiguredConfigurationBuilder);
             });
 
-            Events.OnNextEvent(
-                ConfigurationEvents.CreateConfiguration,
-                () => {
-                    var configPathOrCurrentDirectory = _sharedOptions.ConfigPath ?? Directory.GetCurrentDirectory();
-                    Configuration = configurationBuilder.Build();
-                    _logger.LogInformation("Use configuration file: {ConfigurationFilePath}", _sharedOptions.ConfigPath);
-                    Events.FireEvent(ConfigurationEvents.CreatedConfiguration, Configuration);
-                },
-                () => !versionCacheCheckPlugin.IsCacheUpToDate);
+            Events.GetEvent(ConfigurationEvents.CreateConfiguration).Take(1).Where(_ => !versionCacheCheckPlugin.IsCacheUpToDate).Subscribe(_ => {
+                var configPathOrCurrentDirectory = _sharedOptions.ConfigPath ?? Directory.GetCurrentDirectory();
+                Configuration = configurationBuilder.Build();
+                _logger.LogInformation("Use configuration file: {ConfigurationFilePath}", _sharedOptions.ConfigPath);
+                Events.FireEvent(ConfigurationEvents.CreatedConfiguration, Configuration);
+            });
         }
     }
 }

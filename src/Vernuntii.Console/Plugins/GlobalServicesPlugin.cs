@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Plugins.Events;
@@ -36,10 +37,9 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.OnNextEvent(
-                GlobalServicesEvents.CreateServiceProvider,
-                _ => OnCreateServiceProvider(),
-                () => !_cacheCheckPlugin.IsCacheUpToDate);
+            Events.GetEvent(GlobalServicesEvents.CreateServiceProvider)
+                .Where(_ => !_cacheCheckPlugin.IsCacheUpToDate)
+                .Subscribe(_ => OnCreateServiceProvider());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
