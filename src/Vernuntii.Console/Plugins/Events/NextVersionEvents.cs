@@ -15,24 +15,9 @@ namespace Vernuntii.Plugins.Events
         public static readonly SubjectEvent<IServiceCollection> ConfigureGlobalServices = new();
 
         /// <summary>
-        /// Event when global service collection has been configured.
-        /// </summary>
-        public static readonly SubjectEvent<IServiceCollection> ConfiguredGlobalServices = new();
-
-        /// <summary>
-        /// Event when calculation service collection is created.
-        /// </summary>
-        public static readonly SubjectEvent<IServiceCollection> CreatedCalculationServices = new();
-
-        /// <summary>
         /// Event when calculation service collection has been configured.
         /// </summary>
-        public static readonly SubjectEvent<IServiceCollection> ConfiguredCalculationServices = new();
-
-        /// <summary>
-        /// Event when calculation service collection has been configured.
-        /// </summary>
-        public static readonly SubjectEvent<IServiceProvider> CreatedCalculationServiceProvider = new();
+        public static readonly SubjectEvent<IServiceProvider> CreatedScopedServiceProvider = new();
 
         /// <summary>
         /// Event when next version has been calculated.

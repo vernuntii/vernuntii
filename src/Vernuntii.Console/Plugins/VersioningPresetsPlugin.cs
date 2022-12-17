@@ -1,5 +1,4 @@
-﻿using System.Reactive.Linq;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.HeightConventions;
 using Vernuntii.MessageConventions;
 using Vernuntii.MessageConventions.MessageIndicators;
@@ -81,14 +80,14 @@ namespace Vernuntii.Plugins
         /// </summary>
         protected override void OnExecution()
         {
-            Events.SubscribeOnce(NextVersionEvents.ConfigureGlobalServices, services => {
+            Events.OnNextEvent(NextVersionEvents.ConfigureGlobalServices, services => {
                 services.AddSingleton(PresetManager);
                 services.AddSingleton(PresetManager.VersioningPresets);
                 services.AddSingleton(PresetManager.MessageConventions);
                 services.AddSingleton(PresetManager.MessageIndicators);
                 services.AddSingleton(PresetManager.ConfiguredMessageIndicatorFactories);
                 services.AddSingleton(PresetManager.HeightConventions);
-                Events.Publish(VersioningPresetsEvents.ConfiguredGlobalServices, services);
+                Events.FireEvent(VersioningPresetsEvents.ConfiguredGlobalServices, services);
             });
         }
     }

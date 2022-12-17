@@ -31,6 +31,7 @@ namespace Vernuntii.Extensions
             services.TryAddSingleton<ICommitsAccessor>(sp => sp.GetRequiredService<IRepository>());
             services.TryAddSingleton<ICommitTagsAccessor>(sp => sp.GetRequiredService<IRepository>());
             services.TryAddSingleton<ICommitVersionsAccessor>(sp => sp.GetRequiredService<IRepository>());
+            services.TryAddSingleton<IBranchesAccessor>(sp => sp.GetRequiredService<IRepository>());
             return scope;
         }
 
@@ -68,7 +69,7 @@ namespace Vernuntii.Extensions
         /// <param name="scope"></param>
         public static IGitServicesScope UseCommitMessagesProvider(this IGitServicesScope scope)
         {
-            scope.Services.TryAddScoped(sp => sp.GetRequiredService<IOptions<GitCommitMessagesProviderOptions>>().Value);
+            scope.Services.TryAddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<GitCommitMessagesProviderOptions>>().Value);
 
             scope.Services.ScopeToVernuntii(features => features
                 .AddVersionIncrementation(features => features

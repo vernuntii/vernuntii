@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
-using Teronis;
 using Vernuntii.Git;
 using Vernuntii.Text.RegularExpressions;
 
@@ -12,28 +10,28 @@ namespace Vernuntii.Extensions.BranchCases
     /// </summary>
     public static class GitFeaturesExtensions
     {
-        private static IGitServicesScope AddBranchCaseArgumentsProvider(this IGitServicesScope extensions)
+        private static IGitServicesScope AddBranchCaseArgumentsProvider(this IGitServicesScope scope)
         {
-            var services = extensions.Services;
+            var services = scope.Services;
 
-            services.TryAddScoped(sp =>
-                new SlimLazy<IOptionsSnapshot<BranchCasesOptions>>(
-                    sp.GetRequiredService<IOptionsSnapshot<BranchCasesOptions>>));
+            //services.TryAddScoped(sp =>
+            //    new SlimLazy<IOptionsSnapshot<BranchCasesOptions>>(
+            //        sp.GetRequiredService<IOptionsSnapshot<BranchCasesOptions>>));
 
             services.TryAddScoped<IBranchCasesProvider, BranchCasesProvider>();
-            return extensions;
+            return scope;
         }
 
         /// <summary>
         /// Adds multiple branch cases.
         /// </summary>
-        /// <param name="features"></param>
+        /// <param name="scope"></param>
         /// <param name="branchCaseArgumentsList"></param>
-        public static IGitServicesScope AddBranchCases(this IGitServicesScope features, IEnumerable<IBranchCase> branchCaseArgumentsList)
+        public static IGitServicesScope AddBranchCases(this IGitServicesScope scope, IEnumerable<IBranchCase> branchCaseArgumentsList)
         {
-            features.AddBranchCaseArgumentsProvider();
+            scope.AddBranchCaseArgumentsProvider();
 
-            var services = features.Services;
+            var services = scope.Services;
             services.ConfigureOptions<BranchCasesOptions.PostConfiguration>();
 
             services.AddOptions<BranchCasesOptions>()
@@ -43,31 +41,31 @@ namespace Vernuntii.Extensions.BranchCases
                     }
                 });
 
-            return features;
+            return scope;
         }
 
-        /// <summary>
-        /// Adds multiple branch cases.
-        /// </summary>
-        /// <param name="features"></param>
-        /// <param name="branchCases"></param>
-        /// <param name="additionalBranchCases"></param>
-        public static IGitServicesScope AddBranchCases(
-            this IGitServicesScope features,
-            IBranchCase branchCases,
-            IEnumerable<IBranchCase> additionalBranchCases)
-        {
-            return features.AddBranchCases(GetBranchCases(branchCases, additionalBranchCases));
+        ///// <summary>
+        ///// Adds multiple branch cases.
+        ///// </summary>
+        ///// <param name="scope"></param>
+        ///// <param name="branchCases"></param>
+        ///// <param name="additionalBranchCases"></param>
+        //public static IGitServicesScope AddBranchCases(
+        //    this IGitServicesScope scope,
+        //    IBranchCase branchCases,
+        //    IEnumerable<IBranchCase> additionalBranchCases)
+        //{
+        //    return scope.AddBranchCases(ConcatenateBranchCases(branchCases, additionalBranchCases));
 
-            static IEnumerable<IBranchCase> GetBranchCases(IBranchCase branchCase, IEnumerable<IBranchCase> additionalBranchCases)
-            {
-                yield return branchCase;
+        //    static IEnumerable<IBranchCase> ConcatenateBranchCases(IBranchCase branchCase, IEnumerable<IBranchCase> additionalBranchCases)
+        //    {
+        //        yield return branchCase;
 
-                foreach (var caseArguments in additionalBranchCases) {
-                    yield return caseArguments;
-                }
-            }
-        }
+        //        foreach (var caseArguments in additionalBranchCases) {
+        //            yield return caseArguments;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Applies settings of active branch case by calling:
@@ -82,8 +80,8 @@ namespace Vernuntii.Extensions.BranchCases
         /// to search "&lt;major>.&lt;minor>.&lt;patch>"- and "&lt;major>.&lt;minor>.&lt;patch>-&lt;taken-pre-release>"-versions
         /// otherwise only "&lt;major>.&lt;minor>.&lt;patch>"-versions are considered.
         /// </summary>
-        /// <param name="features"></param>
-        public static IGitServicesScope UseActiveBranchCaseDefaults(this IGitServicesScope features) => features
+        /// <param name="scope"></param>
+        public static IGitServicesScope UseActiveBranchCaseDefaults(this IGitServicesScope scope) => scope
             .Configure(configurer => {
                 var defaultBranchCaseArguments = configurer.ServiceProvider.GetDefaultBranchCase();
                 var activeBranchCaseArguments = configurer.ServiceProvider.GetActiveBranchCase();

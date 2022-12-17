@@ -89,16 +89,16 @@ namespace Vernuntii.Console
                 await _pluginExecutor.ExecuteAsync();
             }
 
-            _pluginEvents.Publish(LifecycleEvents.BeforeEveryRun);
+            _pluginEvents.FireEvent(LifecycleEvents.BeforeEveryRun);
 
             if (!_runOnce) {
                 _logger.LogTrace("Set command-line arguments");
-                _pluginEvents.Publish(CommandLineEvents.SetCommandLineArgs, ConsoleArgs);
+                _pluginEvents.FireEvent(CommandLineEvents.SetCommandLineArgs, ConsoleArgs);
 
                 ExitCode? shortCircuitExitCode = null;
-                using var invokedRootCommandSubscripion = _pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, exitCode => shortCircuitExitCode = (ExitCode)exitCode);
-                _pluginEvents.Publish(CommandLineEvents.ParseCommandLineArgs);
-                _pluginEvents.Publish(LoggingEvents.EnableLoggingInfrastructure);
+                using var invokedRootCommandSubscripion = _pluginEvents.OnNextEvent(CommandLineEvents.InvokedRootCommand, exitCode => shortCircuitExitCode = (ExitCode)exitCode);
+                _pluginEvents.FireEvent(CommandLineEvents.ParseCommandLineArgs);
+                _pluginEvents.FireEvent(LoggingEvents.EnableLoggingInfrastructure);
 
                 if (shortCircuitExitCode.HasValue) {
                     return shortCircuitExitCode;
@@ -106,8 +106,8 @@ namespace Vernuntii.Console
             }
 
             if (_runOnce) {
-                _pluginEvents.Publish(LifecycleEvents.BeforeNextRun);
-                _pluginEvents.Publish(VersionCacheCheckEvents.CheckVersionCache);
+                _pluginEvents.FireEvent(LifecycleEvents.BeforeNextRun);
+                _pluginEvents.FireEvent(VersionCacheCheckEvents.CheckVersionCache);
             }
 
             return null;
@@ -118,10 +118,10 @@ namespace Vernuntii.Console
             EnsureHavingPluginEvents();
 
             var exitCode = (int)ExitCode.NotExecuted;
-            using var exitCodeSubscription = _pluginEvents.SubscribeOnce(CommandLineEvents.InvokedRootCommand, i => exitCode = i);
+            using var exitCodeSubscription = _pluginEvents.OnNextEvent(CommandLineEvents.InvokedRootCommand, i => exitCode = i);
 
             _logger.LogTrace("Invoke command-line root command");
-            _pluginEvents.Publish(CommandLineEvents.InvokeRootCommand);
+            _pluginEvents.FireEvent(CommandLineEvents.InvokeRootCommand);
 
             if (exitCode == (int)ExitCode.NotExecuted) {
                 throw new InvalidOperationException("The command line was not running");
@@ -155,7 +155,7 @@ namespace Vernuntii.Console
             EnsureHavingPluginEvents();
             IVersionCache? versionCache = null;
 
-            _pluginEvents.SubscribeOnce(
+            _pluginEvents.OnNextEvent(
                 NextVersionEvents.CalculatedNextVersion,
                 calculatedVersionCache => versionCache = calculatedVersionCache);
 

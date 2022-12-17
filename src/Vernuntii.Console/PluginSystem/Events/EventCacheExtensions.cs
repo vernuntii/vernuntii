@@ -15,7 +15,7 @@ namespace Vernuntii.PluginSystem.Events
         /// <param name="uniqueEvent"></param>
         /// <param name="onNext"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
-        public static IDisposable Subscribe<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> uniqueEvent, Action<TPayload> onNext) =>
+        public static IDisposable OnEveryEvent<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> uniqueEvent, Action<TPayload> onNext) =>
             eventCache.GetEvent(uniqueEvent).Subscribe(onNext);
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace Vernuntii.PluginSystem.Events
         /// <param name="uniqueEvent"></param>
         /// <param name="onNext"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
-        public static IDisposable Subscribe(this IEventCache eventCache, SubjectEvent uniqueEvent, Action onNext) =>
+        public static IDisposable OnEveryEvent(this IEventCache eventCache, SubjectEvent uniqueEvent, Action onNext) =>
             eventCache.GetEvent(uniqueEvent).Subscribe(_ => onNext());
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Vernuntii.PluginSystem.Events
         /// <param name="onNext"></param>
         /// <param name="onNextCondition"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
-        public static IEventSubscription SubscribeOnce<TPayload>(
+        public static IEventSubscription OnNextEvent<TPayload>(
             this IEventCache eventCache,
             SubjectEvent<TPayload> uniqueEvent,
             Action<TPayload> onNext,
@@ -67,7 +67,7 @@ namespace Vernuntii.PluginSystem.Events
         /// <param name="onNext"></param>
         /// <param name="onNextCondition"></param>
         /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
-        public static IEventSubscription SubscribeOnce(
+        public static IEventSubscription OnNextEvent(
             this IEventCache eventCache,
             SubjectEvent uniqueEvent,
             Action onNext,
@@ -93,13 +93,13 @@ namespace Vernuntii.PluginSystem.Events
         /// Publishes an event.
         /// </summary>
         /// <typeparam name="TPayload"></typeparam>
-        public static void Publish<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> uniqueEvent, TPayload payload) =>
+        public static void FireEvent<TPayload>(this IEventCache eventCache, SubjectEvent<TPayload> uniqueEvent, TPayload payload) =>
             eventCache.GetEvent(uniqueEvent).Publish(payload);
 
         /// <summary>
         /// Publishes an event.
         /// </summary>
-        public static void Publish(this IEventCache eventCache, SubjectEvent uniqueEvent) =>
+        public static void FireEvent(this IEventCache eventCache, SubjectEvent uniqueEvent) =>
             eventCache.GetEvent(uniqueEvent).Publish();
     }
 }

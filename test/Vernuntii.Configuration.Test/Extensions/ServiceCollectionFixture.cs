@@ -51,7 +51,7 @@ namespace Vernuntii.Extensions
         }
 
         private static IBranchCasesProvider CreateBranchCasesProvider(IServiceCollection services) =>
-            services.BuildLifetimeScopedServiceProvider().CreateScope().ServiceProvider.GetRequiredService<IBranchCasesProvider>();
+            services.BuildServiceProvider().CreateScope().ServiceProvider.GetRequiredService<IBranchCasesProvider>();
 
         private static IServiceCollection CreateBranchCasesProviderServices(string directory, string fileName) =>
             ConfigureServiceCollection(

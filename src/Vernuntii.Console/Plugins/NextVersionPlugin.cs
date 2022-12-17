@@ -6,7 +6,6 @@ using System.Globalization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Vernuntii.Autofac;
 using Vernuntii.Console;
 using Vernuntii.Extensions;
 using Vernuntii.Git;
@@ -70,40 +69,26 @@ namespace Vernuntii.Plugins
         private VersionPresentationView _presentationView;
         private bool _emptyCaches;
 
-        private ILifetimeScopedServiceProvider _globalServiceProvider = null!;
+        private IGlobalServicesPlugin _globalServiceProvider;
 
         public NextVersionPlugin(
             SharedOptionsPlugin sharedOptions,
             IVersionCacheCheckPlugin versionCacheCheckPlugin,
             ICommandLinePlugin commandLine,
+            IGlobalServicesPlugin globalServiceProvider,
             ILogger<NextVersionPlugin> logger)
         {
             _sharedOptions = sharedOptions ?? throw new ArgumentNullException(nameof(sharedOptions));
             _versionCacheCheckPlugin = versionCacheCheckPlugin ?? throw new ArgumentNullException(nameof(versionCacheCheckPlugin));
-            _logger = logger;
             _commandLine = commandLine ?? throw new ArgumentNullException(nameof(commandLine));
+            _globalServiceProvider = globalServiceProvider ?? throw new ArgumentNullException(nameof(globalServiceProvider));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        private ILifetimeScopedServiceProvider CreateCalculationServiceProvider()
+        private IServiceScope CreateCalculationServiceProvider()
         {
-            var calculationServiceProvider = _globalServiceProvider.CreateScope(services => {
-                Events.Publish(NextVersionEvents.CreatedCalculationServices, services);
-
-                services.ScopeToVernuntii(features => features
-                    .AddVersionIncrementer()
-                    .AddVersionIncrementation(features => features
-                        .TryOverrideStartVersion(_configuration)));
-
-                if (_sharedOptions.ShouldOverrideVersioningMode) {
-                    services.ScopeToVernuntii(features => features
-                        .AddVersionIncrementation(features => features
-                            .UseVersioningMode(_sharedOptions.OverrideVersioningMode)));
-                }
-
-                Events.Publish(NextVersionEvents.ConfiguredCalculationServices, services);
-            });
-
-            Events.Publish(NextVersionEvents.CreatedCalculationServiceProvider, calculationServiceProvider);
+            var calculationServiceProvider = _globalServiceProvider.CreateScope();
+            Events.FireEvent(NextVersionEvents.CreatedScopedServiceProvider, calculationServiceProvider.ServiceProvider);
             return calculationServiceProvider;
         }
 
@@ -114,7 +99,8 @@ namespace Vernuntii.Plugins
             if (_versionCacheCheckPlugin.IsCacheUpToDate) {
                 versionCache = _versionCacheCheckPlugin.VersionCache;
             } else {
-                using var calculationServiceProvider = CreateCalculationServiceProvider();
+                using var calculationServiceProviderScope = CreateCalculationServiceProvider();
+                var calculationServiceProvider = calculationServiceProviderScope.ServiceProvider;
                 var repository = calculationServiceProvider.GetRequiredService<IRepository>();
                 var versionCalculation = calculationServiceProvider.GetRequiredService<IVersionIncrementation>();
                 var versionCacheManager = calculationServiceProvider.GetRequiredService<IVersionCacheManager>();
@@ -128,7 +114,7 @@ namespace Vernuntii.Plugins
                     newBranch);
             }
 
-            Events.Publish(NextVersionEvents.CalculatedNextVersion, versionCache);
+            Events.FireEvent(NextVersionEvents.CalculatedNextVersion, versionCache);
 
             var formattedVersion = new VersionPresentationStringBuilder(versionCache)
                 .UsePresentationKind(_presentationKind)
@@ -163,11 +149,11 @@ namespace Vernuntii.Plugins
             _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
 
             // Check version cache.
-            Events.Publish(VersionCacheCheckEvents.CreateVersionCacheManager);
-            Events.Publish(VersionCacheCheckEvents.CheckVersionCache);
+            Events.FireEvent(VersionCacheCheckEvents.CreateVersionCacheManager);
+            Events.FireEvent(VersionCacheCheckEvents.CheckVersionCache);
 
-            Events.Publish(ConfigurationEvents.CreateConfiguration);
-            Events.Publish(GlobalServicesEvents.CreateServiceProvider);
+            Events.FireEvent(ConfigurationEvents.CreateConfiguration);
+            Events.FireEvent(GlobalServicesEvents.CreateServiceProvider);
         }
 
         /// <inheritdoc/>
@@ -175,24 +161,30 @@ namespace Vernuntii.Plugins
         {
             OnConfigureCommandLine(_commandLine);
 
-            Events.Subscribe(LifecycleEvents.BeforeEveryRun, _loadingVersionStopwatch.Restart);
+            Events.OnEveryEvent(LifecycleEvents.BeforeEveryRun, _loadingVersionStopwatch.Restart);
 
-            Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, OnParsedCommandLine);
+            Events.OnNextEvent(CommandLineEvents.ParsedCommandLineArgs, OnParsedCommandLine);
 
-            Events.SubscribeOnce(
+            Events.OnNextEvent(
                 ConfigurationEvents.CreatedConfiguration,
                 configuration => _configuration = configuration);
 
-            Events.SubscribeOnce(
+            Events.OnNextEvent(
                 GlobalServicesEvents.ConfigureServices,
-                sp => {
-                    Events.Publish(NextVersionEvents.ConfigureGlobalServices, sp);
-                    Events.Publish(NextVersionEvents.ConfiguredGlobalServices, sp);
-                });
+                services => {
+                    Events.FireEvent(NextVersionEvents.ConfigureGlobalServices, services);
 
-            Events.SubscribeOnce(
-                GlobalServicesEvents.CreatedServiceProvider,
-                sp => _globalServiceProvider = sp);
+                    services.ScopeToVernuntii(features => features
+                        .AddVersionIncrementer()
+                        .AddVersionIncrementation(features => features
+                            .TryOverrideStartVersion(_configuration)));
+
+                    if (_sharedOptions.ShouldOverrideVersioningMode) {
+                        services.ScopeToVernuntii(features => features
+                            .AddVersionIncrementation(features => features
+                                .UseVersioningMode(_sharedOptions.OverrideVersioningMode)));
+                    }
+                });
         }
     }
 }

@@ -5,7 +5,6 @@ using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
 using System.Reflection;
-using Autofac.Core;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Console;
 using Vernuntii.Plugins.CommandLine;
@@ -46,7 +45,7 @@ namespace Vernuntii.Plugins
                             static void UnwrapError(ref Exception error)
                             {
                                 UnwrapError<TargetInvocationException>(ref error);
-                                UnwrapError<DependencyResolutionException>(ref error);
+                                //UnwrapError<DependencyResolutionException>(ref error);
 
                                 static void UnwrapError<T>(ref Exception error) where T : Exception
                                 {
@@ -140,9 +139,9 @@ namespace Vernuntii.Plugins
                 // This is the case when the help text is displayed or a
                 // parser exception occured but that's okay because we only
                 // want to inform about exit code.
-                Events.Publish(CommandLineEvents.InvokedRootCommand, exitCode);
+                Events.FireEvent(CommandLineEvents.InvokedRootCommand, exitCode);
             } else {
-                Events.Publish(CommandLineEvents.ParsedCommandLineArgs, _parseResult);
+                Events.FireEvent(CommandLineEvents.ParsedCommandLineArgs, _parseResult);
             }
         }
 
@@ -158,15 +157,15 @@ namespace Vernuntii.Plugins
 
             // This calls the middleware again.
             var exitCode = _parseResult.Invoke();
-            Events.Publish(CommandLineEvents.InvokedRootCommand, exitCode);
+            Events.FireEvent(CommandLineEvents.InvokedRootCommand, exitCode);
         }
 
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.SubscribeOnce(CommandLineEvents.SetCommandLineArgs, args => CommandLineArgs = args);
-            Events.SubscribeOnce(CommandLineEvents.ParseCommandLineArgs, ParseCommandLineArgs);
-            Events.Subscribe(CommandLineEvents.InvokeRootCommand, InvokeRootCommand);
+            Events.OnNextEvent(CommandLineEvents.SetCommandLineArgs, args => CommandLineArgs = args);
+            Events.OnNextEvent(CommandLineEvents.ParseCommandLineArgs, ParseCommandLineArgs);
+            Events.OnEveryEvent(CommandLineEvents.InvokeRootCommand, InvokeRootCommand);
         }
     }
 }

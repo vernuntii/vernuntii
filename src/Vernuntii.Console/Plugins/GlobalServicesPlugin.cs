@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Plugins.Events;
@@ -12,21 +12,10 @@ namespace Vernuntii.Plugins
     /// </summary>
     public class GlobalServicesPlugin : Plugin, IGlobalServicesPlugin
     {
-        /// <inheritdoc/>
-        public ServiceDescriptor this[int index] {
-            get => ((IList<ServiceDescriptor>)_services)[index];
-            set => ((IList<ServiceDescriptor>)_services)[index] = value;
-        }
-
-        /// <inheritdoc/>
-        public int Count => _services.Count;
-
-        /// <inheritdoc/>
-        public bool IsReadOnly => _services.IsReadOnly;
-
         private readonly IServiceCollection _services = new ServiceCollection();
         private readonly ILogger _logger;
         private readonly IVersionCacheCheckPlugin _cacheCheckPlugin;
+        private IServiceProvider? _serviceProvider;
 
         public GlobalServicesPlugin(IVersionCacheCheckPlugin cacheCheckPlugin, ILogger<GlobalServicesPlugin> logger)
         {
@@ -34,61 +23,31 @@ namespace Vernuntii.Plugins
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <inheritdoc/>
-        public void Add(ServiceDescriptor item) =>
-            _services.Add(item);
-
-        /// <inheritdoc/>
-        public void Clear() =>
-            _services.Clear();
-
-        /// <inheritdoc/>
-        public bool Contains(ServiceDescriptor item) =>
-            _services.Contains(item);
-
-        /// <inheritdoc/>
-        public void CopyTo(ServiceDescriptor[] array, int arrayIndex) =>
-            _services.CopyTo(array, arrayIndex);
-
-        /// <inheritdoc/>
-        public IEnumerator<ServiceDescriptor> GetEnumerator() =>
-            _services.GetEnumerator();
-
-        /// <inheritdoc/>
-        public int IndexOf(ServiceDescriptor item) =>
-            _services.IndexOf(item);
-
-        /// <inheritdoc/>
-        public void Insert(int index, ServiceDescriptor item) =>
-            _services.Insert(index, item);
-
-        /// <inheritdoc/>
-        public bool Remove(ServiceDescriptor item) =>
-            _services.Remove(item);
-
-        /// <inheritdoc/>
-        public void RemoveAt(int index) =>
-            _services.RemoveAt(index);
-
-        IEnumerator IEnumerable.GetEnumerator() =>
-            ((IEnumerable)_services).GetEnumerator();
-
         private void OnCreateServiceProvider()
         {
             var services = _services;
-            Events.Publish(GlobalServicesEvents.ConfigureServices, services);
-            var globalServices = AddDisposable(services.BuildLifetimeScopedServiceProvider());
+            Events.FireEvent(GlobalServicesEvents.ConfigureServices, services);
+            var globalServices = services.BuildServiceProvider();
+            AddDisposable(globalServices);
+            _serviceProvider = globalServices;
             _logger.LogTrace("Created global service provider");
-            Events.Publish(GlobalServicesEvents.CreatedServiceProvider, globalServices);
         }
 
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.SubscribeOnce(
+            Events.OnNextEvent(
                 GlobalServicesEvents.CreateServiceProvider,
                 _ => OnCreateServiceProvider(),
                 () => !_cacheCheckPlugin.IsCacheUpToDate);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private IServiceProvider GetServiceProvider() => _serviceProvider
+            ?? throw new InvalidOperationException($"To access the services, the event \"{nameof(GlobalServicesEvents.CreateServiceProvider)}\" of \"{nameof(GlobalServicesEvents)}\" must be called first");
+
+        /// <inheritdoc cref="IServiceProvider.GetService(Type)"/>
+        public object? GetService(Type serviceType) =>
+            GetServiceProvider().GetService(serviceType);
     }
 }

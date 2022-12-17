@@ -2,7 +2,6 @@
 using Microsoft.Collections.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Teronis;
 using Vernuntii.Git;
 using Vernuntii.Text.RegularExpressions;
 
@@ -24,20 +23,20 @@ namespace Vernuntii.Extensions.BranchCases
 
         public IBranchCase ActiveBranchCase {
             get {
-                SetMaybeBranchCaseArguments();
+                InitializeBranchCases();
                 return _activeBranchCaseArguments;
             }
         }
 
         public IBranchCase DefaultBranchCase {
             get {
-                SetMaybeBranchCaseArguments();
+                InitializeBranchCases();
                 return _defaultBranchCaseArguments;
             }
         }
 
-        private readonly IRepository _repository;
-        private readonly SlimLazy<BranchCasesOptions> _branchCasesOptions;
+        private readonly IBranchesAccessor _branchesAccessor;
+        private readonly IOptionsSnapshot<BranchCasesOptions> _branchCasesOptions;
         private readonly ILogger<BranchCasesProvider> _logger;
         private readonly Action<ILogger, string, Exception?> _logActiveBranchCase;
         private object? _lastActiveBranch;
@@ -46,8 +45,8 @@ namespace Vernuntii.Extensions.BranchCases
         private Dictionary<string, IBranchCase>? _nestedBranchCases;
 
         public BranchCasesProvider(
-            IRepository repository,
-            SlimLazy<IOptionsSnapshot<BranchCasesOptions>> branchCasesOptions,
+            IBranchesAccessor branchesAccessor,
+            IOptionsSnapshot<BranchCasesOptions> branchCasesOptions,
             ILogger<BranchCasesProvider> logger)
         {
             _logActiveBranchCase = LoggerMessage.Define<string>(
@@ -55,13 +54,13 @@ namespace Vernuntii.Extensions.BranchCases
                 new EventId(1),
                 "Selected branch case {IfBranch}");
 
-            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _branchesAccessor = branchesAccessor ?? throw new ArgumentNullException(nameof(branchesAccessor));
 
             if (branchCasesOptions is null) {
                 throw new ArgumentNullException(nameof(branchCasesOptions));
             }
 
-            _branchCasesOptions = new SlimLazy<BranchCasesOptions>(() => branchCasesOptions.Value.Value);
+            _branchCasesOptions = branchCasesOptions;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -71,10 +70,10 @@ namespace Vernuntii.Extensions.BranchCases
         [MemberNotNull(
             nameof(_defaultBranchCaseArguments),
             nameof(_activeBranchCaseArguments))]
-        private void SetMaybeBranchCaseArguments()
+        private void InitializeBranchCases()
         {
             var branchCases = _branchCasesOptions.Value.BranchCases;
-            var activeBranch = _repository.GetActiveBranch();
+            var activeBranch = _branchesAccessor.GetActiveBranch();
 
             if (Equals(_lastActiveBranch, activeBranch)
                 && _defaultBranchCaseArguments is not null
@@ -96,16 +95,16 @@ namespace Vernuntii.Extensions.BranchCases
                 } else {
                     // Returns null if not successful.
                     IBranch? GetBranchByExpandingName() => branchName switch {
-                        var x when x == null || x == "" => null,
+                        var x when string.IsNullOrEmpty(x) => null,
                         // Repository branch collection already supports regex
                         var x when RegexUtils.IsRegexPattern(x, out _) => null,
-                        var x => _repository.ExpandBranchName(x) switch {
-                            var y when y == null || y == "" => null,
-                            var y => _repository.Branches[y!]
+                        var x => _branchesAccessor.ExpandBranchName(x) switch {
+                            var y when string.IsNullOrEmpty(y) => null,
+                            var y => _branchesAccessor.Branches[y!]
                         }
                     };
 
-                    var branch = _repository.Branches[branchName] ?? GetBranchByExpandingName();
+                    var branch = _branchesAccessor.Branches[branchName] ?? GetBranchByExpandingName();
 
                     if (branch is null) {
                         continue;

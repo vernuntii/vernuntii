@@ -53,7 +53,7 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.Subscribe(_eventTemplate, services => {
+            Events.OnEveryEvent(_eventTemplate, services => {
                 foreach (var configureServices in _configureServicesActions) {
                     configureServices(services);
                 }

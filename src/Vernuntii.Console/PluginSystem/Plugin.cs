@@ -35,16 +35,36 @@ namespace Vernuntii.PluginSystem
 
         /// <summary>
         /// Adds a disposable that gets disposed when the plugin gets disposed.
-        /// If the plugin has been already disposed <paramref name="disposable"/>
-        /// gets immediatelly disposed.
         /// </summary>
         /// <param name="disposable"></param>
-        protected internal T AddDisposable<T>(T disposable)
-            where T : IDisposable
+        /// <exception cref="ObjectDisposedException"/>
+        protected internal void AddDisposable(IDisposable disposable)
         {
             ThrowIfDisposed();
             _disposables.Add(disposable);
-            return disposable;
+        }
+
+        /// <summary>
+        /// Adds a disposable that gets disposed when the plugin gets disposed.
+        /// </summary>
+        /// <param name="disposable"></param>
+        /// <exception cref="ObjectDisposedException"/>
+        protected internal void AddDisposable(IAsyncDisposable disposable)
+        {
+            ThrowIfDisposed();
+            _disposables.Add(disposable);
+        }
+
+        /// <summary>
+        /// Adds a disposable that gets disposed when the plugin gets disposed.
+        /// </summary>
+        /// <param name="disposable"></param>
+        /// <exception cref="ObjectDisposedException"/>
+        protected internal void AddDisposable<T>(T disposable)
+            where T : IDisposable, IAsyncDisposable
+        {
+            ThrowIfDisposed();
+            _disposables.Add(disposable);
         }
 
         /// <summary>

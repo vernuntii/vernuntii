@@ -84,7 +84,7 @@ namespace Vernuntii.Plugins
                 .AddConventionalYamlFileFinder()
                 .AddConventionalJsonFileFinder();
 
-            Events.SubscribeOnce(SharedOptionsEvents.ParsedCommandLineArgs, () => {
+            Events.OnNextEvent(SharedOptionsEvents.ParsedCommandLineArgs, () => {
                 var configPath = _sharedOptions.ConfigPath;
                 _logger.LogTrace("Search configuration file (Start = {ConfigPath})", configPath);
 
@@ -104,16 +104,16 @@ namespace Vernuntii.Plugins
                 }
 
                 _isConfigurationBuilderConfigured = true;
-                Events.Publish(ConfigurationEvents.ConfiguredConfigurationBuilder);
+                Events.FireEvent(ConfigurationEvents.ConfiguredConfigurationBuilder);
             });
 
-            Events.SubscribeOnce(
+            Events.OnNextEvent(
                 ConfigurationEvents.CreateConfiguration,
                 () => {
                     var configPathOrCurrentDirectory = _sharedOptions.ConfigPath ?? Directory.GetCurrentDirectory();
                     Configuration = configurationBuilder.Build();
                     _logger.LogInformation("Use configuration file: {ConfigurationFilePath}", _sharedOptions.ConfigPath);
-                    Events.Publish(ConfigurationEvents.CreatedConfiguration, Configuration);
+                    Events.FireEvent(ConfigurationEvents.CreatedConfiguration, Configuration);
                 },
                 () => !versionCacheCheckPlugin.IsCacheUpToDate);
         }

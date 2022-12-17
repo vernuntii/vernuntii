@@ -191,7 +191,7 @@ public class GitPlugin : Plugin, IGitPlugin
 
         _logger.LogInformation("Use repository directory: {_workingTreeDirectory}", resolvedWorkingTreeDirectory);
         _workingTreeDirectory = resolvedWorkingTreeDirectory;
-        Events.Publish(GitEvents.ResolvedGitWorkingTreeDirectory, resolvedWorkingTreeDirectory);
+        Events.FireEvent(GitEvents.ResolvedGitWorkingTreeDirectory, resolvedWorkingTreeDirectory);
 
         if (HavingAlternativeRepository()) {
             _gitCommand = _alternativeGitCommand;
@@ -199,27 +199,27 @@ public class GitPlugin : Plugin, IGitPlugin
             _gitCommand = new GitCommand(resolvedWorkingTreeDirectory);
         }
 
-        Events.Publish(GitEvents.CreatedGitCommand, _gitCommand);
+        Events.FireEvent(GitEvents.CreatedGitCommand, _gitCommand);
     }
 
     /// <inheritdoc/>
     protected override void OnExecution()
     {
-        _configuredConfigurationBuilderEventSignal = Events.SubscribeOnce(
+        _configuredConfigurationBuilderEventSignal = Events.OnNextEvent(
             ConfigurationEvents.ConfiguredConfigurationBuilder,
             OnAfterConfiguredConfigurationBuilder);
 
-        Events.SubscribeOnce(GlobalServicesEvents.ConfigureServices, services => services
+        Events.OnNextEvent(GlobalServicesEvents.ConfigureServices, services => services
             .AddOptions<RepositoryOptions>()
                 .Configure(options => options.GitCommandFactory = new GitCommandProvider(GitCommand)));
 
         Observable.CombineLatest(
                 Events.GetEvent(ConfigurationEvents.CreatedConfiguration).Take(1),
-                Events.GetEvent(NextVersionEvents.ConfiguredGlobalServices),
+                Events.GetEvent(NextVersionEvents.ConfigureGlobalServices),
                 (configuration, services) => (configuration, services))
             .Subscribe(result => {
                 var (configuration, services) = result;
-                Events.Publish(GitEvents.ConfiguringGlobalServices, services);
+                Events.FireEvent(GitEvents.ConfiguringGlobalServices, services);
 
                 if (HavingAlternativeRepository()) {
                     services.TryAddSingleton(_alternativeRepository);
@@ -233,18 +233,18 @@ public class GitPlugin : Plugin, IGitPlugin
                         })
                         .UseConfigurationDefaults(configuration)));
 
-                Events.Publish(GitEvents.ConfiguredGlobalServices, services);
+                Events.FireEvent(GitEvents.ConfiguredGlobalServices, services);
             });
 
         var firstCommandLineParseResult = Events.GetEvent(CommandLineEvents.ParsedCommandLineArgs);
 
         Observable.CombineLatest(
                 firstCommandLineParseResult.Select(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)),
-                Events.GetEvent(NextVersionEvents.ConfiguredCalculationServices),
+                Events.GetEvent(NextVersionEvents.ConfigureGlobalServices),
                 (overridePostPreRelease, services) => (overridePostPreRelease, services))
             .Subscribe(result => {
                 var (overridePostPreRelease, services) = result;
-                Events.Publish(GitEvents.ConfiguringCalculationServices, services);
+                Events.FireEvent(GitEvents.ConfiguringCalculationServices, services);
 
                 services.ScopeToVernuntii(features => features
                     .ScopeToGit(git => git
@@ -265,10 +265,10 @@ public class GitPlugin : Plugin, IGitPlugin
                                 .SetPostPreRelease(overridePostPreRelease))));
                 }
 
-                Events.Publish(GitEvents.ConfiguredCalculationServices, services);
+                Events.FireEvent(GitEvents.ConfiguredCalculationServices, services);
             });
 
-        var eachRepository = Events.GetEvent(NextVersionEvents.CreatedCalculationServiceProvider).Select(sp => sp.GetRequiredService<IRepository>());
+        var eachRepository = Events.GetEvent(NextVersionEvents.CreatedScopedServiceProvider).Select(sp => sp.GetRequiredService<IRepository>());
 
         // Sets the exit code to indicate version duplicate in case of version duplicate
         Observable.CombineLatest(

@@ -85,15 +85,15 @@ namespace Vernuntii.Plugins
             _commandLinePlugin.RootCommand.Add(_overrideVersioningModeOption);
             _commandLinePlugin.RootCommand.Add(_configPathOption);
 
-            Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult => {
-                Events.Publish(SharedOptionsEvents.ParseCommandLineArgs);
+            Events.OnNextEvent(CommandLineEvents.ParsedCommandLineArgs, parseResult => {
+                Events.FireEvent(SharedOptionsEvents.ParseCommandLineArgs);
 
                 // Parse options.
                 _overrideVersioningMode = parseResult.GetValueForOption(_overrideVersioningModeOption);
                 _configPath = parseResult.GetValueForOption(_configPathOption);
 
                 _areCommandLineArgsParsed = true;
-                Events.Publish(SharedOptionsEvents.ParsedCommandLineArgs);
+                Events.FireEvent(SharedOptionsEvents.ParsedCommandLineArgs);
             });
         }
     }

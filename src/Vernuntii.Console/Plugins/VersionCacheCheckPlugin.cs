@@ -70,7 +70,7 @@ namespace Vernuntii.Plugins
 
             _versionHashFile = new VersionHashFile(new VersionHashFileOptions(gitDirectory, _configFile), _versionCacheManager, versionCacheDirectory, _logger);
 
-            Events.Publish(VersionCacheCheckEvents.CreatedVersionCacheManager, _versionCacheManager);
+            Events.FireEvent(VersionCacheCheckEvents.CreatedVersionCacheManager, _versionCacheManager);
         }
 
         private void EnsureHavingVersionChecked()
@@ -87,28 +87,28 @@ namespace Vernuntii.Plugins
             }
 
             _isVersionChecked = true;
-            Events.Publish(VersionCacheCheckEvents.CheckedVersionCache);
+            Events.FireEvent(VersionCacheCheckEvents.CheckedVersionCache);
         }
 
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.SubscribeOnce(
+            Events.OnNextEvent(
                 ConfigurationEvents.ConfiguredConfigurationBuilder,
                 () => _configFile = _configurationPlugin.ConfigFile);
 
-            Events.SubscribeOnce(
+            Events.OnNextEvent(
                 GitEvents.CreatedGitCommand,
                 gitCommand => _gitCommand = gitCommand);
 
-            Events.SubscribeOnce(VersionCacheCheckEvents.CreateVersionCacheManager,
+            Events.OnNextEvent(VersionCacheCheckEvents.CreateVersionCacheManager,
                 OnCreateVersionCacheManager);
 
-            Events.SubscribeOnce(
+            Events.OnNextEvent(
                 VersionCacheCheckEvents.CheckVersionCache,
                 OnVersionCacheCheck);
 
-            Events.SubscribeOnce(GlobalServicesEvents.ConfigureServices,
+            Events.OnNextEvent(GlobalServicesEvents.ConfigureServices,
                 services => services.AddSingleton<IVersionCacheManager>(_versionCacheManager));
         }
     }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Vernuntii.Autofac;
 using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Plugins.Events
@@ -24,6 +23,6 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// The event is called when the service provider has been created.
         /// </summary>
-        public static readonly SubjectEvent<ILifetimeScopedServiceProvider> CreatedServiceProvider = new();
+        public static readonly SubjectEvent<IServiceProvider> CreatedServiceProvider = new();
     }
 }

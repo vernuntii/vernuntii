@@ -12,7 +12,7 @@ namespace Vernuntii.Extensions.BranchCases
     /// </summary>
     public static class GitServicesScopeExtensions
     {
-        private static BranchCase CreateBranchCaseArguments(IConfiguration configuration, Action<IBranchCase>? configureBranchCase)
+        private static BranchCase CreateBranchCase(IConfiguration configuration, Action<IBranchCase>? configureBranchCase)
         {
             var branchCaseArguments = new BranchCase();
             configuration.Bind(branchCaseArguments);
@@ -35,7 +35,7 @@ namespace Vernuntii.Extensions.BranchCases
             scope.Services.TryAddSingleton<IConfiguredVersionIncrementFlowFactory, ConfiguredVersionIncrementFlowFactory>();
             scope.Services.TryAddSingleton<IConfiguredMessageConventionFactory, ConfiguredMessageConventionFactory>();
             scope.Services.TryAddSingleton<IConfiguredVersioningPresetFactory, ConfiguredVersioningPresetFactory>();
-            return scope.AddBranchCases(branchCaseSections.Select(configuration => CreateBranchCaseArguments(configuration, configureBranchCase)));
+            return scope.AddBranchCases(branchCaseSections.Select(configuration => CreateBranchCase(configuration, configureBranchCase)));
         }
 
         /// <summary>

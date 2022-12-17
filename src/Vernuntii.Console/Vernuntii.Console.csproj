@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Vernuntii.Autofac\Vernuntii.Autofac.csproj" />
     <ProjectReference Include="..\Vernuntii.Configuration\Vernuntii.Configuration.csproj" />
     <ProjectReference Include="..\Vernuntii.Git\Vernuntii.Git.csproj" />
     <ProjectReference Include="..\Vernuntii.Calculator\Vernuntii.Calculator.csproj" />

@@ -143,7 +143,7 @@ namespace Vernuntii.Plugins
         {
             ReconfigureLoggingInfrastructure();
 
-            Events.Publish(LoggingEvents.EnabledLoggingInfrastructure, this);
+            Events.FireEvent(LoggingEvents.EnabledLoggingInfrastructure, this);
 
             if (_enabledLoggingInfrastructureEvent != null) {
                 _enabledLoggingInfrastructureEvent.Invoke(this);
@@ -162,11 +162,11 @@ namespace Vernuntii.Plugins
             // We need to lazy load, because command line plugin has dependency on this plugin
             _pluginRegistry.GetPlugin<ICommandLinePlugin>().RootCommand.Add(verbosityOption);
 
-            Events.SubscribeOnce(CommandLineEvents.ParsedCommandLineArgs, parseResult =>
+            Events.OnNextEvent(CommandLineEvents.ParsedCommandLineArgs, parseResult =>
                 _verbosity = parseResult.GetValueForOption(verbosityOption));
 
-            Events.SubscribeOnce(LoggingEvents.EnableLoggingInfrastructure, EnableLoggingInfrastructure);
-            Events.SubscribeOnce(GlobalServicesEvents.ConfigureServices, sp => sp.AddLogging(Bind));
+            Events.OnNextEvent(LoggingEvents.EnableLoggingInfrastructure, EnableLoggingInfrastructure);
+            Events.OnNextEvent(GlobalServicesEvents.ConfigureServices, sp => sp.AddLogging(Bind));
         }
 
         /// <inheritdoc/>
