@@ -23,7 +23,7 @@ namespace Vernuntii.VersionCaching
         /// Checks if cache expired since creation.
         /// </summary>
         /// <param name="versionCache"></param>
-        private bool IsCacheExpiredSinceCreation([NotNullWhen(true)] IExpirableVersionCache? versionCache) =>
+        private static bool IsCacheExpiredSinceCreation([NotNullWhen(true)] IExpirableVersionCache? versionCache) =>
             versionCache != null
             && versionCache.ExpirationTime != null && IsExpiredSinceCreation(versionCache.ExpirationTime.Value);
 
@@ -33,12 +33,16 @@ namespace Vernuntii.VersionCaching
         /// <param name="versionCache"></param>
         /// <param name="useLastAccessRetentionTime"></param>
         /// <param name="lastAccessRetentionTime"></param>
-        private bool IsCacheExpiredSinceLastAccess(
-            [NotNullWhen(true)] IExpirableVersionCache? versionCache,
+        private static bool IsCacheExpiredSinceLastAccess(
+            IExpirableVersionCache versionCache,
             bool useLastAccessRetentionTime,
             TimeSpan? lastAccessRetentionTime) =>
-            versionCache != null
-            && useLastAccessRetentionTime && IsExpiredSinceLastAccess(versionCache.LastAccessTime, lastAccessRetentionTime);
+            useLastAccessRetentionTime && IsExpiredSinceLastAccess(versionCache.LastAccessTime, lastAccessRetentionTime);
+
+        private static bool IsCacheDueToMismatchingVersions(
+            IExpirableVersionCache versionCache,
+            ISemanticVersion? comparableVersion) =>
+            comparableVersion != null && !SemanticVersionComparer.VersionReleaseBuild.Equals(comparableVersion, versionCache.Version);
 
         /// <inheritdoc/>
         public bool IsRecacheRequired(
@@ -54,8 +58,8 @@ namespace Vernuntii.VersionCaching
                 recacheReason = "Expiration time";
             } else if (IsCacheExpiredSinceLastAccess(versionCache, useLastAccessRetentionTime, lastAccessRetentionTime)) {
                 recacheReason = "Last access time";
-            } else if (!SemanticVersionComparer.VersionReleaseBuild.Equals(comparableVersion, versionCache.Version)) {
-                recacheReason = "Version change";
+            } else if (IsCacheDueToMismatchingVersions(versionCache, comparableVersion)) {
+                recacheReason = "Version mismatch";
             } else {
                 recacheReason = null;
             }
