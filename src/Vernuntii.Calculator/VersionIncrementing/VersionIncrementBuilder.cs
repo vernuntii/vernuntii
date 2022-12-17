@@ -46,22 +46,22 @@ namespace Vernuntii.VersionIncrementing
             var allowUnlimitedIncrements = incrementMode == VersionIncrementMode.Successive;
             var skipVersionCoreIncrementationDueToPreReleaseAdaption = false;
 
-            if (context.IsStartVersionPreReleaseAlternating) {
-                yield return context.PostVersionPreReleaseTransformer;
+            if (context.IsPreReleaseAdaptionOfStartVersionCoreEquivalentCurrentVersionRequired && !startVersionCoreAlreadyReleased && context.StartVersion.IsPreRelease) {
+                if (isMessageIncrementingMajor && context.IsRightSideOfMajorOfCurrentVersionCoreZeroed) {
+                    skipVersionCoreIncrementationDueToPreReleaseAdaption = true;
+                }
 
-                if (!startVersionCoreAlreadyReleased && context.StartVersion.IsPreRelease) {
-                    if (isMessageIncrementingMajor && context.IsRightSideOfMajorOfCurrentVersionCoreZeroed) {
-                        skipVersionCoreIncrementationDueToPreReleaseAdaption = true;
-                    }
+                if (isMessageIncrementingMinor && context.IsRightSideOfMinorOfCurrentVersionCoreZeroed) {
+                    skipVersionCoreIncrementationDueToPreReleaseAdaption = true;
+                }
 
-                    if (isMessageIncrementingMinor && context.IsRightSideOfMinorOfCurrentVersionCoreZeroed) {
-                        skipVersionCoreIncrementationDueToPreReleaseAdaption = true;
-                    }
+                if (isMessageIncrementingPatch) {
+                    skipVersionCoreIncrementationDueToPreReleaseAdaption = true;
+                }
 
-                    if (isMessageIncrementingPatch) {
-                        skipVersionCoreIncrementationDueToPreReleaseAdaption = true;
-                    }
-                } // else: the version core has been already released, so we cannot use it again
+                if (skipVersionCoreIncrementationDueToPreReleaseAdaption) {
+                    yield return context.PostVersionPreReleaseTransformer;
+                }
             }
 
             if (incrementMode != VersionIncrementMode.None && !skipVersionCoreIncrementationDueToPreReleaseAdaption) {

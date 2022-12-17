@@ -181,21 +181,16 @@ namespace Vernuntii.Plugins
         public void Bind(ILoggingBuilder builder) => _loggerBinder(builder);
 
         /// <inheritdoc/>
+        public void AddProvider(ILoggerProvider provider) =>
+            _loggerFactory.AddProvider(provider);
+
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
-            if (!disposing) {
-                return;
-            }
-
+            _loggingConfiguration.LogFactory.Flush();
             _loggingConfiguration.LogFactory.Shutdown();
             _loggerFactory.Dispose();
         }
-        /// <inheritdoc/>
-
-        public void AddProvider(ILoggerProvider provider) =>
-            _loggerFactory.AddProvider(provider);
 
         private class BlockTarget : WrapperTargetBase
         {

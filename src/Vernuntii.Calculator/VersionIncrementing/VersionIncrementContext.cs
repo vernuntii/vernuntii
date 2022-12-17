@@ -43,7 +43,7 @@ namespace Vernuntii.VersionIncrementing
 
             init {
                 _currentVersion = value;
-                ResetCurrentVersionContainingInformations();
+                ResetCurrentVersionDerivedInformations();
             }
         }
 
@@ -85,7 +85,7 @@ namespace Vernuntii.VersionIncrementing
         /// Current version is equivalent to "major.minor.0".
         /// </summary>
         public bool IsRightSideOfMinorOfCurrentVersionCoreZeroed =>
-            CurrentVersion.Minor == 0 && CurrentVersion.Patch == 0;
+            CurrentVersion.Patch == 0;
 
         /// <summary>
         /// The height identifier transformer.
@@ -113,11 +113,29 @@ namespace Vernuntii.VersionIncrementing
         /// </summary>
         internal bool IsVersionDownstreamFlowed { get; set; }
 
-        internal bool? IsCurrentVersionPreReleaseAlreadyAdapted { get; }
+        /// <summary>
+        /// <see langword="null"/> means, pre-release is not adaptable.
+        /// </summary>
+        internal bool? IsPreReleaseOfCurrentVersionAdapted =>
+            GetOrCalculateWhetherPreReleaseOfCurrentVersionIsAdapted();
 
-        private bool? IsCurrentVersionEquivalentToStartVersion => !IsCurrentVersionPreReleaseAlreadyAdapted.HasValue
-            ? null // Won't be ever release
-            : IsCurrentVersionPreReleaseAlreadyAdapted.Value && SemanticVersionComparer.Version.Equals(CurrentVersion, StartVersion);
+        [MemberNotNullWhen(true, nameof(PostVersionPreReleaseTransformer))]
+        internal bool IsPreReleaseAdaptionOfCurrentVersionRequired =>
+            IsPreReleaseOfCurrentVersionAdapted == false;
+
+        /// <summary>
+        /// <see langword="null"/> means, pre-release is not adaptable.
+        /// </summary>
+        internal bool? IsPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted =>
+            GetOrCalculateWhetherPreReleaseOfStartVersionCoreEquivalentCurrentVersionIsAdapted();
+
+        [MemberNotNullWhen(true, nameof(PostVersionPreReleaseTransformer))]
+        internal bool IsPreReleaseAdaptionOfStartVersionCoreEquivalentCurrentVersionRequired =>
+            IsPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted == false;
+
+        private bool? IsCurrentVersionEquivalentToStartVersionAfterPreReleaseAdaption => IsPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted == true
+            ? SemanticVersionComparer.Version.Equals(CurrentVersion, StartVersion)
+            : null; // Won't be ever release;
 
         /// <summary>
         /// The options of on-going calculation.
@@ -130,6 +148,8 @@ namespace Vernuntii.VersionIncrementing
         private VersionHeightInformations? _doesCurrentVersionContainsHeightIncrement;
         private bool? _canFlowDownstreamMajor;
         private bool? _canFlowDownstreamMinor;
+        private bool? _isPreReleaseOfCurrentVersionAdapted;
+        private bool? _isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted;
 
         /// <summary>
         /// Creates an instance of this type.
@@ -139,19 +159,21 @@ namespace Vernuntii.VersionIncrementing
         {
             _incremenationOptions = versionCalculationOptions;
 
-            IsStartVersionPreReleaseAlternating = !_incremenationOptions.IsPostTransformerUsable
-                ? false
-                : _incremenationOptions.PostTransformer.IsTransformationResultingIntoPreRelease != StartVersion.IsPreRelease
+            IsStartVersionPreReleaseAlternating = _incremenationOptions.IsPostTransformerUsable
+                ? _incremenationOptions.PostTransformer.IsTransformationResultingIntoPreRelease != StartVersion.IsPreRelease
+                    // Or, the start version and prospective post transfromer indicates both a pre-release and ..
                     || (_incremenationOptions.PostTransformer.IsTransformationResultingIntoPreRelease && StartVersion.IsPreRelease
-                        // True if the pre-release of start version does not start with prospective pre-release
-                        && !_incremenationOptions.PostTransformer.StartsWithProspectivePreRelease(StartVersion.PreReleaseIdentifiers));
-
-            IsCurrentVersionPreReleaseAlreadyAdapted = IsStartVersionPreReleaseAlternating
-                // First current version can never be adapted
-                ? null
-                // Current version is not adaptable
+                        // .. the start version pre-release does not start with prospective pre-release
+                        && !_incremenationOptions.PostTransformer.StartsWithProspectivePreRelease(StartVersion.PreReleaseIdentifiers))
                 : false;
 
+            _isPreReleaseOfCurrentVersionAdapted = IsStartVersionPreReleaseAlternating
+                // First current version can never be adapted
+                ? false
+                // Current version is not adaptable
+                : null;
+
+            _isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted = _isPreReleaseOfCurrentVersionAdapted;
             HeightIdentifierTransformer = versionCalculationOptions.CreateHeightIdentifierTransformer();
         }
 
@@ -162,12 +184,10 @@ namespace Vernuntii.VersionIncrementing
         public VersionIncrementContext(VersionIncrementContext context)
         {
             _incremenationOptions = context._incremenationOptions;
-            IsStartVersionPreReleaseAlternating = context.IsStartVersionPreReleaseAlternating;
 
-            IsCurrentVersionPreReleaseAlreadyAdapted = !context.IsCurrentVersionPreReleaseAlreadyAdapted.HasValue
-                // Current version is still not adaptable
-                ? null
-                : context.IsCurrentVersionPreReleaseAlreadyAdapted ?? PostVersionPreReleaseTransformer!.StartsWithProspectivePreRelease(StartVersion.PreReleaseIdentifiers);
+            IsStartVersionPreReleaseAlternating = context.IsStartVersionPreReleaseAlternating;
+            _isPreReleaseOfCurrentVersionAdapted = context._isPreReleaseOfCurrentVersionAdapted;
+            _isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted = context._isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted;
 
             HeightIdentifierTransformer = context.HeightIdentifierTransformer;
             _currentVersion = context.CurrentVersion;
@@ -178,19 +198,19 @@ namespace Vernuntii.VersionIncrementing
         }
 
         private bool CurrentVersionContainsMajorIncrement() =>
-            (IsCurrentVersionEquivalentToStartVersion.GetValueOrDefault(false)
+            (IsCurrentVersionEquivalentToStartVersionAfterPreReleaseAdaption == true
                 && IsRightSideOfMajorOfCurrentVersionCoreZeroed)
             || CurrentVersion.Major > _incremenationOptions.StartVersion.Major;
 
         private bool CurrentVersionContainsMinorIncrement() =>
-            (IsCurrentVersionEquivalentToStartVersion.GetValueOrDefault(false)
+            (IsCurrentVersionEquivalentToStartVersionAfterPreReleaseAdaption == true
                 && IsRightSideOfMinorOfCurrentVersionCoreZeroed)
             || DoesCurrentVersionContainsMajorIncrement
             || CurrentVersion.Major == _incremenationOptions.StartVersion.Major
                 && CurrentVersion.Minor > _incremenationOptions.StartVersion.Minor;
 
         private bool CurrentVersionContainsPatchIncrement() =>
-            IsCurrentVersionEquivalentToStartVersion.GetValueOrDefault(false)
+            IsCurrentVersionEquivalentToStartVersionAfterPreReleaseAdaption == true
             || DoesCurrentVersionContainsMajorIncrement
             || DoesCurrentVersionContainsMinorIncrement
             || CurrentVersion.Major == _incremenationOptions.StartVersion.Major
@@ -212,7 +232,55 @@ namespace Vernuntii.VersionIncrementing
             return new VersionHeightInformations(currentVersionTransformResult, currentVersionHeight, currentVersionContainsHeightIncrement);
         }
 
-        private void ResetCurrentVersionContainingInformations()
+        private bool? GetOrCalculateWhetherPreReleaseOfCurrentVersionIsAdapted()
+        {
+            var isPreReleaseOfCurrentVersionAlreadyAdapted = _isPreReleaseOfCurrentVersionAdapted;
+
+            if (isPreReleaseOfCurrentVersionAlreadyAdapted.GetValueOrDefault(true)) {
+                // Null or true
+                return isPreReleaseOfCurrentVersionAlreadyAdapted;
+            }
+
+            bool isCurrentVersionPreReleaseAdapted;
+
+            if (PostVersionPreReleaseTransformer!.StartsWithProspectivePreRelease(CurrentVersion.PreReleaseIdentifiers)) {
+                isCurrentVersionPreReleaseAdapted = true;
+            } else {
+                isCurrentVersionPreReleaseAdapted = false;
+            }
+
+            if (isPreReleaseOfCurrentVersionAlreadyAdapted != isCurrentVersionPreReleaseAdapted) {
+                _isPreReleaseOfCurrentVersionAdapted = isCurrentVersionPreReleaseAdapted;
+            }
+
+            return isCurrentVersionPreReleaseAdapted;
+        }
+
+        private bool? GetOrCalculateWhetherPreReleaseOfStartVersionCoreEquivalentCurrentVersionIsAdapted()
+        {
+            var isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAlreadyAdapted = _isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted;
+
+            if (isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAlreadyAdapted.GetValueOrDefault(true)) {
+                // Null or true
+                return isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAlreadyAdapted;
+            }
+
+            bool? isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted;
+
+            if (!SemanticVersionComparer.Version.Equals(CurrentVersion, StartVersion)) {
+                isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted = null;
+            } else {
+                isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted = IsPreReleaseOfCurrentVersionAdapted;
+            }
+
+            if (isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAlreadyAdapted != isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted) {
+                _isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted = isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted;
+            }
+
+            return isPreReleaseOfStartVersionCoreEquivalentCurrentVersionAdapted;
+        }
+
+        private void ResetCurrentVersionDerivedInformations()
         {
             _doesCurrentVersionContainsMajorIncrement = null;
             _doesCurrentVersionContainsMinorIncrement = null;

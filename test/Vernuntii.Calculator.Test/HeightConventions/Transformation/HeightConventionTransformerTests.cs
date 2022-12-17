@@ -7,7 +7,7 @@ namespace Vernuntii.HeightConventions.Transformation
     public class HeightConventionTransformerTests
     {
         [Fact]
-        public void TransformThrowsBecauseHeightPositionNoneNotExisting()
+        public void Transform_throws_because_HeightIdentifierPosition_None_does_not_exist()
         {
             Mock<IHeightPlaceholderParser> placeholderParserMock = new();
             var heightConvention = Mock.Of<IHeightConvention>(x => x.Position == HeightIdentifierPosition.None);
@@ -18,7 +18,7 @@ namespace Vernuntii.HeightConventions.Transformation
         }
 
         [Fact]
-        public void TransformThrowsBecauseNotExistingDotRule()
+        public void Transform_throws_due_to_zero_dot_rules()
         {
             Mock<IHeightPlaceholderParser> placeholderParserMock = new();
 
@@ -39,7 +39,7 @@ namespace Vernuntii.HeightConventions.Transformation
         [Theory]
         [InlineData(new object[] { "{y}." })]
         [InlineData(new object[] { ".{y}" })]
-        public void TransformThrowsBecauseMoreThanOneEmptyIdentifier(string template)
+        public void Transform_throws_because_dot_position_before_template_is_empty(string template)
         {
             Mock<IHeightPlaceholderParser> placeholderParserMock = new();
 
@@ -60,7 +60,7 @@ namespace Vernuntii.HeightConventions.Transformation
         }
 
         [Fact]
-        public void TransformDoesTemplateOnlyHeight()
+        public void Transform_does_only_transform_first_position_of_pre_release()
         {
             Mock<IHeightPlaceholderParser> placeholderParserMock = new();
 

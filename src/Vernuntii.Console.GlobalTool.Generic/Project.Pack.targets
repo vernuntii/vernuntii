@@ -20,7 +20,7 @@
       <_VernuntiiMSBuildInfos Include="$(VernuntiiConsoleMSBuildPackageVersionFile)">
         <PackageVersion>%(_VernuntiiMSBuildPathWithVersion.ProjectVersion)</PackageVersion>
       </_VernuntiiMSBuildInfos>
-
+  
       <_VernuntiiMSBuildInfos Include="$(VernuntiiConsoleMSBuildOrphanPackageVersionFile)">
         <PackageVersion>%(_VernuntiiMSBuildOrphanPathWithVersion.ProjectVersion)</PackageVersion>
       </_VernuntiiMSBuildInfos>

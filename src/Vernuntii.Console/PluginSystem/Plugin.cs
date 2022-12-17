@@ -1,4 +1,5 @@
-﻿using Vernuntii.PluginSystem.Events;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.PluginSystem
 {
@@ -10,6 +11,7 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// If <see langword="true"/> the plugin is disposed.
         /// </summary>
+        [MemberNotNullWhen(false, nameof(_disposables))]
         public bool IsDisposed => _isDisposed != 0;
 
         private int _isDisposed;
@@ -21,7 +23,15 @@ namespace Vernuntii.PluginSystem
             _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnExecution)} was not called yet");
 
         private IPluginEventCache? _eventAggregator;
-        private readonly List<IDisposable> _disposables = new();
+        private IList<object>? _disposables = new List<object>();
+
+        [MemberNotNull(nameof(_disposables))]
+        private void ThrowIfDisposed()
+        {
+            if (IsDisposed) {
+                throw new ObjectDisposedException("The object has been disposed");
+            }
+        }
 
         /// <summary>
         /// Adds a disposable that gets disposed when the plugin gets disposed.
@@ -32,12 +42,8 @@ namespace Vernuntii.PluginSystem
         protected internal T AddDisposable<T>(T disposable)
             where T : IDisposable
         {
-            if (IsDisposed) {
-                disposable.Dispose();
-            } else {
-                _disposables.Add(disposable);
-            }
-
+            ThrowIfDisposed();
+            _disposables.Add(disposable);
             return disposable;
         }
 
@@ -61,31 +67,42 @@ namespace Vernuntii.PluginSystem
             return OnExecutionAsync();
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
+        /// <inheritdoc cref="DisposeAsync"/>
+        protected virtual ValueTask DisposeAsyncCore() =>
+            ValueTask.CompletedTask;
+
+        /// <inheritdoc cref="IDisposable.Dispose"/>
         /// <param name="disposing">True disposes managed state (managed objects).</param>
         protected virtual void Dispose(bool disposing)
         {
-
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
+        private async ValueTask DisposePluginDisposablesAsync(bool synchronously)
+        {
+            var disposables = _disposables;
+
+            if (Interlocked.CompareExchange(ref _disposables, null, disposables) != null) {
+                foreach (var untypedDisposable in disposables!) {
+                    // Prefer asynchronous dispose over synchronous dispose
+                    if (!synchronously && untypedDisposable is IAsyncDisposable asyncDisposable) {
+                        await asyncDisposable.DisposeAsync();
+                        continue;
+                    }
+
+                    // If asynchronous and not async-disposable then fallback to synchronous dispose
+                    if (untypedDisposable is IDisposable disposable) {
+                        disposable.Dispose();
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc cref="IDisposable.Dispose"/>
         /// <param name="disposing">True disposes managed state (managed objects).</param>
-        protected virtual void DisposeCore(bool disposing)
+        private void DisposeOnce(bool disposing)
         {
             if (Interlocked.CompareExchange(ref _isDisposed, 1, 0) != 0) {
                 return;
-            }
-
-            if (!disposing) {
-                return;
-            }
-
-            foreach (var disposable in _disposables) {
-                disposable.Dispose();
             }
 
             Dispose(disposing);
@@ -94,18 +111,20 @@ namespace Vernuntii.PluginSystem
         /// <inheritdoc/>
         public void Dispose()
         {
-            Dispose(disposing: true);
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+            DisposePluginDisposablesAsync(synchronously: true).GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+            DisposeOnce(disposing: true);
             GC.SuppressFinalize(this);
         }
 
         /// <inheritdoc/>
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
-            Dispose(disposing: false);
-#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
+            await DisposeAsyncCore().ConfigureAwait(false);
+            await DisposePluginDisposablesAsync(synchronously: false);
+            DisposeOnce(disposing: false);
             GC.SuppressFinalize(this);
-#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
-            return ValueTask.CompletedTask;
         }
     }
 }

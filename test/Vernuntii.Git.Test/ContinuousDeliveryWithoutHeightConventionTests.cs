@@ -78,7 +78,9 @@ public class ContinuousDeliveryWithoutHeightConventionTests
             PostPreRelease = "beta",
         });
 
-        testSuite.Commits.AddEmptyCommit(SemanticVersion.OnePatch.With.PreRelease("alpha").ToVersion(out var last));
+        testSuite.Commits
+            .AddEmptyCommit(SemanticVersion.OnePatch.With.PreRelease("alpha").ToVersion(out var last))
+            .AddEmptyCommit();
 
         var nextVersion = testSuite.GetIncrementedVersion();
         nextVersion.Should().Be(last.PreRelease("beta").ToVersion());
