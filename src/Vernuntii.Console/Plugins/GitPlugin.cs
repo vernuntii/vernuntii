@@ -160,7 +160,6 @@ public class GitPlugin : Plugin, IGitPlugin
             .WithLatestFrom(eachCommandLineParseResult.Select(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)))
             .WithLatestFrom(Events.GetEvent(ConfigurationEvents.CreatedConfiguration))
             .Subscribe(result => {
-                // TODO: move above configuration stuff here
                 var ((services, overridePostPreRelease), configuration) = result;
                 Events.FireEvent(GitEvents.ConfiguringGlobalServices, services);
 

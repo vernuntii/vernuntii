@@ -12,8 +12,8 @@ namespace Vernuntii.Extensions
     /// </summary>
     public static class VersionIncrementationFeaturesExtensions
     {
-        private static void SetMessagesProviderFromServiceProvider(IVersionIncrementationServicesScope features) =>
-            features.ConfigureOptions(options => options
+        private static void SetMessagesProviderFromServiceProvider(IVersionIncrementationServicesScope scope) =>
+            scope.ConfigureOptions(options => options
                 .Configure<IMessagesProvider>((options, messagesProvider) => options.MessagesProvider = messagesProvider));
 
         /// <summary>
@@ -40,13 +40,13 @@ namespace Vernuntii.Extensions
         /// Uses a messages provider.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="extensions"></param>
-        public static IVersionIncrementationServicesScope UseMessagesProvider<T>(this IVersionIncrementationServicesScope extensions)
+        /// <param name="scope"></param>
+        public static IVersionIncrementationServicesScope UseMessagesProvider<T>(this IVersionIncrementationServicesScope scope)
             where T : class, IMessagesProvider
         {
-            extensions.Services.TryAddSingleton<IMessagesProvider, T>();
-            SetMessagesProviderFromServiceProvider(extensions);
-            return extensions;
+            scope.Services.TryAddScoped<IMessagesProvider, T>();
+            SetMessagesProviderFromServiceProvider(scope);
+            return scope;
         }
 
         /// <summary>
@@ -96,18 +96,18 @@ namespace Vernuntii.Extensions
         /// It looks for the key <see cref="CalculatorConfigurationKeys.StartVersion"/>.
         /// If the value is null or empty start version won't be set.
         /// </summary>
-        /// <param name="features"></param>
+        /// <param name="scope"></param>
         /// <param name="configuration"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static IVersionIncrementationServicesScope TryOverrideStartVersion(this IVersionIncrementationServicesScope features, IConfiguration configuration)
+        public static IVersionIncrementationServicesScope TryOverrideStartVersion(this IVersionIncrementationServicesScope scope, IConfiguration configuration)
         {
             var startVersionString = configuration.GetValue(CalculatorConfigurationKeys.StartVersion, string.Empty);
 
             if (!string.IsNullOrEmpty(startVersionString)) {
-                features.OverrideStartVersion(SemanticVersion.Parse(startVersionString));
+                scope.OverrideStartVersion(SemanticVersion.Parse(startVersionString));
             }
 
-            return features;
+            return scope;
         }
     }
 }

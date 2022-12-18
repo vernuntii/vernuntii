@@ -80,11 +80,7 @@ namespace Vernuntii.Extensions
 
             scope.Services.ScopeToVernuntii(features => features
                 .AddVersionIncrementation(features => features
-                    .UseMessagesProvider(sp => {
-                        // TODO: Try to remove this
-                        var repository = sp.GetRequiredService<IRepository>();
-                        return ActivatorUtilities.CreateInstance<GitCommitMessagesProvider>(sp, repository);
-                    })));
+                    .UseMessagesProvider<GitCommitMessagesProvider>()));
 
             return scope;
         }
