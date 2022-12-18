@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Vernuntii.Caching;
 using Vernuntii.Git.Commands;
 using Vernuntii.SemVer;
@@ -8,16 +9,31 @@ namespace Vernuntii.Git
     /// <inheritdoc/>
     public class Repository : IRepository
     {
+        internal static Repository Create(RepositoryOptions repositoryOptions, IGitCommand gitCommand, ILogger<Repository> logger) =>
+            new(repositoryOptions, gitCommand, DefaultMemoryCacheFactory.Default.Create(), logger);
+
+        internal static Repository Create(RepositoryOptions repositoryOptions, string workingTreeDirectory, ILogger<Repository> logger) =>
+            new(repositoryOptions, new GitCommand(workingTreeDirectory), DefaultMemoryCacheFactory.Default.Create(), logger);
+
+        internal static Repository Create(RepositoryOptions repositoryOptions, GitCommandOptions gitCommandOptions, ILogger<Repository> logger) =>
+            new(repositoryOptions, new GitCommand(gitCommandOptions.GitWorkingTreeDirectory), DefaultMemoryCacheFactory.Default.Create(), logger);
+
+        internal static Repository Create(IGitCommand gitCommand, ILogger<Repository> logger) =>
+            Create(RepositoryOptions.s_default, gitCommand, logger);
+
+        internal static Repository Create(string workingTreeDirectory, ILogger<Repository> logger) =>
+            Create(RepositoryOptions.s_default, workingTreeDirectory, logger);
+
+        internal static Repository Create(GitCommandOptions gitCommandOptions, ILogger<Repository> logger) =>
+            Create(RepositoryOptions.s_default, gitCommandOptions, logger);
+
         /// <inheritdoc/>
         public IBranches Branches => _branches ??= LoadBranches();
 
-        internal CachingGitCommand GitCommand => _gitCommand ??= CreateCommand();
-
-        private bool _areCommitVersionsInitialized;
-        private readonly RepositoryOptions _options;
-        private readonly IMemoryCacheFactory _memoryCacheFactory;
+        private CachingGitCommand _gitCommand { get; }
+        private readonly IMemoryCache _memoryCache;
+        private readonly RepositoryOptions _repositoryOptions;
         private readonly ILogger<Repository> _logger;
-        private CachingGitCommand? _gitCommand;
         private Branches? _branches;
         private readonly HashSet<CommitVersion> _commitVersions;
         private readonly Action<ILogger, string, Exception?> _logBranches;
@@ -25,12 +41,15 @@ namespace Vernuntii.Git
         /// <summary>
         /// Creates an instance of <see cref="Repository"/>.
         /// </summary>
-        /// <param name="options"></param>
+        /// <param name="repositoryOptions"></param>
+        /// <param name="gitCommand"></param>
+        /// <param name="memoryCache"></param>
         /// <param name="logger"></param>
-        public Repository(RepositoryOptions options, ILogger<Repository> logger)
+        internal Repository(RepositoryOptions repositoryOptions, IGitCommand gitCommand, IMemoryCache memoryCache, ILogger<Repository> logger)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
-            _memoryCacheFactory = DefaultMemoryCacheFactory.Default;
+            _repositoryOptions = repositoryOptions;
+            _gitCommand = new CachingGitCommand(gitCommand, memoryCache);
+            _memoryCache = memoryCache;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _logBranches = LoggerMessage.Define<string>(
@@ -39,46 +58,37 @@ namespace Vernuntii.Git
                 "Loaded branches: {Branches}");
 
             _commitVersions = new HashSet<CommitVersion>(SemanticVersionComparer.VersionReleaseBuild);
+            ValidateRepository();
         }
-
-        internal void UnsetBranches() => _branches = null;
-
-        internal void UnsetCommitVersions()
-        {
-            _commitVersions.Clear();
-            _areCommitVersionsInitialized = false;
-        }
-
-        internal virtual Func<string, IGitCommand> CreateCommandFactory() => gitWorkingDirectory => {
-            var gitCommand = _options.GitCommandFactory.CreateCommand(gitWorkingDirectory)
-                ?? throw new InvalidOperationException("Git command factory produced null");
-
-            if (gitCommand.IsShallow()) {
-                throw new ShallowRepositoryException("Repository is not allowed to be shallow to prevent misbehavior") {
-                    GitDirectory = gitWorkingDirectory
-                };
-            }
-
-            return gitCommand;
-        };
 
         /// <summary>
-        /// Finds top-level working tree directory that contains the .git-directory or the .git-file.
+        /// Creates an instance of <see cref="Repository"/>.
         /// </summary>
-        /// <exception cref="InvalidOperationException"></exception>
-        protected virtual string GetWorkingTreeDirectory() =>
-            _options.GitDirectoryResolver.ResolveWorkingTreeDirectory(_options.GitWorkingTreeDirectory);
-
-        private CachingGitCommand CreateCommand()
+        /// <param name="repositoryOptions"></param>
+        /// <param name="gitCommand"></param>
+        /// <param name="memoryCacheFactory"></param>
+        /// <param name="logger"></param>
+        public Repository(IOptionsSnapshot<RepositoryOptions> repositoryOptions, IGitCommand gitCommand, IMemoryCacheFactory memoryCacheFactory, ILogger<Repository> logger)
+            : this(repositoryOptions.Value, gitCommand, memoryCacheFactory.Create(), logger)
         {
-            var commandFactory = CreateCommandFactory();
-            var gitWorkingDirectory = GetWorkingTreeDirectory();
-            return new CachingGitCommand(commandFactory(gitWorkingDirectory), _memoryCacheFactory);
+        }
+
+        /// <summary>
+        /// Validates, whether the repository is not shallowed.
+        /// </summary>
+        /// <exception cref="ShallowRepositoryException"></exception>
+        protected virtual void ValidateRepository()
+        {
+            if (!_repositoryOptions.AllowShallow && _gitCommand.IsShallow()) {
+                throw new ShallowRepositoryException("Repository is not allowed to be shallow to prevent misbehavior") {
+                    GitDirectory = _gitCommand.WorkingTreeDirectory
+                };
+            }
         }
 
         private Branches LoadBranches()
         {
-            var branches = GitCommand.GetBranches().ToList();
+            var branches = _gitCommand.GetBranches().ToList();
             LogBranches(branches);
             return new Branches(branches);
         }
@@ -98,23 +108,21 @@ namespace Vernuntii.Git
 
         /// <inheritdoc/>
         public string GetGitDirectory() =>
-            GitCommand.GetGitDirectory();
+            _gitCommand.GetGitDirectory();
 
         /// <inheritdoc/>
         public IEnumerable<ICommitTag> GetCommitTags() =>
-            GitCommand.GetCommitTags();
+            _gitCommand.GetCommitTags();
 
         /// <inheritdoc/>
         public IReadOnlyCollection<ICommitVersion> GetCommitVersions()
         {
-            if (!_areCommitVersionsInitialized) {
+            if (!_memoryCache.IsCached(CachingGitCommand.GetCommitTagsCacheKey)) {
                 foreach (var commitTag in GetCommitTags()) {
                     if (SemanticVersion.TryParse(commitTag.TagName, out var version)) {
                         _commitVersions.Add(new CommitVersion(commitTag.CommitSha, version));
                     }
                 }
-
-                _areCommitVersionsInitialized = true;
             }
 
             return _commitVersions;
@@ -122,33 +130,23 @@ namespace Vernuntii.Git
 
         /// <inheritdoc/>
         public IEnumerable<ICommit> GetCommits(string? branchName = null, string? sinceCommit = null, bool reverse = false) =>
-            GitCommand.GetCommits(branchName, sinceCommit, reverse);
+            _gitCommand.GetCommits(branchName, sinceCommit, reverse);
 
         /// <inheritdoc/>
         public IBranch GetActiveBranch()
         {
-            var activeBranchName = GitCommand.GetActiveBranchName();
+            var activeBranchName = _gitCommand.GetActiveBranchName();
             return Branches[activeBranchName] ?? throw new InvalidOperationException($"Active branch \"{activeBranchName}\" is not retrievable");
         }
 
         /// <inheritdoc/>
         public string? ExpandBranchName(string? branchName)
         {
-            if (GitCommand.TryResolveReference(branchName, ShowRefLimit.Heads, out var reference)) {
+            if (_gitCommand.TryResolveReference(branchName, ShowRefLimit.Heads, out var reference)) {
                 return reference.ReferenceName;
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Unsets cache that will lead to reload some data on request.
-        /// </summary>
-        public void UnsetCache()
-        {
-            _gitCommand?.UnsetCache();
-            UnsetBranches();
-            UnsetCommitVersions();
         }
     }
 }

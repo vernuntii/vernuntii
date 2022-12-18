@@ -20,8 +20,8 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
 
         private VernuntiiRunner CreateRunner(string cacheId) => new VernuntiiRunnerBuilder()
             .ConfigurePlugins(plugins => {
-                plugins.Add(PluginAction.WhenExecuting<IGitPlugin>.CreatePluginDescriptor(plugin =>
-                    plugin.SetAlternativeRepository(_repository, _repository.GitCommand)));
+                //plugins.Add(PluginAction.WhenExecuting<IGitPlugin>.CreatePluginDescriptor(plugin =>
+                //    plugin.SetGitCommand(_repository, _repository.GitCommand)));
 
                 plugins.Add(PluginAction.WhenExecuting<ILoggingPlugin>.CreatePluginDescriptor(plugin =>
                     plugin.WriteToStandardError = false));

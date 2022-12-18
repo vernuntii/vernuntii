@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Kenet.SimpleProcess;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Vernuntii.Text;
 
 namespace Vernuntii.Git.Commands;
@@ -21,10 +23,20 @@ public class GitCommand : IGitCommand
     /// </summary>
     /// <param name="workingTreeDirectory"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public GitCommand(string workingTreeDirectory)
+    internal GitCommand(string workingTreeDirectory)
     {
         WorkingTreeDirectory = workingTreeDirectory ?? throw new ArgumentNullException(nameof(workingTreeDirectory));
         _libGit2 = new Lazy<LibGit2Command>(() => new LibGit2Command(workingTreeDirectory));
+    }
+
+    /// <summary>
+    /// Creates an instance of this type.
+    /// </summary>
+    /// <param name="options"></param>
+    [ActivatorUtilitiesConstructor]
+    public GitCommand(IOptionsSnapshot<GitCommandOptions> options)
+        : this(options.Value.GitWorkingTreeDirectory)
+    {
     }
 
     private GitProcessStartInfo CreateStartInfo(string? args) => new(args, WorkingTreeDirectory);

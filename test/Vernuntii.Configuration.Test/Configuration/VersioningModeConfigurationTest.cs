@@ -15,7 +15,7 @@ namespace Vernuntii.Configuration
 
         public static IEnumerable<object[]> VersioningModeStringShouldMatchPresetGenerator()
         {
-            foreach (var value in CreateBranchCasesProvider(VersioningModeDir, VersioningModeStringFileName, tryCreateVersioningPresetExtension: true).BranchCases.Values) {
+            foreach (var value in CreateBranchCasesProvider(VersioningModeDirectory, VersioningModeStringFileName, tryCreateVersioningPresetExtension: true).BranchCases.Values) {
                 yield return new object[] {
                      DefaultPresetManager.VersioningPresets.GetItem(value.GetConfigurationExtension().GetValue<string>(ConfiguredVersioningPresetFactory.DefaultVersioningModeKey)
                         ?? nameof(InbuiltVersioningPreset.Default)),
@@ -33,7 +33,7 @@ namespace Vernuntii.Configuration
 
         public static IEnumerable<object[]> InvalidVersioningModeObjectShouldThrowGenerator()
         {
-            var branchCases = CreateBranchCasesProvider(VersioningModeDir, VersioningModeObjectInvalidFileName).NestedBranchCases;
+            var branchCases = CreateBranchCasesProvider(VersioningModeDirectory, VersioningModeObjectInvalidFileName).NestedBranchCases;
 
             yield return new object[] {
                  nameof(IVersioningPreset.IncrementMode),
@@ -63,7 +63,7 @@ namespace Vernuntii.Configuration
 
         public static IEnumerable<object[]> ValidVersioningModeObjectShouldMatchGenerator()
         {
-            var branchCases = CreateBranchCasesProvider(VersioningModeDir, VersioningModeObjectValidFileName, tryCreateVersioningPresetExtension: true).NestedBranchCases;
+            var branchCases = CreateBranchCasesProvider(VersioningModeDirectory, VersioningModeObjectValidFileName, tryCreateVersioningPresetExtension: true).NestedBranchCases;
 
             yield return new object[] {
                  VersioningPreset.ConventionalCommitsDelivery,

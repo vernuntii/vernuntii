@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Console;
 using Vernuntii.Extensions;
@@ -22,48 +21,28 @@ namespace Vernuntii.Plugins;
 [ImportPlugin<SharedOptionsPlugin>(TryRegister = true)]
 public class GitPlugin : Plugin, IGitPlugin
 {
-    private const string DefaultGitPointerFile = "vernuntii.git";
-
     /// <summary>
     /// <inheritdoc/>
     /// If it has been set manually then this will be
     /// used instead of the directory of the config path
-    /// to resolve the git directory via
-    /// <see cref="GitDirectoryResolver"/>.
-    /// Available after <see cref="GitEvents.ResolvedGitWorkingTreeDirectory"/>.
+    /// to resolve the git directory via the git directory resolver.
+    /// Retrievable after <see cref="ConfigurationEvents.ConfiguredConfigurationBuilder"/>.
     /// </summary>
     [AllowNull]
     public string WorkingTreeDirectory {
-        get => _workingTreeDirectory ?? throw new InvalidOperationException("Working tree directory is not set");
+        get => _resolvedWorkingTreeDirectory ?? _workingTreeDirectory ?? throw new InvalidOperationException("Working tree directory is not set");
 
         set {
             EnsureNotHavingConfiguredConfigurationBuilder();
-            EnsureUnsetAlternativeRepository();
             _workingTreeDirectory = value;
         }
     }
 
     /// <summary>
-    /// If set before <see cref="ConfigurationEvents.ConfiguredConfigurationBuilder"/>
-    /// it will be used for resolving the git directory. If set after that event an exception
-    /// is thrown. The default behaviour is to look for a vernuntii.git-file pointing to
-    /// another location, a .git-folder or a .git-file.
-    /// </summary>
-    public IGitDirectoryResolver? GitDirectoryResolver {
-        get => _gitDirectoryResolver;
-
-        set {
-            EnsureNotHavingConfiguredConfigurationBuilder();
-            EnsureUnsetAlternativeRepository();
-            _gitDirectoryResolver = value;
-        }
-    }
-
-    /// <summary>
     /// The git command.
-    /// Available after <see cref="GitEvents.ResolvedGitWorkingTreeDirectory"/>.
+    /// Available after <see cref="ConfigurationEvents.ConfiguredConfigurationBuilder"/>.
     /// </summary>
-    public IGitCommand GitCommand => _gitCommand ?? throw new InvalidOperationException($"The event \"{nameof(GitEvents.ResolvedGitWorkingTreeDirectory)}\" was not yet called");
+    public IGitCommand GitCommand => _gitCommand ?? throw new InvalidOperationException($"The event \"{nameof(ConfigurationEvents.ConfiguredConfigurationBuilder)}\" must be called");
 
     private readonly SharedOptionsPlugin _sharedOptions = null!;
     private IGitCommand? _gitCommand;
@@ -77,10 +56,11 @@ public class GitPlugin : Plugin, IGitPlugin
     };
 
     private string? _workingTreeDirectory;
+    private string? _resolvedWorkingTreeDirectory;
     private readonly ILogger _logger = null!;
-    private IGitDirectoryResolver? _gitDirectoryResolver;
-    private IRepository? _alternativeRepository;
-    private IGitCommand? _alternativeGitCommand;
+    private GitCommandFactoryRequest? _gitCommandFactoryRequest = null!;
+    //private IRepository? _alternativeRepository;
+    //private IGitCommand? _alternativeGitCommand;
 
     public GitPlugin(
         ICommandLinePlugin commandlinePlugin,
@@ -107,64 +87,34 @@ public class GitPlugin : Plugin, IGitPlugin
         }
     }
 
-    [MemberNotNullWhen(true, nameof(_alternativeRepository), nameof(_alternativeGitCommand))]
-    private bool HavingAlternativeRepository() =>
-        _alternativeRepository is not null && _alternativeGitCommand is not null;
-
-    private void EnsureUnsetAlternativeRepository()
+    [MemberNotNull(nameof(_gitCommandFactoryRequest))]
+    private void EnsureRequestedGitDirectoryFactory()
     {
-        if (HavingAlternativeRepository()) {
-            throw new InvalidOperationException("An alternative repository has been already set");
+
+        if (_gitCommandFactoryRequest != null) {
+            return;
         }
+
+        _gitCommandFactoryRequest = new GitCommandFactoryRequest();
+        Events.FireEvent(GitEvents.RequestGitCommandFactory, _gitCommandFactoryRequest);
     }
 
-    private void EnsureUnsetWorkingTreeDirectory()
+    [MemberNotNull(nameof(_resolvedWorkingTreeDirectory))]
+    private void EnsureResolvedWorkingTreeDirectory()
     {
-        if (_workingTreeDirectory is not null) {
-            throw new InvalidOperationException("The working tree directory is already set");
+        if (_resolvedWorkingTreeDirectory != null) {
+            return;
         }
-    }
 
-    private void EnsureUnsetGitDirectoryResolver()
-    {
-        if (_gitDirectoryResolver is not null) {
-            throw new InvalidOperationException("The git directory resolver is already set");
-        }
-    }
-
-    /// <inheritdoc/>
-    public void SetAlternativeRepository(IRepository repository, IGitCommand gitCommand)
-    {
-        EnsureNotHavingConfiguredConfigurationBuilder();
-        EnsureUnsetGitDirectoryResolver();
-        EnsureUnsetWorkingTreeDirectory();
-
-        _alternativeRepository = repository ?? throw new ArgumentNullException(nameof(repository));
-        _alternativeGitCommand = gitCommand ?? throw new ArgumentNullException(nameof(gitCommand));
-
-        if (repository.GetGitDirectory() != gitCommand.GetGitDirectory()) {
-            throw new ArgumentException("The git command points to a different .git-directory than the repository");
-        }
-    }
-
-    /// <inheritdoc/>
-    public void UnsetAlternativeRepository()
-    {
-        EnsureNotHavingConfiguredConfigurationBuilder();
-        _alternativeRepository = null;
-        _alternativeGitCommand = null;
-    }
-
-    private string ResolveWorkingTreeDirectory()
-    {
         string directoryToResolve;
         var alternativeWorkingTreeDirectory = _workingTreeDirectory;
 
         if (alternativeWorkingTreeDirectory == null) {
+            /* Due to no alternative directory, we use the configuration path as starting point */
             var configPath = _sharedOptions.ConfigPath;
 
             if (File.Exists(configPath)) {
-                directoryToResolve = Path.GetDirectoryName(configPath) ?? throw new InvalidOperationException("Configuration directory was expected");
+                directoryToResolve = Path.GetDirectoryName(configPath) ?? throw new InvalidOperationException("Due to no alternative directory, we use the directory of the configuration path as starting point, but the directory is null");
             } else {
                 directoryToResolve = configPath;
             }
@@ -172,33 +122,28 @@ public class GitPlugin : Plugin, IGitPlugin
             directoryToResolve = alternativeWorkingTreeDirectory;
         }
 
-        var gitDirectoryResolver = GitDirectoryResolver ?? new AlternativeGitDirectoryResolver(
-            Path.Combine(directoryToResolve, DefaultGitPointerFile),
-            DefaultGitDirectoryResolver.Default);
-
-        return gitDirectoryResolver.ResolveWorkingTreeDirectory(directoryToResolve);
+        EnsureRequestedGitDirectoryFactory();
+        var gitDirectoryResolver = _gitCommandFactoryRequest.GitDirectoryResolver ?? GitDirectoryResolver.Default;
+        _resolvedWorkingTreeDirectory = gitDirectoryResolver.ResolveWorkingTreeDirectory(directoryToResolve);
     }
 
-    private string GetWorkingTreeDirectory() =>
-        HavingAlternativeRepository() switch {
-            true => _alternativeGitCommand.WorkingTreeDirectory,
-            false => ResolveWorkingTreeDirectory()
-        };
-
-    private void OnAfterConfiguredConfigurationBuilder()
+    [MemberNotNull(nameof(_gitCommand))]
+    private void EnsureCreatedGitCommand()
     {
-        var resolvedWorkingTreeDirectory = GetWorkingTreeDirectory();
-
-        _logger.LogInformation("Use repository directory: {_workingTreeDirectory}", resolvedWorkingTreeDirectory);
-        _workingTreeDirectory = resolvedWorkingTreeDirectory;
-        Events.FireEvent(GitEvents.ResolvedGitWorkingTreeDirectory, resolvedWorkingTreeDirectory);
-
-        if (HavingAlternativeRepository()) {
-            _gitCommand = _alternativeGitCommand;
-        } else {
-            _gitCommand = new GitCommand(resolvedWorkingTreeDirectory);
+        if (_gitCommand != null) {
+            return;
         }
 
+        EnsureRequestedGitDirectoryFactory();
+        EnsureResolvedWorkingTreeDirectory();
+
+        _gitCommand = (_gitCommandFactoryRequest.GitCommandFactory ?? GitCommandFactory.Default).CreateCommand(_resolvedWorkingTreeDirectory);
+
+        if (_resolvedWorkingTreeDirectory != _gitCommand.WorkingTreeDirectory) {
+            _resolvedWorkingTreeDirectory = _gitCommand.WorkingTreeDirectory;
+        }
+
+        _logger.LogInformation("Use repository directory: {_workingTreeDirectory}", _resolvedWorkingTreeDirectory);
         Events.FireEvent(GitEvents.CreatedGitCommand, _gitCommand);
     }
 
@@ -207,93 +152,58 @@ public class GitPlugin : Plugin, IGitPlugin
     {
         _configuredConfigurationBuilderEventSignal = Events.OnNextEvent(
             ConfigurationEvents.ConfiguredConfigurationBuilder,
-            OnAfterConfiguredConfigurationBuilder);
+            EnsureCreatedGitCommand);
 
-        Events.OnNextEvent(GlobalServicesEvents.ConfigureServices, services => services
-            .AddOptions<RepositoryOptions>()
-                .Configure(options => options.GitCommandFactory = new GitCommandProvider(GitCommand)));
+        var eachCommandLineParseResult = Events.GetEvent(CommandLineEvents.ParsedCommandLineArgs);
 
-        Observable.CombineLatest(
-                Events.GetEvent(ConfigurationEvents.CreatedConfiguration).Take(1),
-                Events.GetEvent(NextVersionEvents.ConfigureGlobalServices),
-                (configuration, services) => (configuration, services))
+        Events.GetEvent(NextVersionEvents.ConfigureGlobalServices)
+            .WithLatestFrom(eachCommandLineParseResult.Select(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)))
+            .WithLatestFrom(Events.GetEvent(ConfigurationEvents.CreatedConfiguration))
             .Subscribe(result => {
-                var (configuration, services) = result;
+                // TODO: move above configuration stuff here
+                var ((services, overridePostPreRelease), configuration) = result;
                 Events.FireEvent(GitEvents.ConfiguringGlobalServices, services);
 
-                if (HavingAlternativeRepository()) {
-                    services.TryAddSingleton(_alternativeRepository);
-                }
+                EnsureCreatedGitCommand();
+                services.AddSingleton(_gitCommand);
 
-                services.ScopeToVernuntii(features => features
-                    .ScopeToGit(features => features
-                        .AddRepository(options => {
-                            options.GitWorkingTreeDirectory = WorkingTreeDirectory;
-                            options.GitDirectoryResolver = GitDirectoryPassthrough.Instance;
-                        })
-                        .UseConfigurationDefaults(configuration)));
-
-                Events.FireEvent(GitEvents.ConfiguredGlobalServices, services);
-            });
-
-        var firstCommandLineParseResult = Events.GetEvent(CommandLineEvents.ParsedCommandLineArgs);
-
-        Observable.CombineLatest(
-                firstCommandLineParseResult.Select(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)),
-                Events.GetEvent(NextVersionEvents.ConfigureGlobalServices),
-                (overridePostPreRelease, services) => (overridePostPreRelease, services))
-            .Subscribe(result => {
-                var (overridePostPreRelease, services) = result;
-                Events.FireEvent(GitEvents.ConfiguringCalculationServices, services);
-
-                services.ScopeToVernuntii(features => features
+                services
+                    .ScopeToVernuntii(features => features
                     .ScopeToGit(git => git
+                        .AddRepository()
+                        .UseConfigurationDefaults(configuration)
                         .UseLatestCommitVersion()
                         .UseActiveBranchCaseDefaults()
                         .UseCommitMessagesProvider()));
 
                 if (!_sharedOptions.ShouldOverrideVersioningMode) {
-                    services.ScopeToVernuntii(vernuntii => vernuntii
+                    services
+                        .ScopeToVernuntii(vernuntii => vernuntii
                         .ScopeToGit(git => git
                             .UseActiveBranchCaseVersioningMode()));
                 }
 
                 if (overridePostPreRelease != null) {
-                    services.ScopeToVernuntii(features => features
+                    services
+                        .ScopeToVernuntii(features => features
                         .ScopeToGit(features => features
                             .Configure(configurer => configurer
                                 .SetPostPreRelease(overridePostPreRelease))));
                 }
 
-                Events.FireEvent(GitEvents.ConfiguredCalculationServices, services);
+                Events.FireEvent(GitEvents.ConfiguredGlobalServices, services);
             });
 
-        var eachRepository = Events.GetEvent(NextVersionEvents.CreatedScopedServiceProvider).Select(sp => sp.GetRequiredService<IRepository>());
-
-        // Sets the exit code to indicate version duplicate in case of version duplicate
-        Observable.CombineLatest(
-                firstCommandLineParseResult.Select(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)),
-                Observable.Zip(
-                    eachRepository,
-                    Events.GetEvent(NextVersionEvents.CalculatedNextVersion),
-                    (repository, versionCache) => (repository, versionCache)),
-                (duplicateVersionFails, zipResult) => (duplicateVersionFails, zipResult))
+        // On next version calculation we want to set bad exit code if equivalent commit version already exists
+        Events.GetEvent(NextVersionEvents.CalculatedNextVersion)
+            .WithLatestFrom(eachCommandLineParseResult.Select(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)))
+            .WithLatestFrom(Events.GetEvent(NextVersionEvents.CreatedScopedServiceProvider).Select(sp => sp.GetRequiredService<IRepository>()))
             .Subscribe(result => {
-                var (duplicateVersionFails, (repository, versionCache)) = result;
+                var ((versionCache, duplicateVersionFails), repository) = result;
 
                 if (duplicateVersionFails && repository.HasCommitVersion(versionCache.Version)) {
                     _nextVersionPlugin.ExitCodeOnSuccess = (int)ExitCode.VersionDuplicate;
                 }
-            });
-
-        // Reset repository cache *before* the next run starts
-        Observable.Zip(
-                eachRepository,
-                Events.GetEvent(LifecycleEvents.BeforeNextRun),
-                (repository, _) => (repository, _))
-            .Subscribe(result => {
-                var (repository, _) = result;
-                repository.UnsetCache();
             });
     }
 }

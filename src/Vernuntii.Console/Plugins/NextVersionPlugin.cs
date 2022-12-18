@@ -108,7 +108,7 @@ namespace Vernuntii.Plugins
                 var newVersion = versionCalculation.GetIncrementedVersion();
                 var newBranch = repository.GetActiveBranch();
 
-                // get cache or calculate version.
+                // Get cache or calculate version.
                 versionCache = versionCacheManager.RecacheCache(
                     newVersion,
                     newBranch);
@@ -148,7 +148,7 @@ namespace Vernuntii.Plugins
             _presentationView = parseResult.GetValueForOption(_presentationViewOption);
             _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
 
-            // Check version cache.
+            // Check version cache
             Events.FireEvent(VersionCacheCheckEvents.CreateVersionCacheManager);
             Events.FireEvent(VersionCacheCheckEvents.CheckVersionCache);
 

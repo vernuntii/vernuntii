@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using FluentAssertions;
+using Xunit;
 
 namespace Vernuntii.Git
 {
@@ -12,24 +13,24 @@ namespace Vernuntii.Git
             origin.CommitEmpty();
             origin.CommitEmpty();
 
-            TemporaryRepositoryOptions shallowOptions = new() {
-                CloneOptions = new CloneOptions(originOptions.RepositoryOptions.GitWorkingTreeDirectory) {
+            var shallowOptions = new TemporaryRepositoryOptions() {
+                CloneOptions = new CloneOptions(originOptions.CommandOptions.GitWorkingTreeDirectory) {
                     Source = CloneSource.File,
                     Depth = 1
                 },
             };
 
-            using var shallow = new TemporaryRepository(shallowOptions, DefaultTemporaryRepositoryLogger).Resolve();
-            _ = Assert.IsType<ShallowRepositoryException>(Record.Exception(() => new Repository(shallowOptions.RepositoryOptions, DefaultTemporaryRepositoryLogger).Resolve()));
+            var createShallowOptions = () => new TemporaryRepository(shallowOptions, DefaultTemporaryRepositoryLogger);
+            _ = FluentActions.Invoking(createShallowOptions).Should().ThrowExactly<ShallowRepositoryException>();
         }
 
         [Fact]
         public void RepositoryResolveShouldNotThrowShallowRepositoryException()
         {
             TemporaryRepositoryOptions originOptions = new();
-            using var origin = new TemporaryRepository(originOptions, DefaultTemporaryRepositoryLogger).Resolve();
+            using var origin = new TemporaryRepository(originOptions, DefaultTemporaryRepositoryLogger);
 
-            Assert.Null(Record.Exception(() => new Repository(originOptions.RepositoryOptions, DefaultTemporaryRepositoryLogger).Resolve()));
+            Assert.Null(Record.Exception(() => Repository.Create(originOptions, DefaultTemporaryRepositoryLogger)));
         }
     }
 }

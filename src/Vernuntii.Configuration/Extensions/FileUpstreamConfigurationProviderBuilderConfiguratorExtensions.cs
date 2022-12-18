@@ -1,7 +1,7 @@
 ﻿using Vernuntii.Configuration;
 using Vernuntii.Configuration.Shadowing;
 using Vernuntii.Extensions.BranchCases;
-using Vernuntii.Git;
+using Vernuntii.Git.Commands;
 
 namespace Vernuntii.Extensions
 {
@@ -12,8 +12,8 @@ namespace Vernuntii.Extensions
     {
         /// <summary>
         /// Shadows keys in following cases:
-        /// <br/>1. If key <see cref="RepositoryOptions.GitWorkingTreeDirectory"/> is not set, then it will be shadowed by directory containing the configuration file.
-        /// If key <see cref="RepositoryOptions.GitWorkingTreeDirectory"/> is set but relative, then it will be shadowed by its path relative to the directory containing
+        /// <br/>1. If key <see cref="GitCommandOptions.GitWorkingTreeDirectory"/> is not set, then it will be shadowed by directory containing the configuration file.
+        /// If key <see cref="GitCommandOptions.GitWorkingTreeDirectory"/> is set but relative, then it will be shadowed by its path relative to the directory containing
         /// the configuration file.
         /// <br/>2. If PreRelease- or SearchPreRelease-key is existing but null, then it will be shadowed by a collection with one null entry. The null entry
         /// won't be parsable, so results into an empty collection what the desired effect is, otherwise the key is ignored and treated as non-existing from

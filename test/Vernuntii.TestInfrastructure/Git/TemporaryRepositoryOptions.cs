@@ -1,8 +1,10 @@
-﻿namespace Vernuntii.Git
+﻿using Vernuntii.Git.Commands;
+
+namespace Vernuntii.Git
 {
     internal class TemporaryRepositoryOptions
     {
-        public RepositoryOptions RepositoryOptions { get; }
+        public GitCommandOptions CommandOptions { get; }
 
         /// <summary>
         /// If true the directory gets deleted on dispose.
@@ -22,10 +24,12 @@
 
         public TemporaryRepositoryOptions()
         {
-            RepositoryOptions = new RepositoryOptions() {
+            CommandOptions = new GitCommandOptions() {
                 GitWorkingTreeDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
-                GitDirectoryResolver = GitDirectoryPassthrough.Instance
             };
         }
+
+        public static implicit operator GitCommandOptions(TemporaryRepositoryOptions repositoryOptions) =>
+            repositoryOptions.CommandOptions;
     }
 }

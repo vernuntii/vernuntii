@@ -2,11 +2,11 @@
 {
     internal static class ConfigurationFilePaths
     {
-        private static readonly AnyPath RootDir = AppContext.BaseDirectory;
+        private static readonly AnyPath RootDirectory = AppContext.BaseDirectory;
 
-        internal static AnyPath FilesystemDir = RootDir / "filesystem";
-        internal static AnyPath FileFinderDir = FilesystemDir / "file-finder";
-        internal static AnyPath VersioningModeDir = FilesystemDir / "versioning-mode";
-        internal static AnyPath MessageIndicatorsDir = FilesystemDir / "message-indicators";
+        internal static AnyPath FilesystemDirectory = RootDirectory / "filesystem";
+        internal static AnyPath FileFinderDirectory = FilesystemDirectory / "file-finder";
+        internal static AnyPath VersioningModeDirectory = FilesystemDirectory / "versioning-mode";
+        internal static AnyPath MessageIndicatorsDirectory = FilesystemDirectory / "message-indicators";
     }
 }

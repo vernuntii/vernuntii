@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vernuntii.Configuration;
 using Vernuntii.Extensions.BranchCases;
+using Vernuntii.Git;
 using Vernuntii.MessageConventions;
 using Vernuntii.Plugins;
 using Vernuntii.VersionIncrementFlows;
@@ -26,43 +27,49 @@ namespace Vernuntii.Extensions
             IServiceCollection services,
             IConfiguration? gitConfiguration = null,
             IVersioningPresetManager? presetManager = null,
-            bool tryCreateVersioningPresetExtension = false)
+            bool tryCreateVersioningPresetExtension = false,
+            bool allowShallowRepository = true)
         {
             services
                 .AddLogging()
                 .AddOptions()
                 .TryAddSingleton(presetManager ?? DefaultPresetManager);
 
+            if (allowShallowRepository) {
+                services.Configure<RepositoryOptions>(options => options.AllowShallow = true);
+            }
+
+            services
+                .ScopeToVernuntii()
+                .ScopeToGit()
+                .AddRepository();
+
             if (gitConfiguration != null) {
-                services.ScopeToVernuntii(features => features
-                    .ScopeToGit(features => features
-                        .AddRepository()
-                        .UseConfigurationDefaults(gitConfiguration)));
+                services
+                    .ScopeToVernuntii()
+                    .ScopeToGit()
+                    .UseConfigurationDefaults(gitConfiguration);
             }
 
             if (tryCreateVersioningPresetExtension) {
-                services.ScopeToVernuntii(features => features
-                    .ScopeToGit(features => features
-                        .ConfigureBranchCases(branchCases => branchCases
-                        .TryCreateVersioningPresetExtension())));
+                services
+                    .ScopeToVernuntii()
+                    .ScopeToGit()
+                    .ConfigureBranchCases(branchCases => branchCases
+                    .TryCreateVersioningPresetExtension());
             }
 
             return services;
         }
 
-        private static IBranchCasesProvider CreateBranchCasesProvider(IServiceCollection services) =>
-            services.BuildServiceProvider().CreateScope().ServiceProvider.GetRequiredService<IBranchCasesProvider>();
-
-        private static IServiceCollection CreateBranchCasesProviderServices(string directory, string fileName) =>
-            ConfigureServiceCollection(
-                new ServiceCollection(),
-                gitConfiguration: ConfigurationFixture.Default.FindYamlConfigurationFile(directory, fileName));
-
         public static IBranchCasesProvider CreateBranchCasesProvider(string directory, string fileName, bool tryCreateVersioningPresetExtension = false)
         {
-            var services = CreateBranchCasesProviderServices(directory, fileName);
-            ConfigureServiceCollection(services, tryCreateVersioningPresetExtension: tryCreateVersioningPresetExtension);
-            return CreateBranchCasesProvider(services);
+            var services = ConfigureServiceCollection(
+                new ServiceCollection(),
+                gitConfiguration: ConfigurationFixture.Default.FindYamlConfigurationFile(directory, fileName),
+                tryCreateVersioningPresetExtension: tryCreateVersioningPresetExtension, allowShallowRepository: true);
+
+            return services.BuildServiceProvider().CreateScope().ServiceProvider.GetRequiredService<IBranchCasesProvider>();
         }
     }
 }

@@ -3,12 +3,12 @@
     /// <summary>
     /// The default git command factory.
     /// </summary>
-    public class DefaultGitCommandFactory : IGitCommandFactory
+    public class GitCommandFactory : IGitCommandFactory
     {
         /// <summary>
         /// The default instance of this type.
         /// </summary>
-        public static readonly DefaultGitCommandFactory Default = new();
+        public static readonly GitCommandFactory Default = new();
 
         /// <inheritdoc/>
         public IGitCommand CreateCommand(string gitDirectory) =>

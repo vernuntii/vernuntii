@@ -19,7 +19,7 @@ namespace Vernuntii.Configuration
         [Fact]
         public void MessageIndicatorObjectShouldThrowDueToMissingName()
         {
-            var branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsListInvalidFileName).NestedBranchCases["MissingName"];
+            var branchCase = CreateBranchCasesProvider(MessageIndicatorsDirectory, MessageIndicatorsListInvalidFileName).NestedBranchCases["MissingName"];
 
             var error = Record.Exception(() => branchCase
                 .SetVersioningPresetExtensionFactory(DefaultConfiguredVersioningPresetFactory)
@@ -33,7 +33,7 @@ namespace Vernuntii.Configuration
         public void RegexMessageIndicatorListWithNameAsItemShouldMatch()
         {
             var branchCase = CreateBranchCasesProvider(
-                MessageIndicatorsDir,
+                MessageIndicatorsDirectory,
                 MessageIndicatorsListValidFileName,
                 tryCreateVersioningPresetExtension: true).NestedBranchCases["NameAsItem"];
 
@@ -52,7 +52,7 @@ namespace Vernuntii.Configuration
         public void RegexMessageIndicatorObjectShouldMatch()
         {
             var branchCase = CreateBranchCasesProvider(
-                MessageIndicatorsDir,
+                MessageIndicatorsDirectory,
                 MessageIndicatorsListValidFileName,
                 tryCreateVersioningPresetExtension: true).NestedBranchCases["RegexObject"];
 
@@ -70,7 +70,7 @@ namespace Vernuntii.Configuration
         [Fact]
         public void RegexMessageIndicatorStringShouldThrow()
         {
-            var branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringInvalidFileName).NestedBranchCases["RegexShouldBeObject"];
+            var branchCase = CreateBranchCasesProvider(MessageIndicatorsDirectory, MessageIndicatorsStringInvalidFileName).NestedBranchCases["RegexShouldBeObject"];
 
             Assert.IsType<ConfigurationValidationException>(Record.Exception(() => branchCase
                 .SetVersioningPresetExtensionFactory(DefaultConfiguredVersioningPresetFactory)
@@ -80,7 +80,7 @@ namespace Vernuntii.Configuration
         [Fact]
         public void NotInbuiltMessageIndicatorStringShouldThrow()
         {
-            var branchCase = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringInvalidFileName).NestedBranchCases["StringThatDoesNotExist"];
+            var branchCase = CreateBranchCasesProvider(MessageIndicatorsDirectory, MessageIndicatorsStringInvalidFileName).NestedBranchCases["StringThatDoesNotExist"];
             Assert.IsType<ItemMissingException>(Record.Exception(() => branchCase
                 .SetVersioningPresetExtensionFactory(DefaultConfiguredVersioningPresetFactory)
                 .GetVersioningPresetExtension()));
@@ -88,7 +88,7 @@ namespace Vernuntii.Configuration
 
         public static IEnumerable<object[]> ValidMessageIndicatorStringShouldMatchGenerator()
         {
-            var branchCases = CreateBranchCasesProvider(MessageIndicatorsDir, MessageIndicatorsStringValidFileName, tryCreateVersioningPresetExtension: true).NestedBranchCases;
+            var branchCases = CreateBranchCasesProvider(MessageIndicatorsDirectory, MessageIndicatorsStringValidFileName, tryCreateVersioningPresetExtension: true).NestedBranchCases;
 
             yield return new object[] {
                  VersioningPreset.Manual with {

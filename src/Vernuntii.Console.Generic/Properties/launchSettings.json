@@ -2,7 +2,7 @@
   "profiles": {
     "Vernuntii.Console.Generic": {
       "commandName": "Project",
-      "commandLineArgs": "--cache-id \"test\" --override-post-pre-release \"\" --verbosity"
+      "commandLineArgs": "--override-post-pre-release \"\" --verbosity --empty-caches"
     },
     "WSL": {
       "commandName": "WSL2",

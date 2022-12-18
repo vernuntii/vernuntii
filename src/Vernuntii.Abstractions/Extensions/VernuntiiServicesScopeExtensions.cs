@@ -18,6 +18,13 @@ namespace Vernuntii.Extensions
             return services;
         }
 
+        /// <summary>
+        /// Configures "messages versioning"-features.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IVernuntiiServicesScope ScopeToVernuntii(this IServiceCollection services) =>
+            new VernuntiiFeatures(services);
+
         private class VernuntiiFeatures : IVernuntiiServicesScope
         {
             public IServiceCollection Services { get; set; }

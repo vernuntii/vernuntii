@@ -4,7 +4,7 @@ namespace Vernuntii.Configuration.Json;
 
 public class JsonConfigurationFileFinderTest : IClassFixture<ConfigurationFixture>
 {
-    internal static AnyPath JsonDirectory = FileFinderDir / "json";
+    internal static AnyPath JsonDirectory = FileFinderDirectory / "json";
     internal static AnyPath JsonEmptyDirectory = JsonDirectory / "empty";
     internal static FilePath JsonConfigFile = JsonDirectory + JsonConfigurationFileDefaults.JsonFileName;
 

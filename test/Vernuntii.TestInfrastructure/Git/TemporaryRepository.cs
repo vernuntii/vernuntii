@@ -1,25 +1,40 @@
 ﻿using Microsoft.Extensions.Logging;
+using Vernuntii.Caching;
 using Vernuntii.Git.Commands;
 
 namespace Vernuntii.Git
 {
     internal class TemporaryRepository : Repository, IDisposable
     {
-        internal new TestingGitCommand GitCommand => (TestingGitCommand)base.GitCommand.UnderlyingCommand;
+        private static IGitCommand CreateGitCommand(string workingTreeDirectory, out TestingGitCommand testingGitCommand) =>
+            testingGitCommand = new TestingGitCommand(workingTreeDirectory);
+
+        private static IMemoryCache CreateMemoryCache(out IMemoryCache memoryCache) =>
+            memoryCache = new DefaultMemoryCache();
+
+        internal TestingGitCommand GitCommand { get; }
 
         private readonly TemporaryRepositoryOptions _options;
+        private readonly IMemoryCache _memoryCache;
         private bool _isDisposed;
 
-        public TemporaryRepository(TemporaryRepositoryOptions options, ILogger<TemporaryRepository> logger)
-            : base(options.RepositoryOptions, logger)
+        public TemporaryRepository(TemporaryRepositoryOptions options, ILogger<TemporaryRepository> logger) : base(
+            RepositoryOptions.s_default,
+            CreateGitCommand(options.CommandOptions.GitWorkingTreeDirectory, out var testingGitCommand),
+            CreateMemoryCache(out var memoryCache),
+            logger)
         {
+            GitCommand = testingGitCommand;
+            _memoryCache = memoryCache;
+
             if (options.DeleteOnDispose
                 && options.DeleteOnlyTempDirectory
-                && !Path.IsPathFullyQualified(options.RepositoryOptions.GitWorkingTreeDirectory)) {
+                && !Path.IsPathFullyQualified(options.CommandOptions.GitWorkingTreeDirectory)) {
                 throw new ArgumentException("Git directory must be fully qualified");
             }
 
             _options = options;
+            InitializeRepository();
         }
 
         public TemporaryRepository(TemporaryRepositoryOptions options)
@@ -37,22 +52,33 @@ namespace Vernuntii.Git
         {
         }
 
-        internal override Func<string, GitCommand> CreateCommandFactory()
+        /// <summary>
+        /// We NOOP base implementation of <see cref="Repository.ValidateRepository"/> to call it once from derived class.
+        /// </summary>
+        protected sealed override void ValidateRepository()
         {
-            var gitDirectory = _options.RepositoryOptions.GitWorkingTreeDirectory;
-            Directory.CreateDirectory(_options.RepositoryOptions.GitWorkingTreeDirectory);
-            TestingGitCommand gitCommand = new(gitDirectory);
-            var cloneOptions = _options.CloneOptions;
+        }
 
-            if (cloneOptions != null) {
-                gitCommand.Clone(cloneOptions.SourceUrl(), cloneOptions.Depth);
-            } else {
-                gitCommand.Init();
+        private void InitializeRepository()
+        {
+            Directory.CreateDirectory(_options.CommandOptions.GitWorkingTreeDirectory);
+
+            try {
+                var cloneOptions = _options.CloneOptions;
+
+                if (cloneOptions != null) {
+                    GitCommand.Clone(cloneOptions.SourceUrl(), cloneOptions.Depth);
+                } else {
+                    GitCommand.Init();
+                }
+
+                GitCommand.SetConfig("user.name", "Vernuntii");
+                GitCommand.SetConfig("user.email", "vernuntii@vernuntii.dev");
+                base.ValidateRepository();
+            } catch {
+                Dispose();
+                throw;
             }
-
-            gitCommand.SetConfig("user.name", "Vernuntii");
-            gitCommand.SetConfig("user.email", "vernuntii@vernuntii.dev");
-            return _ => gitCommand;
         }
 
         public void SetConfig(string name, string value) =>
@@ -73,8 +99,7 @@ namespace Vernuntii.Git
         public IReadOnlyCollection<ICommitVersion> GetCommitVersions(bool unsetCache)
         {
             if (unsetCache) {
-                base.GitCommand.UnsetCommitTagsCache();
-                UnsetCommitVersions();
+                _memoryCache.UnsetCache(CachingGitCommand.GetCommitTagsCacheKey);
             }
 
             return GetCommitVersions();
@@ -87,7 +112,7 @@ namespace Vernuntii.Git
             }
 
             if (disposing && _options.DeleteOnDispose) {
-                var gitDirectory = _options.RepositoryOptions.GitWorkingTreeDirectory;
+                var gitDirectory = _options.CommandOptions.GitWorkingTreeDirectory;
 
                 if (Directory.Exists(gitDirectory)
                     && (!_options.DeleteOnlyTempDirectory || ContainsBasePath(gitDirectory, Path.GetTempPath()))) {
@@ -95,7 +120,7 @@ namespace Vernuntii.Git
                         File.SetAttributes(filePath, FileAttributes.Normal);
                     }
 
-                    Directory.Delete(_options.RepositoryOptions.GitWorkingTreeDirectory, recursive: true);
+                    Directory.Delete(_options.CommandOptions.GitWorkingTreeDirectory, recursive: true);
                 }
 
                 static bool ContainsBasePath(string subPath, string basePath)

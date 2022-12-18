@@ -23,5 +23,12 @@
             configure(options);
             return features;
         }
+
+        /// <summary>
+        /// Configures an instance of <see cref="IGitServicesScope"/>.
+        /// </summary>
+        /// <param name="features"></param>
+        public static IGitServicesScope ScopeToGit(this IVernuntiiServicesScope features) =>
+            new GitServicesScope(features.Services);
     }
 }

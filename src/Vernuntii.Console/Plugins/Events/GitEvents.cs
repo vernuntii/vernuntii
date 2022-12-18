@@ -15,6 +15,11 @@ namespace Vernuntii.Plugins.Events
         public static readonly SubjectEvent<string> ResolvedGitWorkingTreeDirectory = new();
 
         /// <summary>
+        /// Event is happening when the git command is requested.
+        /// </summary>
+        public static readonly SubjectEvent<GitCommandFactoryRequest> RequestGitCommandFactory = new();
+
+        /// <summary>
         /// Event is happening when the git command has been created.
         /// </summary>
         public static readonly SubjectEvent<IGitCommand> CreatedGitCommand = new();
@@ -28,11 +33,6 @@ namespace Vernuntii.Plugins.Events
         /// Event when global service collection has been configured.
         /// </summary>
         public static readonly SubjectEvent<IServiceCollection> ConfiguredGlobalServices = new();
-
-        /// <summary>
-        /// Event when calculation service collection is about to be configured.
-        /// </summary>
-        public static readonly SubjectEvent<IServiceCollection> ConfiguringCalculationServices = new();
 
         /// <summary>
         /// Event when calculation service collection has been configured.

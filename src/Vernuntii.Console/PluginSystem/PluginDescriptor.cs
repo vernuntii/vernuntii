@@ -16,13 +16,13 @@ namespace Vernuntii.PluginSystem
         private static readonly ListEqualityComparer<int> _intEqaulityComparer = new();
 
         /// <summary>
-        /// Describes an instantiated plugin whose service and implementation type is <typeparamref name="TService"/>.
+        /// Describes an instantiated plugin whose service and implementation type is <typeparamref name="TPlugin"/>.
         /// </summary>
-        /// <typeparam name="TService"></typeparam>
+        /// <typeparam name="TPlugin"></typeparam>
         /// <param name="implementation"></param>
-        public static PluginDescriptor Create<TService>(TService implementation)
-            where TService : IPlugin =>
-            new(typeof(TService), implementation);
+        public static PluginDescriptor Create<TPlugin>(TPlugin implementation)
+            where TPlugin : IPlugin =>
+            new(typeof(TPlugin), implementation);
 
         /// <summary>
         /// Describes a not yet created plugin whose service and implementation type is <typeparamref name="TPlugin"/>.
@@ -33,15 +33,15 @@ namespace Vernuntii.PluginSystem
             new(typeof(TPlugin), typeof(TPlugin));
 
         /// <summary>
-        /// Describes a not yet created plugin whose service type is <typeparamref name="TService"/>.
+        /// Describes a not yet created plugin whose service type is <typeparamref name="TPluginService"/>.
         /// </summary>
-        /// <typeparam name="TService"></typeparam>
-        /// <typeparam name="TImplementation"></typeparam>
+        /// <typeparam name="TPluginService"></typeparam>
+        /// <typeparam name="TPluginImplementation"></typeparam>
         /// <param name="implementationFactory"></param>
-        public static PluginDescriptor Create<TService, TImplementation>(Func<IServiceProvider, TImplementation> implementationFactory)
-            where TService : IPlugin
-            where TImplementation : class, TService =>
-            new(typeof(TService), implementationFactory, typeof(TImplementation));
+        public static PluginDescriptor Create<TPluginService, TPluginImplementation>(Func<IServiceProvider, TPluginImplementation> implementationFactory)
+            where TPluginService : IPlugin
+            where TPluginImplementation : class, TPluginService =>
+            new(typeof(TPluginService), implementationFactory, typeof(TPluginImplementation));
 
         /// <summary>
         /// Describes a not yet created plugin whose service and implementation type is <typeparamref name="TPlugin"/>.

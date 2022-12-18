@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.Console;
 using Vernuntii.Git;
+using Vernuntii.Git.Commands;
 using Vernuntii.Plugins;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
@@ -13,18 +14,19 @@ namespace Vernuntii
     public class ReleaseFromTagTests : IDisposable
     {
         private readonly TemporaryRepository _temporaryRepository = new(DefaultTemporaryRepositoryLogger);
+        private readonly ConfigureServicesPlugin<IServiceCollection> _configurableServices = ConfigureServicesPlugin.FromEvent(GitEvents.ConfiguredGlobalServices);
         private readonly VernuntiiRunner _vernuntii;
-        private readonly ConfigureServicesPlugin<IServiceCollection> _configurableCalculationServices = ConfigureServicesPlugin.FromEvent(GitEvents.ConfiguredCalculationServices);
 
         public ReleaseFromTagTests()
         {
             _vernuntii = new VernuntiiRunnerBuilder()
                 .ConfigurePlugins(plugins => {
-                    plugins.Add(PluginAction.WhenExecuting<IGitPlugin>.CreatePluginDescriptor(plugin => plugin.SetAlternativeRepository(
-                        _temporaryRepository,
-                        _temporaryRepository.GitCommand)));
+                    plugins.Add(
+                        PluginEventAction.OnEveryEvent(
+                            GitEvents.RequestGitCommandFactory,
+                            request => request.GitCommandFactory = new GitCommandProvider(_temporaryRepository.GitCommand)));
 
-                    plugins.Add(PluginDescriptor.Create(_configurableCalculationServices));
+                    plugins.Add(_configurableServices);
                 })
                 .Build(new[] {
                     "--config-path",

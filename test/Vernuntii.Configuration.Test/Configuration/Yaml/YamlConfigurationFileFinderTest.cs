@@ -4,11 +4,11 @@ namespace Vernuntii.Configuration.Yaml;
 
 public class YamlConfigurationFileFinderTest : IClassFixture<ConfigurationFixture>
 {
-    internal static AnyPath YmlDirectory = FileFinderDir / "yml";
+    internal static AnyPath YmlDirectory = FileFinderDirectory / "yml";
     internal static AnyPath YmlEmptyDirectory = YmlDirectory / "empty";
     internal static FilePath YmlConfigFile = YmlDirectory + YamlConfigurationFileDefaults.YmlFileName;
 
-    internal static AnyPath YamlDirectory = FileFinderDir / "yaml";
+    internal static AnyPath YamlDirectory = FileFinderDirectory / "yaml";
     internal static AnyPath YamlEmptyDirectory = YamlDirectory / "empty";
     internal static FilePath YamlConfigFile = YamlDirectory + YamlConfigurationFileDefaults.YamlFileName;
 

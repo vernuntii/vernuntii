@@ -6,7 +6,7 @@ namespace Vernuntii.Plugins
     /// <summary>
     /// Represents the compendium of plugin actions.
     /// </summary>
-    public static class PluginAction
+    internal static class PluginAction
     {
         /// <summary>
         /// A plugin that calls a handler with the first plugin of

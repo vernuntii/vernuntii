@@ -23,16 +23,16 @@ namespace Vernuntii.Plugins
         /// </summary>
         IGitCommand GitCommand { get; }
 
-        /// <summary>
-        /// Sets an alternative repository.
-        /// </summary>
-        /// <param name="repository"></param>
-        /// <param name="gitCommand"></param>
-        void SetAlternativeRepository(IRepository repository, IGitCommand gitCommand);
+        ///// <summary>
+        ///// Sets an alternative repository.
+        ///// </summary>
+        ///// <param name="repository"></param>
+        ///// <param name="gitCommand"></param>
+        //void SetGitCommand(IRepository repository, IGitCommand gitCommand);
 
-        /// <summary>
-        /// Unsets the alternative repository.
-        /// </summary>
-        void UnsetAlternativeRepository();
+        ///// <summary>
+        ///// Unsets the alternative repository.
+        ///// </summary>
+        //void UnsetAlternativeRepository();
     }
 }

@@ -11,7 +11,13 @@
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        bool TryGetValue<T>(object key, out T value);
+        bool TryGetCache<T>(object key, out T value);
+
+        /// <summary>
+        /// Tries to get cache.
+        /// </summary>
+        /// <param name="key"></param>
+        bool IsCached(object key);
 
         /// <summary>
         /// Sets cache.
@@ -19,17 +25,17 @@
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        void SetValue<T>(object key, T value);
+        void SetCache<T>(object key, T value);
 
         /// <summary>
         /// Unsets cache.
         /// </summary>
         /// <param name="key"></param>
-        void UnsetValue(object key);
+        void UnsetCache(object key);
 
         /// <summary>
-        /// Clears cache.
+        /// Clears all the cache.
         /// </summary>
-        void Clear();
+        void UnsetCache();
     }
 }

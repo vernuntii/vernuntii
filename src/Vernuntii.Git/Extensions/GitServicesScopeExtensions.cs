@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Vernuntii.Caching;
 using Vernuntii.Git;
+using Vernuntii.Git.Commands;
 using Vernuntii.MessagesProviders;
 
 namespace Vernuntii.Extensions
@@ -14,24 +16,29 @@ namespace Vernuntii.Extensions
         /// <summary>
         /// Adds an instance of <see cref="Repository"/> as <see cref="IRepository"/> if <see cref="IRepository"/> has not been added before.
         /// Then <see cref="ICommitsAccessor"/>, <see cref="ICommitTagsAccessor"/> and <see cref="ICommitVersionsAccessor"/> are associated
-        /// wit this <see cref="IRepository"/> instance, in case any of these interfaces have not been added before.
+        /// with this <see cref="IRepository"/> instance, in case any of these interfaces have not been added before.
         /// </summary>
         /// <param name="scope"></param>
-        /// <param name="configureOptions"></param>
-        public static IGitServicesScope AddRepository(this IGitServicesScope scope, Action<RepositoryOptions>? configureOptions = null)
+        public static IGitServicesScope AddRepository(this IGitServicesScope scope)
         {
             var services = scope.Services;
 
-            if (configureOptions != null) {
-                services.AddOptions<RepositoryOptions>().Configure(configureOptions);
-            }
+            services.TryAddSingleton<IGitDirectoryResolver>(GitDirectoryResolver.Default);
 
-            services.TryAddSingleton(sp => sp.GetRequiredService<IOptions<RepositoryOptions>>().Value);
-            services.TryAddSingleton<IRepository, Repository>();
-            services.TryAddSingleton<ICommitsAccessor>(sp => sp.GetRequiredService<IRepository>());
-            services.TryAddSingleton<ICommitTagsAccessor>(sp => sp.GetRequiredService<IRepository>());
-            services.TryAddSingleton<ICommitVersionsAccessor>(sp => sp.GetRequiredService<IRepository>());
-            services.TryAddSingleton<IBranchesAccessor>(sp => sp.GetRequiredService<IRepository>());
+            services.AddOptions<GitCommandOptions>().PostConfigure<IGitDirectoryResolver>(
+                (options, directoryResolver) => {
+                    if (options.ResolveGitWorkingTreeDirectory) {
+                        options.GitWorkingTreeDirectory = directoryResolver.ResolveWorkingTreeDirectory(options.GitWorkingTreeDirectory);
+                    }
+                });
+
+            services.TryAddSingleton<IGitCommand, GitCommand>();
+            services.TryAddSingleton<IMemoryCacheFactory, DefaultMemoryCacheFactory>();
+            services.TryAddScoped<IRepository, Repository>();
+            services.TryAddScoped<ICommitsAccessor>(sp => sp.GetRequiredService<IRepository>());
+            services.TryAddScoped<ICommitTagsAccessor>(sp => sp.GetRequiredService<IRepository>());
+            services.TryAddScoped<ICommitVersionsAccessor>(sp => sp.GetRequiredService<IRepository>());
+            services.TryAddScoped<IBranchesAccessor>(sp => sp.GetRequiredService<IRepository>());
             return scope;
         }
 

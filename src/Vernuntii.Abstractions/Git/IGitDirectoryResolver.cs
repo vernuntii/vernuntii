@@ -6,7 +6,7 @@
     public interface IGitDirectoryResolver
     {
         /// <summary>
-        /// Gets the top-level of the working tree.
+        /// Resolves the top-level directory of the working tree.
         /// </summary>
         /// <param name="gitPath"></param>
         public string ResolveWorkingTreeDirectory(string gitPath);
