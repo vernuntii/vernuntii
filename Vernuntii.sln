@@ -19,9 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Configuration.Cor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console", "src\Vernuntii.Console\Vernuntii.Console.csproj", "{39BD67A4-D667-44B5-B16E-C5C78D7B0371}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.Generic", "src\Vernuntii.Console.Generic\Vernuntii.Console.Generic.csproj", "{3D2445B9-3373-41CD-968A-AFE8980647B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.any", "src\Vernuntii.Console.any\Vernuntii.Console.any.csproj", "{3D2445B9-3373-41CD-968A-AFE8980647B9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.GlobalTool.Generic", "src\Vernuntii.Console.GlobalTool.Generic\Vernuntii.Console.GlobalTool.Generic.csproj", "{AE642EF8-E2B2-4CAC-9CE9-341186A47C41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.GlobalTool.any", "src\Vernuntii.Console.GlobalTool.any\Vernuntii.Console.GlobalTool.any.csproj", "{AE642EF8-E2B2-4CAC-9CE9-341186A47C41}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.GlobalTool.linux-x64", "src\Vernuntii.Console.GlobalTool.linux-x64\Vernuntii.Console.GlobalTool.linux-x64.csproj", "{6A1B7219-1A25-4130-82C9-4A6E9BEA85C3}"
 EndProject

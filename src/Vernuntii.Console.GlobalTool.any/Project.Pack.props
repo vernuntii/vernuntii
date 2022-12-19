@@ -1,6 +1,4 @@
 ﻿<Project>
-
-  <Import Project="$(MSBuildThisFileDirectory)Project.props" />
   
   <PropertyGroup>
     <PackAsTool>true</PackAsTool>
@@ -8,11 +6,14 @@
     <Description>Simple semantic versioning with git integration. Installing this package as dotnet tool makes the global command "vernuntii" available.</Description>
     <IsPackable>true</IsPackable>
     <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
     <PublishReadyToRun>true</PublishReadyToRun>
     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
     <Compile Include="$(MSBuildThisFileDirectory)**/*.cs" Exclude="$(MSBuildThisFileDirectory)obj/**/*" />
   </ItemGroup>
   

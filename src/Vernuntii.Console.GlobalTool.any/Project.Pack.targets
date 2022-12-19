@@ -6,6 +6,7 @@
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_IncludePackageVersionToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
+  <!-- This writes .pkgver-files for Vernuntii.Console.MSBuild and Vernuntii.Console.MSBuild.Orphan -->
   <Target Name="_WriteDependentProjectPackageVersions" BeforeTargets="GenerateNuspec">
     <MSBuild Projects="$(MSBuildThisFileDirectory)../Vernuntii.Console.MSBuild/Vernuntii.Console.MSBuild.csproj" Targets="_GetProjectVersion">
       <Output TaskParameter="TargetOutputs" ItemName="_VernuntiiMSBuildPathWithVersion"/>

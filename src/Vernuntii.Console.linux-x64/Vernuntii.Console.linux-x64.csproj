@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.Generic/Project.Publish.props" />
+  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.any/Project.props" />
+  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.any/Project.Publish.props" />
 
   <PropertyGroup>
     <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.Generic/Project.Publish.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.any/Project.Publish.targets" />
 
 </Project>

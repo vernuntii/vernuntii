@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Reflection;
 using System.Text;
+using Teronis.Text;
 
 namespace Vernuntii.VersionPresentation.Serializers
 {

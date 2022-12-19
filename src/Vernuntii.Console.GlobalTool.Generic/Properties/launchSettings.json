@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Vernuntii.Console.GlobalTool.Generic": {
-      "commandName": "Project",
-      "commandLineArgs": "--verbosity Verbose --cache-id test"
-    }
-  }
-}

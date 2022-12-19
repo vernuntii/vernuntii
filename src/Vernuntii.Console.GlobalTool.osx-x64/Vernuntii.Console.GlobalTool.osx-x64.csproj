@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.GlobalTool.Generic/Project.Pack.props" />
+  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.GlobalTool.any/Project.props" />
+  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.GlobalTool.any/Project.Pack.props" />
   
   <PropertyGroup>
     <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.GlobalTool.Generic/Project.Pack.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)../Vernuntii.Console.GlobalTool.any/Project.Pack.targets" />
 
 </Project>

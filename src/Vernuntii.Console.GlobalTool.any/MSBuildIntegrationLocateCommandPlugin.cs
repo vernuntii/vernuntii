@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Console.GlobalTool.DotNet;
 using Vernuntii.Console.GlobalTool.NuGet;
@@ -11,48 +12,65 @@ namespace Vernuntii.Console.GlobalTool
     internal class MSBuildIntegrationLocateCommandPlugin : Plugin
     {
         private const string VernuntiiConsoleMSBuild = $"{nameof(Vernuntii)}.{nameof(Console)}.MSBuild";
+        private const string PackageVersionFileExtension = ".pkgver";
 
-        public Command Command => _command;
+        private static bool TryFindPackageVersion(string packageName, [NotNullWhen(true)] out string? version)
+        {
+            var pkgverFile = Path.Combine(AppContext.BaseDirectory, $"{packageName}{PackageVersionFileExtension}");
+
+            if (File.Exists(pkgverFile)) {
+                version = File.ReadAllText(pkgverFile).Trim();
+                return true;
+            }
+
+            version = null;
+            return false;
+        }
+
+        public Command Command { get; }
 
         private readonly MSBuildIntegrationCommandPlugin _msbuildIntegrationCommandPlugin;
         private readonly ILoggingPlugin _loggingPlugin;
         private readonly ILogger<MSBuildIntegrationLocateCommandPlugin> _logger;
-        private readonly Command _command;
         private NuGetRunner _nugetRunner = null!;
 
-        private readonly Argument<MSBuildFileLocation> locateArgument = new("locate") {
+        private readonly Argument<MSBuildFileLocation> _locateArgument = new("locate") {
             Description = "The file location you are asking for."
         };
 
-        private readonly Option<string?> packageNameOption = new(new[] { "--package-name" }, () => VernuntiiConsoleMSBuild) {
+        private readonly Option<string?> _packageNameOption = new(new[] { "--package-name" }, () => VernuntiiConsoleMSBuild) {
             Description = $"A variant of {VernuntiiConsoleMSBuild} to use."
         };
 
-        private readonly Option<string?> packageVersionOption = new(new[] { "--package-version" }) {
-            Description = $"The pacakge version of {VernuntiiConsoleMSBuild} or variant to use."
+        private readonly Option<string?> _packageVersionOption = new(
+            new[] { "--package-version" },
+            getDefaultValue: () => TryFindPackageVersion(VernuntiiConsoleMSBuild, out var packageVersion)
+                ? packageVersion
+                : $"error: {PackageVersionFileExtension}-file not found for {VernuntiiConsoleMSBuild}") {
+            Description = $"The package version of {VernuntiiConsoleMSBuild} or variant to use."
         };
 
-        private readonly Option<bool> downloadPackageOption = new(new[] { "--download-package" }) {
-            Description = $"Downloads {VernuntiiConsoleMSBuild} or variant in case it is not."
+        private readonly Option<bool> _downloadPackageOption = new(new[] { "--download-package" }) {
+            Description = $"Downloads {VernuntiiConsoleMSBuild} or variant with specified or default package version."
         };
 
-        private readonly Option<string?> packageSourceOption = new(new[] { "--package-source" }) {
-            Description = $"Sets the NuGet-specific packageSource for {VernuntiiConsoleMSBuild} or variant." +
-                $"Either url e.g. https://api.nuget.org/v3/index.json (default) or a directory containing packages." +
-                $"Multiple sources are allowed when separating values by a semicolon."
+        private readonly Option<string?> _packageSourceOption = new(new[] { "--package-source" }) {
+            Description = $"Sets the NuGet-specific package source for {VernuntiiConsoleMSBuild} or variant." +
+                $" Either url e.g. https://api.nuget.org/v3/index.json (default) or a directory containing packages." +
+                $" Multiple sources are allowed if you separate them by a semicolon."
         };
 
         public MSBuildIntegrationLocateCommandPlugin(MSBuildIntegrationCommandPlugin msbuildIntegrationCommandPlugin, ILoggingPlugin loggingPlugin)
         {
-            _command = new Command("locate") {
-                locateArgument,
-                packageNameOption,
-                packageVersionOption,
-                downloadPackageOption,
-                packageSourceOption
+            Command = new Command("locate") {
+                _locateArgument,
+                _packageNameOption,
+                _packageVersionOption,
+                _downloadPackageOption,
+                _packageSourceOption
             };
 
-            _command.Handler = CommandHandler.Create(OnInvokeCommand);
+            Command.Handler = CommandHandler.Create(OnInvokeCommand);
             _msbuildIntegrationCommandPlugin = msbuildIntegrationCommandPlugin;
             _loggingPlugin = loggingPlugin;
             _logger = _loggingPlugin.CreateLogger<MSBuildIntegrationLocateCommandPlugin>();
@@ -67,7 +85,7 @@ namespace Vernuntii.Console.GlobalTool
             string? packageSource)
         {
             packageName ??= VernuntiiConsoleMSBuild;
-            packageVersion ??= FindVersion(packageVersion);
+            packageVersion ??= FindVersion(packageName, packageVersion, _logger);
             var package = GetGlobalPackage();
 
             var packageDirectory = package.Directory;
@@ -86,19 +104,10 @@ namespace Vernuntii.Console.GlobalTool
 
             System.Console.Write(filePath);
 
-            string FindVersion(string? version)
+            static string FindVersion(string packageName, string? version, ILogger _logger)
             {
-                if (version == null) {
-                    var pkgverFile = Path.Combine(AppContext.BaseDirectory, $"{packageName}.pkgver");
-
-                    if (File.Exists(pkgverFile)) {
-                        version = File.ReadAllText(pkgverFile).Trim();
-                    } else {
-                        _logger.LogTrace("MSBuild Integration package version file (\"{PackageVersionFile}\") not found", pkgverFile);
-                    }
-                }
-
-                if (version is null) {
+                if (version == null && !TryFindPackageVersion(packageName, out version)) {
+                    _logger.LogTrace("MSBuild Integration package version file (\"{PackageVersionFile}\") not found", packageName + PackageVersionFileExtension);
                     throw new VersionNotSpecifiedException($"A package version was not specified for package \"{packageName}\"");
                 }
 
@@ -137,6 +146,6 @@ namespace Vernuntii.Console.GlobalTool
         }
 
         protected override void OnExecution() =>
-            _msbuildIntegrationCommandPlugin.Command.AddCommand(_command);
+            _msbuildIntegrationCommandPlugin.Command.AddCommand(Command);
     }
 }

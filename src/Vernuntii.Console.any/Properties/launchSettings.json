@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Vernuntii.Console.Generic": {
+    "Vernuntii.Console.any": {
       "commandName": "Project",
       "commandLineArgs": "--override-post-pre-release \"\" --verbosity --empty-caches"
     },

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$(MSBuildThisFileDirectory)Project.props" />
+  <Import Project="$(MSBuildThisFileDirectory)Project.Pack.props" />
+  <Import Project="$(MSBuildThisFileDirectory)Project.Pack.targets" />
+
+</Project>
