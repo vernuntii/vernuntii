@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
-using Teronis.IO.FileLocking;
 using Vernuntii.Cryptography;
 
 namespace Vernuntii.VersionCaching

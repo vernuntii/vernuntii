@@ -33,7 +33,7 @@ namespace Vernuntii.Git
             && StringComparer.InvariantCultureIgnoreCase.Equals(CommitSha, other.CommitSha);
 
         /// <inheritdoc/>
-        public sealed override bool Equals([NotNullWhen(true)] ISemanticVersion? other) => 
+        public sealed override bool Equals([NotNullWhen(true)] ISemanticVersion? other) =>
             other is ICommitVersion otherCommitVersion
             ? Equals(otherCommitVersion)
             : base.Equals(other);

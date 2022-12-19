@@ -7,7 +7,7 @@ namespace Vernuntii.VersionTransformers;
 internal static class SemanticBuilderExtensions
 {
     private static readonly NextHeightNumberTransformer s_nextPreReleaseHeightTransformer =
-        new NextHeightNumberTransformer(
+        new(
             new HeightConventionTransformer(
                 HeightConvention.InPreReleaseAfterFirstDot,
                 HeightPlaceholderParser.Default));

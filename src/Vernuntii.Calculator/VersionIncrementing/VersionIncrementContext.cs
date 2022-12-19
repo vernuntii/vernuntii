@@ -140,7 +140,7 @@ namespace Vernuntii.VersionIncrementing
         /// <summary>
         /// The options of on-going calculation.
         /// </summary>
-        private VersionIncrementationOptions _incremenationOptions;
+        private readonly VersionIncrementationOptions _incremenationOptions;
         private ISemanticVersion? _currentVersion;
         private bool? _doesCurrentVersionContainsMajorIncrement;
         private bool? _doesCurrentVersionContainsMinorIncrement;

@@ -69,7 +69,7 @@ namespace Vernuntii.Plugins
         private VersionPresentationView _presentationView;
         private bool _emptyCaches;
 
-        private IGlobalServicesPlugin _globalServiceProvider;
+        private readonly IGlobalServicesPlugin _globalServiceProvider;
 
         public NextVersionPlugin(
             SharedOptionsPlugin sharedOptions,

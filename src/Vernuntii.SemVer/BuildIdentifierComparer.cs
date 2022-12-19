@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Vernuntii.SemVer.Parser;
+﻿using Vernuntii.SemVer.Parser;
 using Vernuntii.SemVer.Parser.Parsers;
 
 namespace Vernuntii.SemVer;

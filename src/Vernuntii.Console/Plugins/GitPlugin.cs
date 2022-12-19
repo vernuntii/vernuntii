@@ -58,9 +58,7 @@ public class GitPlugin : Plugin, IGitPlugin
     private string? _workingTreeDirectory;
     private string? _resolvedWorkingTreeDirectory;
     private readonly ILogger _logger = null!;
-    private GitCommandFactoryRequest? _gitCommandFactoryRequest = null!;
-    //private IRepository? _alternativeRepository;
-    //private IGitCommand? _alternativeGitCommand;
+    private GitCommandFactoryRequest? _gitCommandFactoryRequest;
 
     public GitPlugin(
         ICommandLinePlugin commandlinePlugin,

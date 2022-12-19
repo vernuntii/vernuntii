@@ -5,8 +5,8 @@ namespace Vernuntii.Git;
 internal sealed class ManualCommitHistory : ICommitVersionsAccessor, ICommitsAccessor
 {
     // Stacked commits
-    private List<Commit> _commits = new();
-    private HashSet<CommitVersion> _commitVersions = new(SemanticVersionComparer.VersionReleaseBuild);
+    private readonly List<Commit> _commits = new();
+    private readonly HashSet<CommitVersion> _commitVersions = new(SemanticVersionComparer.VersionReleaseBuild);
 
     IEnumerable<ICommit> ICommitsAccessor.GetCommits(string? branchName, string? sinceCommit, bool fromOldToNew)
     {

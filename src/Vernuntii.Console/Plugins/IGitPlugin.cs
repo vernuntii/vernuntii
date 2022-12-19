@@ -1,5 +1,4 @@
-﻿using Vernuntii.Git;
-using Vernuntii.Git.Commands;
+﻿using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 
@@ -22,17 +21,5 @@ namespace Vernuntii.Plugins
         /// The git command.
         /// </summary>
         IGitCommand GitCommand { get; }
-
-        ///// <summary>
-        ///// Sets an alternative repository.
-        ///// </summary>
-        ///// <param name="repository"></param>
-        ///// <param name="gitCommand"></param>
-        //void SetGitCommand(IRepository repository, IGitCommand gitCommand);
-
-        ///// <summary>
-        ///// Unsets the alternative repository.
-        ///// </summary>
-        //void UnsetAlternativeRepository();
     }
 }

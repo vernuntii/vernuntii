@@ -29,7 +29,7 @@ namespace Vernuntii.VersionTransformers
         /// <summary>
         /// A transformer that removes the pre-release.
         /// </summary>
-        public static readonly PreReleaseTransformer Release = new PreReleaseTransformer(preRelease: null);
+        public static readonly PreReleaseTransformer Release = new(preRelease: null);
 
         /// <inheritdoc/>
         public string? ProspectivePreRelease { get; }

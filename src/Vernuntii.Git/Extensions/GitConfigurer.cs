@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
-using Vernuntii.VersionTransformers;
 using Vernuntii.MessagesProviders;
-using Microsoft.Extensions.DependencyInjection;
+using Vernuntii.VersionTransformers;
 
 namespace Vernuntii.Extensions
 {

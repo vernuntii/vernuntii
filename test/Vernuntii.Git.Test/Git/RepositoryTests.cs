@@ -20,8 +20,8 @@ namespace Vernuntii.Git
                 },
             };
 
-            var createShallowOptions = () => new TemporaryRepository(shallowOptions, DefaultTemporaryRepositoryLogger);
-            _ = FluentActions.Invoking(createShallowOptions).Should().ThrowExactly<ShallowRepositoryException>();
+            var createShallowRepository = () => new TemporaryRepository(shallowOptions, DefaultTemporaryRepositoryLogger);
+            _ = FluentActions.Invoking(createShallowRepository).Should().ThrowExactly<ShallowRepositoryException>();
         }
 
         [Fact]

@@ -9,7 +9,7 @@ internal class VersionIncrementerTestSuite : IDisposable
 {
     public ManualCommitHistory Commits { get; }
 
-    private ServiceProvider _serviceProvider;
+    private readonly ServiceProvider _serviceProvider;
 
     public VersionIncrementerTestSuite(VersionIncrementerTestSuiteOptions testOptions)
     {

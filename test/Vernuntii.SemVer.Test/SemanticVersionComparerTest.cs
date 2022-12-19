@@ -1,5 +1,5 @@
-﻿using Vernuntii.SemVer;
-using Vernuntii.Collections;
+﻿using Vernuntii.Collections;
+using Vernuntii.SemVer;
 using Xunit;
 
 namespace Vernuntii
