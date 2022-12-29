@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Abstractions", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Calculator", "src\Vernuntii.Calculator\Vernuntii.Calculator.csproj", "{0F5C72BB-E779-4025-A8A4-5E339590F6A0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Common", "src\Vernuntii.Common\Vernuntii.Common.csproj", "{DF4EDDEE-C043-420B-9A98-F1CA4166AA62}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Configuration", "src\Vernuntii.Configuration\Vernuntii.Configuration.csproj", "{E15E4EB6-C18C-47CC-9ABB-986CFADD7979}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Configuration.Core", "src\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj", "{51053B99-0F87-4422-AF86-73CDDF5AC6C1}"
@@ -97,10 +95,6 @@ Global
 		{0F5C72BB-E779-4025-A8A4-5E339590F6A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F5C72BB-E779-4025-A8A4-5E339590F6A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F5C72BB-E779-4025-A8A4-5E339590F6A0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DF4EDDEE-C043-420B-9A98-F1CA4166AA62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DF4EDDEE-C043-420B-9A98-F1CA4166AA62}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DF4EDDEE-C043-420B-9A98-F1CA4166AA62}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DF4EDDEE-C043-420B-9A98-F1CA4166AA62}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E15E4EB6-C18C-47CC-9ABB-986CFADD7979}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E15E4EB6-C18C-47CC-9ABB-986CFADD7979}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E15E4EB6-C18C-47CC-9ABB-986CFADD7979}.Release|Any CPU.ActiveCfg = Release|Any CPU

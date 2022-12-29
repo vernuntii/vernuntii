@@ -19,11 +19,11 @@
     <PackageReference Include="Microsoft.Experimental.Collections" />
     <PackageReference Include="Teronis.NetStandard.Core" />
     <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="K4os.Hash.xxHash" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" />
-    <ProjectReference Include="..\Vernuntii.Common\Vernuntii.Common.csproj" />
     <ProjectReference Include="..\Vernuntii.SemVer\Vernuntii.SemVer.csproj" />
   </ItemGroup>
 

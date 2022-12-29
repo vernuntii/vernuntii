@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using Vernuntii.SemVer.Parser;
 using static Vernuntii.SemVer.SemanticVersionBuilder;
 

@@ -24,7 +24,7 @@ namespace Vernuntii.VersionCaching
         private readonly TimeSpan? _creationRetentionTime;
         private readonly bool _useLastAccessRetentionTime;
         private readonly TimeSpan? _lastAccessRetentionTime;
-        private readonly IVersionCacheEvaluator _recacheIndicator;
+        private readonly IVersionCacheEvaluator _versionCacheEvaluator;
         private readonly bool _emptyCaches;
         private readonly ILogger<VersionCacheManager> _logger;
 
@@ -33,11 +33,11 @@ namespace Vernuntii.VersionCaching
         /// </summary>
         /// <param name="cacheDirectory"></param>
         /// <param name="cacheOptions"></param>
-        /// <param name="versionRecacheIndicator"></param>
+        /// <param name="versionCacheEvaluator"></param>
         /// <param name="logger"></param>
         public VersionCacheManager(
             IVersionCacheDirectory cacheDirectory,
-            IVersionCacheEvaluator versionRecacheIndicator,
+            IVersionCacheEvaluator versionCacheEvaluator,
             IVersionCacheOptions cacheOptions,
             ILogger<VersionCacheManager> logger)
         {
@@ -76,7 +76,7 @@ namespace Vernuntii.VersionCaching
             _creationRetentionTime = creationRetentionTime;
             _useLastAccessRetentionTime = useLastAccessRetentionTime;
             _lastAccessRetentionTime = lastAccessRetentionTime;
-            _recacheIndicator = versionRecacheIndicator;
+            _versionCacheEvaluator = versionCacheEvaluator;
             _emptyCaches = cacheOptions.EmptyCaches;
             _logger = logger;
         }
@@ -120,7 +120,7 @@ namespace Vernuntii.VersionCaching
                 return new RecacheIndicator(
                     versionCache,
                     versionCacheWriter,
-                    _recacheIndicator.IsRecacheRequired(
+                    _versionCacheEvaluator.IsRecacheRequired(
                         versionCache,
                         _useLastAccessRetentionTime,
                         _lastAccessRetentionTime,
@@ -136,10 +136,10 @@ namespace Vernuntii.VersionCaching
         /// <inheritdoc/>
         public bool IsRecacheRequired([NotNullWhen(false)] out IVersionCache? versionCache)
         {
-            using var indicator = GetRecacheIndicator(comparableVersion: null);
+            using var recacheIndicator = GetRecacheIndicator(comparableVersion: null);
+            var isRecacheRequired = recacheIndicator.IsRecacheRequired(out var concreteVersionCache, out var versionCacheWriter);
 
-            if (indicator.IsRecacheRequired(out var concreteVersionCache, out var versionCacheWriter) is var isRecacheRequired
-                && concreteVersionCache != null
+            if (concreteVersionCache != null
                 && _useLastAccessRetentionTime) {
                 var newLastAccessTime = DateTime.UtcNow;
                 concreteVersionCache.LastAccessTime = newLastAccessTime;

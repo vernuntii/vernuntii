@@ -1,6 +1,7 @@
-﻿using K4os.Hash.xxHash;
+﻿using System.Diagnostics;
+using K4os.Hash.xxHash;
 
-namespace Vernuntii.Cryptography
+namespace Vernuntii.VersionCaching
 {
     /// <summary>
     /// Calculates a hash of multiple _files.
@@ -45,9 +46,10 @@ namespace Vernuntii.Cryptography
         /// </summary>
         public byte[] ToHashCode()
         {
+            var sortedFiles = new SortedSet<string>(_files, StringComparer.InvariantCulture);
             var hashAlgorithm = new XXH64();
 
-            foreach (var file in new SortedSet<string>(_files, StringComparer.InvariantCulture)) {
+            foreach (var file in sortedFiles) {
                 try {
                     hashAlgorithm.Update(File.ReadAllBytes(file));
                 } catch {

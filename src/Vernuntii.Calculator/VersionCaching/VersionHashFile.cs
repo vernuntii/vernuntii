@@ -1,7 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Teronis.IO.FileLocking;
-using Vernuntii.Cryptography;
 
 namespace Vernuntii.VersionCaching
 {
@@ -10,10 +10,10 @@ namespace Vernuntii.VersionCaching
     /// </summary>
     public class VersionHashFile
     {
-        private const string _refsTagDirectory = "refs/tags";
-        private const string _refsHeadsDirectory = "refs/heads";
-        private const string _packedRefsDirectory = "packed-refs";
-        private const string _hashExtension = ".hash";
+        private const string RefsTagDirectory = "refs/tags";
+        private const string RefsHeadsDirectory = "refs/heads";
+        private const string PackedRefsDirectory = "packed-refs";
+        private const string HashExtension = ".hash";
 
         private readonly VersionHashFileOptions _options;
         private readonly IVersionCacheManager _cacheManager;
@@ -57,10 +57,10 @@ namespace Vernuntii.VersionCaching
 
             var configFile = _options.ConfigFile;
             var gitDirectory = _options.GitDirectory;
-            var refsTagDirectory = Path.Combine(gitDirectory, _refsTagDirectory);
-            var refsHeadDirectory = Path.Combine(gitDirectory, _refsHeadsDirectory);
-            var packedRefsFile = Path.Combine(gitDirectory, _packedRefsDirectory);
-            var hashFile = Path.Combine(_cacheDirectory.CacheDirectoryPath, $"{_cacheManager.CacheId}{_hashExtension}");
+            var refsTagDirectory = Path.Combine(gitDirectory, RefsTagDirectory);
+            var refsHeadDirectory = Path.Combine(gitDirectory, RefsHeadsDirectory);
+            var packedRefsFile = Path.Combine(gitDirectory, PackedRefsDirectory);
+            var hashFile = Path.Combine(_cacheDirectory.CacheDirectoryPath, $"{_cacheManager.CacheId}{HashExtension}");
 
             var upToDateHashCode = new UpToDateHashCode();
 
