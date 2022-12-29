@@ -93,7 +93,7 @@ public class GitPlugin : Plugin, IGitPlugin
         }
 
         _gitCommandFactoryRequest = new GitCommandFactoryRequest();
-        await Events.FulfillAsync(GitEvents.RequestGitCommandFactory, _gitCommandFactoryRequest).ConfigureAwait(true);
+        await Events.FulfillAsync(GitEvents.RequestGitCommandFactory, _gitCommandFactoryRequest).ConfigureAwait(false);
     }
 
     [MemberNotNull(nameof(_resolvedWorkingTreeDirectory))]
@@ -118,7 +118,7 @@ public class GitPlugin : Plugin, IGitPlugin
         }
 
 #pragma warning disable CS8774 // Member must have a non-null value when exiting.
-        await EnsureRequestedGitDirectoryFactory().ConfigureAwait(true);
+        await EnsureRequestedGitDirectoryFactory().ConfigureAwait(false);
 #pragma warning restore CS8774 // Member must have a non-null value when exiting.
 
         var gitDirectoryResolver = _gitCommandFactoryRequest.GitDirectoryResolver ?? GitDirectoryResolver.Default;
@@ -133,8 +133,8 @@ public class GitPlugin : Plugin, IGitPlugin
         }
 
 #pragma warning disable CS8774 // Member must have a non-null value when exiting.
-        await EnsureRequestedGitDirectoryFactory().ConfigureAwait(true);
-        await EnsureResolvedWorkingTreeDirectory(configFile).ConfigureAwait(true);
+        await EnsureRequestedGitDirectoryFactory().ConfigureAwait(false);
+        await EnsureResolvedWorkingTreeDirectory(configFile).ConfigureAwait(false);
 #pragma warning restore CS8774 // Member must have a non-null value when exiting.
 
         _gitCommand = (_gitCommandFactoryRequest.GitCommandFactory ?? GitCommandFactory.Default).CreateCommand(_resolvedWorkingTreeDirectory);
@@ -144,7 +144,7 @@ public class GitPlugin : Plugin, IGitPlugin
         }
 
         _logger.LogInformation("Use repository directory: {_workingTreeDirectory}", _resolvedWorkingTreeDirectory);
-        await Events.FulfillAsync(GitEvents.CreatedGitCommand, _gitCommand).ConfigureAwait(true);
+        await Events.FulfillAsync(GitEvents.CreatedGitCommand, _gitCommand).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -154,7 +154,7 @@ public class GitPlugin : Plugin, IGitPlugin
             .Earliest(ConfigurationEvents.ConfiguredConfigurationBuilder)
             .Subscribe(async result => {
                 _isConfiguredConfigurationBuilder = true;
-                await EnsureCreatedGitCommand(result.ConfigPath).ConfigureAwait(true);
+                await EnsureCreatedGitCommand(result.ConfigPath).ConfigureAwait(false);
             })
             .DisposeWhenDisposing(this);
 
@@ -166,9 +166,9 @@ public class GitPlugin : Plugin, IGitPlugin
             .Zip(ConfigurationEvents.CreatedConfiguration)
             .Subscribe(async result => {
                 var (((services, configurationBuilderResult), overridePostPreRelease), configuration) = result;
-                await Events.FulfillAsync(GitEvents.ConfiguringServices, services).ConfigureAwait(true);
+                await Events.FulfillAsync(GitEvents.ConfiguringServices, services).ConfigureAwait(false);
 
-                await EnsureCreatedGitCommand(configurationBuilderResult.ConfigPath).ConfigureAwait(true);
+                await EnsureCreatedGitCommand(configurationBuilderResult.ConfigPath).ConfigureAwait(false);
                 services.AddSingleton(_gitCommand);
 
                 services
@@ -195,7 +195,7 @@ public class GitPlugin : Plugin, IGitPlugin
                                 .SetPostPreRelease(overridePostPreRelease))));
                 }
 
-                await Events.FulfillAsync(GitEvents.ConfiguredServices, services).ConfigureAwait(true);
+                await Events.FulfillAsync(GitEvents.ConfiguredServices, services).ConfigureAwait(false);
             });
 
         //nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)).Replay(1).RefCount().Subscribe(out var nextDuplicateVersionFails).DisposeWhenDisposing(this);

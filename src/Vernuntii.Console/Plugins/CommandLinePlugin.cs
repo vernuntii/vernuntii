@@ -74,7 +74,7 @@ namespace Vernuntii.Plugins
                    .AddMiddleware(
                     async (ctx, next) => {
                         try {
-                            await next(ctx).ConfigureAwait(true);
+                            await next(ctx).ConfigureAwait(false);
                             _exception = null;
                         } catch (Exception error) {
                             // Unwraps error to make the actual error more valuable for casual users.
@@ -143,7 +143,7 @@ namespace Vernuntii.Plugins
                     MiddlewareOrder.ErrorReporting)
                 .Build();
 
-            var exitCode = await parser.InvokeAsync(commandLineArguments ?? Array.Empty<string>()).ConfigureAwait(true);
+            var exitCode = await parser.InvokeAsync(commandLineArguments ?? Array.Empty<string>()).ConfigureAwait(false);
 
             // Is null if above middleware was not called.
             if (_parseResult is null) {
@@ -169,8 +169,8 @@ namespace Vernuntii.Plugins
             }
 
             // This calls the middleware again.
-            var exitCode = await _parseResult.InvokeAsync().ConfigureAwait(true);
-            await Events.FulfillAsync(CommandLineEvents.InvokedRootCommand, exitCode).ConfigureAwait(true);
+            var exitCode = await _parseResult.InvokeAsync().ConfigureAwait(false);
+            await Events.FulfillAsync(CommandLineEvents.InvokedRootCommand, exitCode).ConfigureAwait(false);
             AttemptRethrow();
         }
 
@@ -187,7 +187,7 @@ namespace Vernuntii.Plugins
                 .Zip(CommandLineEvents.ParseCommandLineArguments)
                 .Subscribe(async result => {
                     var ((lifecycleContext, commandLineArguments), argumentsParsingContext) = result;
-                    await ParseCommandLineArguments(lifecycleContext, argumentsParsingContext, commandLineArguments).ConfigureAwait(true);
+                    await ParseCommandLineArguments(lifecycleContext, argumentsParsingContext, commandLineArguments).ConfigureAwait(false);
                 })
                 .DisposeWhenDisposing(this);
 

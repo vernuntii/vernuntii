@@ -27,7 +27,7 @@ namespace Vernuntii.PluginSystem
         public async ValueTask ExecuteAsync()
         {
             foreach (var pluginRegistration in _pluginRegistry.OrderlyPluginRegistrations) {
-                await pluginRegistration.Plugin.OnExecution(_pluginEvents).ConfigureAwait(true);
+                await pluginRegistration.Plugin.OnExecution(_pluginEvents).ConfigureAwait(false);
             }
         }
 

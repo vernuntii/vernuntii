@@ -144,7 +144,7 @@ namespace Vernuntii.Plugins
         {
             ReconfigureLoggingInfrastructure();
 
-            await Events.FulfillAsync(LoggingEvents.EnabledLoggingInfrastructure, this).ConfigureAwait(true);
+            await Events.FulfillAsync(LoggingEvents.EnabledLoggingInfrastructure, this).ConfigureAwait(false);
 
             if (_enabledLoggingInfrastructureEvent != null) {
                 _enabledLoggingInfrastructureEvent.Invoke(this);

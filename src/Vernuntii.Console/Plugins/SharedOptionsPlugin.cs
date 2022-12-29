@@ -62,11 +62,11 @@ namespace Vernuntii.Plugins
             Events
                 .Earliest(CommandLineEvents.ParsedCommandLineArguments)
                 .Subscribe(async parseResult => {
-                    await Events.FulfillAsync(SharedOptionsEvents.ParseCommandLineArguments).ConfigureAwait(true);
+                    await Events.FulfillAsync(SharedOptionsEvents.ParseCommandLineArguments).ConfigureAwait(false);
                     // Parse options.
                     _overrideVersioningMode = parseResult.GetValueForOption(_overrideVersioningModeOption);
                     _areCommandLineArgumentsParsed = true;
-                    await Events.FulfillAsync(SharedOptionsEvents.ParsedCommandLineArguments).ConfigureAwait(true);
+                    await Events.FulfillAsync(SharedOptionsEvents.ParsedCommandLineArguments).ConfigureAwait(false);
                 })
                 .DisposeWhenDisposing(this);
         }

@@ -47,7 +47,7 @@ public class EventSystem : IEventChainFactory
 
             if (!task.IsCompletedSuccessfully)
             {
-                await task.ConfigureAwait(true);
+                await task.ConfigureAwait(false);
             }
         }
     }
