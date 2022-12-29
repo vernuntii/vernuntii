@@ -20,5 +20,5 @@ public interface IEventObserver<in T>
     /// The method gets scheduled and called if the event you subscribed for got fulfilled.
     /// </summary>
     /// <param name="eventData"></param>
-    ValueTask OnFulfilled(T eventData);
+    Task OnFulfilled(T eventData);
 }

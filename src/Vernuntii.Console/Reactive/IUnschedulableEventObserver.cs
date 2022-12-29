@@ -10,5 +10,5 @@ internal interface IUnschedulableEventObserver<T> : IEventObserver<T>
     void IEventObserver<T>.OnFulfilled(EventFulfillmentContext context, T eventData) =>
         OnFulfilled(context, eventData);
 
-    ValueTask IEventObserver<T>.OnFulfilled(T eventData) => throw new NotImplementedException();
+    Task IEventObserver<T>.OnFulfilled(T eventData) => throw new NotImplementedException();
 }

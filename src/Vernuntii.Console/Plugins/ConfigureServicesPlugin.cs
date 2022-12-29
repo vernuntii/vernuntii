@@ -11,12 +11,12 @@ namespace Vernuntii.Plugins
     public static class ConfigureServicesPlugin
     {
         /// <summary>
-        /// Creates an instance of this type from <paramref name="eventTemplate"/>.
+        /// Creates an instance of this type from <paramref name="eventDiscriminator"/>.
         /// </summary>
-        /// <param name="eventTemplate"></param>
-        public static ConfigureServicesPlugin<TServices> FromEvent<TServices>(EventDiscriminator<TServices> eventTemplate)
+        /// <param name="eventDiscriminator"></param>
+        public static ConfigureServicesPlugin<TServices> FromEvent<TServices>(EventDiscriminator<TServices> eventDiscriminator)
             where TServices : IServiceCollection =>
-            new(eventTemplate);
+            new(eventDiscriminator);
     }
 
     /// <summary>
@@ -27,16 +27,16 @@ namespace Vernuntii.Plugins
     public sealed class ConfigureServicesPlugin<TServices> : Plugin
         where TServices : IServiceCollection
     {
-        private readonly EventDiscriminator<TServices> _eventTemplate;
+        private readonly EventDiscriminator<TServices> _eventDiscriminator;
         private readonly List<Action<IServiceCollection>> _configureServicesActions = new();
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        /// <param name="eventTemplate"></param>
+        /// <param name="eventDiscriminator"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public ConfigureServicesPlugin(EventDiscriminator<TServices> eventTemplate) =>
-            _eventTemplate = eventTemplate ?? throw new ArgumentNullException(nameof(eventTemplate));
+        public ConfigureServicesPlugin(EventDiscriminator<TServices> eventDiscriminator) =>
+            _eventDiscriminator = eventDiscriminator ?? throw new ArgumentNullException(nameof(eventDiscriminator));
 
         /// <summary>
         /// Configures
@@ -54,7 +54,7 @@ namespace Vernuntii.Plugins
         protected override void OnExecution()
         {
             Events
-                .Every(_eventTemplate)
+                .Every(_eventDiscriminator)
                 .Subscribe(services => {
                     foreach (var configureServices in _configureServicesActions) {
                         configureServices(services);

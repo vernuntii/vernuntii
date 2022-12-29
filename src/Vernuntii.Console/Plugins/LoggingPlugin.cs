@@ -139,7 +139,7 @@ namespace Vernuntii.Plugins
             }
         }
 
-        private async ValueTask EnableLoggingInfrastructure()
+        private async Task EnableLoggingInfrastructure()
         {
             ReconfigureLoggingInfrastructure();
 

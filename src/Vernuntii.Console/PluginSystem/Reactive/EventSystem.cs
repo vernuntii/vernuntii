@@ -21,7 +21,7 @@ public sealed class EventSystem : IEventChainFactory
         }
     }
 
-    public async ValueTask FullfillAsync<T>(ulong eventId, T eventData)
+    public async Task FullfillAsync<T>(ulong eventId, T eventData)
     {
         var fulfillmentContext = new EventFulfillmentContext();
 
@@ -34,7 +34,11 @@ public sealed class EventSystem : IEventChainFactory
         }
 
         foreach (var scheduledEventInvocation in fulfillmentContext.ScheduledEventInvocations) {
-            await scheduledEventInvocation.Item1(scheduledEventInvocation.Item2);
+            var task = scheduledEventInvocation.Item1(scheduledEventInvocation.Item2);
+
+            if (!task.IsCompletedSuccessfully) {
+                await task;
+            }
         }
     }
 

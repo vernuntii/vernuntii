@@ -135,10 +135,10 @@ namespace Vernuntii.Plugins
             cli.RootCommand.Add(_emptyCachesOption);
         }
 
-        private async ValueTask OnParsedCommandLine(ParseResult parseResult)
+        private Task OnParsedCommandLine(ParseResult parseResult)
         {
             if (parseResult.CommandResult.Command.Handler != _commandHandler) {
-                return;
+                return Task.CompletedTask;
             }
 
             _presentationKind = parseResult.GetValueForOption(_presentationKindOption);
@@ -147,7 +147,7 @@ namespace Vernuntii.Plugins
             _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
 
             // Check version cache
-            await Events.FulfillAsync(VersionCacheCheckEvents.CheckVersionCache);
+            return Events.FulfillAsync(VersionCacheCheckEvents.CheckVersionCache);
         }
 
         /// <inheritdoc/>

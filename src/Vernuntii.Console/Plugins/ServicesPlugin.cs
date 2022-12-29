@@ -23,26 +23,43 @@ namespace Vernuntii.Plugins
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        private async ValueTask OnCreateServiceProvider()
+        private Task OnCreateServiceProvider()
         {
             if (_cacheCheckPlugin.IsCacheUpToDate) {
-                return;
+                return Task.CompletedTask;
             }
 
             var services = _services;
-            await Events.FulfillAsync(ServicesEvents.ConfigureServices, services);
-            var globalServices = services.BuildServiceProvider();
-            AddDisposable(globalServices);
-            _serviceProvider = globalServices;
-            _logger.LogTrace("Created global service provider");
+            var task = Events.FulfillAsync(ServicesEvents.ConfigureServices, services);
+
+            void CreateServiceBuilder()
+            {
+                var serviceProvider = services.BuildServiceProvider();
+                AddDisposable(serviceProvider);
+                _serviceProvider = serviceProvider;
+                _logger.LogTrace("Created global service provider");
+            }
+
+            async Task CreateServiceBuilderAsync()
+            {
+                await task;
+                CreateServiceBuilder();
+            }
+
+            if (task.IsCompletedSuccessfully) {
+                CreateServiceBuilder();
+                return Task.CompletedTask;
+            } else {
+                return CreateServiceBuilderAsync();
+            }
         }
 
         /// <inheritdoc/>
         protected override void OnExecution()
         {
             Events.Every(ServicesEvents.CreateServiceProvider)
-                //.Where(_ => !_cacheCheckPlugin.IsCacheUpToDate)
-                .Subscribe(_ => OnCreateServiceProvider());
+                .Subscribe(OnCreateServiceProvider)
+                .DisposeWhenDisposing(this);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

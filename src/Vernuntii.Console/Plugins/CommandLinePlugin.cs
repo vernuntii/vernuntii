@@ -162,7 +162,7 @@ namespace Vernuntii.Plugins
         /// Called when <see cref="CommandLineEvents.InvokeRootCommand"/> is happening.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
-        protected virtual async ValueTask InvokeRootCommand()
+        protected virtual async Task InvokeRootCommand()
         {
             if (RootCommand.Handler is null) {
                 throw new InvalidOperationException("Root command handler is not set");

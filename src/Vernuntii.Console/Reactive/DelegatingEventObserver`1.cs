@@ -2,12 +2,12 @@
 
 internal class DelegatingEventObserver<T> : IEventObserver<T>
 {
-    private readonly Func<T, ValueTask> _eventHandler;
+    private readonly Func<T, Task> _eventHandler;
 
-    public DelegatingEventObserver(Func<T, ValueTask> eventHandler) =>
+    public DelegatingEventObserver(Func<T, Task> eventHandler) =>
         _eventHandler = eventHandler ?? throw new ArgumentNullException(nameof(eventHandler));
 
-    public ValueTask OnFulfilled(T eventData) =>
+    public Task OnFulfilled(T eventData) =>
         _eventHandler(eventData);
 
 }

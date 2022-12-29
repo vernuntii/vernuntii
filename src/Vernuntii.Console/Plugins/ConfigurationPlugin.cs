@@ -95,15 +95,15 @@ namespace Vernuntii.Plugins
 
             Events.Every(ConfigurationEvents.CreateConfiguration)
                 .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
-                .Subscribe(async result => {
+                .Subscribe(result => {
                     if (versionCacheCheckPlugin.IsCacheUpToDate) {
-                        return;
+                        return Task.CompletedTask;
                     }
 
                     var (_, builderResult) = result;
                     Configuration = configurationBuilder.Build();
                     _logger.LogInformation("Used configuration file: {ConfigurationFilePath}", builderResult.ConfigPath ?? "<none>");
-                    await Events.FulfillAsync(ConfigurationEvents.CreatedConfiguration, Configuration);
+                    return Events.FulfillAsync(ConfigurationEvents.CreatedConfiguration, Configuration);
                 })
                 .DisposeWhenDisposing(this);
             ;

@@ -2,7 +2,7 @@
 
 internal class DelegatingEventObserver<T, TState> : IEventObserver<T>
 {
-    internal delegate ValueTask HandleEventDelegate(in Tuple tuple);
+    internal delegate Task HandleEventDelegate(in Tuple tuple);
 
     private readonly HandleEventDelegate _eventHandler;
     private readonly TState _state;
@@ -13,7 +13,7 @@ internal class DelegatingEventObserver<T, TState> : IEventObserver<T>
         _state = state;
     }
 
-    public ValueTask OnFulfilled(T eventData) =>
+    public Task OnFulfilled(T eventData) =>
         _eventHandler(new Tuple(eventData, _state));
 
     internal readonly struct Tuple
