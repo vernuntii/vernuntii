@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using MessagePack;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Git;
 using Vernuntii.SemVer;
 using Vernuntii.Text.Json;
+using Vernuntii.VersionCaching.MessagePack;
 
 namespace Vernuntii.VersionCaching
 {
@@ -81,16 +83,25 @@ namespace Vernuntii.VersionCaching
             _logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Tries to get the cache, but does not cache any exceptions.
+        /// </summary>
+        /// <remarks>
+        /// The method is very naive and can throw any kind of IO exception.
+        /// </remarks>
+        /// <param name="versionCache"></param>
+        /// <param name="versionCacheWriter"></param>
+        /// <returns>The naive pre-check</returns>
+        /// <exception cref="MessagePackSerializationException"/>
         private bool TryGetCache(
-            [NotNullWhen(true)] out DefaultVersionCache? versionCache,
-            out IManagedValueWriter<DefaultVersionCache> versionCacheWriter)
+            [NotNullWhen(true)] out IVersionCache? versionCache,
+            out IManagedValueWriter<IVersionCache> versionCacheWriter)
         {
             _cacheDirectory.CreateCacheDirectoryIfNotExisting();
 
             var cacheFileName = CacheId + ".data";
             var cacheFilePath = Path.Combine(_cacheDirectory.CacheDirectoryPath, cacheFileName);
-            var cacheFile = new JsonFile<DefaultVersionCache>(cacheFilePath, CacheLockAttemptSeconds, VersionCacheSerializerContext.Default);
+            var cacheFile = new MessagePackVersionCacheFile(cacheFilePath, CacheLockAttemptSeconds);
 
             //MaybeDeleteOtherCacheFiles(
             //    CacheDirectoryPath,
@@ -98,39 +109,45 @@ namespace Vernuntii.VersionCaching
 
             versionCacheWriter = cacheFile;
 
-            try {
-                if (cacheFile.TryReadValue(out versionCache)) {
-                    return true;
-                }
-
-                return false;
-            } catch {
-                cacheFile.Dispose();
-                throw;
+            if (cacheFile.TryReadValue(out versionCache)) {
+                return true;
             }
+
+            return false;
         }
 
         private RecacheIndicator GetRecacheIndicator(ISemanticVersion? comparableVersion)
         {
-            _ = TryGetCache(
-                out var versionCache,
-                out var versionCacheWriter);
+            IVersionCache? versionCache = null;
+            IManagedValueWriter<IVersionCache>? versionCacheWriter = null;
+            bool isRecacheRequired;
+            string? recacheReason;
 
             try {
-                return new RecacheIndicator(
+                _ = TryGetCache(
+                    out versionCache,
+                    out versionCacheWriter);
+
+                isRecacheRequired = _versionCacheEvaluator.IsRecacheRequired(
                     versionCache,
-                    versionCacheWriter,
-                    _versionCacheEvaluator.IsRecacheRequired(
-                        versionCache,
-                        _useLastAccessRetentionTime,
-                        _lastAccessRetentionTime,
-                        comparableVersion,
-                        out var recacheReason),
-                    recacheReason);
+                    _useLastAccessRetentionTime,
+                    _lastAccessRetentionTime,
+                    comparableVersion,
+                    out recacheReason);
+            } catch (MessagePackSerializationException error) when (versionCacheWriter is not null) {
+                isRecacheRequired = true;
+                recacheReason = "File is damaged";
+                _logger.LogError(error, "{RecacheReason} and a recache is inevitable", recacheReason);
             } catch {
                 versionCacheWriter?.Dispose();
                 throw;
             }
+
+            return new RecacheIndicator(
+                    versionCache,
+                    versionCacheWriter,
+                    isRecacheRequired,
+                    recacheReason);
         }
 
         /// <inheritdoc/>
@@ -186,26 +203,26 @@ namespace Vernuntii.VersionCaching
 
         private class RecacheIndicator : IDisposable
         {
-            private readonly DefaultVersionCache? _versionCache;
+            private readonly IVersionCache? _versionCache;
             public string? RecacheReason { get; }
 
             private readonly bool _isRecacheRequired;
 
             [MemberNotNullWhen(true, nameof(RecacheReason))]
             public bool IsRecacheRequired(
-                [NotNullWhen(false)] out DefaultVersionCache? versionCache,
-                out IValueWriter<DefaultVersionCache> versionCacheWriter)
+                [NotNullWhen(false)] out IVersionCache? versionCache,
+                out IValueWriter<IVersionCache> versionCacheWriter)
             {
                 versionCache = _versionCache;
                 versionCacheWriter = _versionCacheWriter;
                 return _isRecacheRequired;
             }
 
-            private readonly IManagedValueWriter<DefaultVersionCache> _versionCacheWriter;
+            private readonly IManagedValueWriter<IVersionCache> _versionCacheWriter;
 
             public RecacheIndicator(
-                DefaultVersionCache? versionCache,
-                IManagedValueWriter<DefaultVersionCache> disposableVersionCacheWriter,
+                IVersionCache? versionCache,
+                IManagedValueWriter<IVersionCache> disposableVersionCacheWriter,
                 bool isRecacheRequired,
                 string? recacheReason)
             {

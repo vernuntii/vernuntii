@@ -17,7 +17,7 @@ namespace Vernuntii.VersionCaching
         /// <param name="comparableVersion">If not <see langword="null"/>, it will be used to be compared against cached version.</param>
         /// <param name="recacheReason"></param>
         bool IsRecacheRequired(
-            [NotNullWhen(false)] IExpirableVersionCache? versionCache,
+            [NotNullWhen(false)] IVersionCache? versionCache,
             bool useLastAccessRetentionTime,
             TimeSpan? lastAccessRetentionTime,
             ISemanticVersion? comparableVersion,

@@ -23,7 +23,7 @@ namespace Vernuntii.VersionCaching
         /// Checks if cache expired since creation.
         /// </summary>
         /// <param name="versionCache"></param>
-        private static bool IsCacheExpiredSinceCreation([NotNullWhen(true)] IExpirableVersionCache? versionCache) =>
+        private static bool IsCacheExpiredSinceCreation([NotNullWhen(true)] IVersionCache? versionCache) =>
             versionCache != null
             && versionCache.ExpirationTime != null && IsExpiredSinceCreation(versionCache.ExpirationTime.Value);
 
@@ -34,19 +34,19 @@ namespace Vernuntii.VersionCaching
         /// <param name="useLastAccessRetentionTime"></param>
         /// <param name="lastAccessRetentionTime"></param>
         private static bool IsCacheExpiredSinceLastAccess(
-            IExpirableVersionCache versionCache,
+            IVersionCache versionCache,
             bool useLastAccessRetentionTime,
             TimeSpan? lastAccessRetentionTime) =>
             useLastAccessRetentionTime && IsExpiredSinceLastAccess(versionCache.LastAccessTime, lastAccessRetentionTime);
 
         private static bool IsCacheDueToMismatchingVersions(
-            IExpirableVersionCache versionCache,
+            IVersionCache versionCache,
             ISemanticVersion? comparableVersion) =>
             comparableVersion != null && !SemanticVersionComparer.VersionReleaseBuild.Equals(comparableVersion, versionCache.Version);
 
         /// <inheritdoc/>
         public bool IsRecacheRequired(
-            [NotNullWhen(false)] IExpirableVersionCache? versionCache,
+            [NotNullWhen(false)] IVersionCache? versionCache,
             bool useLastAccessRetentionTime,
             TimeSpan? lastAccessRetentionTime,
             ISemanticVersion? comparableVersion,

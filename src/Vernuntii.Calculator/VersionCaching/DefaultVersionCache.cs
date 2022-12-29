@@ -8,7 +8,7 @@ namespace Vernuntii.VersionCaching
     /// <summary>
     /// A semantic version foundation.
     /// </summary>
-    public class DefaultVersionCache : IVersionCache<SemanticVersion>, IVersionCache
+    public class DefaultVersionCache : IVersionCache
     {
         /// <summary>
         /// Creates a semantic version foundation.
@@ -16,16 +16,14 @@ namespace Vernuntii.VersionCaching
         /// <param name="version"></param>
         /// <param name="branch"></param>
         /// <param name="creationRetentionTime">Creation retention time used to sum up with "now" (UTC) that represents the expiration time.</param>
-        public static DefaultVersionCache Create(ISemanticVersion version, IBranch branch, TimeSpan? creationRetentionTime) =>
-            new(
-                version,
-                branch.ShortBranchName,
-                branch.CommitSha,
-                creationRetentionTime == null ? null : DateTime.UtcNow + creationRetentionTime);
+        public static DefaultVersionCache Create(ISemanticVersion version, IBranch branch, TimeSpan? creationRetentionTime) => new(
+            version,
+            branch.ShortBranchName,
+            branch.CommitSha,
+            creationRetentionTime == null ? null : DateTime.UtcNow + creationRetentionTime);
 
         /// <inheritdoc/>
-        [JsonConverter(typeof(VersionStringJsonConverter))]
-        public SemanticVersion Version { get; }
+        public ISemanticVersion Version { get; }
         /// <inheritdoc/>
         public string BranchName { get; }
         /// <inheritdoc/>
@@ -35,9 +33,6 @@ namespace Vernuntii.VersionCaching
         /// <inheritdoc/>
         public DateTime? LastAccessTime { get; set; }
 
-        ISemanticVersion IVersionCache<ISemanticVersion>.Version => Version;
-        ISemanticVersion IExpirableVersionCache.Version => Version;
-
         /// <summary>
         /// Creates an instance of this.
         /// </summary>
@@ -46,7 +41,7 @@ namespace Vernuntii.VersionCaching
         /// <param name="branchTip"></param>
         /// <param name="expirationTime"></param>
         [JsonConstructor]
-        public DefaultVersionCache(SemanticVersion version, string branchName, string branchTip, DateTime? expirationTime)
+        public DefaultVersionCache(ISemanticVersion version, string branchName, string branchTip, DateTime? expirationTime)
         {
             Version = version;
             BranchName = branchName;
@@ -54,16 +49,16 @@ namespace Vernuntii.VersionCaching
             ExpirationTime = expirationTime;
         }
 
-        /// <summary>
-        /// Creates an instance of this.
-        /// </summary>
-        /// <param name="version"></param>
-        /// <param name="branchName"></param>
-        /// <param name="branchTip"></param>
-        /// <param name="expirationTime"></param>
-        public DefaultVersionCache(ISemanticVersion version, string branchName, string branchTip, DateTime? expirationTime)
-            : this(new SemanticVersion(version), branchName, branchTip, expirationTime)
-        {
-        }
+        ///// <summary>
+        ///// Creates an instance of this.
+        ///// </summary>
+        ///// <param name="version"></param>
+        ///// <param name="branchName"></param>
+        ///// <param name="branchTip"></param>
+        ///// <param name="expirationTime"></param>
+        //public DefaultVersionCache(ISemanticVersion version, string branchName, string branchTip, DateTime? expirationTime)
+        //    : this(version, branchName, branchTip, expirationTime)
+        //{
+        //}
     }
 }
