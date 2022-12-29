@@ -89,7 +89,7 @@ namespace Vernuntii.Plugins
 
                     await Events.FulfillAsync(
                         ConfigurationEvents.ConfiguredConfigurationBuilder,
-                        new ConfigurationEvents.ConfiguredConfigurationBuilderResult() { ConfigPath = addedFilePath });
+                        new ConfigurationEvents.ConfiguredConfigurationBuilderResult() { ConfigPath = addedFilePath }).ConfigureAwait(true);
                 })
                 .DisposeWhenDisposing(this);
 

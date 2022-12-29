@@ -78,7 +78,7 @@ namespace Vernuntii.Plugins
             }
 
             _isVersionChecked = true;
-            await Events.FulfillAsync(VersionCacheCheckEvents.CheckedVersionCache);
+            await Events.FulfillAsync(VersionCacheCheckEvents.CheckedVersionCache).ConfigureAwait(true);
         }
 
         private void OnVersionCacheCheck()
@@ -93,7 +93,7 @@ namespace Vernuntii.Plugins
                 .Zip(GitEvents.CreatedGitCommand)
                 .Subscribe(async result => {
                     var (configuredConfigurationBuilderResult, gitCommand) = result;
-                    await CreateVersionCacheManager(configuredConfigurationBuilderResult.ConfigPath, gitCommand);
+                    await CreateVersionCacheManager(configuredConfigurationBuilderResult.ConfigPath, gitCommand).ConfigureAwait(true);
                 })
                 .DisposeWhenDisposing(this);
 

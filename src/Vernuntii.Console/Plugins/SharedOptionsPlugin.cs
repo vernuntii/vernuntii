@@ -79,13 +79,13 @@ namespace Vernuntii.Plugins
             Events
                 .Earliest(CommandLineEvents.ParsedCommandLineArguments)
                 .Subscribe(async parseResult => {
-                    await Events.FulfillAsync(SharedOptionsEvents.ParseCommandLineArguments);
+                    await Events.FulfillAsync(SharedOptionsEvents.ParseCommandLineArguments).ConfigureAwait(true);
 
                     // Parse options.
                     _overrideVersioningMode = parseResult.GetValueForOption(_overrideVersioningModeOption);
 
                     _areCommandLineArgumentsParsed = true;
-                    await Events.FulfillAsync(SharedOptionsEvents.ParsedCommandLineArguments);
+                    await Events.FulfillAsync(SharedOptionsEvents.ParsedCommandLineArguments).ConfigureAwait(true);
                 })
                 .DisposeWhenDisposing(this);
         }

@@ -37,7 +37,7 @@ public sealed class EventSystem : IEventChainFactory
             var task = scheduledEventInvocation.Item1(scheduledEventInvocation.Item2);
 
             if (!task.IsCompletedSuccessfully) {
-                await task;
+                await task.ConfigureAwait(true);
             }
         }
     }

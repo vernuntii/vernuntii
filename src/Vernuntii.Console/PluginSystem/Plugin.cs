@@ -105,7 +105,7 @@ namespace Vernuntii.PluginSystem
                 foreach (var untypedDisposable in disposables!) {
                     // Prefer asynchronous dispose over synchronous dispose
                     if (!synchronously && untypedDisposable is IAsyncDisposable asyncDisposable) {
-                        await asyncDisposable.DisposeAsync();
+                        await asyncDisposable.DisposeAsync().ConfigureAwait(true);
                         continue;
                     }
 
@@ -142,7 +142,7 @@ namespace Vernuntii.PluginSystem
         public async ValueTask DisposeAsync()
         {
             await DisposeAsyncCore().ConfigureAwait(false);
-            await DisposePluginDisposablesAsync(synchronously: false);
+            await DisposePluginDisposablesAsync(synchronously: false).ConfigureAwait(true);
             DisposeOnce(disposing: false);
             GC.SuppressFinalize(this);
         }

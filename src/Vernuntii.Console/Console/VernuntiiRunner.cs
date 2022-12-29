@@ -83,7 +83,7 @@ namespace Vernuntii.Console
             _pluginEvents = new EventSystem();
             _pluginExecutor = new PluginExecutor(_pluginRegistry, _pluginEvents);
             _logger.LogTrace("Execute plugins");
-            await _pluginExecutor.ExecuteAsync();
+            await _pluginExecutor.ExecuteAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -94,16 +94,16 @@ namespace Vernuntii.Console
         /// </returns>
         private async ValueTask<ExitCode?> InitiateLifecycleAsync()
         {
-            await EnsureHavingOperablePlugins();
+            await EnsureHavingOperablePlugins().ConfigureAwait(true);
             _lifecycleContext = new LifecycleContext();
-            await _pluginEvents.FulfillAsync(LifecycleEvents.BeforeEveryRun, _lifecycleContext);
+            await _pluginEvents.FulfillAsync(LifecycleEvents.BeforeEveryRun, _lifecycleContext).ConfigureAwait(true);
 
             if (!_alreadyInitiatedLifecycleOnce) {
                 _logger.LogTrace("Set command-line arguments");
-                await _pluginEvents.FulfillAsync(CommandLineEvents.SetCommandLineArguments, ConsoleArguments);
+                await _pluginEvents.FulfillAsync(CommandLineEvents.SetCommandLineArguments, ConsoleArguments).ConfigureAwait(true);
 
                 var commandLineArgumentsParsingContext = new CommandLineArgumentsParsingContext();
-                await _pluginEvents.FulfillAsync(CommandLineEvents.ParseCommandLineArguments, commandLineArgumentsParsingContext);
+                await _pluginEvents.FulfillAsync(CommandLineEvents.ParseCommandLineArguments, commandLineArgumentsParsingContext).ConfigureAwait(true);
 
                 if (_lifecycleContext.ExitCode.HasValue) {
                     return (ExitCode)_lifecycleContext.ExitCode.Value;
@@ -114,15 +114,15 @@ namespace Vernuntii.Console
                     return ExitCode.Failure;
                 }
 
-                await _pluginEvents.FulfillAsync(CommandLineEvents.ParsedCommandLineArguments, commandLineArgumentsParsingContext.ParseResult);
-                await _pluginEvents.FulfillAsync(ConfigurationEvents.CreateConfiguration);
-                await _pluginEvents.FulfillAsync(ServicesEvents.CreateServiceProvider);
-                await _pluginEvents.FulfillAsync(LoggingEvents.EnableLoggingInfrastructure);
+                await _pluginEvents.FulfillAsync(CommandLineEvents.ParsedCommandLineArguments, commandLineArgumentsParsingContext.ParseResult).ConfigureAwait(true);
+                await _pluginEvents.FulfillAsync(ConfigurationEvents.CreateConfiguration).ConfigureAwait(true);
+                await _pluginEvents.FulfillAsync(ServicesEvents.CreateServiceProvider).ConfigureAwait(true);
+                await _pluginEvents.FulfillAsync(LoggingEvents.EnableLoggingInfrastructure).ConfigureAwait(true);
             }
 
             if (_alreadyInitiatedLifecycleOnce) {
-                await _pluginEvents.FulfillAsync(LifecycleEvents.BeforeNextRun, _lifecycleContext);
-                await _pluginEvents.FulfillAsync(VersionCacheCheckEvents.CheckVersionCache);
+                await _pluginEvents.FulfillAsync(LifecycleEvents.BeforeNextRun, _lifecycleContext).ConfigureAwait(true);
+                await _pluginEvents.FulfillAsync(VersionCacheCheckEvents.CheckVersionCache).ConfigureAwait(true);
             }
 
             _alreadyInitiatedLifecycleOnce = true;
@@ -137,7 +137,7 @@ namespace Vernuntii.Console
             using var exitCodeSubscription = _pluginEvents.Earliest(CommandLineEvents.InvokedRootCommand).Subscribe(i => exitCode = i);
 
             _logger.LogTrace("Invoke command-line root command");
-            await _pluginEvents.FulfillAsync(CommandLineEvents.InvokeRootCommand);
+            await _pluginEvents.FulfillAsync(CommandLineEvents.InvokeRootCommand).ConfigureAwait(true);
 
             if (exitCode == (int)ExitCode.NotExecuted) {
                 throw new InvalidOperationException("The Vernuntii runner was not executed");
@@ -155,15 +155,15 @@ namespace Vernuntii.Console
         public async ValueTask<int> RunAsync()
         {
             EnsureNotDisposed();
-            await EnsureHavingOperablePlugins();
+            await EnsureHavingOperablePlugins().ConfigureAwait(true);
             _pluginRegistry.GetPlugin<ICommandLinePlugin>().PreferExceptionOverExitCode = false;
-            var shortCircuitExitCode = await InitiateLifecycleAsync();
+            var shortCircuitExitCode = await InitiateLifecycleAsync().ConfigureAwait(true);
 
             if (shortCircuitExitCode.HasValue) {
                 return (int)shortCircuitExitCode.Value;
             }
 
-            return await RunAsyncCore();
+            return await RunAsyncCore().ConfigureAwait(true);
         }
 
         /// <summary>
@@ -173,16 +173,16 @@ namespace Vernuntii.Console
         public async ValueTask<IVersionCache> NextVersionAsync()
         {
             EnsureNotDisposed();
-            await EnsureHavingOperablePlugins();
+            await EnsureHavingOperablePlugins().ConfigureAwait(true);
             _pluginRegistry.GetPlugin<ICommandLinePlugin>().PreferExceptionOverExitCode = true;
-            _ = await InitiateLifecycleAsync();
+            _ = await InitiateLifecycleAsync().ConfigureAwait(true);
             IVersionCache? versionCache = null;
 
             using var subscription = _pluginEvents
                 .Earliest(NextVersionEvents.CalculatedNextVersion)
                 .Subscribe(calculatedVersionCache => versionCache = calculatedVersionCache);
 
-            _ = await RunAsyncCore();
+            _ = await RunAsyncCore().ConfigureAwait(true);
 
             if (versionCache is null) {
                 throw new InvalidOperationException("The next version was not calculated");
@@ -198,7 +198,7 @@ namespace Vernuntii.Console
             }
 
             _logger.LogTrace("Destroying plugins");
-            await _pluginExecutor.DestroyAsync();
+            await _pluginExecutor.DestroyAsync().ConfigureAwait(true);
             _logger.LogTrace("Destroyed plugins");
         }
 
@@ -206,10 +206,10 @@ namespace Vernuntii.Console
         public async ValueTask DisposeAsync()
         {
             EnsureNotDisposed();
-            await DestroyPluginsAsync();
+            await DestroyPluginsAsync().ConfigureAwait(true);
 
             if (_pluginRegistry is not null) {
-                await _pluginRegistry.DisposeAsync();
+                await _pluginRegistry.DisposeAsync().ConfigureAwait(true);
             }
 
             _isDisposed = true;

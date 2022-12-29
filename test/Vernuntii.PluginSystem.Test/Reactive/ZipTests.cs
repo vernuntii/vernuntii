@@ -44,7 +44,7 @@ public class ZipTests
         actualNumbers.Should().Be((0, 0));
 
         await pluginSystem.FullfillAsync(s_number2.EventId, 2);
-        actualNumbers.Should().Be((1, 2));
+        actualNumbers.Should().Be(expectedNumbers);
     }
 
     [Fact]
@@ -67,6 +67,6 @@ public class ZipTests
         actualNumbers.Should().Be(((0, 0), 0));
 
         await pluginSystem.FullfillAsync(s_number3.EventId, 3);
-        actualNumbers.Should().Be(((1, 2), 3));
+        actualNumbers.Should().Be(expectedNumbers);
     }
 }

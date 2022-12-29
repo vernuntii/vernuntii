@@ -86,7 +86,7 @@ namespace Vernuntii.Plugins
         private async ValueTask<IServiceScope> CreateServiceScope()
         {
             var scope = _globalServiceProvider.CreateScope();
-            await Events.FulfillAsync(NextVersionEvents.CreatedScopedServiceProvider, scope.ServiceProvider);
+            await Events.FulfillAsync(NextVersionEvents.CreatedScopedServiceProvider, scope.ServiceProvider).ConfigureAwait(true);
             return scope;
         }
 
@@ -97,7 +97,7 @@ namespace Vernuntii.Plugins
             if (_versionCacheCheckPlugin.IsCacheUpToDate) {
                 versionCache = _versionCacheCheckPlugin.VersionCache;
             } else {
-                using var calculationServiceProviderScope = await CreateServiceScope();
+                using var calculationServiceProviderScope = await CreateServiceScope().ConfigureAwait(true);
                 var calculationServiceProvider = calculationServiceProviderScope.ServiceProvider;
                 var repository = calculationServiceProvider.GetRequiredService<IRepository>();
                 var versionCalculation = calculationServiceProvider.GetRequiredService<IVersionIncrementation>();
@@ -112,7 +112,7 @@ namespace Vernuntii.Plugins
                     newBranch);
             }
 
-            await Events.FulfillAsync(NextVersionEvents.CalculatedNextVersion, versionCache);
+            await Events.FulfillAsync(NextVersionEvents.CalculatedNextVersion, versionCache).ConfigureAwait(true);
 
             var formattedVersion = new VersionPresentationStringBuilder(versionCache)
                 .UsePresentationKind(_presentationKind)
@@ -162,7 +162,7 @@ namespace Vernuntii.Plugins
                 .Subscribe(async result => {
                     var (services, configuration) = result;
 
-                    await Events.FulfillAsync(NextVersionEvents.ConfigureServices, services);
+                    await Events.FulfillAsync(NextVersionEvents.ConfigureServices, services).ConfigureAwait(true);
 
                     services.ScopeToVernuntii(features => features
                         .AddVersionIncrementer()

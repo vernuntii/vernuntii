@@ -42,7 +42,7 @@ namespace Vernuntii.Plugins
 
             async Task CreateServiceBuilderAsync()
             {
-                await task;
+                await task.ConfigureAwait(true);
                 CreateServiceBuilder();
             }
 
