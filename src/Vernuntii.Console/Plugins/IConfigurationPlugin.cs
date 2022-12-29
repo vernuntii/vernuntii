@@ -16,7 +16,7 @@ namespace Vernuntii.Plugins
 
         /// <summary>
         /// The configuration file path. Is set after
-        /// <see cref="SharedOptionsEvents.ParsedCommandLineArgs"/>.
+        /// <see cref="SharedOptionsEvents.ParsedCommandLineArguments"/>.
         /// <see langword="null"/> if no config file could be estimated.
         /// </summary>
         string? ConfigFile { get; }

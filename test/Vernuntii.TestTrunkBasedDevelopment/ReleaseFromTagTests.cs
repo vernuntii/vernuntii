@@ -14,12 +14,12 @@ namespace Vernuntii
     public class ReleaseFromTagTests : IDisposable
     {
         private readonly TemporaryRepository _temporaryRepository = new(DefaultTemporaryRepositoryLogger);
-        private readonly ConfigureServicesPlugin<IServiceCollection> _configurableServices = ConfigureServicesPlugin.FromEvent(GitEvents.ConfiguredGlobalServices);
+        private readonly ConfigureServicesPlugin<IServiceCollection> _configurableServices = ConfigureServicesPlugin.FromEvent(GitEvents.ConfiguredServices);
         private readonly VernuntiiRunner _vernuntii;
 
         public ReleaseFromTagTests()
         {
-            _vernuntii = new VernuntiiRunnerBuilder()
+            _vernuntii = VernuntiiRunnerBuilder.ForNextVersion()
                 .ConfigurePlugins(plugins => {
                     plugins.Add(
                         PluginEventAction.OnEveryEvent(
@@ -39,7 +39,7 @@ namespace Vernuntii
         {
             _temporaryRepository.CommitEmpty();
 
-            var versionCache = await _vernuntii.RunAsync();
+            var versionCache = await _vernuntii.NextVersionAsync();
             _temporaryRepository.TagLightweight(versionCache.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
 
             var snapshotVersion = _temporaryRepository
@@ -55,7 +55,7 @@ namespace Vernuntii
             _temporaryRepository.CommitEmpty();
             var releaseVersion = "0.1.0";
             _temporaryRepository.TagLightweight(releaseVersion);
-            var versionCache = await _vernuntii.RunAsync();
+            var versionCache = await _vernuntii.NextVersionAsync();
             Assert.Equal(releaseVersion, versionCache.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
         }
 

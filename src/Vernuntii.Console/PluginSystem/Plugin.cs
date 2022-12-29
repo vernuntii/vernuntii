@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.PluginSystem
 {
@@ -19,10 +19,10 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Represents the plugin event aggregator.
         /// </summary>
-        protected internal IPluginEventCache Events =>
-            _eventAggregator ?? throw new InvalidOperationException($"Method {nameof(OnExecution)} was not called yet");
+        protected internal EventSystem Events =>
+            _eventSystem ?? throw new InvalidOperationException($"Method {nameof(OnExecution)} was not called yet");
 
-        private IPluginEventCache? _eventAggregator;
+        private EventSystem? _eventSystem;
         private IList<object>? _disposables = new List<object>();
 
         [MemberNotNull(nameof(_disposables))]
@@ -80,9 +80,9 @@ namespace Vernuntii.PluginSystem
         protected virtual ValueTask OnExecutionAsync() =>
             ValueTask.CompletedTask;
 
-        ValueTask IPlugin.OnExecution(IPluginEventCache eventAggregator)
+        ValueTask IPlugin.OnExecution(EventSystem eventSystem)
         {
-            _eventAggregator = eventAggregator;
+            _eventSystem = eventSystem;
             OnExecution();
             return OnExecutionAsync();
         }

@@ -1,4 +1,4 @@
-﻿using Vernuntii.PluginSystem.Events;
+﻿using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.PluginSystem
 {
@@ -8,14 +8,14 @@ namespace Vernuntii.PluginSystem
     public class PluginExecutor
     {
         private readonly PluginRegistry _pluginRegistry;
-        private readonly IPluginEventCache _pluginEvents;
+        private readonly EventSystem _pluginEvents;
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
         /// <param name="pluginRegistry"></param>
         /// <param name="pluginEvents"></param>
-        internal PluginExecutor(PluginRegistry pluginRegistry, IPluginEventCache pluginEvents)
+        internal PluginExecutor(PluginRegistry pluginRegistry, EventSystem pluginEvents)
         {
             _pluginRegistry = pluginRegistry;
             _pluginEvents = pluginEvents;

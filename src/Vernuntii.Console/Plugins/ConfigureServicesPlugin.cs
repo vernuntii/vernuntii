@@ -1,7 +1,7 @@
-﻿using System.Reactive.Disposables;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins
 {
@@ -14,7 +14,7 @@ namespace Vernuntii.Plugins
         /// Creates an instance of this type from <paramref name="eventTemplate"/>.
         /// </summary>
         /// <param name="eventTemplate"></param>
-        public static ConfigureServicesPlugin<TServices> FromEvent<TServices>(SubjectEvent<TServices> eventTemplate)
+        public static ConfigureServicesPlugin<TServices> FromEvent<TServices>(EventDiscriminator<TServices> eventTemplate)
             where TServices : IServiceCollection =>
             new(eventTemplate);
     }
@@ -27,7 +27,7 @@ namespace Vernuntii.Plugins
     public sealed class ConfigureServicesPlugin<TServices> : Plugin
         where TServices : IServiceCollection
     {
-        private readonly SubjectEvent<TServices> _eventTemplate;
+        private readonly EventDiscriminator<TServices> _eventTemplate;
         private readonly List<Action<IServiceCollection>> _configureServicesActions = new();
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Vernuntii.Plugins
         /// </summary>
         /// <param name="eventTemplate"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public ConfigureServicesPlugin(SubjectEvent<TServices> eventTemplate) =>
+        public ConfigureServicesPlugin(EventDiscriminator<TServices> eventTemplate) =>
             _eventTemplate = eventTemplate ?? throw new ArgumentNullException(nameof(eventTemplate));
 
         /// <summary>
@@ -47,17 +47,20 @@ namespace Vernuntii.Plugins
         public IDisposable ConfigureServices(Action<IServiceCollection> configureServices)
         {
             _configureServicesActions.Add(configureServices ?? throw new ArgumentNullException(nameof(configureServices)));
-            return Disposable.Create(() => _configureServicesActions.Remove(configureServices));
+            return DelegatingDisposable.Create(() => _configureServicesActions.Remove(configureServices));
         }
 
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.OnEveryEvent(_eventTemplate, services => {
-                foreach (var configureServices in _configureServicesActions) {
-                    configureServices(services);
-                }
-            });
+            Events
+                .Every(_eventTemplate)
+                .Subscribe(services => {
+                    foreach (var configureServices in _configureServicesActions) {
+                        configureServices(services);
+                    }
+                })
+                .DisposeWhenDisposing(this);
         }
     }
 }

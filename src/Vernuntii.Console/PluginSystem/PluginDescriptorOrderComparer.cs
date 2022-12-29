@@ -16,9 +16,6 @@
             }
 
             return 1;
-
-            //var result = Comparer<int?>.Default.Compare(x?.PluginOrder, y?.PluginOrder);
-            //return result == 0 ? -1 : result;
         }
     }
 }

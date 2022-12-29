@@ -13,7 +13,6 @@
     <PackageReference Include="SoftCircuits.OrderedDictionary" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.CommandLine.NamingConventionBinder" />
-    <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>

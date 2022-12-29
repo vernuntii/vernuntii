@@ -27,7 +27,6 @@
     <PackageReference Update="SoftCircuits.OrderedDictionary" Version="2.1.0" />
     <PackageReference Update="System.CommandLine" Version="2.0.0-beta3.22114.1" />
     <PackageReference Update="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta3.22114.1" />
-    <PackageReference Update="System.Reactive" Version="5.0.0" />
     <PackageReference Update="Kenet.SimpleProcess" Version="0.1.4-alpha.3" />
     <PackageReference Update="System.Text.Json" Version="7.0.0" />
     <PackageReference Update="Microsoft.Build.Utilities.Core" Version="17.4.0" />

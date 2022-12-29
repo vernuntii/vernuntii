@@ -12,17 +12,17 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when global service collection is about to be configured.
         /// </summary>
-        public static readonly SubjectEvent<IServiceCollection> ConfigureGlobalServices = new();
+        public static readonly EventDiscriminator<IServiceCollection> ConfigureServices = new();
 
         /// <summary>
         /// Event when calculation service collection has been configured.
         /// </summary>
-        public static readonly SubjectEvent<IServiceProvider> CreatedScopedServiceProvider = new();
+        public static readonly EventDiscriminator<IServiceProvider> CreatedScopedServiceProvider = new();
 
         /// <summary>
         /// Event when next version has been calculated.
         /// </summary>
-        public static readonly SubjectEvent<IVersionCache> CalculatedNextVersion = new();
+        public static readonly EventDiscriminator<IVersionCache> CalculatedNextVersion = new();
 
 
     }

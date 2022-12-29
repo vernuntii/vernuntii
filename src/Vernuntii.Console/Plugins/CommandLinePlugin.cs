@@ -5,13 +5,16 @@ using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Logging;
+using Vernuntii.CommandLine;
 using Vernuntii.Console;
+using Vernuntii.Lifecycle;
 using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Events;
 using Vernuntii.PluginSystem.Meta;
+using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins
 {
@@ -21,7 +24,44 @@ namespace Vernuntii.Plugins
     [Plugin(Order = -3000)]
     public class CommandLinePlugin : Plugin, ICommandLinePlugin
     {
-        private static void ConfigureCommandLineBuilder(CommandLineBuilder builder, ILogger logger) =>
+        /// <inheritdoc/>
+        private static ICommandHandler? CreateCommandHandler(Func<Task<int>>? action) =>
+            action is null ? null : CommandHandler.Create(action);
+
+        /// <inheritdoc/>
+        public ICommandWrapper RootCommand { get; }
+
+        /// <inheritdoc/>
+        internal bool PreferExceptionOverExitCode { get; set; }
+
+        bool ICommandLinePlugin.PreferExceptionOverExitCode {
+            get => PreferExceptionOverExitCode;
+            set => PreferExceptionOverExitCode = value;
+        }
+
+        private readonly RootCommand _rootCommand;
+        private readonly ILogger _logger;
+        private ParseResult _parseResult = null!;
+        private ExceptionDispatchInfo? _exception;
+
+        /// <summary>
+        /// Creates an instance of this type.
+        /// </summary>
+        public CommandLinePlugin(ILogger<CommandLinePlugin> logger)
+        {
+            _rootCommand = new RootCommand();
+            RootCommand = new CommandWrapper(_rootCommand, CreateCommandHandler);
+            _logger = logger;
+        }
+
+        private void AttemptRethrow()
+        {
+            if (PreferExceptionOverExitCode) {
+                _exception?.Throw();
+            }
+        }
+
+        private void ConfigureCommandLineBuilder(CommandLineBuilder builder) =>
                builder
                    // .UseVersionOption() // produces exception
                    .UseHelp()
@@ -35,17 +75,13 @@ namespace Vernuntii.Plugins
                     async (ctx, next) => {
                         try {
                             await next(ctx);
+                            _exception = null;
                         } catch (Exception error) {
-                            UnwrapError(ref error);
-                            logger.LogCritical(error, $"{nameof(Vernuntii)} stopped due to an exception.");
-                            ctx.ExitCode = (int)ExitCode.Failure;
-
                             // Unwraps error to make the actual error more valuable for casual users.
                             [Conditional("RELEASE")]
                             static void UnwrapError(ref Exception error)
                             {
                                 UnwrapError<TargetInvocationException>(ref error);
-                                //UnwrapError<DependencyResolutionException>(ref error);
 
                                 static void UnwrapError<T>(ref Exception error) where T : Exception
                                 {
@@ -55,45 +91,20 @@ namespace Vernuntii.Plugins
                                     }
                                 }
                             }
+
+                            UnwrapError(ref error);
+                            _logger.LogCritical(error, $"{nameof(Vernuntii)} stopped due to an exception.");
+                            ctx.ExitCode = (int)ExitCode.Failure;
+                            _exception = ExceptionDispatchInfo.Capture(error);
                         }
                     },
                     MiddlewareOrder.ExceptionHandler)
-                   //.UseExceptionHandler() // not needed
                    .CancelOnProcessTermination();
 
-        /// <inheritdoc/>
-        private static ICommandHandler? CreateCommandHandler(Func<int>? action) =>
-            action is null ? null : CommandHandler.Create(action);
-
-        /// <inheritdoc/>
-        public ICommandWrapper RootCommand { get; }
-
-        /// <inheritdoc/>
-        public Action<CommandLineBuilder, ILogger> ConfigureCommandLineBuilderAction { get; set; } = ConfigureCommandLineBuilder;
-
         /// <summary>
-        /// The command line args received from event.
+        /// Called when <see cref="CommandLineEvents.ParseCommandLineArguments"/> is happening.
         /// </summary>
-        protected virtual string[]? CommandLineArgs { get; set; }
-
-        private readonly RootCommand _rootCommand;
-        private readonly ILogger _logger;
-        private ParseResult _parseResult = null!;
-
-        /// <summary>
-        /// Creates an instance of this type.
-        /// </summary>
-        public CommandLinePlugin(ILogger<CommandLinePlugin> logger)
-        {
-            _rootCommand = new RootCommand();
-            RootCommand = new CommandWrapper(_rootCommand, CreateCommandHandler);
-            _logger = logger;
-        }
-
-        /// <summary>
-        /// Called when <see cref="CommandLineEvents.ParseCommandLineArgs"/> is happening.
-        /// </summary>
-        protected virtual void ParseCommandLineArgs()
+        protected virtual async ValueTask ParseCommandLineArguments(LifecycleContext lifecycleContext, CommandLineArgumentsParsingContext argumentsParsingContext, string[]? commandLineArguments)
         {
             if (_parseResult != null) {
                 throw new InvalidOperationException("Command line parse result already computed");
@@ -102,20 +113,20 @@ namespace Vernuntii.Plugins
             if (_logger.IsEnabled(LogLevel.Trace)) {
                 string commandLineArgsToEcho;
 
-                if (CommandLineArgs == null || CommandLineArgs.Length == 0) {
+                if (commandLineArguments == null || commandLineArguments.Length == 0) {
                     commandLineArgsToEcho = " (no arguments)";
                 } else {
-                    commandLineArgsToEcho = Environment.NewLine + string.Join(Environment.NewLine, CommandLineArgs.Select((x, i) => $"{i}:{x}"));
+                    commandLineArgsToEcho = Environment.NewLine + string.Join(Environment.NewLine, commandLineArguments.Select((x, i) => $"{i}:{x}"));
                 }
 
                 _logger.LogTrace("Parse command-line arguments:{CommandLineArgs}", commandLineArgsToEcho);
             }
 
             var builder = new CommandLineBuilder(_rootCommand);
-            ConfigureCommandLineBuilderAction(builder, _logger);
+            ConfigureCommandLineBuilder(builder);
 
             var parser = builder
-                // This middleware is not called when an parser exception occured before.
+                // This middleware is not called when a parser exception occured before.
                 // This middleware is not called when --help was used.
                 // This middleware gets called TWICE but in the first call it will NEVER call the root command!
                 .AddMiddleware(
@@ -132,40 +143,55 @@ namespace Vernuntii.Plugins
                     MiddlewareOrder.ErrorReporting)
                 .Build();
 
-            var exitCode = parser.Invoke(CommandLineArgs ?? Array.Empty<string>());
+            var exitCode = await parser.InvokeAsync(commandLineArguments ?? Array.Empty<string>());
 
             // Is null if above middleware was not called.
             if (_parseResult is null) {
-                // This is the case when the help text is displayed or a
+                // Short-cirucit; this is the case when the help text is displayed or a
                 // parser exception occured but that's okay because we only
                 // want to inform about exit code.
-                Events.FireEvent(CommandLineEvents.InvokedRootCommand, exitCode);
+                lifecycleContext.ExitCode = exitCode;
             } else {
-                Events.FireEvent(CommandLineEvents.ParsedCommandLineArgs, _parseResult);
+                argumentsParsingContext.ParseResult = _parseResult;
             }
+
+            AttemptRethrow();
         }
 
         /// <summary>
         /// Called when <see cref="CommandLineEvents.InvokeRootCommand"/> is happening.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
-        protected virtual void InvokeRootCommand()
+        protected virtual async ValueTask InvokeRootCommand()
         {
-            if (RootCommand.HandlerFunc is null) {
+            if (RootCommand.Handler is null) {
                 throw new InvalidOperationException("Root command handler is not set");
             }
 
             // This calls the middleware again.
-            var exitCode = _parseResult.Invoke();
-            Events.FireEvent(CommandLineEvents.InvokedRootCommand, exitCode);
+            var exitCode = await _parseResult.InvokeAsync();
+            await Events.FulfillAsync(CommandLineEvents.InvokedRootCommand, exitCode);
+            AttemptRethrow();
         }
 
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.OnNextEvent(CommandLineEvents.SetCommandLineArgs, args => CommandLineArgs = args);
-            Events.OnNextEvent(CommandLineEvents.ParseCommandLineArgs, ParseCommandLineArgs);
-            Events.OnEveryEvent(CommandLineEvents.InvokeRootCommand, InvokeRootCommand);
+            //Events.Earliest(CommandLineEvents.SetCommandLineArguments).Subscribe(out var nextSetCommandLineArguments).DisposeWhenDisposing(this);
+            //Events.Earliest(CommandLineEvents.ParseCommandLineArguments).Replay(1).RefCount().Subscribe(out var nextParseCommandLineArguments).DisposeWhenDisposing(this);
+
+            Events.Every(LifecycleEvents.BeforeEveryRun)
+                //.WithAwaitedFrom(nextSetCommandLineArguments)
+                //.WithAwaitedFrom(nextParseCommandLineArguments)
+                .Zip(CommandLineEvents.SetCommandLineArguments)
+                .Zip(CommandLineEvents.ParseCommandLineArguments)
+                .Subscribe(async result => {
+                    var ((lifecycleContext, commandLineArguments), argumentsParsingContext) = result;
+                    await ParseCommandLineArguments(lifecycleContext, argumentsParsingContext, commandLineArguments);
+                })
+                .DisposeWhenDisposing(this);
+
+            Events.Every(CommandLineEvents.InvokeRootCommand).Subscribe(InvokeRootCommand).DisposeWhenDisposing(this);
         }
     }
 }

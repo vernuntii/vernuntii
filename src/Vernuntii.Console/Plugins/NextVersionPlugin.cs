@@ -3,7 +3,6 @@ using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
 using System.Globalization;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Console;
@@ -11,7 +10,7 @@ using Vernuntii.Extensions;
 using Vernuntii.Git;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.VersionCaching;
 using Vernuntii.VersionPresentation;
 using Vernuntii.VersionPresentation.Serializers;
@@ -31,7 +30,6 @@ namespace Vernuntii.Plugins
         private readonly IVersionCacheCheckPlugin _versionCacheCheckPlugin = null!;
         private readonly ILogger _logger;
         private readonly ICommandLinePlugin _commandLine;
-        private IConfiguration _configuration = null!;
         private ICommandHandler? _commandHandler;
 
         #region command line options
@@ -69,13 +67,13 @@ namespace Vernuntii.Plugins
         private VersionPresentationView _presentationView;
         private bool _emptyCaches;
 
-        private readonly IGlobalServicesPlugin _globalServiceProvider;
+        private readonly IServicesPlugin _globalServiceProvider;
 
         public NextVersionPlugin(
             SharedOptionsPlugin sharedOptions,
             IVersionCacheCheckPlugin versionCacheCheckPlugin,
             ICommandLinePlugin commandLine,
-            IGlobalServicesPlugin globalServiceProvider,
+            IServicesPlugin globalServiceProvider,
             ILogger<NextVersionPlugin> logger)
         {
             _sharedOptions = sharedOptions ?? throw new ArgumentNullException(nameof(sharedOptions));
@@ -85,21 +83,21 @@ namespace Vernuntii.Plugins
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        private IServiceScope CreateCalculationServiceProvider()
+        private async ValueTask<IServiceScope> CreateServiceScope()
         {
-            var calculationServiceProvider = _globalServiceProvider.CreateScope();
-            Events.FireEvent(NextVersionEvents.CreatedScopedServiceProvider, calculationServiceProvider.ServiceProvider);
-            return calculationServiceProvider;
+            var scope = _globalServiceProvider.CreateScope();
+            await Events.FulfillAsync(NextVersionEvents.CreatedScopedServiceProvider, scope.ServiceProvider);
+            return scope;
         }
 
-        private int OnInvokeCommand()
+        private async Task<int> OnInvokeCommand()
         {
             IVersionCache versionCache;
 
             if (_versionCacheCheckPlugin.IsCacheUpToDate) {
                 versionCache = _versionCacheCheckPlugin.VersionCache;
             } else {
-                using var calculationServiceProviderScope = CreateCalculationServiceProvider();
+                using var calculationServiceProviderScope = await CreateServiceScope();
                 var calculationServiceProvider = calculationServiceProviderScope.ServiceProvider;
                 var repository = calculationServiceProvider.GetRequiredService<IRepository>();
                 var versionCalculation = calculationServiceProvider.GetRequiredService<IVersionIncrementation>();
@@ -114,7 +112,7 @@ namespace Vernuntii.Plugins
                     newBranch);
             }
 
-            Events.FireEvent(NextVersionEvents.CalculatedNextVersion, versionCache);
+            await Events.FulfillAsync(NextVersionEvents.CalculatedNextVersion, versionCache);
 
             var formattedVersion = new VersionPresentationStringBuilder(versionCache)
                 .UsePresentationKind(_presentationKind)
@@ -137,7 +135,7 @@ namespace Vernuntii.Plugins
             cli.RootCommand.Add(_emptyCachesOption);
         }
 
-        private void OnParsedCommandLine(ParseResult parseResult)
+        private async ValueTask OnParsedCommandLine(ParseResult parseResult)
         {
             if (parseResult.CommandResult.Command.Handler != _commandHandler) {
                 return;
@@ -149,35 +147,27 @@ namespace Vernuntii.Plugins
             _emptyCaches = parseResult.GetValueForOption(_emptyCachesOption);
 
             // Check version cache
-            Events.FireEvent(VersionCacheCheckEvents.CreateVersionCacheManager);
-            Events.FireEvent(VersionCacheCheckEvents.CheckVersionCache);
-
-            Events.FireEvent(ConfigurationEvents.CreateConfiguration);
-            Events.FireEvent(GlobalServicesEvents.CreateServiceProvider);
+            await Events.FulfillAsync(VersionCacheCheckEvents.CheckVersionCache);
         }
 
         /// <inheritdoc/>
         protected override void OnExecution()
         {
             OnConfigureCommandLine(_commandLine);
+            Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(_ => _loadingVersionStopwatch.Restart()).DisposeWhenDisposing(this);
+            Events.Earliest(CommandLineEvents.ParsedCommandLineArguments).Subscribe(OnParsedCommandLine).DisposeWhenDisposing(this);
 
-            Events.OnEveryEvent(LifecycleEvents.BeforeEveryRun, _loadingVersionStopwatch.Restart);
+            Events.Earliest(ServicesEvents.ConfigureServices)
+                .Zip(ConfigurationEvents.CreatedConfiguration)
+                .Subscribe(async result => {
+                    var (services, configuration) = result;
 
-            Events.OnNextEvent(CommandLineEvents.ParsedCommandLineArgs, OnParsedCommandLine);
-
-            Events.OnNextEvent(
-                ConfigurationEvents.CreatedConfiguration,
-                configuration => _configuration = configuration);
-
-            Events.OnNextEvent(
-                GlobalServicesEvents.ConfigureServices,
-                services => {
-                    Events.FireEvent(NextVersionEvents.ConfigureGlobalServices, services);
+                    await Events.FulfillAsync(NextVersionEvents.ConfigureServices, services);
 
                     services.ScopeToVernuntii(features => features
                         .AddVersionIncrementer()
                         .AddVersionIncrementation(features => features
-                            .TryOverrideStartVersion(_configuration)));
+                            .TryOverrideStartVersion(configuration)));
 
                     if (_sharedOptions.ShouldOverrideVersioningMode) {
                         services.ScopeToVernuntii(features => features

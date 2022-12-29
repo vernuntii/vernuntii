@@ -1,6 +1,5 @@
 ﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
-using System.Reactive.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Console;
@@ -10,8 +9,8 @@ using Vernuntii.Git;
 using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Events;
 using Vernuntii.PluginSystem.Meta;
+using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins;
 
@@ -47,7 +46,7 @@ public class GitPlugin : Plugin, IGitPlugin
     private readonly SharedOptionsPlugin _sharedOptions = null!;
     private IGitCommand? _gitCommand;
     private readonly INextVersionPlugin _nextVersionPlugin = null!;
-    private ISignalCounter _configuredConfigurationBuilderEventSignal = null!;
+    private bool _isConfiguredConfigurationBuilder;
 
     private readonly Option<string?> _overridePostPreReleaseOption = new(new[] { "--override-post-pre-release" });
 
@@ -80,13 +79,13 @@ public class GitPlugin : Plugin, IGitPlugin
 
     private void EnsureNotHavingConfiguredConfigurationBuilder()
     {
-        if (_configuredConfigurationBuilderEventSignal.IsOnceSignaled()) {
+        if (_isConfiguredConfigurationBuilder) {
             throw new InvalidOperationException($"The event \"{nameof(ConfigurationEvents.ConfiguredConfigurationBuilder)}\" was already called");
         }
     }
 
     [MemberNotNull(nameof(_gitCommandFactoryRequest))]
-    private void EnsureRequestedGitDirectoryFactory()
+    private async ValueTask EnsureRequestedGitDirectoryFactory()
     {
 
         if (_gitCommandFactoryRequest != null) {
@@ -94,11 +93,11 @@ public class GitPlugin : Plugin, IGitPlugin
         }
 
         _gitCommandFactoryRequest = new GitCommandFactoryRequest();
-        Events.FireEvent(GitEvents.RequestGitCommandFactory, _gitCommandFactoryRequest);
+        await Events.FulfillAsync(GitEvents.RequestGitCommandFactory, _gitCommandFactoryRequest);
     }
 
     [MemberNotNull(nameof(_resolvedWorkingTreeDirectory))]
-    private void EnsureResolvedWorkingTreeDirectory()
+    private async ValueTask EnsureResolvedWorkingTreeDirectory(string? configFile)
     {
         if (_resolvedWorkingTreeDirectory != null) {
             return;
@@ -108,32 +107,35 @@ public class GitPlugin : Plugin, IGitPlugin
         var alternativeWorkingTreeDirectory = _workingTreeDirectory;
 
         if (alternativeWorkingTreeDirectory == null) {
-            /* Due to no alternative directory, we use the configuration path as starting point */
-            var configPath = _sharedOptions.ConfigPath;
-
-            if (File.Exists(configPath)) {
-                directoryToResolve = Path.GetDirectoryName(configPath) ?? throw new InvalidOperationException("Due to no alternative directory, we use the directory of the configuration path as starting point, but the directory is null");
+            if (File.Exists(configFile)) {
+                // Due to no alternative directory, we use the configuration path as starting point
+                directoryToResolve = Path.GetDirectoryName(configFile) ?? throw new InvalidOperationException("Due to no alternative directory, we use the directory of the configuration path as starting point, but the directory is null");
             } else {
-                directoryToResolve = configPath;
+                directoryToResolve = configFile ?? Directory.GetCurrentDirectory();
             }
         } else {
             directoryToResolve = alternativeWorkingTreeDirectory;
         }
 
-        EnsureRequestedGitDirectoryFactory();
+#pragma warning disable CS8774 // Member must have a non-null value when exiting.
+        await EnsureRequestedGitDirectoryFactory();
+#pragma warning restore CS8774 // Member must have a non-null value when exiting.
+
         var gitDirectoryResolver = _gitCommandFactoryRequest.GitDirectoryResolver ?? GitDirectoryResolver.Default;
         _resolvedWorkingTreeDirectory = gitDirectoryResolver.ResolveWorkingTreeDirectory(directoryToResolve);
     }
 
     [MemberNotNull(nameof(_gitCommand))]
-    private void EnsureCreatedGitCommand()
+    private async ValueTask EnsureCreatedGitCommand(string? configFile)
     {
         if (_gitCommand != null) {
             return;
         }
 
-        EnsureRequestedGitDirectoryFactory();
-        EnsureResolvedWorkingTreeDirectory();
+#pragma warning disable CS8774 // Member must have a non-null value when exiting.
+        await EnsureRequestedGitDirectoryFactory();
+        await EnsureResolvedWorkingTreeDirectory(configFile);
+#pragma warning restore CS8774 // Member must have a non-null value when exiting.
 
         _gitCommand = (_gitCommandFactoryRequest.GitCommandFactory ?? GitCommandFactory.Default).CreateCommand(_resolvedWorkingTreeDirectory);
 
@@ -142,26 +144,31 @@ public class GitPlugin : Plugin, IGitPlugin
         }
 
         _logger.LogInformation("Use repository directory: {_workingTreeDirectory}", _resolvedWorkingTreeDirectory);
-        Events.FireEvent(GitEvents.CreatedGitCommand, _gitCommand);
+        await Events.FulfillAsync(GitEvents.CreatedGitCommand, _gitCommand);
     }
 
     /// <inheritdoc/>
     protected override void OnExecution()
     {
-        _configuredConfigurationBuilderEventSignal = Events.OnNextEvent(
-            ConfigurationEvents.ConfiguredConfigurationBuilder,
-            EnsureCreatedGitCommand);
+        Events
+            .Earliest(ConfigurationEvents.ConfiguredConfigurationBuilder)
+            .Subscribe(async result => {
+                _isConfiguredConfigurationBuilder = true;
+                await EnsureCreatedGitCommand(result.ConfigPath);
+            })
+            .DisposeWhenDisposing(this);
 
-        var eachCommandLineParseResult = Events.GetEvent(CommandLineEvents.ParsedCommandLineArgs);
+        var nextCommandLineParseResult = Events.Earliest(CommandLineEvents.ParsedCommandLineArguments);
 
-        Events.GetEvent(NextVersionEvents.ConfigureGlobalServices)
-            .WithLatestFrom(eachCommandLineParseResult.Select(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)))
-            .WithLatestFrom(Events.GetEvent(ConfigurationEvents.CreatedConfiguration))
-            .Subscribe(result => {
-                var ((services, overridePostPreRelease), configuration) = result;
-                Events.FireEvent(GitEvents.ConfiguringGlobalServices, services);
+        Events.Earliest(NextVersionEvents.ConfigureServices)
+            .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
+            .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)))
+            .Zip(ConfigurationEvents.CreatedConfiguration)
+            .Subscribe(async result => {
+                var (((services, configurationBuilderResult), overridePostPreRelease), configuration) = result;
+                await Events.FulfillAsync(GitEvents.ConfiguringServices, services);
 
-                EnsureCreatedGitCommand();
+                await EnsureCreatedGitCommand(configurationBuilderResult.ConfigPath);
                 services.AddSingleton(_gitCommand);
 
                 services
@@ -188,19 +195,25 @@ public class GitPlugin : Plugin, IGitPlugin
                                 .SetPostPreRelease(overridePostPreRelease))));
                 }
 
-                Events.FireEvent(GitEvents.ConfiguredGlobalServices, services);
+                await Events.FulfillAsync(GitEvents.ConfiguredServices, services);
             });
 
+        //nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)).Replay(1).RefCount().Subscribe(out var nextDuplicateVersionFails).DisposeWhenDisposing(this);
+        //Events.Earliest(NextVersionEvents.CreatedScopedServiceProvider).Transform(sp => sp.GetRequiredService<IRepository>()).Replay(1).RefCount().Subscribe(out var nextCreatedScopedServiceProvider).DisposeWhenDisposing(this);
+
         // On next version calculation we want to set bad exit code if equivalent commit version already exists
-        Events.GetEvent(NextVersionEvents.CalculatedNextVersion)
-            .WithLatestFrom(eachCommandLineParseResult.Select(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)))
-            .WithLatestFrom(Events.GetEvent(NextVersionEvents.CreatedScopedServiceProvider).Select(sp => sp.GetRequiredService<IRepository>()))
+        Events.Every(NextVersionEvents.CalculatedNextVersion)
+            //.WithAwaitedFrom(nextDuplicateVersionFails)
+            //.WithAwaitedFrom(nextCreatedScopedServiceProvider)
+            .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)))
+            .Zip(Events.Earliest(NextVersionEvents.CreatedScopedServiceProvider).Transform(sp => sp.GetRequiredService<IRepository>()))
             .Subscribe(result => {
                 var ((versionCache, duplicateVersionFails), repository) = result;
 
                 if (duplicateVersionFails && repository.HasCommitVersion(versionCache.Version)) {
                     _nextVersionPlugin.ExitCodeOnSuccess = (int)ExitCode.VersionDuplicate;
                 }
-            });
+            })
+            .DisposeWhenDisposing(this);
     }
 }

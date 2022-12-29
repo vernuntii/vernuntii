@@ -9,7 +9,7 @@ namespace Vernuntii.PluginSystem
         [Fact]
         public void Add_should_add_plugin_descriptor()
         {
-            PluginProviderBuilder builder = new();
+            PluginRegistrar builder = new();
             var pluginDescriptor = PluginDescriptor.Create<EmptyPlugin>();
             builder.Add(pluginDescriptor);
             var set = builder.BuildOrderlySet();
@@ -21,7 +21,7 @@ namespace Vernuntii.PluginSystem
         [Fact]
         public void Add_should_supplement_plugin_descriptor()
         {
-            PluginProviderBuilder builder = new();
+            PluginRegistrar builder = new();
             var pluginDescriptor = PluginDescriptor.Create<PluginWithDependency>();
             builder.Add(pluginDescriptor);
             var set = builder.BuildOrderlySet();
@@ -38,7 +38,7 @@ namespace Vernuntii.PluginSystem
         [Fact]
         public void Build_should_consider_bigger_plugin_order()
         {
-            PluginProviderBuilder builder = new();
+            PluginRegistrar builder = new();
             var pluginDescriptor = PluginDescriptor.Create<PluginWithSmallerOrder>();
             builder.Add(pluginDescriptor);
             var set = builder.BuildOrderlySet();

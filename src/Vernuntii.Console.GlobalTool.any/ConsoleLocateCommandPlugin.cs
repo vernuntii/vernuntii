@@ -10,20 +10,20 @@ internal class ConsoleLocateCommandPlugin : Plugin
 {
     private readonly ICommandLinePlugin _commandLine;
 
-    private readonly Argument<ConsoleFileLocation> locateArgument = new("locate") {
+    private readonly Argument<ConsoleFileLocation> _locateArgument = new("locate") {
         Description = "The file location you are asking for."
     };
 
-    private readonly Command locateCommand;
+    private readonly Command _locateCommand;
 
     public ConsoleLocateCommandPlugin(ICommandLinePlugin commandLine)
     {
-        locateCommand = new Command("locate") {
-            locateArgument
+        _locateCommand = new Command("locate") {
+            _locateArgument
         };
 
         // Parameter names are bound to naming convention, do not change!
-        locateCommand.Handler = CommandHandler.Create((ConsoleFileLocation locate) => {
+        _locateCommand.Handler = CommandHandler.Create((ConsoleFileLocation locate) => {
             var assemblyDirectory = AppContext.BaseDirectory;
 
             var entryAssemblyName = (Assembly.GetEntryAssembly()
@@ -43,5 +43,5 @@ internal class ConsoleLocateCommandPlugin : Plugin
     }
 
     protected override void OnExecution() =>
-        _commandLine.RootCommand.Add(locateCommand);
+        _commandLine.RootCommand.Add(_locateCommand);
 }

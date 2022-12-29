@@ -35,19 +35,19 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
 
         private VernuntiiRunner CreateStaticRunner() => CreateRunner(nameof(VernuntiiRunnerBenchmarks));
 
-        [GlobalSetup(Target = nameof(RunConsoleWithCache))]
-        public Task BeforeRunConsoleWithCache() => CreateStaticRunner().RunConsoleAsync();
+        //[GlobalSetup(Target = nameof(RunConsoleWithCache))]
+        //public Task BeforeRunConsoleWithCache() => CreateStaticRunner().RunAsync();
 
-        [Benchmark]
-        public Task<int> RunConsoleWithCache() => CreateStaticRunner().RunConsoleAsync();
+        //[Benchmark]
+        //public Task<int> RunConsoleWithCache() => CreateStaticRunner().RunAsync();
 
-        [IterationSetup(Target = nameof(RunConsoleWithoutCache))]
-        public void BeforeRunConsoleWithoutCache() => _randomCacheId = Guid.NewGuid().ToString();
+        //[IterationSetup(Target = nameof(RunConsoleWithoutCache))]
+        //public void BeforeRunConsoleWithoutCache() => _randomCacheId = Guid.NewGuid().ToString();
 
-        [Benchmark]
-        public Task<int> RunConsoleWithoutCache() => CreateRunner(_randomCacheId).RunConsoleAsync();
+        //[Benchmark]
+        //public Task<int> RunConsoleWithoutCache() => CreateRunner(_randomCacheId).RunAsync();
 
-        [GlobalCleanup]
-        public void Cleanup() => _repository.Dispose();
+        //[GlobalCleanup]
+        //public void Cleanup() => _repository.Dispose();
     }
 }

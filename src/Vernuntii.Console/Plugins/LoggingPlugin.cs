@@ -11,8 +11,8 @@ using NLog.Targets.Wrappers;
 using Vernuntii.Logging;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Events;
 using Vernuntii.PluginSystem.Meta;
+using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins
 {
@@ -52,7 +52,7 @@ namespace Vernuntii.Plugins
          * If value is not specified, then log on information level.
          * If value is specified, then log on specified log level.
          */
-        private readonly Option<Verbosity?> verbosityOption = new(new[] { "--verbosity", "-v" }, parseArgument: result => {
+        private readonly Option<Verbosity?> _verbosityOption = new(new[] { "--verbosity", "-v" }, parseArgument: result => {
             if (result.Tokens.Count == 0) {
                 return Verbosity.Information;
             }
@@ -139,11 +139,11 @@ namespace Vernuntii.Plugins
             }
         }
 
-        private void EnableLoggingInfrastructure()
+        private async ValueTask EnableLoggingInfrastructure()
         {
             ReconfigureLoggingInfrastructure();
 
-            Events.FireEvent(LoggingEvents.EnabledLoggingInfrastructure, this);
+            await Events.FulfillAsync(LoggingEvents.EnabledLoggingInfrastructure, this);
 
             if (_enabledLoggingInfrastructureEvent != null) {
                 _enabledLoggingInfrastructureEvent.Invoke(this);
@@ -160,13 +160,15 @@ namespace Vernuntii.Plugins
         protected override void OnExecution()
         {
             // We need to lazy load, because command line plugin has dependency on this plugin
-            _pluginRegistry.GetPlugin<ICommandLinePlugin>().RootCommand.Add(verbosityOption);
+            _pluginRegistry.GetPlugin<ICommandLinePlugin>().RootCommand.Add(_verbosityOption);
 
-            Events.OnNextEvent(CommandLineEvents.ParsedCommandLineArgs, parseResult =>
-                _verbosity = parseResult.GetValueForOption(verbosityOption));
+            Events
+                .Earliest(CommandLineEvents.ParsedCommandLineArguments)
+                .Subscribe(parseResult => _verbosity = parseResult.GetValueForOption(_verbosityOption))
+                .DisposeWhenDisposing(this);
 
-            Events.OnNextEvent(LoggingEvents.EnableLoggingInfrastructure, EnableLoggingInfrastructure);
-            Events.OnNextEvent(GlobalServicesEvents.ConfigureServices, sp => sp.AddLogging(Bind));
+            Events.Earliest(LoggingEvents.EnableLoggingInfrastructure).Subscribe(EnableLoggingInfrastructure).DisposeWhenDisposing(this);
+            Events.Earliest(ServicesEvents.ConfigureServices).Subscribe(sp => sp.AddLogging(Bind)).DisposeWhenDisposing(this);
         }
 
         /// <inheritdoc/>

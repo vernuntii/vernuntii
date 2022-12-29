@@ -9,11 +9,6 @@ namespace Vernuntii.Plugins.CommandLine
     public interface ICommandWrapper
     {
         /// <summary>
-        /// The internal command handlerFunc.
-        /// </summary>
-        Func<int>? HandlerFunc { get; }
-
-        /// <summary>
         /// The command handlerFunc.
         /// </summary>
         ICommandHandler? Handler { get; }
@@ -23,7 +18,7 @@ namespace Vernuntii.Plugins.CommandLine
         /// </summary>
         /// <param name="handlerFunc"></param>
         /// <returns></returns>
-        ICommandHandler? SetHandler(Func<int>? handlerFunc);
+        ICommandHandler? SetHandler(Func<Task<int>>? handlerFunc);
 
         /// <summary>
         /// Adds an commandArgument to command.

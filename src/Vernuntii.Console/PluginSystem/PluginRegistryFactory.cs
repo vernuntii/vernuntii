@@ -6,9 +6,9 @@ namespace Vernuntii.PluginSystem
 {
     internal class PluginRegistryFactory
     {
-        private readonly PluginProviderBuilder _pluginServiceProviderBuilder;
+        private readonly PluginRegistrar _pluginServiceProviderBuilder;
 
-        public PluginRegistryFactory(PluginProviderBuilder pluginServiceProviderBuilder) =>
+        public PluginRegistryFactory(PluginRegistrar pluginServiceProviderBuilder) =>
             _pluginServiceProviderBuilder = pluginServiceProviderBuilder ?? throw new ArgumentNullException(nameof(pluginServiceProviderBuilder));
 
         private IReadOnlyDictionary<Type, IPluginRegistration> BuildOrderlyPluginRegistrations(

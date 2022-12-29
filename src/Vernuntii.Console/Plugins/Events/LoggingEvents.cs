@@ -10,11 +10,11 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when logging infrastructure is getting enabled.
         /// </summary>
-        public static readonly SubjectEvent EnableLoggingInfrastructure = new();
+        public static readonly EventDiscriminator EnableLoggingInfrastructure = new();
 
         /// <summary>
         /// Event when logging infrastructure is enabled.
         /// </summary>
-        public static readonly SubjectEvent<ILoggingPlugin> EnabledLoggingInfrastructure = new();
+        public static readonly EventDiscriminator<ILoggingPlugin> EnabledLoggingInfrastructure = new();
     }
 }

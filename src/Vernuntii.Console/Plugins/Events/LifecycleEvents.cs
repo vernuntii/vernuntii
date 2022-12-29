@@ -1,4 +1,5 @@
-﻿using Vernuntii.PluginSystem.Events;
+﻿using Vernuntii.Lifecycle;
+using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Plugins.Events
 {
@@ -10,11 +11,11 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// The event is called before a run is started.
         /// </summary>
-        public static readonly SubjectEvent BeforeEveryRun = new();
+        public static readonly EventDiscriminator<LifecycleContext> BeforeEveryRun = new();
 
         /// <summary>
         /// The event is called before the next run starts.
         /// </summary>
-        public static readonly SubjectEvent BeforeNextRun = new();
+        public static readonly EventDiscriminator<LifecycleContext> BeforeNextRun = new();
     }
 }

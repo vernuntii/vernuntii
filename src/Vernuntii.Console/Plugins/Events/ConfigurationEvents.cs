@@ -11,16 +11,28 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event is happening when the configuration builder has been configured.
         /// </summary>
-        public static readonly SubjectEvent ConfiguredConfigurationBuilder = new();
+        public static readonly EventDiscriminator<ConfiguredConfigurationBuilderResult> ConfiguredConfigurationBuilder = new();
 
         /// <summary>
         /// Event is happening when the configuration is getting created.
         /// </summary>
-        public static readonly SubjectEvent CreateConfiguration = new();
+        public static readonly EventDiscriminator CreateConfiguration = new();
 
         /// <summary>
         /// Event is happening when the configuration got created.
         /// </summary>
-        public static readonly SubjectEvent<IConfiguration> CreatedConfiguration = new();
+        public static readonly EventDiscriminator<IConfiguration> CreatedConfiguration = new();
+
+        /// <summary>
+        /// The result of <see cref="ConfiguredConfigurationBuilder"/>.
+        /// </summary>
+        public sealed class ConfiguredConfigurationBuilderResult
+        {
+            internal ConfiguredConfigurationBuilderResult()
+            {
+            }
+
+            public string? ConfigPath { get; init; }
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Vernuntii.PluginSystem.Events;
+﻿using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.PluginSystem;
 
@@ -12,5 +12,5 @@ public interface IPlugin
     /// Called after registration but before destruction.
     /// </summary>
     /// <param name="events"></param>
-    ValueTask OnExecution(IPluginEventCache events);
+    ValueTask OnExecution(EventSystem events);
 }

@@ -1,5 +1,7 @@
 ﻿using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Events;
+using Vernuntii.Reactive;
+using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins
 {
@@ -11,10 +13,10 @@ namespace Vernuntii.Plugins
         /// <summary>
         /// Creates
         /// </summary>
-        /// <param name="uniqueEvent"></param>
+        /// <param name="discriminator"></param>
         /// <param name="payloadHandler"></param>
-        public static WhenExecuting<TPayload> OnEveryEvent<TPayload>(SubjectEvent<TPayload> uniqueEvent, Action<TPayload> payloadHandler) =>
-            new(uniqueEvent, payloadHandler);
+        public static WhenExecuting<TPayload> OnEveryEvent<TPayload>(EventDiscriminator<TPayload> discriminator, Action<TPayload> payloadHandler) =>
+            new(discriminator, payloadHandler);
 
         /// <summary>
         /// A plugin that calls a handler with the event of
@@ -22,24 +24,24 @@ namespace Vernuntii.Plugins
         /// </summary>
         public class WhenExecuting<TPayload> : Plugin
         {
-            private readonly SubjectEvent<TPayload> _uniqueEvent;
+            private readonly EventDiscriminator<TPayload> _eventDiscriminator;
             private readonly Action<TPayload> _payloadHandler;
 
             /// <summary>
             /// Creates an instance of this type.
             /// </summary>
-            /// <param name="uniqueEvent"></param>
+            /// <param name="discriminator"></param>
             /// <param name="payloadHandler"></param>
-            public WhenExecuting(SubjectEvent<TPayload> uniqueEvent, Action<TPayload> payloadHandler)
+            public WhenExecuting(EventDiscriminator<TPayload> discriminator, Action<TPayload> payloadHandler)
             {
-                _uniqueEvent = uniqueEvent;
+                _eventDiscriminator = discriminator;
                 _payloadHandler = payloadHandler;
             }
 
             /// <inheritdoc/>
             protected override void OnExecution()
             {
-                var subscription = Events.OnEveryEvent(_uniqueEvent, _payloadHandler);
+                var subscription = Events.Every(_eventDiscriminator).Subscribe(_payloadHandler);
                 AddDisposable(subscription);
             }
         }

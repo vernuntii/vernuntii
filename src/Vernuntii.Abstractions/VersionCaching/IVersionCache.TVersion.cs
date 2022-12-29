@@ -8,11 +8,10 @@ namespace Vernuntii.VersionCaching
     public interface IVersionCache<out TVersion> : IExpirableVersionCache
         where TVersion : ISemanticVersion
     {
-        new
-                /// <summary>
-                /// The version.
-                /// </summary>
-                TVersion Version { get; }
+        /// <summary>
+        /// The version.
+        /// </summary>
+        new TVersion Version { get; }
 
         /// <summary>
         /// The branch name.

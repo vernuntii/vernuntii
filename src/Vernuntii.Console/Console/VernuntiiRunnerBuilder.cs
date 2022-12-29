@@ -11,16 +11,18 @@ namespace Vernuntii.Console
     /// </summary>
     public sealed class VernuntiiRunnerBuilder : IVernuntiiRunnerBuilder
     {
-        private static void AddDefaultPlugins(IPluginProviderBuilder builder)
+        /// <summary>
+        /// Creates a builder for a Vernuntii runner including capabilities to calculate the next version.
+        /// </summary>
+        public static IVernuntiiRunnerBuilder ForNextVersion() => new VernuntiiRunnerBuilder()
+            .ConfigurePlugins(builder => builder.AddNextVersion());
+
+        private static void AddRequiredPlugins(IPluginRegistrar builder)
         {
             builder.Add<ILoggingPlugin, LoggingPlugin>();
-            builder.Add<IGlobalServicesPlugin, GlobalServicesPlugin>();
-            builder.Add<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
+            builder.Add<IServicesPlugin, ServicesPlugin>();
             builder.Add<ICommandLinePlugin, CommandLinePlugin>();
             builder.Add<IConfigurationPlugin, ConfigurationPlugin>();
-            builder.Add<IGitPlugin, GitPlugin>();
-            builder.Add<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>();
-            builder.Add<INextVersionPlugin, NextVersionPlugin>();
         }
 
         private static void AddPluginServices(IServiceCollection services)
@@ -29,8 +31,8 @@ namespace Vernuntii.Console
             services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(Logger<>)));
         }
 
-        private readonly List<Action<IPluginProviderBuilder>> _configurePluginProviderBuilderActions = new() {
-            AddDefaultPlugins
+        private readonly List<Action<IPluginRegistrar>> _configurePluginProviderBuilderActions = new() {
+            AddRequiredPlugins
         };
 
         private readonly List<Action<IServiceCollection>> _configurePluginServicesActions = new() {
@@ -38,7 +40,7 @@ namespace Vernuntii.Console
         };
 
         /// <inheritdoc/>
-        public IVernuntiiRunnerBuilder ConfigurePlugins(Action<IPluginProviderBuilder> configure)
+        public IVernuntiiRunnerBuilder ConfigurePlugins(Action<IPluginRegistrar> configure)
         {
             if (configure is null) {
                 throw new ArgumentNullException(nameof(configure));
@@ -66,12 +68,12 @@ namespace Vernuntii.Console
             var pluginRegistry = CreatePluginRegistry();
 
             return new VernuntiiRunner(pluginRegistry) {
-                ConsoleArgs = args ?? Array.Empty<string>()
+                ConsoleArguments = args ?? Array.Empty<string>()
             };
 
-            PluginProviderBuilder CreatePluginProviderBuilder()
+            PluginRegistrar CreatePluginProviderBuilder()
             {
-                var pluginProviderBuilder = new PluginProviderBuilder();
+                var pluginProviderBuilder = new PluginRegistrar();
 
                 foreach (var configurePlugin in _configurePluginProviderBuilderActions) {
                     configurePlugin(pluginProviderBuilder);

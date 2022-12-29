@@ -4,7 +4,7 @@ using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Plugins
@@ -42,7 +42,7 @@ namespace Vernuntii.Plugins
         public VersionCacheOptionsPlugin(ICommandLinePlugin commandLinePlugin) =>
             _commandLinePlugin = commandLinePlugin ?? throw new ArgumentNullException(nameof(commandLinePlugin));
 
-        private void OnParseCommandLineArgs(ParseResult parseResult)
+        private void OnParseCommandLineArguments(ParseResult parseResult)
         {
             CacheOptions.CacheId = parseResult.GetValueForOption(_cacheIdOption);
 
@@ -72,13 +72,15 @@ namespace Vernuntii.Plugins
             _commandLinePlugin.RootCommand.Add(_cacheLastAccessRetentionTimeOption);
             _commandLinePlugin.RootCommand.Add(_cacheIdOption);
 
-            Events.OnNextEvent(
-                CommandLineEvents.ParsedCommandLineArgs,
-                OnParseCommandLineArgs);
+            Events
+                .Earliest(CommandLineEvents.ParsedCommandLineArguments)
+                .Subscribe(OnParseCommandLineArguments)
+                .DisposeWhenDisposing(this);
 
-            Events.OnNextEvent(
-                GlobalServicesEvents.ConfigureServices,
-                services => services.AddSingleton<IVersionCacheOptions>(CacheOptions));
+            Events
+                .Earliest(ServicesEvents.ConfigureServices)
+                .Subscribe(services => services.AddSingleton<IVersionCacheOptions>(CacheOptions))
+                .DisposeWhenDisposing(this);
         }
     }
 }

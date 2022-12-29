@@ -1,6 +1,4 @@
-﻿using System.CommandLine.Builder;
-using Microsoft.Extensions.Logging;
-using Vernuntii.Plugins.CommandLine;
+﻿using Vernuntii.Plugins.CommandLine;
 using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Plugins;
@@ -16,7 +14,7 @@ public interface ICommandLinePlugin : IPlugin
     ICommandWrapper RootCommand { get; }
 
     /// <summary>
-    /// A delegate that creates an instance of <see cref="CommandLineBuilder"/>.
+    /// If <see langword="true"/> and an exception has been thrown during command invocation, then exception will be rethrown and the (bad) exit code won't not returned.
     /// </summary>
-    Action<CommandLineBuilder, ILogger> ConfigureCommandLineBuilderAction { get; set; }
+    internal bool PreferExceptionOverExitCode { get; set; }
 }

@@ -4,8 +4,8 @@ using Vernuntii.MessageConventions;
 using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Events;
 using Vernuntii.PluginSystem.Meta;
+using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersioningPresets;
 
@@ -80,15 +80,17 @@ namespace Vernuntii.Plugins
         /// </summary>
         protected override void OnExecution()
         {
-            Events.OnNextEvent(NextVersionEvents.ConfigureGlobalServices, services => {
-                services.AddSingleton(PresetManager);
-                services.AddSingleton(PresetManager.VersioningPresets);
-                services.AddSingleton(PresetManager.MessageConventions);
-                services.AddSingleton(PresetManager.MessageIndicators);
-                services.AddSingleton(PresetManager.ConfiguredMessageIndicatorFactories);
-                services.AddSingleton(PresetManager.HeightConventions);
-                Events.FireEvent(VersioningPresetsEvents.ConfiguredGlobalServices, services);
-            });
+            Events.Earliest(NextVersionEvents.ConfigureServices)
+                .Subscribe(async services => {
+                    services.AddSingleton(PresetManager);
+                    services.AddSingleton(PresetManager.VersioningPresets);
+                    services.AddSingleton(PresetManager.MessageConventions);
+                    services.AddSingleton(PresetManager.MessageIndicators);
+                    services.AddSingleton(PresetManager.ConfiguredMessageIndicatorFactories);
+                    services.AddSingleton(PresetManager.HeightConventions);
+                    await Events.FulfillAsync(VersioningPresetsEvents.ConfiguredGlobalServices, services);
+                })
+                .DisposeWhenDisposing(this);
         }
     }
 }

@@ -12,13 +12,13 @@ namespace Vernuntii.Console
         /// Configures the plugins.
         /// </summary>
         /// <param name="configurePlugins"></param>
-        IVernuntiiRunnerBuilder ConfigurePlugins(Action<IPluginProviderBuilder> configurePlugins);
+        IVernuntiiRunnerBuilder ConfigurePlugins(Action<IPluginRegistrar> configurePlugins);
 
         /// <summary>
         /// Configures the dependencies of plugins. This does not add plugins, only their dependencies.
         /// </summary>
-        /// <param name="configure"></param>
-        IVernuntiiRunnerBuilder ConfigurePluginServices(Action<IServiceCollection> configure);
+        /// <param name="configureServices"></param>
+        IVernuntiiRunnerBuilder ConfigurePluginServices(Action<IServiceCollection> configureServices);
 
         /// <summary>
         /// Builds the runner for <see cref="Vernuntii"/>.
