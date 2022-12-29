@@ -42,7 +42,12 @@ namespace Vernuntii.Console
         internal VernuntiiRunner(PluginRegistry pluginRegistry)
         {
             _pluginRegistry = pluginRegistry;
-            _logger = pluginRegistry.GetPlugin<ILoggingPlugin>().CreateLogger<VernuntiiRunner>();
+            var loggingPlugin = pluginRegistry.GetPlugin<ILoggingPlugin>();
+            _logger = loggingPlugin.CreateLogger<VernuntiiRunner>();
+
+#if DEBUG
+            _pluginEvents = new PerformanceMeasuringEventSystem(loggingPlugin.CreateLogger<EventSystem>());
+#endif
         }
 
         private bool _alreadyInitiatedLifecycleOnce;
@@ -72,15 +77,11 @@ namespace Vernuntii.Console
         [MemberNotNull(nameof(_pluginEvents), nameof(_pluginExecutor))]
         private async ValueTask EnsureHavingOperablePlugins()
         {
-            if (_pluginEvents is null ^ _pluginExecutor is null) {
-                throw new InvalidOperationException("The Vernuntii runner was improperly initialized");
-            }
-
             if (_pluginEvents is not null && _pluginExecutor is not null) {
                 return;
             }
 
-            _pluginEvents = new EventSystem();
+            _pluginEvents ??= new EventSystem();
             _pluginExecutor = new PluginExecutor(_pluginRegistry, _pluginEvents);
             _logger.LogTrace("Execute plugins");
             await _pluginExecutor.ExecuteAsync().ConfigureAwait(false);

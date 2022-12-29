@@ -17,8 +17,10 @@ namespace Vernuntii.Plugins
     internal class VersionCacheCheckPlugin : Plugin, IVersionCacheCheckPlugin
     {
         /// <inheritdoc/>
-        public IVersionCache? VersionCache {
-            get {
+        public IVersionCache? VersionCache
+        {
+            get
+            {
                 EnsureHavingVersionChecked();
                 return _versionCache;
             }
@@ -26,15 +28,15 @@ namespace Vernuntii.Plugins
 
         /// <inheritdoc/>
         [MemberNotNullWhen(true, nameof(VersionCache))]
-        public bool IsCacheUpToDate {
-            get {
+        public bool IsCacheUpToDate
+        {
+            get
+            {
                 EnsureHavingVersionChecked();
                 return VersionCache != null;
             }
         }
 
-        //private readonly IConfigurationPlugin _configurationPlugin;
-        private readonly VersionCacheOptionsPlugin _versionCacheOptionsPlugin;
         private readonly ILogger<VersionCacheCheckPlugin> _logger;
         private readonly ILogger<VersionCacheManager> _versionCacheManagerLogger;
         private VersionCacheManager _versionCacheManager = null!;
@@ -42,25 +44,22 @@ namespace Vernuntii.Plugins
         private bool _isVersionChecked;
 
         public VersionCacheCheckPlugin(
-            //IConfigurationPlugin configurationPlugin,
-            VersionCacheOptionsPlugin versionCacheOptionsPlugin,
             ILogger<VersionCacheCheckPlugin> logger,
             ILogger<VersionCacheManager> gitCommandLogger)
         {
-            //_configurationPlugin = configurationPlugin ?? throw new ArgumentNullException(nameof(configurationPlugin));
-            _versionCacheOptionsPlugin = versionCacheOptionsPlugin ?? throw new ArgumentNullException(nameof(versionCacheOptionsPlugin));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _versionCacheManagerLogger = gitCommandLogger;
         }
 
         private void EnsureHavingVersionChecked()
         {
-            if (!_isVersionChecked) {
+            if (!_isVersionChecked)
+            {
                 throw new InvalidOperationException("The version cache check has not been processed (If you depend on it you need to arrange your stuff after that check)");
             }
         }
 
-        private async ValueTask CreateVersionCacheManager(string? configFile, IGitCommand gitCommand)
+        private Task CreateVersionCacheManager(string? configFile, IGitCommand gitCommand, VersionCacheOptions versionCacheOptions)
         {
             var gitDirectory = gitCommand.GetGitDirectory();
             var versionCacheDirectory = new VersionCacheDirectory(new VersionCacheDirectoryOptions(gitDirectory));
@@ -68,22 +67,22 @@ namespace Vernuntii.Plugins
             _versionCacheManager = new VersionCacheManager(
                 versionCacheDirectory,
                 new VersionCacheEvaluator(),
-                _versionCacheOptionsPlugin.CacheOptions,
+                versionCacheOptions,
                 _versionCacheManagerLogger);
 
             var versionHashFile = new VersionHashFile(new VersionHashFileOptions(gitDirectory, configFile), _versionCacheManager, versionCacheDirectory, _logger);
 
-            if (!versionHashFile.IsRecacheRequired(out var versionCache)) {
+            if (!versionHashFile.IsRecacheRequired(out var versionCache))
+            {
                 _versionCache = versionCache;
             }
 
             _isVersionChecked = true;
-            await Events.FulfillAsync(VersionCacheCheckEvents.CheckedVersionCache).ConfigureAwait(true);
+            return Events.FulfillAsync(VersionCacheCheckEvents.CheckedVersionCache);
         }
 
         private void OnVersionCacheCheck()
         {
-
         }
 
         /// <inheritdoc/>
@@ -91,15 +90,18 @@ namespace Vernuntii.Plugins
         {
             Events.Every(ConfigurationEvents.ConfiguredConfigurationBuilder)
                 .Zip(GitEvents.CreatedGitCommand)
-                .Subscribe(async result => {
-                    var (configuredConfigurationBuilderResult, gitCommand) = result;
-                    await CreateVersionCacheManager(configuredConfigurationBuilderResult.ConfigPath, gitCommand).ConfigureAwait(true);
+                .Zip(VersionCacheOptionsEvents.ParsedVersionCacheOptions)
+                .Subscribe(result =>
+                {
+                    var ((configuredConfigurationBuilderResult, gitCommand), versionCacheOptions) = result;
+                    return CreateVersionCacheManager(configuredConfigurationBuilderResult.ConfigPath, gitCommand, versionCacheOptions);
                 })
                 .DisposeWhenDisposing(this);
 
             Events.Every(ServicesEvents.ConfigureServices)
                 .Zip(VersionCacheCheckEvents.CheckedVersionCache)
-                .Subscribe(result => {
+                .Subscribe(result =>
+                {
                     var (services, _) = result;
                     services.AddSingleton<IVersionCacheManager>(_versionCacheManager);
                 })

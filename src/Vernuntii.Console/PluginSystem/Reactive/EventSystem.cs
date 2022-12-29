@@ -2,17 +2,23 @@
 
 namespace Vernuntii.PluginSystem.Reactive;
 
-public sealed class EventSystem : IEventChainFactory
+public class EventSystem : IEventChainFactory
 {
     EventSystem IEventChainFactory.EventSystem => this;
 
     private readonly Dictionary<ulong, EventObserverCollection> _eventObservers = new();
     private readonly object _lock = new();
 
+    internal EventSystem()
+    {
+    }
+
     internal IDisposable AddObserver(ulong eventId, IEventObserver eventObserver)
     {
-        lock (_lock) {
-            if (!_eventObservers.TryGetValue(eventId, out var eventObservers)) {
+        lock (_lock)
+        {
+            if (!_eventObservers.TryGetValue(eventId, out var eventObservers))
+            {
                 eventObservers = new EventObserverCollection();
                 _eventObservers[eventId] = eventObservers;
             }
@@ -21,22 +27,26 @@ public sealed class EventSystem : IEventChainFactory
         }
     }
 
-    public async Task FullfillAsync<T>(ulong eventId, T eventData)
+    public virtual async Task FullfillAsync<T>(ulong eventId, T eventData)
     {
         var fulfillmentContext = new EventFulfillmentContext();
 
-        lock (_lock) {
-            if (!_eventObservers.TryGetValue(eventId, out var eventHandlers)) {
+        lock (_lock)
+        {
+            if (!_eventObservers.TryGetValue(eventId, out var eventHandlers))
+            {
                 return;
             }
 
             eventHandlers.OnFulfillment(fulfillmentContext, eventData);
         }
 
-        foreach (var scheduledEventInvocation in fulfillmentContext.ScheduledEventInvocations) {
+        foreach (var scheduledEventInvocation in fulfillmentContext.ScheduledEventInvocations)
+        {
             var task = scheduledEventInvocation.Item1(scheduledEventInvocation.Item2);
 
-            if (!task.IsCompletedSuccessfully) {
+            if (!task.IsCompletedSuccessfully)
+            {
                 await task.ConfigureAwait(true);
             }
         }
@@ -53,18 +63,22 @@ public sealed class EventSystem : IEventChainFactory
             var entries = _eventObserverEntries;
             var entry = new EventObserverEntry(Interlocked.Increment(ref s_nextId), eventHandler);
 
-            lock (entries) {
+            lock (entries)
+            {
                 entries.Add(entry);
             }
 
             return DelegatingDisposable.Create(
-                state => {
+                state =>
+                {
                     var (entries, entry) = state;
 
-                    lock (entries) {
+                    lock (entries)
+                    {
                         entries.Remove(entry);
 
-                        if (entries.Count == 0) {
+                        if (entries.Count == 0)
+                        {
                             // Reset id
                             s_nextId = 0;
                         }
@@ -78,13 +92,17 @@ public sealed class EventSystem : IEventChainFactory
             var entriesCount = _eventObserverEntries.Count;
             var entries = ArrayPool<EventObserverEntry>.Shared.Rent(entriesCount);
 
-            try {
+            try
+            {
                 _eventObserverEntries.CopyTo(entries, 0, entriesCount);
 
-                for (var i = 0; i < entriesCount; i++) {
+                for (var i = 0; i < entriesCount; i++)
+                {
                     entries[i].Handler.OnFulfillment(context, eventData);
                 }
-            } finally {
+            }
+            finally
+            {
                 ArrayPool<EventObserverEntry>.Shared.Return(entries);
             }
         }

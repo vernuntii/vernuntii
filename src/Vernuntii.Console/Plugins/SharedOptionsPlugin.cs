@@ -25,23 +25,6 @@ namespace Vernuntii.Plugins
             set => _overrideVersioningMode = value;
         }
 
-        // TODO:
-        ///// <summary>
-        ///// The Vernuntii configuration file path.
-        ///// If the config path is null the current
-        ///// working directory is returned.
-        ///// The config path is available after 
-        ///// </summary>
-        //[AllowNull]
-        //public string ConfigPath {
-        //    get {
-        //        EnsureParsedCommandLineArguments();
-        //        return _configPath ?? Directory.GetCurrentDirectory();
-        //    }
-
-        //    set => _configPath = value;
-        //}
-
         /// <summary>
         /// True of <see cref="OverrideVersioningMode"/> is not <see langword="null"/>.
         /// </summary>
@@ -80,10 +63,8 @@ namespace Vernuntii.Plugins
                 .Earliest(CommandLineEvents.ParsedCommandLineArguments)
                 .Subscribe(async parseResult => {
                     await Events.FulfillAsync(SharedOptionsEvents.ParseCommandLineArguments).ConfigureAwait(true);
-
                     // Parse options.
                     _overrideVersioningMode = parseResult.GetValueForOption(_overrideVersioningModeOption);
-
                     _areCommandLineArgumentsParsed = true;
                     await Events.FulfillAsync(SharedOptionsEvents.ParsedCommandLineArguments).ConfigureAwait(true);
                 })

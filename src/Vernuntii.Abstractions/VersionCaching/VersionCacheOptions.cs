@@ -15,6 +15,8 @@
         /// </summary>
         public static readonly TimeSpan DefaultInternalCacheLastAccessRetentionTime = TimeSpan.FromSeconds(15);
 
+        public static readonly TimeSpan DefaultCacheCreationRetentionTime = TimeSpan.FromHours(2);
+
         /// <inheritdoc/>
         public string InternalCacheId { get; set; } = DefaultInternalCacheId;
 
@@ -22,7 +24,7 @@
         public TimeSpan InternalCacheLastAccessRetentionTime { get; set; } = DefaultInternalCacheLastAccessRetentionTime;
 
         /// <inheritdoc/>
-        public TimeSpan CacheCreationRetentionTime { get; set; } = TimeSpan.FromHours(2);
+        public TimeSpan CacheCreationRetentionTime { get; set; } = DefaultCacheCreationRetentionTime;
 
         /// <inheritdoc/>
         public TimeSpan? LastAccessRetentionTime { get; set; }

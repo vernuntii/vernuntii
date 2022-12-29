@@ -24,9 +24,9 @@
     <PackageReference Update="CSF.CollectionComparers" Version="1.1.1" />
     <PackageReference Update="NLog" Version="5.1.0" />
     <PackageReference Update="NLog.Extensions.Logging" Version="5.2.0" />
-    <PackageReference Update="SoftCircuits.OrderedDictionary" Version="2.1.0" />
-    <PackageReference Update="System.CommandLine" Version="2.0.0-beta3.22114.1" />
-    <PackageReference Update="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta3.22114.1" />
+    <PackageReference Update="SoftCircuits.OrderedDictionary" Version="3.0.0" />
+    <PackageReference Update="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Update="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
     <PackageReference Update="Kenet.SimpleProcess" Version="0.1.4-alpha.3" />
     <PackageReference Update="System.Text.Json" Version="7.0.0" />
     <PackageReference Update="Microsoft.Build.Utilities.Core" Version="17.4.0" />

@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog;
