@@ -9,11 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.GlobalToo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Abstractions", "src\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj", "{1EE220B9-A956-4A14-A5FD-604A8FBA5E91}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Calculator", "src\Vernuntii.Calculator\Vernuntii.Calculator.csproj", "{0F5C72BB-E779-4025-A8A4-5E339590F6A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Calculation", "src\Vernuntii.Calculation\Vernuntii.Calculation.csproj", "{0F5C72BB-E779-4025-A8A4-5E339590F6A0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Configuration", "src\Vernuntii.Configuration\Vernuntii.Configuration.csproj", "{E15E4EB6-C18C-47CC-9ABB-986CFADD7979}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Configuration.Core", "src\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj", "{51053B99-0F87-4422-AF86-73CDDF5AC6C1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console", "src\Vernuntii.Console\Vernuntii.Console.csproj", "{39BD67A4-D667-44B5-B16E-C5C78D7B0371}"
 EndProject
@@ -47,14 +45,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.SemVer.Parser", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{993E4087-E0EC-4713-9576-DD3ECA7062EA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Calculator.Test", "test\Vernuntii.Calculator.Test\Vernuntii.Calculator.Test.csproj", "{26F7C75A-A4DB-49B2-97C6-D17F51C62958}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Configuration.Test", "test\Vernuntii.Configuration.Test\Vernuntii.Configuration.Test.csproj", "{44EC5F35-03B5-4001-BE4B-DBB0B88D216C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Git.Test", "test\Vernuntii.Git.Test\Vernuntii.Git.Test.csproj", "{CB958DC5-8B4B-46F6-BEA3-F4C0CF5D9E14}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Plugins.Test", "test\Vernuntii.Plugins.Test\Vernuntii.Plugins.Test.csproj", "{11F3A686-92B2-4CED-A743-9C9F0D66F795}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.SemVer.Parser.Test", "test\Vernuntii.SemVer.Parser.Test\Vernuntii.SemVer.Parser.Test.csproj", "{9BBE2071-60FE-47B1-8969-9B468BF28DF8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.SemVer.Test", "test\Vernuntii.SemVer.Test\Vernuntii.SemVer.Test.csproj", "{9D19B1EB-41BB-4C04-8469-5C2CB73B646D}"
@@ -65,9 +55,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.TestTrunkBasedDev
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{865700FC-6FE5-4445-B584-C2AA3900D0E4}"
 	ProjectSection(SolutionItems) = preProject
-		test\Directory.Build.props = test\Directory.Build.props
 		Directory.Build.props = Directory.Build.props
-		test\Directory.Build.targets = test\Directory.Build.targets
 		Directory.Build.targets = Directory.Build.targets
 		test\Packages.props = test\Packages.props
 		vernuntii.yml = vernuntii.yml
@@ -75,7 +63,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.MSBuild.Test", "test\Vernuntii.Console.MSBuild.Test\Vernuntii.Console.MSBuild.Test.csproj", "{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.PluginSystem.Test", "test\Vernuntii.PluginSystem.Test\Vernuntii.PluginSystem.Test.csproj", "{FE7B3F15-917C-4134-A7FE-72E841FCB650}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Test", "test\Vernuntii.Test\Vernuntii.Test.csproj", "{4FB9D629-75BC-4B61-BECF-66284DEC61A7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{768353E5-594A-46D1-9DCE-3244EACDB8F1}"
+	ProjectSection(SolutionItems) = preProject
+		test\Directory.Build.props = test\Directory.Build.props
+		test\Directory.Build.targets = test\Directory.Build.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{14CCA400-AA6F-4757-AD52-08A2D7BB6E9E}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+		src\Directory.Build.targets = src\Directory.Build.targets
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,10 +99,6 @@ Global
 		{E15E4EB6-C18C-47CC-9ABB-986CFADD7979}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E15E4EB6-C18C-47CC-9ABB-986CFADD7979}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E15E4EB6-C18C-47CC-9ABB-986CFADD7979}.Release|Any CPU.Build.0 = Release|Any CPU
-		{51053B99-0F87-4422-AF86-73CDDF5AC6C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{51053B99-0F87-4422-AF86-73CDDF5AC6C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{51053B99-0F87-4422-AF86-73CDDF5AC6C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{51053B99-0F87-4422-AF86-73CDDF5AC6C1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{39BD67A4-D667-44B5-B16E-C5C78D7B0371}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{39BD67A4-D667-44B5-B16E-C5C78D7B0371}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39BD67A4-D667-44B5-B16E-C5C78D7B0371}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -163,22 +159,6 @@ Global
 		{389B9820-1B3B-417E-8A2D-13DE9632E747}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{389B9820-1B3B-417E-8A2D-13DE9632E747}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{389B9820-1B3B-417E-8A2D-13DE9632E747}.Release|Any CPU.Build.0 = Release|Any CPU
-		{26F7C75A-A4DB-49B2-97C6-D17F51C62958}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{26F7C75A-A4DB-49B2-97C6-D17F51C62958}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{26F7C75A-A4DB-49B2-97C6-D17F51C62958}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{26F7C75A-A4DB-49B2-97C6-D17F51C62958}.Release|Any CPU.Build.0 = Release|Any CPU
-		{44EC5F35-03B5-4001-BE4B-DBB0B88D216C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{44EC5F35-03B5-4001-BE4B-DBB0B88D216C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{44EC5F35-03B5-4001-BE4B-DBB0B88D216C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{44EC5F35-03B5-4001-BE4B-DBB0B88D216C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CB958DC5-8B4B-46F6-BEA3-F4C0CF5D9E14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CB958DC5-8B4B-46F6-BEA3-F4C0CF5D9E14}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CB958DC5-8B4B-46F6-BEA3-F4C0CF5D9E14}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CB958DC5-8B4B-46F6-BEA3-F4C0CF5D9E14}.Release|Any CPU.Build.0 = Release|Any CPU
-		{11F3A686-92B2-4CED-A743-9C9F0D66F795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{11F3A686-92B2-4CED-A743-9C9F0D66F795}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{11F3A686-92B2-4CED-A743-9C9F0D66F795}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{11F3A686-92B2-4CED-A743-9C9F0D66F795}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9BBE2071-60FE-47B1-8969-9B468BF28DF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9BBE2071-60FE-47B1-8969-9B468BF28DF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BBE2071-60FE-47B1-8969-9B468BF28DF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -199,26 +179,24 @@ Global
 		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FE7B3F15-917C-4134-A7FE-72E841FCB650}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FE7B3F15-917C-4134-A7FE-72E841FCB650}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FE7B3F15-917C-4134-A7FE-72E841FCB650}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FE7B3F15-917C-4134-A7FE-72E841FCB650}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FB9D629-75BC-4B61-BECF-66284DEC61A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FB9D629-75BC-4B61-BECF-66284DEC61A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FB9D629-75BC-4B61-BECF-66284DEC61A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FB9D629-75BC-4B61-BECF-66284DEC61A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{97325E9A-6CD5-445F-86A4-4E004AD68BB5} = {0190F4E6-FE0E-4A0E-8BCC-923B2A846488}
-		{26F7C75A-A4DB-49B2-97C6-D17F51C62958} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
-		{44EC5F35-03B5-4001-BE4B-DBB0B88D216C} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
-		{CB958DC5-8B4B-46F6-BEA3-F4C0CF5D9E14} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
-		{11F3A686-92B2-4CED-A743-9C9F0D66F795} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 		{9BBE2071-60FE-47B1-8969-9B468BF28DF8} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 		{9D19B1EB-41BB-4C04-8469-5C2CB73B646D} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 		{4CF5435D-DD1E-4416-B601-7AAE3B91D165} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 		{CB381944-92E0-4336-A723-5498D8F1EE0D} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 		{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
-		{FE7B3F15-917C-4134-A7FE-72E841FCB650} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
+		{4FB9D629-75BC-4B61-BECF-66284DEC61A7} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
+		{768353E5-594A-46D1-9DCE-3244EACDB8F1} = {865700FC-6FE5-4445-B584-C2AA3900D0E4}
+		{14CCA400-AA6F-4757-AD52-08A2D7BB6E9E} = {865700FC-6FE5-4445-B584-C2AA3900D0E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2888C95-8ED3-44F8-BD54-15A071471147}

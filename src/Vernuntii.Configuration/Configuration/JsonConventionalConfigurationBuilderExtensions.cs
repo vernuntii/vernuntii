@@ -21,7 +21,7 @@ namespace Vernuntii.Configuration
         {
             configurationBuilder.AddJsonFile(configurationBuilder.FileFinder
                 .FindFile(directoryName, fileName)
-                .GetUpwardFilePath());
+                .GetHigherLevelFilePath());
 
             return configurationBuilder;
         }

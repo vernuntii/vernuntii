@@ -2,4 +2,4 @@
 
 [assembly: InternalsVisibleTo("Vernuntii.Configuration")]
 [assembly: InternalsVisibleTo("Vernuntii.TestInfrastructure")]
-[assembly: InternalsVisibleTo("Vernuntii.Git.Test")]
+[assembly: InternalsVisibleTo("Vernuntii.Test")]

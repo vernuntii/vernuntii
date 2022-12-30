@@ -5,6 +5,8 @@ using Vernuntii.Caching;
 using Vernuntii.Git;
 using Vernuntii.Git.Commands;
 using Vernuntii.MessagesProviders;
+using Microsoft.Extensions.Configuration;
+using Vernuntii.Extensions.BranchCases;
 
 namespace Vernuntii.Extensions
 {
@@ -13,6 +15,34 @@ namespace Vernuntii.Extensions
     /// </summary>
     public static class GitServicesScopeExtensions
     {
+        private const string BranchesSectionKey = "Branches";
+
+        /// <summary>
+        /// Configures an instance of <see cref="IGitServicesScope"/>.
+        /// </summary>
+        /// <param name="features"></param>
+        /// <param name="configure"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static IVernuntiiServicesScope ScopeToGit(this IVernuntiiServicesScope features, Action<IGitServicesScope> configure)
+        {
+            var services = features.Services;
+
+            if (configure is null) {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            var options = new GitServicesScope(services);
+            configure(options);
+            return features;
+        }
+
+        /// <summary>
+        /// Configures an instance of <see cref="IGitServicesScope"/>.
+        /// </summary>
+        /// <param name="features"></param>
+        public static IGitServicesScope ScopeToGit(this IVernuntiiServicesScope features) =>
+            new GitServicesScope(features.Services);
+
         /// <summary>
         /// Adds an instance of <see cref="Repository"/> as <see cref="IRepository"/> if <see cref="IRepository"/> has not been added before.
         /// Then <see cref="ICommitsAccessor"/>, <see cref="ICommitTagsAccessor"/> and <see cref="ICommitVersionsAccessor"/> are associated
@@ -117,5 +147,18 @@ namespace Vernuntii.Extensions
 
             return scope;
         }
+
+        /// <summary>
+        /// Uses <paramref name="configuration"/> through <paramref name="features"/>:
+        /// <br/>- adds branch cases
+        /// </summary>
+        /// <param name="features"></param>
+        /// <param name="configuration"></param>
+        /// <param name="configureBranchCase"></param>
+        public static IGitServicesScope UseConfigurationDefaults(
+            this IGitServicesScope features,
+            IConfiguration configuration,
+            Action<IBranchCase>? configureBranchCase = null) => features
+                .AddBranchCases(configuration, configuration.GetSection(BranchesSectionKey).GetChildren(), configureBranchCase);
     }
 }

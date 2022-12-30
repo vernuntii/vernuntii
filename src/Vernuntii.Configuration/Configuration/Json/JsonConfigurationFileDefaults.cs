@@ -13,6 +13,6 @@
         /// <summary>
         /// The .json configuration file name.
         /// </summary>
-        public const string JsonFileName = ConfigurationFileDefaults.DefaultFileNameWithoutExtension + JsonFileExtension;
+        public const string JsonFileName = VernuntiiConfigurationFileDefaults.DefaultFileNameWithoutExtension + JsonFileExtension;
     }
 }

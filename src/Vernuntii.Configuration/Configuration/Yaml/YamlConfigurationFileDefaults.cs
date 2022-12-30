@@ -18,11 +18,11 @@
         /// <summary>
         /// The .yml configuration file name.
         /// </summary>
-        public const string YmlFileName = ConfigurationFileDefaults.DefaultFileNameWithoutExtension + YmlFileExtension;
+        public const string YmlFileName = VernuntiiConfigurationFileDefaults.DefaultFileNameWithoutExtension + YmlFileExtension;
 
         /// <summary>
         /// The .yaml configuration file name.
         /// </summary>
-        public const string YamlFileName = ConfigurationFileDefaults.DefaultFileNameWithoutExtension + YamlFileExtension;
+        public const string YamlFileName = VernuntiiConfigurationFileDefaults.DefaultFileNameWithoutExtension + YamlFileExtension;
     }
 }

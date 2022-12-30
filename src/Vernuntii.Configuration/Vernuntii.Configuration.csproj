@@ -12,8 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj" />
-    <ProjectReference Include="..\Vernuntii.Git\Vernuntii.Git.csproj" />
+    <ProjectReference Include="..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

@@ -21,7 +21,7 @@ namespace Vernuntii.Configuration
         {
             builder.AddYamlFile(builder.FileFinder
                 .FindFile(directoryName, fileName)
-                .GetUpwardFilePath());
+                .GetHigherLevelFilePath());
 
             return builder;
         }

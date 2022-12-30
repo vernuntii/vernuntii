@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Vernuntii.Configuration.Shadowing;
+using Vernuntii.Configuration.Queueing;
+using Vernuntii.IO;
 
 namespace Vernuntii.Configuration.Yaml
 {
@@ -40,7 +41,7 @@ namespace Vernuntii.Configuration.Yaml
         }
 
         /// <inheritdoc/>
-        public override void AddFile(IConfigurationBuilder builder, string filePath, Action<IShadowedConfigurationProviderBuilderConfigurator>? configureProviderBuilder = null)
+        public override void AddFile(IConfigurationBuilder builder, string filePath, Action<IConfigurationProviderQueue>? configureProviderBuilder = null)
         {
             var configurationSource = new YamlShadowedConfigurationSource() {
                 Path = filePath,

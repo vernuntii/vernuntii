@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Vernuntii.Caching;
+using Vernuntii.Git.Command;
 using Vernuntii.Git.Commands;
 
 namespace Vernuntii.Git

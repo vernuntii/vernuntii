@@ -1,3 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Vernuntii.Configuration.Test")]
+[assembly: InternalsVisibleTo("Vernuntii.Calculation")]
+[assembly: InternalsVisibleTo("Vernuntii.TestInfrastructure")]

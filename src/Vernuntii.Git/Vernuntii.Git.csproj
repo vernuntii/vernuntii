@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Vernuntii.Calculator\Vernuntii.Calculator.csproj" />
-    <ProjectReference Include="..\Vernuntii.Configuration.Core\Vernuntii.Configuration.Core.csproj" />
+    <ProjectReference Include="..\Vernuntii.Calculation\Vernuntii.Calculation.csproj" />
+    <ProjectReference Include="..\Vernuntii.Configuration\Vernuntii.Configuration.csproj" />
   </ItemGroup>
 
   <!-- TODO: If Vernuntii.Git is packable then also deliver runtimes/**/* -->

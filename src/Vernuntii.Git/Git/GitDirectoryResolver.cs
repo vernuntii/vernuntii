@@ -1,4 +1,4 @@
-﻿using Vernuntii.Configuration.IO;
+﻿using Vernuntii.IO;
 
 namespace Vernuntii.Git
 {
@@ -30,7 +30,7 @@ namespace Vernuntii.Git
         {
             GitPathKind? pathKind = null;
 
-            var gitDirectoryAccessor = UpwardDirectory.FindUpwardDirectory(directory => {
+            var gitDirectoryAccessor = HigherLevelDirectory.FindDirectory(directory => {
                 var path = Path.Combine(directory.FullName, GitFolderOrFileName);
 
                 // The order represents precedence
