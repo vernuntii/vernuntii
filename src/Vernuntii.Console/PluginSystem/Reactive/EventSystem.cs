@@ -6,19 +6,17 @@ public class EventSystem : IEventChainFactory
 {
     EventSystem IEventChainFactory.EventSystem => this;
 
-    private readonly Dictionary<ulong, EventObserverCollection> _eventObservers = new();
+    private readonly Dictionary<object, EventObserverCollection> _eventObservers = new();
     private readonly object _lock = new();
 
     internal EventSystem()
     {
     }
 
-    internal IDisposable AddObserver(ulong eventId, IEventObserver eventObserver)
+    internal IDisposable AddObserver(object eventId, ITypeInversedUnschedulableEventObserver eventObserver)
     {
-        lock (_lock)
-        {
-            if (!_eventObservers.TryGetValue(eventId, out var eventObservers))
-            {
+        lock (_lock) {
+            if (!_eventObservers.TryGetValue(eventId, out var eventObservers)) {
                 eventObservers = new EventObserverCollection();
                 _eventObservers[eventId] = eventObservers;
             }
@@ -27,29 +25,30 @@ public class EventSystem : IEventChainFactory
         }
     }
 
-    public virtual async Task FullfillAsync<T>(ulong eventId, T eventData)
+    internal virtual async Task FulfillScheduledEventsAsync<T>(object eventId, T eventData, EventFulfillmentContext fulfillmentContext)
+    {
+        foreach (var scheduledEventInvocation in fulfillmentContext.ScheduledEventInvocations) {
+            var task = scheduledEventInvocation.Item1(scheduledEventInvocation.Item2);
+
+            if (!task.IsCompletedSuccessfully) {
+                await task.ConfigureAwait(false);
+            }
+        }
+    }
+
+    public Task FullfillAsync<T>(object eventId, T eventData)
     {
         var fulfillmentContext = new EventFulfillmentContext();
 
-        lock (_lock)
-        {
-            if (!_eventObservers.TryGetValue(eventId, out var eventHandlers))
-            {
-                return;
+        lock (_lock) {
+            if (!_eventObservers.TryGetValue(eventId, out var eventHandlers)) {
+                return Task.CompletedTask;
             }
 
             eventHandlers.OnFulfillment(fulfillmentContext, eventData);
         }
 
-        foreach (var scheduledEventInvocation in fulfillmentContext.ScheduledEventInvocations)
-        {
-            var task = scheduledEventInvocation.Item1(scheduledEventInvocation.Item2);
-
-            if (!task.IsCompletedSuccessfully)
-            {
-                await task.ConfigureAwait(false);
-            }
-        }
+        return FulfillScheduledEventsAsync(eventId, eventData, fulfillmentContext);
     }
 
     private class EventObserverCollection
@@ -58,27 +57,23 @@ public class EventSystem : IEventChainFactory
 
         private readonly SortedSet<EventObserverEntry> _eventObserverEntries = new();
 
-        public IDisposable Add(IEventObserver eventHandler)
+        public IDisposable Add(ITypeInversedUnschedulableEventObserver eventHandler)
         {
             var entries = _eventObserverEntries;
             var entry = new EventObserverEntry(Interlocked.Increment(ref s_nextId), eventHandler);
 
-            lock (entries)
-            {
+            lock (entries) {
                 entries.Add(entry);
             }
 
             return DelegatingDisposable.Create(
-                state =>
-                {
+                state => {
                     var (entries, entry) = state;
 
-                    lock (entries)
-                    {
+                    lock (entries) {
                         entries.Remove(entry);
 
-                        if (entries.Count == 0)
-                        {
+                        if (entries.Count == 0) {
                             // Reset id
                             s_nextId = 0;
                         }
@@ -92,17 +87,13 @@ public class EventSystem : IEventChainFactory
             var entriesCount = _eventObserverEntries.Count;
             var entries = ArrayPool<EventObserverEntry>.Shared.Rent(entriesCount);
 
-            try
-            {
+            try {
                 _eventObserverEntries.CopyTo(entries, 0, entriesCount);
 
-                for (var i = 0; i < entriesCount; i++)
-                {
+                for (var i = 0; i < entriesCount; i++) {
                     entries[i].Handler.OnFulfillment(context, eventData);
                 }
-            }
-            finally
-            {
+            } finally {
                 ArrayPool<EventObserverEntry>.Shared.Return(entries);
             }
         }
@@ -111,12 +102,12 @@ public class EventSystem : IEventChainFactory
         {
             public ulong Id { get; }
 
-            public IEventObserver Handler =>
+            public ITypeInversedUnschedulableEventObserver Handler =>
                 _eventHandler ?? throw new InvalidOperationException();
 
-            private readonly IEventObserver? _eventHandler;
+            private readonly ITypeInversedUnschedulableEventObserver? _eventHandler;
 
-            public EventObserverEntry(ulong id, IEventObserver eventHandler)
+            public EventObserverEntry(ulong id, ITypeInversedUnschedulableEventObserver eventHandler)
             {
                 Id = id;
                 _eventHandler = eventHandler;

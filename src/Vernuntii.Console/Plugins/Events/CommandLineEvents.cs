@@ -12,27 +12,27 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Represents an event for dispatching the command line args.
         /// </summary>
-        public static readonly EventDiscriminator<string[]> SetCommandLineArguments = new();
+        public static readonly EventDiscriminator<string[]> SetCommandLineArguments = EventDiscriminator.New<string[]>();
 
         /// <summary>
         /// Event when command line args are getting parsed.
         /// </summary>
-        public static readonly EventDiscriminator<CommandLineArgumentsParsingContext> ParseCommandLineArguments = new();
+        public static readonly EventDiscriminator<CommandLineArgumentsParsingContext> ParseCommandLineArguments = EventDiscriminator.New<CommandLineArgumentsParsingContext>();
 
         /// <summary>
         /// Represents an event for dispatching <see cref="ParseResult"/>.
         /// </summary>
-        public static readonly EventDiscriminator<ParseResult> ParsedCommandLineArguments = new();
+        public static readonly EventDiscriminator<ParseResult> ParsedCommandLineArguments = EventDiscriminator.New<ParseResult>();
 
         /// <summary>
         /// Event when root command is about to be invoked.
         /// </summary>
-        public static readonly EventDiscriminator InvokeRootCommand = new();
+        public static readonly EventDiscriminator InvokeRootCommand = EventDiscriminator.New();
 
         /// <summary>
         /// Event when root command is about to be invoked.
         /// It is also fired when the parsing of arguments failed.
         /// </summary>
-        public static readonly EventDiscriminator<int> InvokedRootCommand = new();
+        public static readonly EventDiscriminator<int> InvokedRootCommand = EventDiscriminator.New<int>();
     }
 }

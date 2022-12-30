@@ -1,12 +1,12 @@
 ﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Common;
 using NLog.Config;
 using NLog.Extensions.Logging;
+using NLog.Layouts;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Vernuntii.Logging;
@@ -88,9 +88,10 @@ namespace Vernuntii.Plugins
             _loggingConfiguration = new LoggingConfiguration();
 
             _consoleTarget = new ColoredConsoleTarget() {
-                StdErr = true
+                StdErr = true,
+                Layout = Layout.FromString("${time}|${level:uppercase=true}|${logger:shortName=true}|${message:withexception=true}")
             };
-
+            
             _asyncConsoleTarget = new AsyncTargetWrapper(_consoleTarget);
             _blockTarget = new BlockTarget(_asyncConsoleTarget);
 

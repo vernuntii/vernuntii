@@ -166,7 +166,7 @@ public class GitPlugin : Plugin, IGitPlugin
             .Zip(ConfigurationEvents.CreatedConfiguration)
             .Subscribe(async result => {
                 var (((services, configurationBuilderResult), overridePostPreRelease), configuration) = result;
-                await Events.FulfillAsync(GitEvents.ConfiguringServices, services).ConfigureAwait(false);
+                await Events.FulfillAsync(GitEvents.ConfigureServices, services).ConfigureAwait(false);
 
                 await EnsureCreatedGitCommand(configurationBuilderResult.ConfigPath).ConfigureAwait(false);
                 services.AddSingleton(_gitCommand);

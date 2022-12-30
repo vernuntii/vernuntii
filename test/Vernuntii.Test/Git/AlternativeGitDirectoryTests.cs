@@ -12,14 +12,14 @@
             var randomFileName = Path.GetFileName(randomFilePath);
             var randomFileDirectory = Path.GetDirectoryName(randomFilePath) ?? throw new InvalidOperationException();
 
-            var directoryContainingDotGit = repositoryOptions.CommandOptions.GitWorkingTreeDirectory;
+            var directoryContainingDotGit = repository.GitCommand.WorkingTreeDirectory;
             var dotGitDirectory = Path.Combine(directoryContainingDotGit, ".git");
 
             File.WriteAllLines(randomFilePath, new string[] { dotGitDirectory });
 
             var resolvedDirectoryContainingGitDirectory = new GitDirectoryResolver() {
                 VernuntiiGitFilename = Path.Combine(randomFileDirectory, randomFileName)
-            }.ResolveWorkingTreeDirectory(repositoryOptions.CommandOptions.GitWorkingTreeDirectory);
+            }.ResolveWorkingTreeDirectory(repository.GitCommand.WorkingTreeDirectory);
 
             Assert.Equal(directoryContainingDotGit, resolvedDirectoryContainingGitDirectory);
         }

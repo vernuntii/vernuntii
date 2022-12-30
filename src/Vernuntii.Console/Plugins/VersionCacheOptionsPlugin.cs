@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Parsing;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.Plugins.Events;
@@ -11,35 +12,28 @@ namespace Vernuntii.Plugins
 {
     internal class VersionCacheOptionsPlugin : Plugin
     {
-        private readonly Option<string> _cacheIdOption = new(new string[] { "--cache-id" })
-        {
+        private readonly Option<string> _cacheIdOption = new(new string[] { "--cache-id" }) {
             Description = "The non-case-sensitive cache id is used to cache the version informations once and load them on next accesses." +
                 $" If cache id is not specified it is implicitly the internal cache id: {VersionCacheOptions.DefaultInternalCacheId}"
         };
 
-        private readonly Option<TimeSpan?> _cacheCreationRetentionTimeOption = new(new string[] { "--cache-creation-retention-time" }, parseArgument: result =>
-        {
-            if (result.Tokens.Count == 0 || result.Tokens[0].Value == string.Empty)
-            {
+        private readonly Option<TimeSpan?> _cacheCreationRetentionTimeOption = new(new string[] { "--cache-creation-retention-time" }, parseArgument: result => {
+            if (result.Tokens.Count == 0 || result.Tokens[0].Value == string.Empty) {
                 return null; // = internal default is taken
             }
 
             return TimeSpan.Parse(result.Tokens[0].Value, CultureInfo.InvariantCulture);
-        })
-        {
+        }) {
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        private readonly Option<TimeSpan?> _cacheLastAccessRetentionTimeOption = new(new string[] { "--cache-last-access-retention-time" }, parseArgument: result =>
-        {
-            if (result.Tokens.Count == 0 || result.Tokens[0].Value == string.Empty)
-            {
+        private readonly Option<TimeSpan?> _cacheLastAccessRetentionTimeOption = new(new string[] { "--cache-last-access-retention-time" }, parseArgument: result => {
+            if (result.Tokens.Count == 0 || result.Tokens[0].Value == string.Empty) {
                 return null; // = feature won't be used
             }
 
             return TimeSpan.Parse(result.Tokens[0].Value, CultureInfo.InvariantCulture);
-        })
-        {
+        }) {
             Arity = ArgumentArity.ZeroOrOne
         };
         private readonly ICommandLinePlugin _commandLinePlugin;
@@ -55,13 +49,11 @@ namespace Vernuntii.Plugins
 
             var cacheCreationRetentionTime = parseResult.GetValueForOption(_cacheCreationRetentionTimeOption);
 
-            if (cacheCreationRetentionTime.HasValue)
-            {
+            if (cacheCreationRetentionTime.HasValue) {
                 cacheOptions.CacheCreationRetentionTime = cacheCreationRetentionTime.Value;
             }
 
             cacheOptions.LastAccessRetentionTime = parseResult.GetValueForOption(_cacheLastAccessRetentionTimeOption);
-
             return Events.FulfillAsync(VersionCacheOptionsEvents.ParsedVersionCacheOptions, cacheOptions);
         }
 
@@ -90,8 +82,7 @@ namespace Vernuntii.Plugins
             Events
                 .Earliest(ServicesEvents.ConfigureServices)
                 .Zip(VersionCacheOptionsEvents.ParsedVersionCacheOptions)
-                .Subscribe(result =>
-                {
+                .Subscribe(result => {
                     var (services, cacheOptions) = result;
                     services.AddSingleton<IVersionCacheOptions>(cacheOptions);
                 })

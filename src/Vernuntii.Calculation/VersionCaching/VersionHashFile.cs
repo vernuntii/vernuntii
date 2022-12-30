@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.Logging;
 using Teronis.IO.FileLocking;
 
 namespace Vernuntii.VersionCaching
@@ -18,7 +17,6 @@ namespace Vernuntii.VersionCaching
         private readonly VersionHashFileOptions _options;
         private readonly IVersionCacheManager _cacheManager;
         private readonly IVersionCacheDirectory _cacheDirectory;
-        private readonly ILogger _logger;
 
         /// <summary>
         /// Creates an instance of this type.
@@ -26,18 +24,15 @@ namespace Vernuntii.VersionCaching
         /// <param name="options"></param>
         /// <param name="cacheManager"></param>
         /// <param name="cacheDirectory"></param>
-        /// <param name="logger"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public VersionHashFile(
             VersionHashFileOptions options,
             IVersionCacheManager cacheManager,
-            IVersionCacheDirectory cacheDirectory,
-            ILogger logger)
+            IVersionCacheDirectory cacheDirectory)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
             _cacheDirectory = cacheDirectory ?? throw new ArgumentNullException(nameof(cacheDirectory));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -51,7 +46,7 @@ namespace Vernuntii.VersionCaching
         /// returned boolean is <see langword="false"/>.
         /// </param>
         /// <exception cref="InvalidOperationException"></exception>
-        public bool IsRecacheRequired([NotNullWhen(false)] out IVersionCache? versionCache)
+        public bool IsVersionRecacheRequired([NotNullWhen(false)] out IVersionCache? versionCache)
         {
             _cacheDirectory.CreateCacheDirectoryIfNotExisting();
 
@@ -107,7 +102,6 @@ namespace Vernuntii.VersionCaching
                 }
             }
 
-            _logger.LogInformation("Checked version cache (Cache id = {CacheId}, Up-to-date = {UpToDate})", _cacheManager.CacheId, isCacheUpToDate);
             return !isCacheUpToDate;
         }
     }

@@ -21,7 +21,7 @@ namespace Vernuntii.Git
 
         public TemporaryRepository(TemporaryRepositoryOptions options, ILogger<TemporaryRepository> logger) : base(
             RepositoryOptions.s_default,
-            CreateGitCommand(options.CommandOptions.GitWorkingTreeDirectory, out var testingGitCommand),
+            CreateGitCommand(options.WorkingTreeDirectory, out var testingGitCommand),
             CreateMemoryCache(out var memoryCache),
             logger)
         {
@@ -30,7 +30,7 @@ namespace Vernuntii.Git
 
             if (options.DeleteOnDispose
                 && options.DeleteOnlyTempDirectory
-                && !Path.IsPathFullyQualified(options.CommandOptions.GitWorkingTreeDirectory)) {
+                && !Path.IsPathFullyQualified(options.WorkingTreeDirectory)) {
                 throw new ArgumentException("Git directory must be fully qualified");
             }
 
@@ -62,7 +62,7 @@ namespace Vernuntii.Git
 
         private void InitializeRepository()
         {
-            Directory.CreateDirectory(_options.CommandOptions.GitWorkingTreeDirectory);
+            Directory.CreateDirectory(_options.WorkingTreeDirectory);
 
             try {
                 var cloneOptions = _options.CloneOptions;
@@ -113,7 +113,7 @@ namespace Vernuntii.Git
             }
 
             if (disposing && _options.DeleteOnDispose) {
-                var gitDirectory = _options.CommandOptions.GitWorkingTreeDirectory;
+                var gitDirectory = _options.WorkingTreeDirectory;
 
                 if (Directory.Exists(gitDirectory)
                     && (!_options.DeleteOnlyTempDirectory || ContainsBasePath(gitDirectory, Path.GetTempPath()))) {
@@ -121,7 +121,7 @@ namespace Vernuntii.Git
                         File.SetAttributes(filePath, FileAttributes.Normal);
                     }
 
-                    Directory.Delete(_options.CommandOptions.GitWorkingTreeDirectory, recursive: true);
+                    Directory.Delete(_options.WorkingTreeDirectory, recursive: true);
                 }
 
                 static bool ContainsBasePath(string subPath, string basePath)

@@ -15,8 +15,10 @@ namespace Vernuntii.Git
         internal static Repository Create(RepositoryOptions repositoryOptions, string workingTreeDirectory, ILogger<Repository> logger) =>
             new(repositoryOptions, new GitCommand(workingTreeDirectory), DefaultMemoryCacheFactory.Default.Create(), logger);
 
-        internal static Repository Create(RepositoryOptions repositoryOptions, GitCommandOptions gitCommandOptions, ILogger<Repository> logger) =>
-            new(repositoryOptions, new GitCommand(gitCommandOptions.GitWorkingTreeDirectory), DefaultMemoryCacheFactory.Default.Create(), logger);
+        internal static Repository Create(RepositoryOptions repositoryOptions, GitCommandOptions gitCommandOptions, ILogger<Repository> logger) => new(
+            repositoryOptions,
+            new GitCommand(gitCommandOptions.WorkingTreeDirectory ?? throw new ArgumentException("Null working directory was not expected", nameof(gitCommandOptions))),
+            DefaultMemoryCacheFactory.Default.Create(), logger);
 
         internal static Repository Create(IGitCommand gitCommand, ILogger<Repository> logger) =>
             Create(RepositoryOptions.s_default, gitCommand, logger);

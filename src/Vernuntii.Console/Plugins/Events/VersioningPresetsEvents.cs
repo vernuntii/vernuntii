@@ -11,6 +11,6 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when globales services has been configured.
         /// </summary>
-        public static readonly EventDiscriminator<IServiceCollection> ConfiguredGlobalServices = new();
+        public static readonly EventDiscriminator<IServiceCollection> ConfiguredGlobalServices = EventDiscriminator.New<IServiceCollection>();
     }
 }

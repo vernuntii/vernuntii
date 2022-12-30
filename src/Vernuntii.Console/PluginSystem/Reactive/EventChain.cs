@@ -25,6 +25,6 @@ public sealed class EventChain<T> : IEventChainFactory, IObservableEvent<T>
 
         return DelegatingDisposable.Create(
             _fragment.Event.Subscribe(eventHandler).Dispose,
-            _eventSystem.AddObserver(_fragment.EventId.Value, new EventObserver<T>(_fragment.EventInitiator)).Dispose);
+            _eventSystem.AddObserver(_fragment.EventId, new TypeInversedUnschedulableEventObserver<T>(_fragment.EventInitiator)).Dispose);
     }
 }

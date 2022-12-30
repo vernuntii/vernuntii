@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.PluginSystem.Reactive;
 
-internal interface IEventObserver
+internal interface ITypeInversedUnschedulableEventObserver
 {
     void OnFulfillment<TActual>(EventFulfillmentContext context, TActual actualEventData);
 }

@@ -54,14 +54,6 @@ namespace Vernuntii.Extensions
             var services = scope.Services;
 
             services.TryAddSingleton<IGitDirectoryResolver>(GitDirectoryResolver.Default);
-
-            services.AddOptions<GitCommandOptions>().PostConfigure<IGitDirectoryResolver>(
-                (options, directoryResolver) => {
-                    if (options.ResolveGitWorkingTreeDirectory) {
-                        options.GitWorkingTreeDirectory = directoryResolver.ResolveWorkingTreeDirectory(options.GitWorkingTreeDirectory);
-                    }
-                });
-
             services.TryAddSingleton<IGitCommand, GitCommand>();
             services.TryAddSingleton<IMemoryCacheFactory, DefaultMemoryCacheFactory>();
             services.TryAddScoped<IRepository, Repository>();

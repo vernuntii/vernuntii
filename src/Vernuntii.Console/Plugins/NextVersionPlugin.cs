@@ -2,10 +2,10 @@
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
-using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Console;
+using Vernuntii.Diagnostics;
 using Vernuntii.Extensions;
 using Vernuntii.Git;
 using Vernuntii.Plugins.Events;
@@ -121,7 +121,7 @@ namespace Vernuntii.Plugins
                 .BuildString();
 
             System.Console.Write(formattedVersion);
-            _logger.LogInformation("Loaded version {Version} in {LoadTime}", versionCache.Version, $"{_loadingVersionStopwatch.Elapsed.ToString("s\\.ff", CultureInfo.InvariantCulture)}s");
+            _logger.LogInformation("Loaded version {Version} in {LoadTime}", versionCache.Version, _loadingVersionStopwatch.Elapsed.ToSecondsString());
 
             return ExitCodeOnSuccess ?? (int)ExitCode.Success;
         }

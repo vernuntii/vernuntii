@@ -4,7 +4,7 @@ namespace Vernuntii.PluginSystem.Reactive;
 
 internal static class EventChainFragment
 {
-    public static EventChainFragment<T> Create<T>(IObservableEvent<T> @event, IUnschedulableEventObserver<T> eventInitiator, ulong eventId) =>
+    public static EventChainFragment<T> Create<T>(IObservableEvent<T> @event, IUnschedulableEventObserver<T> eventInitiator, object eventId) =>
         new(@event, eventInitiator, eventId);
 
     public static EventChainFragment<T> Create<T>(IObservableEvent<T> @event) =>
@@ -18,7 +18,7 @@ internal record EventChainFragment<T>
     internal IUnschedulableEventObserver<T>? EventInitiator =>
         _eventInitiator ?? throw new InvalidOperationException();
 
-    internal ulong? EventId { get; }
+    internal object? EventId { get; }
 
     [MemberNotNullWhen(true,
         nameof(EventId),
@@ -27,7 +27,7 @@ internal record EventChainFragment<T>
 
     private readonly IUnschedulableEventObserver<T>? _eventInitiator;
 
-    public EventChainFragment(IObservableEvent<T> @event, IUnschedulableEventObserver<T> eventInitiator, ulong eventId)
+    public EventChainFragment(IObservableEvent<T> @event, IUnschedulableEventObserver<T> eventInitiator, object eventId)
     {
         Event = @event;
         _eventInitiator = eventInitiator;

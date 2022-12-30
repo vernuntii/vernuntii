@@ -1,72 +1,92 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Vernuntii.Diagnostics;
 
 namespace Vernuntii.PluginSystem.Reactive;
 
 internal class PerformanceMeasuringEventSystem : EventSystem
 {
-    static string DepthIndicator(int depth, bool open)
+    private static string DepthIndicator(int actualDepth, bool open)
     {
-        var stringBuilder = new StringBuilder(depth);
+        var visualDepth = actualDepth + 1;
+        var stringBuilder = new StringBuilder(visualDepth);
 
-        if (depth > 1)
-        {
-            if (open)
-            {
+        if (visualDepth > 1) {
+            if (open) {
                 stringBuilder.Append("┐ ");
-            }
-            else
-            {
+            } else {
                 stringBuilder.Append("┘ ");
             }
         }
 
-        if (depth > 2)
-        {
-            stringBuilder.Insert(0, '│');
+        if (visualDepth > 2) {
+            stringBuilder.Insert(0, "├");
         }
 
-        if (depth > 3)
-        {
-            stringBuilder.Insert(0, new string(' ', depth - 3));
+        if (visualDepth > 3) {
+            stringBuilder.Insert(0, new string('│', visualDepth - 3));
         }
 
         return stringBuilder.ToString();
     }
 
-    ILogger<EventSystem> _logger;
-    int _depth;
-    Stopwatch _sinceLastFulfillmentWatch = new();
+    private static string PreviousDepthsTimes(IReadOnlyDictionary<int, Stopwatch> _depthRelativeWatches, int actualDepth, bool withComma)
+    {
+        if (actualDepth <= 1) {
+            return "";
+        }
+
+        var currentDepth = actualDepth - 1;
+        var currentNegativeDepth = 0;
+        var stringBuider = new StringBuilder();
+
+        if (withComma) {
+            stringBuider.Append(", ");
+        }
+
+        do {
+            if (currentNegativeDepth != 0) {
+                stringBuider.Append(", ");
+            }
+
+            currentNegativeDepth--;
+            var currentDepthWatch = _depthRelativeWatches[currentDepth];
+            stringBuider.Append(currentDepthWatch.Elapsed.ToSecondsString());
+        } while (currentDepth-- != 1);
+
+        return stringBuider.ToString();
+    }
+
+    private ILogger<EventSystem> _logger;
+    private int _currentDepth;
+    private ConcurrentDictionary<int, Stopwatch> _depthRelativeWatches = new();
 
     public PerformanceMeasuringEventSystem(ILogger<EventSystem> logger) =>
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public override async Task FullfillAsync<T>(ulong eventId, T eventData)
+    internal override async Task FulfillScheduledEventsAsync<T>(object eventId, T eventData, EventFulfillmentContext fulfillmentContext)
     {
-        var depth = Interlocked.Increment(ref _depth);
+        var depth = Interlocked.Increment(ref _currentDepth);
         var watch = new Stopwatch();
-
-        watch.Start();_sinceLastFulfillmentWatch.Start();
-        var timeSinceLastFulfillment = _sinceLastFulfillmentWatch.Elapsed;
-
-        _logger.LogTrace(
-            DepthIndicator(depth, true) + "Fulfill event {EventId}:{EventType} ({TimeSincePreviousFulfillment} since previous)",
-            eventId,
-            typeof(T).Name,
-            $"{timeSinceLastFulfillment.ToString("s\\.ff", CultureInfo.InvariantCulture)}s");
-
-        await base.FullfillAsync(eventId, eventData);
-        _sinceLastFulfillmentWatch.Restart();
+        watch.Start();
+        _depthRelativeWatches.AddOrUpdate(depth, static (_, watch) => watch, static (_, _, watch) => watch, watch);
 
         _logger.LogTrace(
-            DepthIndicator(depth, false) + "Fulfilled event {EventId}:{EventType} in {FulfillmentTime}",
+            DepthIndicator(depth, true) + "Fulfill event {EventId}<{EventType}>",
+            eventId,
+            typeof(T).Name);
+
+        await base.FulfillScheduledEventsAsync(eventId, eventData, fulfillmentContext);
+
+        _logger.LogTrace(
+            DepthIndicator(depth, false) + "Fulfilled event {EventId}<{EventType}> in {FulfillmentTime}{PreviousDepthsTimes}",
             eventId,
             typeof(T).Name,
-            $"{watch.Elapsed.ToString("s\\.ff", CultureInfo.InvariantCulture)}s");
+            watch.Elapsed.ToSecondsString(),
+            PreviousDepthsTimes(_depthRelativeWatches, depth, withComma: true));
 
-        Interlocked.Decrement(ref _depth);
+        Interlocked.Decrement(ref _currentDepth);
     }
 }

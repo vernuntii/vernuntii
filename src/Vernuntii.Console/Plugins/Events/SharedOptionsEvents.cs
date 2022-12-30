@@ -10,11 +10,11 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event is happening when the coomand-line args are parsed.
         /// </summary>
-        public static readonly EventDiscriminator ParseCommandLineArguments = new();
+        public static readonly EventDiscriminator ParseCommandLineArguments = EventDiscriminator.New();
 
         /// <summary>
         /// Event is happening when the coomand-line args are parsed.
         /// </summary>
-        public static readonly EventDiscriminator ParsedCommandLineArguments = new();
+        public static readonly EventDiscriminator ParsedCommandLineArguments = EventDiscriminator.New();
     }
 }

@@ -13,31 +13,38 @@ namespace Vernuntii.Git.Commands;
 public class GitCommand : IGitCommand
 {
     private bool _isDisposed;
-    private readonly Lazy<LibGit2Command> _libGit2;
+    private Lazy<LibGit2Command> _libGit2;
 
     /// <inheritdoc/>
-    public string WorkingTreeDirectory { get; }
+    public string WorkingTreeDirectory =>
+        _workingTreeDirectory
+        ??= _workingTreeDirectoryFunc?.Invoke()
+        ?? throw new NotImplementedException();
+
+    private string? _workingTreeDirectory;
+    private Func<string>? _workingTreeDirectoryFunc;
+
+    private GitCommand()
+    {
+        _libGit2 = new Lazy<LibGit2Command>(() => new LibGit2Command(WorkingTreeDirectory));
+    }
 
     /// <summary>
     /// Creates an instance of this type.
     /// </summary>
     /// <param name="workingTreeDirectory"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    internal GitCommand(string workingTreeDirectory)
-    {
-        WorkingTreeDirectory = workingTreeDirectory ?? throw new ArgumentNullException(nameof(workingTreeDirectory));
-        _libGit2 = new Lazy<LibGit2Command>(() => new LibGit2Command(workingTreeDirectory));
-    }
+    internal GitCommand(string workingTreeDirectory) : this() =>
+        _workingTreeDirectory = workingTreeDirectory ?? throw new ArgumentNullException(nameof(workingTreeDirectory));
 
     /// <summary>
     /// Creates an instance of this type.
     /// </summary>
     /// <param name="options"></param>
+    /// <param name="gitDirectoryResolver"></param>
     [ActivatorUtilitiesConstructor]
-    public GitCommand(IOptionsSnapshot<GitCommandOptions> options)
-        : this(options.Value.GitWorkingTreeDirectory)
-    {
-    }
+    public GitCommand(IOptionsSnapshot<GitCommandOptions> options, IGitDirectoryResolver gitDirectoryResolver) : this() =>
+        _workingTreeDirectoryFunc = () => gitDirectoryResolver.ResolveWorkingTreeDirectory(options.Value.WorkingTreeDirectory ?? Directory.GetCurrentDirectory());
 
     private GitProcessStartInfo CreateStartInfo(string? args) => new(args, WorkingTreeDirectory);
 
@@ -88,7 +95,17 @@ public class GitCommand : IGitCommand
     public bool IsHeadDetached() => _libGit2.Value.IsHeadDetached();
 
     /// <inheritdoc/>
-    public string GetGitDirectory() => ExecuteCommandThenReadOutput("rev-parse --absolute-git-dir");
+    public string GetGitDirectory()
+    {
+        var possibleGitDirectory = Path.Combine(WorkingTreeDirectory, ".git");
+
+        // To minimize version cache check time, we do fast-check
+        if (Directory.Exists(possibleGitDirectory)) {
+            return possibleGitDirectory;
+        }
+
+        return ExecuteCommandThenReadOutput("rev-parse --absolute-git-dir");
+    }
 
     /// <inheritdoc/>
     public bool TryResolveReference(

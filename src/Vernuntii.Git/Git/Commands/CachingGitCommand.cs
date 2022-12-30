@@ -31,9 +31,6 @@ namespace Vernuntii.Git.Commands
             return value;
         }
 
-        private void UnsetCache(ITuple key) =>
-            _memoryCache.UnsetCache(key);
-
         public string GetActiveBranchName() =>
             GetOrCreateCache(Tuple.Create(nameof(GetActiveBranchName)), UnderlyingCommand.GetActiveBranchName);
 
