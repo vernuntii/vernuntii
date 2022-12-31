@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Vernuntii.PluginSystem
 {
@@ -21,6 +22,17 @@ namespace Vernuntii.PluginSystem
 
         public T GetPlugin<T>() where T : IPlugin =>
             (T)_pluginRegistrations[typeof(T)].Plugin;
+
+        public bool TryGetPlugin<T>([MaybeNullWhen(false)] out T plugin) where T : IPlugin
+        {
+            if (_pluginRegistrations.TryGetValue(typeof(T), out var pluginRegistration)) {
+                plugin = (T)pluginRegistration.Plugin;
+                return true;
+            }
+
+            plugin = default;
+            return false;
+        }
 
         public void Dispose() =>
             _pluginProvider.Dispose();

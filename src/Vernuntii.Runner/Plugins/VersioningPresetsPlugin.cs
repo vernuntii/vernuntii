@@ -4,7 +4,6 @@ using Vernuntii.MessageConventions;
 using Vernuntii.MessageConventions.MessageIndicators;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Meta;
 using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.VersionIncrementFlows;
 using Vernuntii.VersioningPresets;

@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Meta;
 using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins
@@ -11,6 +10,7 @@ namespace Vernuntii.Plugins
     /// A plugin that contains shared options.
     /// </summary>
     [Plugin(Order = -1500)]
+    [ImportPlugin<IVersioningPresetsPlugin, VersioningPresetsPlugin>(TryRegister = true)]
     public class SharedOptionsPlugin : Plugin
     {
         /// <summary>

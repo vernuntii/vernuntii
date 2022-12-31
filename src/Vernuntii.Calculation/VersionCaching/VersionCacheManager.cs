@@ -156,7 +156,8 @@ namespace Vernuntii.VersionCaching
             using var recacheIndicator = GetRecacheIndicator(comparableVersion: null);
             var isRecacheRequired = recacheIndicator.IsRecacheRequired(out var concreteVersionCache, out var versionCacheWriter);
 
-            if (concreteVersionCache != null
+            if (!isRecacheRequired
+                && concreteVersionCache != null
                 && _useLastAccessRetentionTime) {
                 var newLastAccessTime = DateTime.UtcNow;
                 concreteVersionCache.LastAccessTime = newLastAccessTime;

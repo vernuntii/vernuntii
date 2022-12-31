@@ -115,11 +115,9 @@ namespace Vernuntii.PluginSystem
         /// Adds all required plugins to calculate the next version.
         /// </summary>
         /// <param name="plugins"></param>
-        public static IPluginRegistrar AddNextVersion(this IPluginRegistrar plugins)
+        public static IPluginRegistrar AddNextVersionRequirements(this IPluginRegistrar plugins)
         {
-            plugins.Add<IVersioningPresetsPlugin, VersioningPresetsPlugin>();
             plugins.Add<IGitPlugin, GitPlugin>();
-            plugins.Add<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>();
             plugins.Add<INextVersionPlugin, NextVersionPlugin>();
             return plugins;
         }

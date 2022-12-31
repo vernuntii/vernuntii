@@ -7,7 +7,6 @@ using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
 using Vernuntii.Plugins.VersionCaching;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Meta;
 using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.VersionCaching;
 

@@ -12,5 +12,5 @@ public interface IPlugin
     /// Called after registration but before destruction.
     /// </summary>
     /// <param name="events"></param>
-    Task OnExecution(IEventSystem events);
+    Task OnExecution(IEventSystem events) => Task.CompletedTask;
 }

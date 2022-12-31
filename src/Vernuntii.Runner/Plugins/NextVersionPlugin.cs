@@ -20,6 +20,8 @@ namespace Vernuntii.Plugins
     /// <summary>
     /// Plugin that produces the next version and writes it to console.
     /// </summary>
+    [ImportPlugin<SharedOptionsPlugin>(TryRegister = true)]
+    [ImportPlugin<IVersionCacheCheckPlugin, NeverVersionCacheCheckingPlugin>(TryRegister = true)]
     public class NextVersionPlugin : Plugin, INextVersionPlugin
     {
         /// <inheritdoc/>
@@ -112,7 +114,7 @@ namespace Vernuntii.Plugins
                     newBranch);
             }
 
-            await Events.FulfillAsync(NextVersionEvents.CalculatedNextVersion, versionCache).ConfigureAwait(false);
+            await Events.FulfillAsync(NextVersionEvents.CalculatedNextVersion, versionCache.Version).ConfigureAwait(false);
 
             var formattedVersion = new VersionPresentationStringBuilder(versionCache)
                 .UsePresentationKind(_presentationKind)
@@ -175,6 +177,12 @@ namespace Vernuntii.Plugins
                                 .UseVersioningMode(_sharedOptions.OverrideVersioningMode)));
                     }
                 });
+        }
+
+        private class NeverVersionCacheCheckingPlugin : IVersionCacheCheckPlugin
+        {
+            public IVersionCache? VersionCache => null;
+            public bool IsCacheUpToDate => false;
         }
     }
 }

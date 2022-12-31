@@ -12,7 +12,6 @@ using NLog.Targets.Wrappers;
 using Vernuntii.Logging;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Meta;
 using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins

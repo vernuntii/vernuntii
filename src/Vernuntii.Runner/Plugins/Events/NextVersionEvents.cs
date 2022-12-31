@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.PluginSystem.Reactive;
+using Vernuntii.SemVer;
 using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Plugins.Events
@@ -22,7 +23,7 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when next version has been calculated.
         /// </summary>
-        public static readonly EventDiscriminator<IVersionCache> CalculatedNextVersion = EventDiscriminator.New<IVersionCache>();
+        public static readonly EventDiscriminator<ISemanticVersion> CalculatedNextVersion = EventDiscriminator.New<ISemanticVersion>();
 
 
     }

@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <IsTestProject>false</IsTestProject>
+    <RootNamespace>Vernuntii.Console.MSBuild</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -57,7 +58,7 @@
     </ItemGroup>
 
     <Error Text="File or directory was expected to exist: %(_PackageSubPath.Identity)" Condition="!Exists('%(_PackageSubPath.Identity)')" />
-    <Message Importance="high" Text="Test succeeded" />
+    <Message Importance="high" Text="Testing $(RootNamespace) succeeded" />
   </Target>
 
   <Target Name="_Test" AfterTargets="VSTest" DependsOnTargets="_CleanTest;_PrepareTest;_ExecuteTest" />

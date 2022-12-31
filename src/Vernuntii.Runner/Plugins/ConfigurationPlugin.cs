@@ -7,7 +7,6 @@ using Vernuntii.Configuration.Yaml;
 using Vernuntii.Extensions;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Meta;
 using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins
@@ -62,8 +61,6 @@ namespace Vernuntii.Plugins
 
             _commandLinePlugin.RootCommand.Add(configPathOption);
 
-            var versionCacheCheckPlugin = _pluginRegistry.GetPlugin<IVersionCacheCheckPlugin>();
-
             var configurationBuilder = new ConventionalConfigurationBuilder()
                 .AddConventionalYamlFileFinder()
                 .AddConventionalJsonFileFinder();
@@ -95,7 +92,7 @@ namespace Vernuntii.Plugins
             Events.Every(ConfigurationEvents.CreateConfiguration)
                 .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
                 .Subscribe(result => {
-                    if (versionCacheCheckPlugin.IsCacheUpToDate) {
+                    if (_pluginRegistry.TryGetPlugin<IVersionCacheCheckPlugin>(out var versionCacheChecker) && versionCacheChecker.IsCacheUpToDate) {
                         return Task.CompletedTask;
                     }
 

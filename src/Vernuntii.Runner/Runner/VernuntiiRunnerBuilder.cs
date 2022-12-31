@@ -14,8 +14,8 @@ namespace Vernuntii.Runner
         /// <summary>
         /// Creates a builder for a Vernuntii runner including capabilities to calculate the next version.
         /// </summary>
-        public static IVernuntiiRunnerBuilder ForNextVersion() => new VernuntiiRunnerBuilder()
-            .ConfigurePlugins(builder => builder.AddNextVersion());
+        public static IVernuntiiRunnerBuilder WithNextVersionRequirements() => new VernuntiiRunnerBuilder()
+            .ConfigurePlugins(builder => builder.AddNextVersionRequirements());
 
         private static void AddRequiredPlugins(IPluginRegistrar builder)
         {

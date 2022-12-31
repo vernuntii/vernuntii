@@ -8,7 +8,6 @@ using Vernuntii.Git;
 using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Meta;
 using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.Runner;
 
@@ -18,6 +17,7 @@ namespace Vernuntii.Plugins;
 /// The git plugin.
 /// </summary>
 [ImportPlugin<SharedOptionsPlugin>(TryRegister = true)]
+[ImportPlugin<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>(TryRegister = true)]
 public class GitPlugin : Plugin, IGitPlugin
 {
     /// <summary>
@@ -207,9 +207,9 @@ public class GitPlugin : Plugin, IGitPlugin
             .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)))
             .Zip(Events.Earliest(NextVersionEvents.CreatedScopedServiceProvider).Transform(sp => sp.GetRequiredService<IRepository>()))
             .Subscribe(result => {
-                var ((versionCache, duplicateVersionFails), repository) = result;
+                var ((nextVersion, duplicateVersionFails), repository) = result;
 
-                if (duplicateVersionFails && repository.HasCommitVersion(versionCache.Version)) {
+                if (duplicateVersionFails && repository.HasCommitVersion(nextVersion)) {
                     _nextVersionPlugin.ExitCodeOnSuccess = (int)ExitCode.VersionDuplicate;
                 }
             });

@@ -13,19 +13,19 @@ namespace Vernuntii.Plugins
     public class ServicesPlugin : Plugin, IServicesPlugin
     {
         private readonly IServiceCollection _services = new ServiceCollection();
+        private readonly IPluginRegistry _pluginRegistry;
         private readonly ILogger _logger;
-        private readonly IVersionCacheCheckPlugin _cacheCheckPlugin;
         private IServiceProvider? _serviceProvider;
 
-        public ServicesPlugin(IVersionCacheCheckPlugin cacheCheckPlugin, ILogger<ServicesPlugin> logger)
+        public ServicesPlugin(IPluginRegistry pluginRegistry, ILogger<ServicesPlugin> logger)
         {
-            _cacheCheckPlugin = cacheCheckPlugin ?? throw new ArgumentNullException(nameof(cacheCheckPlugin));
+            _pluginRegistry = pluginRegistry;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         private Task OnCreateServiceProvider()
         {
-            if (_cacheCheckPlugin.IsCacheUpToDate) {
+            if (_pluginRegistry.TryGetPlugin<IVersionCacheCheckPlugin>(out var versionCacheChecker) && versionCacheChecker.IsCacheUpToDate) {
                 return Task.CompletedTask;
             }
 

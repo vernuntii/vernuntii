@@ -7,7 +7,7 @@ using Vernuntii.Plugins.Events;
 using Vernuntii.Plugins.Lifecycle;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
-using Vernuntii.VersionCaching;
+using Vernuntii.SemVer;
 
 namespace Vernuntii.Runner
 {
@@ -173,28 +173,28 @@ namespace Vernuntii.Runner
         /// Runs Vernuntii for getting the next version. The presence of <see cref="INextVersionPlugin"/> and its dependencies is expected.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
-        public async ValueTask<IVersionCache> NextVersionAsync()
+        public async Task<ISemanticVersion> NextVersionAsync()
         {
             EnsureNotDisposed();
             await EnsureHavingOperablePlugins().ConfigureAwait(false);
             _pluginRegistry.GetPlugin<ICommandLinePlugin>().PreferExceptionOverExitCode = true;
             _ = await InitiateLifecycleAsync().ConfigureAwait(false);
-            IVersionCache? versionCache = null;
+            ISemanticVersion? nextVersion = null;
 
             using var subscription = _pluginEvents
                 .Earliest(NextVersionEvents.CalculatedNextVersion)
-                .Subscribe(calculatedVersionCache => versionCache = calculatedVersionCache);
+                .Subscribe(calculatedNextVersion => nextVersion = calculatedNextVersion);
 
             _ = await RunAsyncCore().ConfigureAwait(false);
 
-            if (versionCache is null) {
+            if (nextVersion is null) {
                 throw new InvalidOperationException("The next version was not calculated");
             }
 
-            return versionCache;
+            return nextVersion;
         }
 
-        private async ValueTask DestroyPluginsAsync()
+        private async Task DestroyPluginsAsync()
         {
             if (!ChackHavingPluginExecutor()) {
                 return;
@@ -202,7 +202,7 @@ namespace Vernuntii.Runner
 
             _logger.LogTrace("Destroying plugins");
             await _pluginExecutor.DestroyAsync().ConfigureAwait(false);
-            _logger.LogTrace("Destroyed plugins");
+            // Which Includes the logging plugin, so new log messages are not written to console
         }
 
         /// <inheritdoc/>

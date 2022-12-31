@@ -31,7 +31,7 @@ namespace Vernuntii.PluginSystem
 
         public PluginRegistry Create(Action<IServiceCollection> postConfigureServices)
         {
-            var lazyPluginRegistry = new LazyPluginRegistry(out var commitPluginRegistry);
+            var lazyPluginRegistry = new LateBoundPluginRegistry(out var commitPluginRegistry);
 
             var pluginProvider = _pluginServiceProviderBuilder.BuildServiceProvider(
                 services => {

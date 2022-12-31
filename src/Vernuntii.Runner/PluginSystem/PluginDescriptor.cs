@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using CSF.Collections;
-using Vernuntii.PluginSystem.Meta;
 
 namespace Vernuntii.PluginSystem
 {

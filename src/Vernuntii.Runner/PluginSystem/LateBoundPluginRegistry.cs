@@ -1,19 +1,24 @@
-﻿namespace Vernuntii.PluginSystem
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Vernuntii.PluginSystem
 {
-    internal class LazyPluginRegistry : IPluginRegistry
+    internal class LateBoundPluginRegistry : IPluginRegistry
     {
         public IEnumerable<IPluginRegistration> OrderlyPluginRegistrations =>
             GetPluginRegistry().OrderlyPluginRegistrations;
 
         private IPluginRegistry? _pluginRegistry;
 
-        public LazyPluginRegistry(out Action<IPluginRegistry> commitPluginRegistry) =>
-            commitPluginRegistry = pluginRegistry => _pluginRegistry = pluginRegistry;
+        public LateBoundPluginRegistry(out Action<IPluginRegistry> bindPluginRegistry) =>
+            bindPluginRegistry = pluginRegistry => _pluginRegistry = pluginRegistry;
 
         private IPluginRegistry GetPluginRegistry() =>
             _pluginRegistry ?? throw new InvalidOperationException("Plugins have not been initialized yet");
 
         public T GetPlugin<T>() where T : IPlugin =>
             GetPluginRegistry().GetPlugin<T>();
+
+        public bool TryGetPlugin<T>([MaybeNullWhen(false)] out T plugin) where T : IPlugin =>
+            GetPluginRegistry().TryGetPlugin(out plugin);
     }
 }

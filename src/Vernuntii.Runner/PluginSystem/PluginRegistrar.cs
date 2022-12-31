@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
-using Vernuntii.PluginSystem.Meta;
 
 namespace Vernuntii.PluginSystem
 {
@@ -32,15 +31,15 @@ namespace Vernuntii.PluginSystem
 
         public IEnumerable<PluginDescriptor> PluginDescriptors => _uniquePluginDescriptors.Values;
 
-        private readonly Dictionary<(Type ServiceType, Type ImplementationType), PluginDescriptor> _uniquePluginDescriptors;
+        private readonly Dictionary<Type, PluginDescriptor> _uniquePluginDescriptors;
 
         public PluginRegistrar() =>
-            _uniquePluginDescriptors = new Dictionary<(Type ServiceType, Type ImplementationType), PluginDescriptor>();
+            _uniquePluginDescriptors = new Dictionary<Type, PluginDescriptor>();
 
         private IEnumerable<IPluginDependencyDescriptor> AddSupplemented(Queue<PluginDescriptor> supplementedPluginDescriptors)
         {
             while (supplementedPluginDescriptors.TryDequeue(out var next)) {
-                _uniquePluginDescriptors.Add((next.ServiceType, next.ImplementationType), next);
+                _uniquePluginDescriptors.Add(next.ServiceType, next);
 
                 foreach (var dependency in next.PluginDependencies) {
                     yield return dependency;
@@ -50,9 +49,9 @@ namespace Vernuntii.PluginSystem
 
         public void Add(PluginDescriptor pluginDescriptor)
         {
-            var pluginKey = (pluginDescriptor.ServiceType, pluginDescriptor.ImplementationType);
+            var pluginDescriptorKey = pluginDescriptor.ServiceType;
 
-            if (_uniquePluginDescriptors.ContainsKey(pluginKey)) {
+            if (_uniquePluginDescriptors.ContainsKey(pluginDescriptorKey)) {
                 throw new DuplicatePluginException();
             }
 
@@ -60,9 +59,9 @@ namespace Vernuntii.PluginSystem
             backlog.Enqueue(Supplement(pluginDescriptor));
 
             foreach (var pluginDependency in AddSupplemented(backlog)) {
-                pluginKey = (pluginDependency.ServiceType, pluginDependency.ImplementationType);
+                pluginDescriptorKey = pluginDependency.ServiceType;
 
-                if (_uniquePluginDescriptors.ContainsKey(pluginKey)) {
+                if (_uniquePluginDescriptors.ContainsKey(pluginDescriptorKey)) {
                     if (pluginDependency.TryRegister) {
                         continue;
                     }

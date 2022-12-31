@@ -10,8 +10,8 @@ namespace Vernuntii.PluginSystem.Meta
     /// <typeparam name="TImplementation"></typeparam>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
     public class ImportPluginAttribute<TService, TImplementation> : Attribute, IPluginDependencyDescriptor, IEquatable<ImportPluginAttribute<TService, TImplementation>>
-        where TService : TImplementation, IPlugin
-        where TImplementation : class
+        where TService : IPlugin
+        where TImplementation : class, TService
     {
         /// <summary>
         /// If true, plugin of type <typeparamref name="TService"/> is tried to be registered.

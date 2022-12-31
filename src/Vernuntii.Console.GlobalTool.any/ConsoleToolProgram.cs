@@ -17,7 +17,7 @@ public static class ConsoleToolProgram
     public static async Task<int> RunAsync(string[] args, Action<IVernuntiiRunnerBuilder>? configureBuilder = null)
     {
         var vernuntiiRunnerBuilder = VernuntiiRunnerBuilder
-            .ForNextVersion()
+            .WithNextVersionRequirements()
             .ConfigurePlugins(plugins => {
                 plugins.Add(PluginDescriptor.Create<ConsoleLocateCommandPlugin>());
                 plugins.Add(PluginDescriptor.Create<MSBuildIntegrationCommandPlugin>());
