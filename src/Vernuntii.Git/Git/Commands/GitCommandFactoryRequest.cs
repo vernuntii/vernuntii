@@ -1,6 +1,4 @@
-﻿using Vernuntii.Git;
-
-namespace Vernuntii.Git.Commands;
+﻿namespace Vernuntii.Git.Commands;
 
 /// <summary>
 /// Requests an instance of <see cref="IGitCommandFactory"/>.

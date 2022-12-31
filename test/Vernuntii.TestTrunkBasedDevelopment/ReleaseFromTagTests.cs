@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Vernuntii.Console;
 using Vernuntii.Git;
 using Vernuntii.Git.Commands;
 using Vernuntii.Plugins;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
+using Vernuntii.Runner;
 using Vernuntii.SemVer;
 using Xunit;
 using Xunit.Priority;

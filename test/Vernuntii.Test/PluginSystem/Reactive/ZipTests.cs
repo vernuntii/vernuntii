@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Vernuntii.PluginSystem.Events;
 using Vernuntii.Reactive;
 
 namespace Vernuntii.PluginSystem.Reactive;

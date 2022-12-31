@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Events;
 using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins
@@ -14,7 +13,7 @@ namespace Vernuntii.Plugins
         /// Creates an instance of this type from <paramref name="eventDiscriminator"/>.
         /// </summary>
         /// <param name="eventDiscriminator"></param>
-        public static ConfigureServicesPlugin<TServices> FromEvent<TServices>(EventDiscriminator<TServices> eventDiscriminator)
+        public static ConfigureServicesPlugin<TServices> FromEvent<TServices>(IEventDiscriminator<TServices> eventDiscriminator)
             where TServices : IServiceCollection =>
             new(eventDiscriminator);
     }
@@ -27,7 +26,7 @@ namespace Vernuntii.Plugins
     public sealed class ConfigureServicesPlugin<TServices> : Plugin
         where TServices : IServiceCollection
     {
-        private readonly EventDiscriminator<TServices> _eventDiscriminator;
+        private readonly IEventDiscriminator<TServices> _eventDiscriminator;
         private readonly List<Action<IServiceCollection>> _configureServicesActions = new();
 
         /// <summary>
@@ -35,7 +34,7 @@ namespace Vernuntii.Plugins
         /// </summary>
         /// <param name="eventDiscriminator"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public ConfigureServicesPlugin(EventDiscriminator<TServices> eventDiscriminator) =>
+        public ConfigureServicesPlugin(IEventDiscriminator<TServices> eventDiscriminator) =>
             _eventDiscriminator = eventDiscriminator ?? throw new ArgumentNullException(nameof(eventDiscriminator));
 
         /// <summary>

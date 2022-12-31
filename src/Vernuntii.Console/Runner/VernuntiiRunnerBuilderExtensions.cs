@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.Console
+﻿namespace Vernuntii.Runner
 {
     /// <summary>
     /// Extension methods for <see cref="IVernuntiiRunnerBuilder"/>.

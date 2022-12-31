@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.PluginSystem.Events;
+﻿namespace Vernuntii.PluginSystem.Reactive;
 
 internal static class EventIdentifier
 {

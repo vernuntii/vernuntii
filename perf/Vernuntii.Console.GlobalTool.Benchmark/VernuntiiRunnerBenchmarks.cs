@@ -2,6 +2,7 @@
 using BenchmarkDotNet.Engines;
 using Vernuntii.Git;
 using Vernuntii.Plugins;
+using Vernuntii.Runner;
 
 namespace Vernuntii.Console.GlobalTool.Benchmark
 {

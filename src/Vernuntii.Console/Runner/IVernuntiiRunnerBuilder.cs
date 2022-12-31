@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.PluginSystem;
 
-namespace Vernuntii.Console
+namespace Vernuntii.Runner
 {
     /// <summary>
     /// Represents the builder to create the main entry point of <see cref="Vernuntii"/>.

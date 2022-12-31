@@ -1,6 +1,4 @@
-﻿using Vernuntii.PluginSystem.Events;
-
-namespace Vernuntii.PluginSystem.Reactive;
+﻿namespace Vernuntii.PluginSystem.Reactive;
 
 public static class EventChainExtensions
 {

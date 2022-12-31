@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Vernuntii.PluginSystem.Events;
+namespace Vernuntii.PluginSystem.Reactive;
 
 /// <inheritdoc/>
 public record EventDiscriminator : EventDiscriminator<object?>

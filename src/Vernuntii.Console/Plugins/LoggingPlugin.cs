@@ -91,7 +91,7 @@ namespace Vernuntii.Plugins
                 StdErr = true,
                 Layout = Layout.FromString("${time}|${level:uppercase=true}|${logger:shortName=true}|${message:withexception=true}")
             };
-            
+
             _asyncConsoleTarget = new AsyncTargetWrapper(_consoleTarget);
             _blockTarget = new BlockTarget(_asyncConsoleTarget);
 

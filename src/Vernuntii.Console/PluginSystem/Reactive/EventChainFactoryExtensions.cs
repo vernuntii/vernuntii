@@ -1,6 +1,4 @@
-﻿using Vernuntii.PluginSystem.Events;
-
-namespace Vernuntii.PluginSystem.Reactive;
+﻿namespace Vernuntii.PluginSystem.Reactive;
 
 /// <summary>
 /// Extension methods for <see cref="IEventChainFactory"/>.

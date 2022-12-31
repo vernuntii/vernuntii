@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Vernuntii.Plugins;
 using Vernuntii.PluginSystem;
 
-namespace Vernuntii.Console
+namespace Vernuntii.Runner
 {
     /// <summary>
     /// Builds the runner for <see cref="Vernuntii"/>.

@@ -1,6 +1,6 @@
 ﻿using System.CommandLine.Parsing;
 using Vernuntii.Plugins.CommandLine;
-using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins.Events
 {

@@ -1,7 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Vernuntii.Git;
 using Vernuntii.SemVer;
-using Vernuntii.SemVer.Json.System;
 
 namespace Vernuntii.VersionCaching
 {

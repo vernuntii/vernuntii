@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Vernuntii.PluginSystem.Events;
+using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.VersionCaching;
 
 namespace Vernuntii.Plugins.Events

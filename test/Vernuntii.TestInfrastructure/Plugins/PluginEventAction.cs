@@ -1,5 +1,4 @@
 ﻿using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Events;
 using Vernuntii.Reactive;
 using Vernuntii.PluginSystem.Reactive;
 

@@ -32,7 +32,7 @@ public class GitPlugin : Plugin, IGitPlugin
         get => _resolvedWorkingTreeDirectory ?? _workingTreeDirectory ?? throw new InvalidOperationException("Working tree directory is not set");
 
         set {
-            EnsureNotHavingConfiguredConfigurationBuilder();
+            EnsureNotYetConfiguredConfigurationBuilder();
             _workingTreeDirectory = value;
         }
     }
@@ -77,7 +77,7 @@ public class GitPlugin : Plugin, IGitPlugin
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    private void EnsureNotHavingConfiguredConfigurationBuilder()
+    private void EnsureNotYetConfiguredConfigurationBuilder()
     {
         if (_isConfiguredConfigurationBuilder) {
             throw new InvalidOperationException($"The event \"{nameof(ConfigurationEvents.ConfiguredConfigurationBuilder)}\" was already called");

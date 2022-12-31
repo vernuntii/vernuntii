@@ -8,23 +8,23 @@ namespace Vernuntii.Plugins.CommandLine
         public ICommandHandler? Handler => _command.Handler;
 
         private readonly Command _command;
-        private readonly Func<Func<Task<int>>?, ICommandHandler?> _handlerFactory;
+        private readonly Func<Func<Task<int>>?, ICommandHandler?> _commandHandlerFactory;
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
         /// <param name="command"></param>
-        /// <param name="handlerFactory"></param>
+        /// <param name="commandHandlerFactory"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public CommandWrapper(Command command, Func<Func<Task<int>>?, ICommandHandler?> handlerFactory)
+        public CommandWrapper(Command command, Func<Func<Task<int>>?, ICommandHandler?> commandHandlerFactory)
         {
             _command = command ?? throw new ArgumentNullException(nameof(command));
-            _handlerFactory = handlerFactory ?? throw new ArgumentNullException(nameof(handlerFactory));
+            _commandHandlerFactory = commandHandlerFactory ?? throw new ArgumentNullException(nameof(commandHandlerFactory));
         }
 
-        public ICommandHandler? SetHandler(Func<Task<int>>? handlerFunc)
+        public ICommandHandler? SetHandler(Func<Task<int>>? commandHandler)
         {
-            var handler = _handlerFactory(handlerFunc);
+            var handler = _commandHandlerFactory(commandHandler);
             _command.Handler = handler;
             return handler;
         }

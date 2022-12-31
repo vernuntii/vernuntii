@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.PluginSystem.Events;
+﻿namespace Vernuntii.PluginSystem.Reactive;
 
 public record EventDiscriminator<TPayload> : IEventDiscriminator<TPayload>
 {
@@ -78,7 +78,7 @@ public record EventDiscriminator<TPayload> : IEventDiscriminator<TPayload>
             other is not null && IsEquivalentTo(other);
 
         public override bool Equals(object? obj) =>
-            (obj is NamedEventId otherNamedEventId && IsEquivalentTo(otherNamedEventId))
+            obj is NamedEventId otherNamedEventId && IsEquivalentTo(otherNamedEventId)
             || obj is ulong otherEventId && IsEquivalentTo(otherEventId);
 
         public override string ToString() =>

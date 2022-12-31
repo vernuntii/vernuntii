@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
+using Vernuntii.Console;
 using Vernuntii.Plugins;
 using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;
@@ -9,7 +10,7 @@ using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.VersionCaching;
 
-namespace Vernuntii.Console
+namespace Vernuntii.Runner
 {
     /// <summary>
     /// Represents the main entry point to calculate the next version.

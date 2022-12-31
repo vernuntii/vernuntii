@@ -1,6 +1,4 @@
-﻿using Vernuntii.HeightConventions.Transformation;
-
-namespace Vernuntii.Test.HeightConventions.Transformation
+﻿namespace Vernuntii.HeightConventions.Transformation
 {
     internal static class HeightPlaceholderParserFixture
     {

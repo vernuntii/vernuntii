@@ -208,7 +208,7 @@ namespace Vernuntii.PluginSystem
                 }
             }
 
-            Task IUniqueEventFulfiller.FullfillAsync<T>(object eventId, T eventData)
+            Task IDistinguishableEventFulfiller.FullfillAsync<T>(object eventId, T eventData)
             {
                 ThrowIfEventSystemIsUninitialized();
                 return _eventSystem.FullfillAsync(eventId, eventData);

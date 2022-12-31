@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.PluginSystem.Events;
+﻿namespace Vernuntii.PluginSystem.Reactive;
 
 public interface IEventDiscriminator<TPayload>
 {

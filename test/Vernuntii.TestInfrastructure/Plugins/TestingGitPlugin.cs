@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using Vernuntii.Plugins;
 
-namespace Vernuntii.Test.Plugins;
+namespace Vernuntii.Plugins;
 
 internal class TestingGitPlugin : GitPlugin
 {

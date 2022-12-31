@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using K4os.Hash.xxHash;
+﻿using K4os.Hash.xxHash;
 
 namespace Vernuntii.VersionCaching
 {

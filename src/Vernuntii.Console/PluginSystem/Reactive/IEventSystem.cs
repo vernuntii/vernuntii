@@ -1,5 +1,5 @@
 ﻿namespace Vernuntii.PluginSystem.Reactive;
 
-public interface IEventSystem : IEventChainFactory, IUniqueEventFulfiller
+public interface IEventSystem : IEventChainFactory, IDistinguishableEventFulfiller
 {
 }
