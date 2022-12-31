@@ -67,8 +67,7 @@ namespace Vernuntii.Plugins
                     _overrideVersioningMode = parseResult.GetValueForOption(_overrideVersioningModeOption);
                     _areCommandLineArgumentsParsed = true;
                     await Events.FulfillAsync(SharedOptionsEvents.ParsedCommandLineArguments).ConfigureAwait(false);
-                })
-                .DisposeWhenDisposing(this);
+                });
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Reactive;
 
-internal class EveryEvent<T> : IEventDataHolder<T>, IObservableEvent<T>, IUnschedulableEventObserver<T>
+internal class EveryEvent<T> : IEventDataHolder<T>, IFulfillableEvent<T>, IUnschedulableEventFulfiller<T>
 {
     [MaybeNull]
     internal virtual T EventData => throw new InvalidOperationException();
@@ -17,7 +17,7 @@ internal class EveryEvent<T> : IEventDataHolder<T>, IObservableEvent<T>, IUnsche
 
     protected bool HasEventEntries => _eventEntries.Count != 0;
 
-    private readonly SortedSet<EventObserverEntry> _eventEntries = new();
+    private readonly SortedSet<EventFulfillerEntry> _eventEntries = new();
 
     protected virtual IEventDataHolder<T> CanEvaluate(T eventData) =>
         new EventDataHolder<T>(eventData, hasEventData: true);
@@ -25,8 +25,8 @@ internal class EveryEvent<T> : IEventDataHolder<T>, IObservableEvent<T>, IUnsche
     protected void Fullfill(EventFulfillmentContext context, T eventData)
     {
         foreach (var eventEntry in _eventEntries) {
-            if (eventEntry.Handler.IsUnschedulable) {
-                eventEntry.Handler.OnFulfilled(context, eventData);
+            if (eventEntry.Handler.IsFulfillmentUnschedulable) {
+                eventEntry.Handler.Fulfill(context, eventData);
 
             } else {
                 context.ScheduleFulfillment(eventEntry.Handler, eventData);
@@ -48,36 +48,36 @@ internal class EveryEvent<T> : IEventDataHolder<T>, IObservableEvent<T>, IUnsche
         PostEvaluation(context, eventData);
     }
 
-    void IUnschedulableEventObserver<T>.OnFulfilled(EventFulfillmentContext context, T eventData) =>
+    void IUnschedulableEventFulfiller<T>.Fulfill(EventFulfillmentContext context, T eventData) =>
         Evaluate(context, eventData);
 
-    public virtual IDisposable Subscribe(IEventObserver<T> observer)
+    public virtual IDisposable Subscribe(IEventFulfiller<T> eventFulfiller)
     {
-        var eventEntry = new EventObserverEntry(observer);
+        var eventEntry = new EventFulfillerEntry(eventFulfiller);
         _eventEntries.Add(eventEntry);
 
-        return new DelegatingDisposable<(ISet<EventObserverEntry>, EventObserverEntry)>(
+        return new DelegatingDisposable<(ISet<EventFulfillerEntry>, EventFulfillerEntry)>(
             static result => result.Item1.Remove(result.Item2),
             (_eventEntries, eventEntry));
     }
 
-    protected readonly record struct EventObserverEntry : IComparable<EventObserverEntry>
+    protected readonly record struct EventFulfillerEntry : IComparable<EventFulfillerEntry>
     {
         private static uint s_nextId;
 
         public uint Id { get; }
-        public IEventObserver<T> Handler =>
-            _eventObserver ?? throw new InvalidOperationException();
+        public IEventFulfiller<T> Handler =>
+            _eventFulfiller ?? throw new InvalidOperationException();
 
-        private readonly IEventObserver<T>? _eventObserver;
+        private readonly IEventFulfiller<T>? _eventFulfiller;
 
-        public EventObserverEntry(IEventObserver<T> eventObserver)
+        public EventFulfillerEntry(IEventFulfiller<T> eventFulfiller)
         {
             Id = Interlocked.Increment(ref s_nextId);
-            _eventObserver = eventObserver;
+            _eventFulfiller = eventFulfiller;
         }
 
-        public int CompareTo(EventObserverEntry other) =>
+        public int CompareTo(EventFulfillerEntry other) =>
             Id.CompareTo(other.Id);
     }
 }

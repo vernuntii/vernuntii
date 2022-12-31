@@ -1,9 +1,12 @@
 ﻿namespace Vernuntii.PluginSystem.Reactive;
 
-public sealed class EventChain<T> : IEventChainFactory, IObservableEvent<T>
+public sealed record EventChain<T> : IEventChainFactory, IFulfillableEvent<T>
 {
-    EventSystem IEventChainFactory.EventSystem =>
-        _eventSystem;
+    /// <summary>
+    /// The event that build on this event chain inherits this registrar.
+    /// The disposable of <see cref="Subscribe(IEventFulfiller{T})"/> gets registered to this registrar.
+    /// </summary>
+    public IDisposableRegistrar? UnsubscriptionRegistrar { get; init; }
 
     private readonly EventSystem _eventSystem;
     private readonly EventChainFragment<T> _fragment;
@@ -14,17 +17,24 @@ public sealed class EventChain<T> : IEventChainFactory, IObservableEvent<T>
         _fragment = fragment;
     }
 
-    internal EventChain<TNext> Chain<TNext>(EventChainFragment<TNext> fragment) =>
-        new(_eventSystem, fragment);
+    internal EventChain<TNext> Chain<TNext>(EventChainFragment<TNext> fragment) => new(_eventSystem, fragment) {
+        UnsubscriptionRegistrar = UnsubscriptionRegistrar
+    };
 
-    public IDisposable Subscribe(IEventObserver<T> eventHandler)
+    EventChain<TNext> IEventChainFactory.Create<TNext>(EventChainFragment<TNext> fragment) =>
+        Chain(fragment);
+
+    public IDisposable Subscribe(IEventFulfiller<T> eventHandler)
     {
-        if (!_fragment.HasEventId) {
+        if (!_fragment.IsEventInitiable) {
             return _fragment.Event.Subscribe(eventHandler);
         }
 
-        return DelegatingDisposable.Create(
+        var subscription = DelegatingDisposable.Create(
             _fragment.Event.Subscribe(eventHandler).Dispose,
-            _eventSystem.AddObserver(_fragment.EventId, new TypeInversedUnschedulableEventObserver<T>(_fragment.EventInitiator)).Dispose);
+            _eventSystem.AddObserver(_fragment.EventId, new TypeInversedUnschedulableEventObserver<T>(_fragment.EventFulfiller)).Dispose);
+
+        UnsubscriptionRegistrar?.AddDisposable(subscription);
+        return subscription;
     }
 }

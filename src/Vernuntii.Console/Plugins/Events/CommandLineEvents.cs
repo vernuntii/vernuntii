@@ -1,5 +1,5 @@
 ﻿using System.CommandLine.Parsing;
-using Vernuntii.CommandLine;
+using Vernuntii.Plugins.CommandLine;
 using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Plugins.Events

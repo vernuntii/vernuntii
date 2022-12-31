@@ -154,8 +154,8 @@ namespace Vernuntii.Plugins
         protected override void OnExecution()
         {
             OnConfigureCommandLine(_commandLine);
-            Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(_ => _loadingVersionStopwatch.Restart()).DisposeWhenDisposing(this);
-            Events.Earliest(CommandLineEvents.ParsedCommandLineArguments).Subscribe(OnParsedCommandLine).DisposeWhenDisposing(this);
+            Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(_ => _loadingVersionStopwatch.Restart());
+            Events.Earliest(CommandLineEvents.ParsedCommandLineArguments).Subscribe(OnParsedCommandLine);
 
             Events.Earliest(ServicesEvents.ConfigureServices)
                 .Zip(ConfigurationEvents.CreatedConfiguration)

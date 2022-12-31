@@ -9,14 +9,14 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
         nameof(_rightQueue))]
     private bool _isOperable => _leftQueue != null && _rightQueue != null;
 
-    private readonly IObservableEvent<T1> _left;
-    private readonly IObservableEvent<T2> _right;
+    private readonly IFulfillableEvent<T1> _left;
+    private readonly IFulfillableEvent<T2> _right;
     private Queue<T1>? _leftQueue;
     private Queue<T2>? _rightQueue;
     private readonly LeftEventHandler _leftHandler;
     private readonly RightEventHandler _rightHandler;
 
-    public ZipEvent(IObservableEvent<T1> left, IObservableEvent<T2> right)
+    public ZipEvent(IFulfillableEvent<T1> left, IFulfillableEvent<T2> right)
     {
         _leftHandler = new(this);
         _rightHandler = new(this);
@@ -50,7 +50,7 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
         DeinitializeQueue(ref _rightQueue);
     }
 
-    public override IDisposable Subscribe(IEventObserver<(T1, T2)> eventHandler)
+    public override IDisposable Subscribe(IEventFulfiller<(T1, T2)> eventHandler)
     {
         AttemptInitialize();
 
@@ -113,25 +113,25 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
             static (eventData, otherEventData) => (otherEventData, eventData));
     }
 
-    private class LeftEventHandler : IUnschedulableEventObserver<T1>
+    private class LeftEventHandler : IUnschedulableEventFulfiller<T1>
     {
         private readonly ZipEvent<T1, T2> _condition;
 
         public LeftEventHandler(ZipEvent<T1, T2> condition) =>
             _condition = condition;
 
-        public void OnFulfilled(EventFulfillmentContext context, T1 eventData) =>
+        public void Fulfill(EventFulfillmentContext context, T1 eventData) =>
             _condition.OnFulfilled(context, eventData);
     }
 
-    private class RightEventHandler : IUnschedulableEventObserver<T2>
+    private class RightEventHandler : IUnschedulableEventFulfiller<T2>
     {
         private readonly ZipEvent<T1, T2> _condition;
 
         public RightEventHandler(ZipEvent<T1, T2> condition) =>
             _condition = condition;
 
-        public void OnFulfilled(EventFulfillmentContext context, T2 eventData) =>
+        public void Fulfill(EventFulfillmentContext context, T2 eventData) =>
             _condition.OnFulfilled(context, eventData);
     }
 }

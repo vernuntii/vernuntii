@@ -4,36 +4,36 @@ namespace Vernuntii.PluginSystem.Reactive;
 
 internal static class EventChainFragment
 {
-    public static EventChainFragment<T> Create<T>(IObservableEvent<T> @event, IUnschedulableEventObserver<T> eventInitiator, object eventId) =>
-        new(@event, eventInitiator, eventId);
+    public static EventChainFragment<T> Create<T>(IFulfillableEvent<T> @event, IUnschedulableEventFulfiller<T> eventFulfiller, object eventId) =>
+        new(@event, eventFulfiller, eventId);
 
-    public static EventChainFragment<T> Create<T>(IObservableEvent<T> @event) =>
+    public static EventChainFragment<T> Create<T>(IFulfillableEvent<T> @event) =>
         new(@event);
 }
 
 internal record EventChainFragment<T>
 {
-    internal IObservableEvent<T> Event { get; }
+    internal IFulfillableEvent<T> Event { get; }
 
-    internal IUnschedulableEventObserver<T>? EventInitiator =>
+    internal IUnschedulableEventFulfiller<T>? EventFulfiller =>
         _eventInitiator ?? throw new InvalidOperationException();
 
     internal object? EventId { get; }
 
     [MemberNotNullWhen(true,
         nameof(EventId),
-        nameof(EventInitiator))]
-    internal bool HasEventId => EventId != null;
+        nameof(EventFulfiller))]
+    internal bool IsEventInitiable => EventId != null;
 
-    private readonly IUnschedulableEventObserver<T>? _eventInitiator;
+    private readonly IUnschedulableEventFulfiller<T>? _eventInitiator;
 
-    public EventChainFragment(IObservableEvent<T> @event, IUnschedulableEventObserver<T> eventInitiator, object eventId)
+    public EventChainFragment(IFulfillableEvent<T> @event, IUnschedulableEventFulfiller<T> eventFulfiller, object eventId)
     {
         Event = @event;
-        _eventInitiator = eventInitiator;
+        _eventInitiator = eventFulfiller;
         EventId = eventId;
     }
 
-    public EventChainFragment(IObservableEvent<T> @event) =>
+    public EventChainFragment(IFulfillableEvent<T> @event) =>
         Event = @event;
 }

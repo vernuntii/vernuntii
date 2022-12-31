@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Vernuntii.Diagnostics;
 using Vernuntii.Git.Commands;
 using Vernuntii.Plugins.Events;
+using Vernuntii.Plugins.VersionCaching;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Meta;
 using Vernuntii.PluginSystem.Reactive;
@@ -96,18 +97,16 @@ namespace Vernuntii.Plugins
                 .Subscribe(result => {
                     var ((configuredConfigurationBuilderResult, gitCommand), versionCacheOptions) = result;
                     return CheckVersionCache(configuredConfigurationBuilderResult.ConfigPath, gitCommand, versionCacheOptions);
-                })
-                .DisposeWhenDisposing(this);
+                });
 
             Events.Every(ServicesEvents.ConfigureServices)
                 .Zip(VersionCacheCheckEvents.CheckedVersionCache)
                 .Subscribe(result => {
                     var (services, _) = result;
                     services.AddSingleton<IVersionCacheManager>(_versionCacheManager);
-                })
-                .DisposeWhenDisposing(this);
+                });
 
-            Events.Earliest(VersionCacheCheckEvents.CheckVersionCache).Subscribe(OnVersionCacheCheck).DisposeWhenDisposing(this);
+            Events.Earliest(VersionCacheCheckEvents.CheckVersionCache).Subscribe(OnVersionCacheCheck);
         }
     }
 }

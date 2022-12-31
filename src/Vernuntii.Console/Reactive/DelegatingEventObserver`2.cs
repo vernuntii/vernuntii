@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Reactive;
 
-internal class DelegatingEventObserver<T, TState> : IEventObserver<T>
+internal class DelegatingEventObserver<T, TState> : IEventFulfiller<T>
 {
     internal delegate Task HandleEventDelegate(in Tuple tuple);
 

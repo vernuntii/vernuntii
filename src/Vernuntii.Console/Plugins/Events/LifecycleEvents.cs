@@ -1,4 +1,4 @@
-﻿using Vernuntii.Lifecycle;
+﻿using Vernuntii.Plugins.Lifecycle;
 using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Plugins.Events

@@ -1,19 +1,19 @@
 ﻿namespace Vernuntii.Reactive;
 
-internal class TransformEvent<TSource, TResult> : IObservableEvent<TResult>
+internal class TransformEvent<TSource, TResult> : IFulfillableEvent<TResult>
 {
-    private readonly IObservableEvent<TSource> _source;
-    private readonly Func<TSource, TResult> _transformHandler;
+    private readonly IFulfillableEvent<TSource> _source;
+    private readonly Func<TSource, TResult> _eventDataTransformHandler;
 
-    public TransformEvent(IObservableEvent<TSource> source, Func<TSource, TResult> transformHandler)
+    public TransformEvent(IFulfillableEvent<TSource> source, Func<TSource, TResult> transformHandler)
     {
         _source = source;
-        _transformHandler = transformHandler ?? throw new ArgumentNullException(nameof(transformHandler));
+        _eventDataTransformHandler = transformHandler ?? throw new ArgumentNullException(nameof(transformHandler));
     }
 
-    public IDisposable Subscribe(IEventObserver<TResult> observer) =>
+    public IDisposable Subscribe(IEventFulfiller<TResult> eventFilfiller) =>
         DelegatingDisposable.Create(
             _source.SubscribeUnscheduled(
-                static (context, eventData, state) => state.observer.OnFulfilled(context, state.transform(eventData)),
-                (observer, transform: _transformHandler)).Dispose);
+                static (context, eventData, state) => state.EventFilfiller.Fulfill(context, state.TransformEventData(eventData)),
+                (EventFilfiller: eventFilfiller, TransformEventData: _eventDataTransformHandler)).Dispose);
 }

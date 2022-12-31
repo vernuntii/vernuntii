@@ -59,8 +59,7 @@ namespace Vernuntii.Plugins
                     foreach (var configureServices in _configureServicesActions) {
                         configureServices(services);
                     }
-                })
-                .DisposeWhenDisposing(this);
+                });
         }
     }
 }

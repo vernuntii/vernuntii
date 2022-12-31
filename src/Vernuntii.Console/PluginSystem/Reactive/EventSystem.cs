@@ -2,10 +2,8 @@
 
 namespace Vernuntii.PluginSystem.Reactive;
 
-public class EventSystem : IEventChainFactory
+internal record EventSystem : IEventSystem
 {
-    EventSystem IEventChainFactory.EventSystem => this;
-
     private readonly Dictionary<object, EventObserverCollection> _eventObservers = new();
     private readonly object _lock = new();
 
@@ -13,7 +11,13 @@ public class EventSystem : IEventChainFactory
     {
     }
 
-    internal IDisposable AddObserver(object eventId, ITypeInversedUnschedulableEventObserver eventObserver)
+    private EventChain<T> CreateEventChain<T>(EventChainFragment<T> fragment) =>
+        new EventChain<T>(this, fragment);
+
+    EventChain<T> IEventChainFactory.Create<T>(EventChainFragment<T> fragment) =>
+        CreateEventChain(fragment);
+
+    internal IDisposable AddObserver(object eventId, ITypeInversedUnschedulableEventFulfiller eventObserver)
     {
         lock (_lock) {
             if (!_eventObservers.TryGetValue(eventId, out var eventObservers)) {
@@ -27,7 +31,7 @@ public class EventSystem : IEventChainFactory
 
     internal virtual async Task FulfillScheduledEventsAsync<T>(object eventId, T eventData, EventFulfillmentContext fulfillmentContext)
     {
-        foreach (var scheduledEventInvocation in fulfillmentContext.ScheduledEventInvocations) {
+        foreach (var scheduledEventInvocation in fulfillmentContext.ScheduledEventFulfillments) {
             var task = scheduledEventInvocation.Item1(scheduledEventInvocation.Item2);
 
             if (!task.IsCompletedSuccessfully) {
@@ -45,7 +49,7 @@ public class EventSystem : IEventChainFactory
                 return Task.CompletedTask;
             }
 
-            eventHandlers.OnFulfillment(fulfillmentContext, eventData);
+            eventHandlers.Fulfill(fulfillmentContext, eventData);
         }
 
         return FulfillScheduledEventsAsync(eventId, eventData, fulfillmentContext);
@@ -57,7 +61,7 @@ public class EventSystem : IEventChainFactory
 
         private readonly SortedSet<EventObserverEntry> _eventObserverEntries = new();
 
-        public IDisposable Add(ITypeInversedUnschedulableEventObserver eventHandler)
+        public IDisposable Add(ITypeInversedUnschedulableEventFulfiller eventHandler)
         {
             var entries = _eventObserverEntries;
             var entry = new EventObserverEntry(Interlocked.Increment(ref s_nextId), eventHandler);
@@ -82,7 +86,7 @@ public class EventSystem : IEventChainFactory
                 (entries, entry));
         }
 
-        public void OnFulfillment<T>(EventFulfillmentContext context, T eventData)
+        public void Fulfill<T>(EventFulfillmentContext context, T eventData)
         {
             var entriesCount = _eventObserverEntries.Count;
             var entries = ArrayPool<EventObserverEntry>.Shared.Rent(entriesCount);
@@ -91,7 +95,7 @@ public class EventSystem : IEventChainFactory
                 _eventObserverEntries.CopyTo(entries, 0, entriesCount);
 
                 for (var i = 0; i < entriesCount; i++) {
-                    entries[i].Handler.OnFulfillment(context, eventData);
+                    entries[i].Handler.Fulfill(context, eventData);
                 }
             } finally {
                 ArrayPool<EventObserverEntry>.Shared.Return(entries);
@@ -102,12 +106,12 @@ public class EventSystem : IEventChainFactory
         {
             public ulong Id { get; }
 
-            public ITypeInversedUnschedulableEventObserver Handler =>
+            public ITypeInversedUnschedulableEventFulfiller Handler =>
                 _eventHandler ?? throw new InvalidOperationException();
 
-            private readonly ITypeInversedUnschedulableEventObserver? _eventHandler;
+            private readonly ITypeInversedUnschedulableEventFulfiller? _eventHandler;
 
-            public EventObserverEntry(ulong id, ITypeInversedUnschedulableEventObserver eventHandler)
+            public EventObserverEntry(ulong id, ITypeInversedUnschedulableEventFulfiller eventHandler)
             {
                 Id = id;
                 _eventHandler = eventHandler;

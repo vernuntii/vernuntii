@@ -2,11 +2,11 @@
 
 internal class EventFulfillmentContext
 {
-    public IReadOnlyCollection<(Func<object, Task>, object)> ScheduledEventInvocations =>
-        _scheduledEventInvocations;
+    public IReadOnlyCollection<(Func<object, Task>, object)> ScheduledEventFulfillments =>
+        _scheduledEventFulfillments;
 
-    private readonly List<(Func<object, Task>, object)> _scheduledEventInvocations = new();
+    private readonly List<(Func<object, Task>, object)> _scheduledEventFulfillments = new();
 
-    public void ScheduleEventInvocation(Func<object, Task> eventHandler, object eventData) =>
-        _scheduledEventInvocations.Add((eventHandler, eventData));
+    public void ScheduleEventFulfillment(Func<object, Task> eventHandler, object eventData) =>
+        _scheduledEventFulfillments.Add((eventHandler, eventData));
 }

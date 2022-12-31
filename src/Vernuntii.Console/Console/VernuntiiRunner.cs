@@ -1,9 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
-using Vernuntii.CommandLine;
-using Vernuntii.Lifecycle;
 using Vernuntii.Plugins;
+using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;
+using Vernuntii.Plugins.Lifecycle;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.VersionCaching;
@@ -44,11 +45,12 @@ namespace Vernuntii.Console
             _pluginRegistry = pluginRegistry;
             var loggingPlugin = pluginRegistry.GetPlugin<ILoggingPlugin>();
             _logger = loggingPlugin.CreateLogger<VernuntiiRunner>();
-
-#if DEBUG
-            _pluginEvents = new PerformanceMeasuringEventSystem(loggingPlugin.CreateLogger<EventSystem>());
-#endif
+            MeasureEventSystemPerfomance(loggingPlugin.CreateLogger<EventSystem>());
         }
+
+        [Conditional("DEBUG")]
+        private void MeasureEventSystemPerfomance(ILogger<EventSystem> logger) =>
+            _pluginEvents = new PerformanceMeasuringEventSystem(logger);
 
         private bool _alreadyInitiatedLifecycleOnce;
 

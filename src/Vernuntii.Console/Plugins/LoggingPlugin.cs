@@ -166,11 +166,10 @@ namespace Vernuntii.Plugins
 
             Events
                 .Earliest(CommandLineEvents.ParsedCommandLineArguments)
-                .Subscribe(parseResult => _verbosity = parseResult.GetValueForOption(_verbosityOption))
-                .DisposeWhenDisposing(this);
+                .Subscribe(parseResult => _verbosity = parseResult.GetValueForOption(_verbosityOption));
 
-            Events.Earliest(LoggingEvents.EnableLoggingInfrastructure).Subscribe(EnableLoggingInfrastructure).DisposeWhenDisposing(this);
-            Events.Earliest(ServicesEvents.ConfigureServices).Subscribe(sp => sp.AddLogging(Bind)).DisposeWhenDisposing(this);
+            Events.Earliest(LoggingEvents.EnableLoggingInfrastructure).Subscribe(EnableLoggingInfrastructure);
+            Events.Earliest(ServicesEvents.ConfigureServices).Subscribe(sp => sp.AddLogging(Bind));
         }
 
         /// <inheritdoc/>

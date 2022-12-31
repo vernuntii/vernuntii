@@ -2,8 +2,8 @@
 
 internal static class EventFulfillmentContextExtensions
 {
-    public static void ScheduleFulfillment<T>(this EventFulfillmentContext fulfillmentContext, IEventObserver<T> eventObserver, T eventData) =>
-        fulfillmentContext.ScheduleEventInvocation(
+    public static void ScheduleFulfillment<T>(this EventFulfillmentContext fulfillmentContext, IEventFulfiller<T> eventObserver, T eventData) =>
+        fulfillmentContext.ScheduleEventFulfillment(
             static result => {
                 var (eventHandler, eventData) = (ValueTuple<Func<T, Task>, T>)result;
                 return eventHandler(eventData);

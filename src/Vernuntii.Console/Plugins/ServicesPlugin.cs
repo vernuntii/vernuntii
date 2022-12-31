@@ -58,8 +58,7 @@ namespace Vernuntii.Plugins
         protected override void OnExecution()
         {
             Events.Every(ServicesEvents.CreateServiceProvider)
-                .Subscribe(OnCreateServiceProvider)
-                .DisposeWhenDisposing(this);
+                .Subscribe(OnCreateServiceProvider);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,5 +1,5 @@
-﻿using Vernuntii.PluginSystem.Events;
-using Vernuntii.VersionCaching;
+﻿using Vernuntii.Plugins.VersionCaching;
+using Vernuntii.PluginSystem.Events;
 
 namespace Vernuntii.Plugins.Events;
 

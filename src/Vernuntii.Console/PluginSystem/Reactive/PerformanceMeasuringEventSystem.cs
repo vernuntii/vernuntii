@@ -6,7 +6,7 @@ using Vernuntii.Diagnostics;
 
 namespace Vernuntii.PluginSystem.Reactive;
 
-internal class PerformanceMeasuringEventSystem : EventSystem
+internal sealed record PerformanceMeasuringEventSystem : EventSystem
 {
     private static string DepthIndicator(int actualDepth, bool open)
     {
@@ -63,7 +63,7 @@ internal class PerformanceMeasuringEventSystem : EventSystem
     private int _currentDepth;
     private ConcurrentDictionary<int, Stopwatch> _depthRelativeWatches = new();
 
-    public PerformanceMeasuringEventSystem(ILogger<EventSystem> logger) =>
+    internal PerformanceMeasuringEventSystem(ILogger<EventSystem> logger) =>
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     internal override async Task FulfillScheduledEventsAsync<T>(object eventId, T eventData, EventFulfillmentContext fulfillmentContext)

@@ -7,11 +7,10 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Logging;
-using Vernuntii.CommandLine;
 using Vernuntii.Console;
-using Vernuntii.Lifecycle;
 using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;
+using Vernuntii.Plugins.Lifecycle;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Meta;
 using Vernuntii.PluginSystem.Reactive;
@@ -177,21 +176,15 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            //Events.Earliest(CommandLineEvents.SetCommandLineArguments).Subscribe(out var nextSetCommandLineArguments).DisposeWhenDisposing(this);
-            //Events.Earliest(CommandLineEvents.ParseCommandLineArguments).Replay(1).RefCount().Subscribe(out var nextParseCommandLineArguments).DisposeWhenDisposing(this);
-
             Events.Every(LifecycleEvents.BeforeEveryRun)
-                //.WithAwaitedFrom(nextSetCommandLineArguments)
-                //.WithAwaitedFrom(nextParseCommandLineArguments)
                 .Zip(CommandLineEvents.SetCommandLineArguments)
                 .Zip(CommandLineEvents.ParseCommandLineArguments)
                 .Subscribe(async result => {
                     var ((lifecycleContext, commandLineArguments), argumentsParsingContext) = result;
                     await ParseCommandLineArguments(lifecycleContext, argumentsParsingContext, commandLineArguments).ConfigureAwait(false);
-                })
-                .DisposeWhenDisposing(this);
+                });
 
-            Events.Every(CommandLineEvents.InvokeRootCommand).Subscribe(InvokeRootCommand).DisposeWhenDisposing(this);
+            Events.Every(CommandLineEvents.InvokeRootCommand).Subscribe(InvokeRootCommand);
         }
     }
 }

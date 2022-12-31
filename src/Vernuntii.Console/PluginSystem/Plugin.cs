@@ -6,7 +6,7 @@ namespace Vernuntii.PluginSystem
     /// <summary>
     /// A plugin for <see cref="Vernuntii"/>.
     /// </summary>
-    public abstract class Plugin : IPlugin, IAsyncDisposable, IDisposable
+    public abstract class Plugin : IPlugin, IDisposableRegistrar, IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// If <see langword="true"/> the plugin is disposed.
@@ -17,13 +17,21 @@ namespace Vernuntii.PluginSystem
         private int _isDisposed;
 
         /// <summary>
-        /// Represents the plugin event aggregator.
+        /// Represents the plugin event system.
         /// </summary>
-        protected internal EventSystem Events =>
-            _eventSystem ?? throw new InvalidOperationException($"Method {nameof(OnExecution)} was not called yet");
+        /// <remarks>
+        /// You can set <see cref="PluginEventSystem.AutoUnsubscribeEvents"/>. It is <see langword="true"/> by default.
+        /// <inheritdoc cref="PluginEventSystem.AutoUnsubscribeEvents" path="/summary"/>
+        /// </remarks>
+        protected internal PluginEventSystem Events =>
+            _events ?? throw new InvalidOperationException($"Method {nameof(OnExecution)} was not called yet");
 
-        private EventSystem? _eventSystem;
+        private readonly PluginEventSystem _events;
+
         private IList<object>? _disposables = new List<object>();
+
+        protected Plugin() =>
+            _events = new(this) { AutoUnsubscribeEvents = true };
 
         [MemberNotNull(nameof(_disposables))]
         private void ThrowIfDisposed()
@@ -43,6 +51,9 @@ namespace Vernuntii.PluginSystem
             ThrowIfDisposed();
             _disposables.Add(disposable);
         }
+
+        void IDisposableRegistrar.AddDisposable(IDisposable disposable) =>
+            AddDisposable(disposable);
 
         /// <summary>
         /// Adds a disposable that gets disposed when the plugin gets disposed.
@@ -77,12 +88,12 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Called when this plugin gets notified about event aggregator.
         /// </summary>
-        protected virtual ValueTask OnExecutionAsync() =>
-            ValueTask.CompletedTask;
+        protected virtual Task OnExecutionAsync() =>
+            Task.CompletedTask;
 
-        ValueTask IPlugin.OnExecution(EventSystem eventSystem)
+        Task IPlugin.OnExecution(IEventSystem eventSystem)
         {
-            _eventSystem = eventSystem;
+            _events.InitializeEventSystem(eventSystem);
             OnExecution();
             return OnExecutionAsync();
         }
@@ -145,6 +156,72 @@ namespace Vernuntii.PluginSystem
             await DisposePluginDisposablesAsync(synchronously: false).ConfigureAwait(false);
             DisposeOnce(disposing: false);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// The event system owned by one plugin.
+        /// </summary>
+        protected internal class PluginEventSystem : IEventSystem
+        {
+            /// <summary>
+            /// If <see langword="true"/>, then the created event chains from <see cref="Events"/> will inherit the disposable registrar of this plugin.
+            /// The event that build on an event chain inherits the registrar from said event chain.
+            /// </summary>
+            public bool AutoUnsubscribeEvents {
+                get => _usingUnsubscriptionRegistrar is not null;
+
+                set {
+                    if (value) {
+                        _usingUnsubscriptionRegistrar = _onRequestUsingUnsubscriptionRegistrar;
+                    } else {
+                        _usingUnsubscriptionRegistrar = null;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// The created event chain from this factory will inherit this registrar.
+            /// The event that build on an event chain inherits the registrar from said event chain.
+            /// </summary>
+            private IDisposableRegistrar? _usingUnsubscriptionRegistrar;
+
+            private readonly IDisposableRegistrar _onRequestUsingUnsubscriptionRegistrar;
+            private IEventSystem? _eventSystem;
+
+            internal PluginEventSystem(IDisposableRegistrar onRequestUsingUnsubscriptionRegistrar) =>
+                _onRequestUsingUnsubscriptionRegistrar = onRequestUsingUnsubscriptionRegistrar;
+
+            internal void InitializeEventSystem(IEventSystem eventSystem)
+            {
+                if (_eventSystem is not null) {
+                    throw new InvalidOperationException("Event system is already initialized");
+                }
+
+                _eventSystem = eventSystem ?? throw new ArgumentNullException(nameof(eventSystem));
+            }
+
+            [MemberNotNull(nameof(_eventSystem))]
+            private void ThrowIfEventSystemIsUninitialized()
+            {
+                if (_eventSystem is null) {
+                    throw new InvalidOperationException($"Method {nameof(OnExecution)} was not called yet");
+                }
+            }
+
+            Task IUniqueEventFulfiller.FullfillAsync<T>(object eventId, T eventData)
+            {
+                ThrowIfEventSystemIsUninitialized();
+                return _eventSystem.FullfillAsync(eventId, eventData);
+            }
+
+            EventChain<T> IEventChainFactory.Create<T>(EventChainFragment<T> fragment)
+            {
+                ThrowIfEventSystemIsUninitialized();
+
+                return _eventSystem.Create(fragment) with {
+                    UnsubscriptionRegistrar = _usingUnsubscriptionRegistrar
+                };
+            }
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace Vernuntii.Reactive;
 
-public static partial class ObservableEventExtensions
+public static partial class FulfillableEventExtensions
 {
-    internal static IDisposable SubscribeUnscheduled<T>(this IObservableEvent<T> @event, Action<EventFulfillmentContext, T> eventHandler)
+    internal static IDisposable SubscribeUnscheduled<T>(this IFulfillableEvent<T> @event, Action<EventFulfillmentContext, T> eventHandler)
     {
         static ValueTask HandleEvent(in DelegatingUnschedulableEventObserver<T, Action<EventFulfillmentContext, T>>.Tuple tuple)
         {
@@ -13,7 +13,7 @@ public static partial class ObservableEventExtensions
         return @event.Subscribe(new DelegatingUnschedulableEventObserver<T, Action<EventFulfillmentContext, T>>(HandleEvent, eventHandler));
     }
 
-    internal static IDisposable SubscribeUnscheduled<T, TState>(this IObservableEvent<T> @event, Action<EventFulfillmentContext, T, TState> eventHandler, TState state)
+    internal static IDisposable SubscribeUnscheduled<T, TState>(this IFulfillableEvent<T> @event, Action<EventFulfillmentContext, T, TState> eventHandler, TState state)
     {
         static ValueTask HandleEvent(in DelegatingUnschedulableEventObserver<T, (Action<EventFulfillmentContext, T, TState> EventHandler, TState State)>.Tuple tuple)
         {
@@ -24,7 +24,7 @@ public static partial class ObservableEventExtensions
         return @event.Subscribe(new DelegatingUnschedulableEventObserver<T, (Action<EventFulfillmentContext, T, TState>, TState)>(HandleEvent, (eventHandler, state)));
     }
 
-    internal static IDisposable SubscribeUnscheduled<T>(this IObservableEvent<T> @event, Action<EventFulfillmentContext> eventHandler)
+    internal static IDisposable SubscribeUnscheduled<T>(this IFulfillableEvent<T> @event, Action<EventFulfillmentContext> eventHandler)
     {
         static ValueTask HandleEvent(in DelegatingUnschedulableEventObserver<T, Action<EventFulfillmentContext>>.Tuple tuple)
         {
@@ -35,7 +35,7 @@ public static partial class ObservableEventExtensions
         return @event.Subscribe(new DelegatingUnschedulableEventObserver<T, Action<EventFulfillmentContext>>(HandleEvent, eventHandler));
     }
 
-    internal static IDisposable SubscribeUnscheduled<T, TState>(this IObservableEvent<T> @event, Action<EventFulfillmentContext, TState> eventHandler, TState state)
+    internal static IDisposable SubscribeUnscheduled<T, TState>(this IFulfillableEvent<T> @event, Action<EventFulfillmentContext, TState> eventHandler, TState state)
     {
         static ValueTask HandleEvent(in DelegatingUnschedulableEventObserver<T, (Action<EventFulfillmentContext, TState> EventHandler, TState State)>.Tuple tuple)
         {

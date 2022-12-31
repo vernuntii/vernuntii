@@ -1,16 +1,16 @@
 ﻿namespace Vernuntii.PluginSystem.Reactive;
 
-internal sealed class TypeInversedUnschedulableEventObserver<TExpected> : ITypeInversedUnschedulableEventObserver
+internal sealed class TypeInversedUnschedulableEventObserver<TExpected> : ITypeInversedUnschedulableEventFulfiller
 {
-    private readonly IEventObserver<TExpected> _eventHandler;
+    private readonly IEventFulfiller<TExpected> _eventHandler;
 
-    public TypeInversedUnschedulableEventObserver(IEventObserver<TExpected> eventHandler) =>
+    public TypeInversedUnschedulableEventObserver(IEventFulfiller<TExpected> eventHandler) =>
         _eventHandler = eventHandler ?? throw new ArgumentNullException(nameof(eventHandler));
 
-    public void OnFulfillment<TActual>(EventFulfillmentContext context, TActual actualEventData)
+    public void Fulfill<TActual>(EventFulfillmentContext context, TActual actualEventData)
     {
         if (actualEventData is null) {
-            _eventHandler.OnFulfilled(context, default!);
+            _eventHandler.Fulfill(context, default!);
             return;
         }
 
@@ -21,6 +21,6 @@ Expected type = {typeof(TActual)}
 ");
         }
 
-        _eventHandler.OnFulfilled(context, expectedEventData);
+        _eventHandler.Fulfill(context, expectedEventData);
     }
 }

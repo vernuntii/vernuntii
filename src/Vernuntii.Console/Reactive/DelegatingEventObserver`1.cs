@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Reactive;
 
-internal class DelegatingEventObserver<T> : IEventObserver<T>
+internal class DelegatingEventObserver<T> : IEventFulfiller<T>
 {
     private readonly Func<T, Task> _eventHandler;
 

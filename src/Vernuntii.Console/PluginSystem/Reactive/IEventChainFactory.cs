@@ -2,5 +2,5 @@
 
 public interface IEventChainFactory
 {
-    public EventSystem EventSystem { get; }
+    internal EventChain<T> Create<T>(EventChainFragment<T> fragment);
 }

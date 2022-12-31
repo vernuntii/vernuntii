@@ -155,8 +155,7 @@ public class GitPlugin : Plugin, IGitPlugin
             .Subscribe(async result => {
                 _isConfiguredConfigurationBuilder = true;
                 await EnsureCreatedGitCommand(result.ConfigPath).ConfigureAwait(false);
-            })
-            .DisposeWhenDisposing(this);
+            });
 
         var nextCommandLineParseResult = Events.Earliest(CommandLineEvents.ParsedCommandLineArguments);
 
@@ -213,7 +212,6 @@ public class GitPlugin : Plugin, IGitPlugin
                 if (duplicateVersionFails && repository.HasCommitVersion(versionCache.Version)) {
                     _nextVersionPlugin.ExitCodeOnSuccess = (int)ExitCode.VersionDuplicate;
                 }
-            })
-            .DisposeWhenDisposing(this);
+            });
     }
 }

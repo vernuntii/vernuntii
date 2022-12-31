@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.Plugins.Events;
+using Vernuntii.Plugins.VersionCaching;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.VersionCaching;
@@ -76,8 +77,7 @@ namespace Vernuntii.Plugins
 
             Events
                 .Earliest(CommandLineEvents.ParsedCommandLineArguments)
-                .Subscribe(OnParseCommandLineArguments)
-                .DisposeWhenDisposing(this);
+                .Subscribe(OnParseCommandLineArguments);
 
             Events
                 .Earliest(ServicesEvents.ConfigureServices)
@@ -85,8 +85,7 @@ namespace Vernuntii.Plugins
                 .Subscribe(result => {
                     var (services, cacheOptions) = result;
                     services.AddSingleton<IVersionCacheOptions>(cacheOptions);
-                })
-                .DisposeWhenDisposing(this);
+                });
         }
     }
 }

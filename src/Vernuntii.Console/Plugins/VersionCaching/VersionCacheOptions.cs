@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.VersionCaching
+﻿using Vernuntii.VersionCaching;
+
+namespace Vernuntii.Plugins.VersionCaching
 {
     /// <summary>
     /// The options for cache provider.

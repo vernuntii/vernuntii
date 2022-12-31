@@ -24,10 +24,14 @@ namespace Vernuntii.PluginSystem
         /// <summary>
         /// Executes the plugins one after the other.
         /// </summary>
-        public async ValueTask ExecuteAsync()
+        public async Task ExecuteAsync()
         {
             foreach (var pluginRegistration in _pluginRegistry.OrderlyPluginRegistrations) {
-                await pluginRegistration.Plugin.OnExecution(_pluginEvents).ConfigureAwait(false);
+                var task = pluginRegistration.Plugin.OnExecution(_pluginEvents);
+
+                if (!task.IsCompletedSuccessfully) {
+                    await task.ConfigureAwait(false);
+                }
             }
         }
 

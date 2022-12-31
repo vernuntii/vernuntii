@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Reactive;
 
-internal class DelegatingUnschedulableEventObserver<T, TState> : IUnschedulableEventObserver<T>
+internal class DelegatingUnschedulableEventObserver<T, TState> : IUnschedulableEventFulfiller<T>
 {
     internal delegate ValueTask HandleEventDelegate(in Tuple tuple);
 
@@ -13,7 +13,7 @@ internal class DelegatingUnschedulableEventObserver<T, TState> : IUnschedulableE
         _state = state;
     }
 
-    public void OnFulfilled(EventFulfillmentContext context, T eventData) =>
+    public void Fulfill(EventFulfillmentContext context, T eventData) =>
         _eventHandler(new Tuple(context, eventData, _state));
 
     internal readonly struct Tuple

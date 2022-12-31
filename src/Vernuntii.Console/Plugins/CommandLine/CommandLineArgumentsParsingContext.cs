@@ -1,7 +1,7 @@
 ﻿using System.CommandLine.Parsing;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Vernuntii.CommandLine;
+namespace Vernuntii.Plugins.CommandLine;
 
 /// <summary>
 /// Represents the context of the command-line arguments parsing.
