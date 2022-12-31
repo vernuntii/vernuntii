@@ -21,7 +21,7 @@ namespace Vernuntii.Runner
         IVernuntiiRunnerBuilder ConfigurePluginServices(Action<IServiceCollection> configureServices);
 
         /// <summary>
-        /// Builds the runner for <see cref="Vernuntii"/>.
+        /// Builds the <see cref="Vernuntii"/> runner.
         /// </summary>
         /// <param name="args"></param>
         VernuntiiRunner Build(string[]? args);

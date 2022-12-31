@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.Console
+﻿namespace Vernuntii.Runner
 {
     /// <summary>
     /// Console exit code.

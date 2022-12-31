@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Logging;
-using Vernuntii.Console;
+using Vernuntii.Runner;
 using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;
 using Vernuntii.Plugins.Lifecycle;

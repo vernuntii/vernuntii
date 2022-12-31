@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
-using Vernuntii.Console;
 using Vernuntii.Plugins;
 using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;

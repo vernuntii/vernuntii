@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Vernuntii.Console;
 using Vernuntii.Extensions;
 using Vernuntii.Extensions.BranchCases;
 using Vernuntii.Git;
@@ -11,6 +10,7 @@ using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Meta;
 using Vernuntii.PluginSystem.Reactive;
+using Vernuntii.Runner;
 
 namespace Vernuntii.Plugins;
 

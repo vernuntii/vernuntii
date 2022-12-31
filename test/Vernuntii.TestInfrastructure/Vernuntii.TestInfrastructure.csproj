@@ -11,8 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Vernuntii.Configuration\Vernuntii.Configuration.csproj" />
-    <ProjectReference Include="..\..\src\Vernuntii.Console\Vernuntii.Console.csproj" />
+    <ProjectReference Include="..\..\src\Vernuntii.Runner\Vernuntii.Runner.csproj" />
   </ItemGroup>
 
 </Project>

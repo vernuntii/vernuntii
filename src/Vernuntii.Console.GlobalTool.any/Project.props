@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\Vernuntii.Abstractions\Vernuntii.Abstractions.csproj" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console\Vernuntii.Console.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Vernuntii.Runner\Vernuntii.Runner.csproj" />
   </ItemGroup>
 
   <ItemGroup>

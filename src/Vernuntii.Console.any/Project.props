@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Vernuntii.Console\Vernuntii.Console.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Vernuntii.Runner\Vernuntii.Runner.csproj" />
   </ItemGroup>
 
 </Project>
