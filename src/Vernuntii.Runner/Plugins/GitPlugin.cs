@@ -10,6 +10,9 @@ using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.Runner;
+using Vernuntii.VersionPersistence;
+using Vernuntii.VersionPersistence.Presentation;
+using Vernuntii.VersionPersistence.Serialization;
 
 namespace Vernuntii.Plugins;
 
@@ -17,9 +20,15 @@ namespace Vernuntii.Plugins;
 /// The git plugin.
 /// </summary>
 [ImportPlugin<SharedOptionsPlugin>(TryRegister = true)]
-[ImportPlugin<IVersionCacheCheckPlugin, VersionCacheCheckPlugin>(TryRegister = true)]
+[ImportPlugin<IVersionCachePlugin, VersionCachePlugin>(TryRegister = true)]
 public class GitPlugin : Plugin, IGitPlugin
 {
+    /// <summary>
+    /// The identifier is used when the <see cref="IVersionCacheFormatter"/> and <see cref="IVersionCacheDeformatter"/> are registered
+    /// to <see cref="VersionCacheManagerContext.Serializers"/>.
+    /// </summary>
+    public static object VersionCacheManagerSerializerIdentifier = typeof(GitPlugin);
+
     /// <summary>
     /// <inheritdoc/>
     /// If it has been set manually then this will be
@@ -150,12 +159,17 @@ public class GitPlugin : Plugin, IGitPlugin
     /// <inheritdoc/>
     protected override void OnExecution()
     {
-        Events
-            .Earliest(ConfigurationEvents.ConfiguredConfigurationBuilder)
+        Events.Earliest(ConfigurationEvents.ConfiguredConfigurationBuilder)
             .Subscribe(async result => {
                 _isConfiguredConfigurationBuilder = true;
                 await EnsureCreatedGitCommand(result.ConfigPath).ConfigureAwait(false);
             });
+
+        Events.Earliest(VersionCacheEvents.CreateVersionCacheManager)
+            .Subscribe(context => context.ImportGitRequirements());
+
+        Events.Earliest(NextVersionEvents.ConfigureVersionPresentation)
+            .Subscribe(context => context.ImportGitRequirements());
 
         var nextCommandLineParseResult = Events.Earliest(CommandLineEvents.ParsedCommandLineArguments);
 
@@ -165,33 +179,34 @@ public class GitPlugin : Plugin, IGitPlugin
             .Zip(ConfigurationEvents.CreatedConfiguration)
             .Subscribe(async result => {
                 var (((services, configurationBuilderResult), overridePostPreRelease), configuration) = result;
-                await Events.FulfillAsync(GitEvents.ConfigureServices, services).ConfigureAwait(false);
 
+                await Events.FulfillAsync(GitEvents.ConfigureServices, services).ConfigureAwait(false);
                 await EnsureCreatedGitCommand(configurationBuilderResult.ConfigPath).ConfigureAwait(false);
-                services.AddSingleton(_gitCommand);
 
                 services
-                    .ScopeToVernuntii(features => features
-                    .ScopeToGit(git => git
-                        .AddRepository()
-                        .UseConfigurationDefaults(configuration)
-                        .UseLatestCommitVersion()
-                        .UseActiveBranchCaseDefaults()
-                        .UseCommitMessagesProvider()));
+                    .AddSingleton(_gitCommand)
+                    .AddScoped<IVersionCacheDataTuplesEnricher, VersionCacheRepositoryDataEnricher>()
+                    .TakeViewOfVernuntii()
+                    .TakeViewOfGit()
+                    .AddRepository()
+                    .UseConfigurationDefaults(configuration)
+                    .UseLatestCommitVersion()
+                    .UseActiveBranchCaseDefaults()
+                    .UseCommitMessagesProvider();
 
                 if (!_sharedOptions.ShouldOverrideVersioningMode) {
                     services
-                        .ScopeToVernuntii(vernuntii => vernuntii
-                        .ScopeToGit(git => git
-                            .UseActiveBranchCaseVersioningMode()));
+                        .TakeViewOfVernuntii()
+                        .TakeViewOfGit()
+                        .UseActiveBranchCaseVersioningMode();
                 }
 
                 if (overridePostPreRelease != null) {
                     services
-                        .ScopeToVernuntii(features => features
-                        .ScopeToGit(features => features
-                            .Configure(configurer => configurer
-                                .SetPostPreRelease(overridePostPreRelease))));
+                        .TakeViewOfVernuntii()
+                        .TakeViewOfGit()
+                        .Configure(configurer => configurer
+                            .SetPostPreRelease(overridePostPreRelease));
                 }
 
                 await Events.FulfillAsync(GitEvents.ConfiguredServices, services).ConfigureAwait(false);

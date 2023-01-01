@@ -40,21 +40,21 @@ namespace Vernuntii.Extensions
             }
 
             services
-                .ScopeToVernuntii()
-                .ScopeToGit()
+                .TakeViewOfVernuntii()
+                .TakeViewOfGit()
                 .AddRepository();
 
             if (gitConfiguration != null) {
                 services
-                    .ScopeToVernuntii()
-                    .ScopeToGit()
+                    .TakeViewOfVernuntii()
+                    .TakeViewOfGit()
                     .UseConfigurationDefaults(gitConfiguration);
             }
 
             if (tryCreateVersioningPresetExtension) {
                 services
-                    .ScopeToVernuntii()
-                    .ScopeToGit()
+                    .TakeViewOfVernuntii()
+                    .TakeViewOfGit()
                     .ConfigureBranchCases(branchCases => branchCases
                     .TryCreateVersioningPresetExtension());
             }

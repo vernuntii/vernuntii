@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Teronis.IO.FileLocking;
+using Vernuntii.Serialization;
 
 namespace Vernuntii.Text.Json
 {

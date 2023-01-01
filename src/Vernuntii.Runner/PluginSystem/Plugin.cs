@@ -79,14 +79,16 @@ namespace Vernuntii.PluginSystem
         }
 
         /// <summary>
-        /// Called when this plugin gets notified about event aggregator.
+        /// Called when this plugin got notified about the event system.
+        /// The plugin base method implementation of this must not be called.
         /// </summary>
         protected virtual void OnExecution()
         {
         }
 
         /// <summary>
-        /// Called when this plugin gets notified about event aggregator.
+        /// Called when this plugin got notified about the event system.
+        /// This base method does not have to be called if the next base type is <see cref="Plugin"/>.
         /// </summary>
         protected virtual Task OnExecutionAsync() =>
             Task.CompletedTask;

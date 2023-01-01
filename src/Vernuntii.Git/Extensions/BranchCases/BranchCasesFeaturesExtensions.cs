@@ -3,62 +3,62 @@
 namespace Vernuntii.Extensions.BranchCases
 {
     /// <summary>
-    /// Extension methods for <see cref="IBranchCasesServicesScope"/>.
+    /// Extension methods for <see cref="IBranchCasesServicesView"/>.
     /// </summary>
     public static class BranchCasesFeaturesExtensions
     {
         /// <summary>
         /// Configures instances of <see cref="IBranchCase"/> of <see cref="BranchCasesOptions"/>.
         /// </summary>
-        /// <param name="features"></param>
+        /// <param name="view"></param>
         /// <param name="configureBranchCase"></param>
-        public static IBranchCasesServicesScope ForEach(this IBranchCasesServicesScope features, Action<IBranchCase> configureBranchCase)
+        public static IBranchCasesServicesView ForEach(this IBranchCasesServicesView view, Action<IBranchCase> configureBranchCase)
         {
-            features.Services.AddOptions<BranchCasesOptions>()
+            view.Services.AddOptions<BranchCasesOptions>()
                 .Configure(options => {
                     foreach (var branchCaseArguments in options.BranchCases.Values) {
                         configureBranchCase(branchCaseArguments);
                     }
                 });
 
-            return features;
+            return view;
         }
 
         /// <summary>
         /// Configures instances of <see cref="IBranchCase"/> of <see cref="BranchCasesOptions"/>.
         /// </summary>
-        /// <param name="features"></param>
+        /// <param name="view"></param>
         /// <param name="configureBranchCase"></param>
-        public static IBranchCasesServicesScope ForEach<TDependency>(this IBranchCasesServicesScope features, Action<IBranchCase, TDependency> configureBranchCase)
+        public static IBranchCasesServicesView ForEach<TDependency>(this IBranchCasesServicesView view, Action<IBranchCase, TDependency> configureBranchCase)
             where TDependency : class
         {
-            features.Services.AddOptions<BranchCasesOptions>()
+            view.Services.AddOptions<BranchCasesOptions>()
                 .Configure<TDependency>((options, dependency) => {
                     foreach (var branchCaseArguments in options.BranchCases.Values) {
                         configureBranchCase(branchCaseArguments, dependency);
                     }
                 });
 
-            return features;
+            return view;
         }
 
         /// <summary>
         /// Configures instances of <see cref="IBranchCase"/> of <see cref="BranchCasesOptions"/>.
         /// </summary>
-        /// <param name="features"></param>
+        /// <param name="view"></param>
         /// <param name="configureBranchCase"></param>
-        public static IBranchCasesServicesScope ForEach<TDependency1, TDependency2>(this IBranchCasesServicesScope features, Action<IBranchCase, TDependency1, TDependency2> configureBranchCase)
+        public static IBranchCasesServicesView ForEach<TDependency1, TDependency2>(this IBranchCasesServicesView view, Action<IBranchCase, TDependency1, TDependency2> configureBranchCase)
             where TDependency1 : class
             where TDependency2 : class
         {
-            features.Services.AddOptions<BranchCasesOptions>()
+            view.Services.AddOptions<BranchCasesOptions>()
                 .Configure<TDependency1, TDependency2>((options, dependency, dependency2) => {
                     foreach (var branchCaseArguments in options.BranchCases.Values) {
                         configureBranchCase(branchCaseArguments, dependency, dependency2);
                     }
                 });
 
-            return features;
+            return view;
         }
     }
 }

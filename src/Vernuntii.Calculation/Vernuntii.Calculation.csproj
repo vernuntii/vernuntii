@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="VersionCaching\Hashing\**" />
-    <EmbeddedResource Remove="VersionCaching\Hashing\**" />
-    <None Remove="VersionCaching\Hashing\**" />
+    <Compile Remove="VersionPersistence\Hashing\**" />
+    <EmbeddedResource Remove="VersionPersistence\Hashing\**" />
+    <None Remove="VersionPersistence\Hashing\**" />
   </ItemGroup>
 
   <ItemGroup>

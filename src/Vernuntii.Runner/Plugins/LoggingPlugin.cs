@@ -52,17 +52,19 @@ namespace Vernuntii.Plugins
          * If value is not specified, then log on information level.
          * If value is specified, then log on specified log level.
          */
-        private readonly Option<Verbosity?> _verbosityOption = new(new[] { "--verbosity", "-v" }, parseArgument: result => {
+        private readonly Option<Verbosity?> _verbosityOption = new(new[] { "--verbose", "--verbosity", "-v" }, parseArgument: result => {
             if (result.Tokens.Count == 0) {
                 return Verbosity.Information;
             }
+
+            
 
             try {
                 var argument = new Argument<Verbosity>();
                 var value = argument.Parse(result.Tokens[0].Value).GetValueForArgument(argument);
 
                 if (!Enum.IsDefined(value)) {
-                    result.ErrorMessage = $"Verbosity has not been recognized. Have you accidentally specified a comma-separated value?";
+                    result.ErrorMessage = $"Verbosity has not been recognized. Have you specified a comma-separated value by accident?";
                     return default;
                 }
 

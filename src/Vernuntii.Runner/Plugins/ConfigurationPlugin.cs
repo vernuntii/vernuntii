@@ -92,7 +92,7 @@ namespace Vernuntii.Plugins
             Events.Every(ConfigurationEvents.CreateConfiguration)
                 .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
                 .Subscribe(result => {
-                    if (_pluginRegistry.TryGetPlugin<IVersionCacheCheckPlugin>(out var versionCacheChecker) && versionCacheChecker.IsCacheUpToDate) {
+                    if (_pluginRegistry.TryGetPlugin<IVersionCachePlugin>(out var versionCacheChecker) && versionCacheChecker.IsCacheUpToDate) {
                         return Task.CompletedTask;
                     }
 

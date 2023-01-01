@@ -13,7 +13,7 @@ public enum SemanticVersionFormat
     /// <summary>
     /// The version core.
     /// </summary>
-    Version = 32,
+    VersionCore = 32,
     /// <summary>
     /// The pre-release.
     /// </summary>
@@ -25,7 +25,7 @@ public enum SemanticVersionFormat
     /// <summary>
     /// The version core and pre-release.
     /// </summary>
-    VersionRelease = Version | PreRelease,
+    VersionRelease = VersionCore | PreRelease,
     /// <summary>
     /// The version core, pre-release and build.
     /// </summary>
@@ -33,5 +33,5 @@ public enum SemanticVersionFormat
     /// <summary>
     /// The full version representation.
     /// </summary>
-    SemanticVersion = Prefix | Version | PreRelease | Build,
+    SemanticVersion = Prefix | VersionCore | PreRelease | Build,
 }

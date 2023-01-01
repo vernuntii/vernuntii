@@ -45,11 +45,11 @@ namespace Vernuntii.Runner
             _pluginRegistry = pluginRegistry;
             var loggingPlugin = pluginRegistry.GetPlugin<ILoggingPlugin>();
             _logger = loggingPlugin.CreateLogger<VernuntiiRunner>();
-            MeasureEventSystemPerfomance(loggingPlugin.CreateLogger<EventSystem>());
+            MeasureEventSystemPerformance(loggingPlugin.CreateLogger<EventSystem>());
         }
 
         [Conditional("DEBUG")]
-        private void MeasureEventSystemPerfomance(ILogger<EventSystem> logger) =>
+        private void MeasureEventSystemPerformance(ILogger<EventSystem> logger) =>
             _pluginEvents = new PerformanceMeasuringEventSystem(logger);
 
         private bool _alreadyInitiatedLifecycleOnce;
@@ -125,7 +125,7 @@ namespace Vernuntii.Runner
 
             if (_alreadyInitiatedLifecycleOnce) {
                 await _pluginEvents.FulfillAsync(LifecycleEvents.BeforeNextRun, _lifecycleContext).ConfigureAwait(false);
-                await _pluginEvents.FulfillAsync(VersionCacheCheckEvents.CheckVersionCache).ConfigureAwait(false);
+                await _pluginEvents.FulfillAsync(VersionCacheEvents.CheckVersionCache).ConfigureAwait(false);
             }
 
             _alreadyInitiatedLifecycleOnce = true;

@@ -6,32 +6,27 @@ using Vernuntii.Text.RegularExpressions;
 namespace Vernuntii.Extensions.BranchCases
 {
     /// <summary>
-    /// Extension methods for <see cref="IGitServicesScope"/>.
+    /// Extension methods for <see cref="IGitServicesView"/>.
     /// </summary>
     public static class GitFeaturesExtensions
     {
-        private static IGitServicesScope AddBranchCaseArgumentsProvider(this IGitServicesScope scope)
+        private static IGitServicesView AddBranchCaseArgumentsProvider(this IGitServicesView view)
         {
-            var services = scope.Services;
-
-            //services.TryAddScoped(sp =>
-            //    new SlimLazy<IOptionsSnapshot<BranchCasesOptions>>(
-            //        sp.GetRequiredService<IOptionsSnapshot<BranchCasesOptions>>));
-
+            var services = view.Services;
             services.TryAddScoped<IBranchCasesProvider, BranchCasesProvider>();
-            return scope;
+            return view;
         }
 
         /// <summary>
         /// Adds multiple branch cases.
         /// </summary>
-        /// <param name="scope"></param>
+        /// <param name="view"></param>
         /// <param name="branchCaseArgumentsList"></param>
-        public static IGitServicesScope AddBranchCases(this IGitServicesScope scope, IEnumerable<IBranchCase> branchCaseArgumentsList)
+        public static IGitServicesView AddBranchCases(this IGitServicesView view, IEnumerable<IBranchCase> branchCaseArgumentsList)
         {
-            scope.AddBranchCaseArgumentsProvider();
+            view.AddBranchCaseArgumentsProvider();
 
-            var services = scope.Services;
+            var services = view.Services;
             services.ConfigureOptions<BranchCasesOptions.PostConfiguration>();
 
             services.AddOptions<BranchCasesOptions>()
@@ -41,31 +36,8 @@ namespace Vernuntii.Extensions.BranchCases
                     }
                 });
 
-            return scope;
+            return view;
         }
-
-        ///// <summary>
-        ///// Adds multiple branch cases.
-        ///// </summary>
-        ///// <param name="scope"></param>
-        ///// <param name="branchCases"></param>
-        ///// <param name="additionalBranchCases"></param>
-        //public static IGitServicesScope AddBranchCases(
-        //    this IGitServicesScope scope,
-        //    IBranchCase branchCases,
-        //    IEnumerable<IBranchCase> additionalBranchCases)
-        //{
-        //    return scope.AddBranchCases(ConcatenateBranchCases(branchCases, additionalBranchCases));
-
-        //    static IEnumerable<IBranchCase> ConcatenateBranchCases(IBranchCase branchCase, IEnumerable<IBranchCase> additionalBranchCases)
-        //    {
-        //        yield return branchCase;
-
-        //        foreach (var caseArguments in additionalBranchCases) {
-        //            yield return caseArguments;
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// Applies settings of active branch case by calling:
@@ -80,40 +52,39 @@ namespace Vernuntii.Extensions.BranchCases
         /// to search "&lt;major>.&lt;minor>.&lt;patch>"- and "&lt;major>.&lt;minor>.&lt;patch>-&lt;taken-pre-release>"-versions
         /// otherwise only "&lt;major>.&lt;minor>.&lt;patch>"-versions are considered.
         /// </summary>
-        /// <param name="scope"></param>
-        public static IGitServicesScope UseActiveBranchCaseDefaults(this IGitServicesScope scope) => scope
-            .Configure(configurer => {
-                var defaultBranchCaseArguments = configurer.ServiceProvider.GetDefaultBranchCase();
-                var activeBranchCaseArguments = configurer.ServiceProvider.GetActiveBranchCase();
-                var repository = configurer.ServiceProvider.GetRequiredService<IRepository>();
+        /// <param name="view"></param>
+        public static IGitServicesView UseActiveBranchCaseDefaults(this IGitServicesView view) => view.Configure(configurer => {
+            var defaultBranchCaseArguments = configurer.ServiceProvider.GetDefaultBranchCase();
+            var activeBranchCaseArguments = configurer.ServiceProvider.GetActiveBranchCase();
+            var repository = configurer.ServiceProvider.GetRequiredService<IRepository>();
 
-                configurer.SetSinceCommit(activeBranchCaseArguments.SinceCommit);
-                configurer.SetBranch(activeBranchCaseArguments.Branch);
+            configurer.SetSinceCommit(activeBranchCaseArguments.SinceCommit);
+            configurer.SetBranch(activeBranchCaseArguments.Branch);
 
-                // Define pre-release.
-                var preRelease = activeBranchCaseArguments.PreRelease;
+            // Define pre-release.
+            var preRelease = activeBranchCaseArguments.PreRelease;
 
-                if (preRelease == null) {
-                    preRelease = activeBranchCaseArguments.Branch ?? repository.GetActiveBranch().ShortBranchName;
-                } else if (preRelease == "") {
-                    preRelease = null;
-                }
+            if (preRelease == null) {
+                preRelease = activeBranchCaseArguments.Branch ?? repository.GetActiveBranch().ShortBranchName;
+            } else if (preRelease == "") {
+                preRelease = null;
+            }
 
-                // Define search pre-release.
-                var searchPreRelease = activeBranchCaseArguments.SearchPreRelease ?? preRelease;
+            // Define search pre-release.
+            var searchPreRelease = activeBranchCaseArguments.SearchPreRelease ?? preRelease;
 
-                // Escape search pre-release.
-                searchPreRelease = RegexUtils.Escape(searchPreRelease, activeBranchCaseArguments.SearchPreReleaseEscapes
-                    ?? activeBranchCaseArguments.PreReleaseEscapes
-                    ?? defaultBranchCaseArguments.SearchPreReleaseEscapes
-                    ?? defaultBranchCaseArguments.PreReleaseEscapes);
+            // Escape search pre-release.
+            searchPreRelease = RegexUtils.Escape(searchPreRelease, activeBranchCaseArguments.SearchPreReleaseEscapes
+                ?? activeBranchCaseArguments.PreReleaseEscapes
+                ?? defaultBranchCaseArguments.SearchPreReleaseEscapes
+                ?? defaultBranchCaseArguments.PreReleaseEscapes);
 
-                // Escape pre-release.
-                preRelease = RegexUtils.Escape(preRelease, activeBranchCaseArguments.PreReleaseEscapes
-                    ?? defaultBranchCaseArguments.PreReleaseEscapes);
+            // Escape pre-release.
+            preRelease = RegexUtils.Escape(preRelease, activeBranchCaseArguments.PreReleaseEscapes
+                ?? defaultBranchCaseArguments.PreReleaseEscapes);
 
-                configurer.SetSearchPreRelease(searchPreRelease);
-                configurer.SetPostPreRelease(preRelease);
-            });
+            configurer.SetSearchPreRelease(searchPreRelease);
+            configurer.SetPostPreRelease(preRelease);
+        });
     }
 }

@@ -175,12 +175,12 @@ The MSBuild package is called `Vernuntii.Console.MSBuild` and installable over N
 When installed it sets MSBuild-specific properties:
 
 - `<Version>$(Vernuntii_SemanticVersion)</Version>`
-- `<VersionPrefix>$(Vernuntii_Version)</VersionPrefix>`
+- `<VersionPrefix>$(Vernuntii_VersionCore)</VersionPrefix>`
 - `<VersionSuffix>$(Vernuntii_PreRelease)$(Vernuntii_PlusBuild)</VersionSuffix>`
 - `<PackageVersion>$(Vernuntii_SemanticVersion)</PackageVersion>`
-- `<AssemblyVersion>$(Vernuntii_Version).0</AssemblyVersion>` (if not previously defined)
-- `<InformationalVersion>$(Vernuntii_Version)$(Vernuntii_HyphenPreRelease)+$(Vernuntii_BranchName)</InformationalVersion>` (if not previously defined)
-- `<FileVersion>$(Vernuntii_Version).0</FileVersion>` (if not previously defined)
+- `<AssemblyVersion>$(Vernuntii_VersionCore).0</AssemblyVersion>` (if not previously defined)
+- `<InformationalVersion>$(Vernuntii_VersionCore)$(Vernuntii_HyphenPreRelease)+$(Vernuntii_BranchName)</InformationalVersion>` (if not previously defined)
+- `<FileVersion>$(Vernuntii_VersionCore).0</FileVersion>` (if not previously defined)
 
 The `Vernuntii_*`-properties are provided by an internal MSBuild-task that calls the Vernuntii global tool.
 

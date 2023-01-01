@@ -8,12 +8,12 @@ using Vernuntii.SemVer;
 namespace Vernuntii.Extensions
 {
     /// <summary>
-    /// Extension methods for <see cref="IVersionIncrementationServicesScope"/>.
+    /// Extension methods for <see cref="IVersionIncrementationServicesView"/>.
     /// </summary>
     public static class VersionIncrementationFeaturesExtensions
     {
-        private static void SetMessagesProviderFromServiceProvider(IVersionIncrementationServicesScope scope) =>
-            scope.ConfigureOptions(options => options
+        private static void SetMessagesProviderFromServiceProvider(IVersionIncrementationServicesView view) =>
+            view.ConfigureOptions(options => options
                 .Configure<IMessagesProvider>((options, messagesProvider) => options.MessagesProvider = messagesProvider));
 
         /// <summary>
@@ -22,8 +22,8 @@ namespace Vernuntii.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="extensions"></param>
         /// <param name="messagesProviderFactory"></param>
-        public static IVersionIncrementationServicesScope UseMessagesProvider<T>(
-            this IVersionIncrementationServicesScope extensions,
+        public static IVersionIncrementationServicesView UseMessagesProvider<T>(
+            this IVersionIncrementationServicesView extensions,
             Func<IServiceProvider, T> messagesProviderFactory)
             where T : class, IMessagesProvider
         {
@@ -40,13 +40,13 @@ namespace Vernuntii.Extensions
         /// Uses a messages provider.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="scope"></param>
-        public static IVersionIncrementationServicesScope UseMessagesProvider<T>(this IVersionIncrementationServicesScope scope)
+        /// <param name="view"></param>
+        public static IVersionIncrementationServicesView UseMessagesProvider<T>(this IVersionIncrementationServicesView view)
             where T : class, IMessagesProvider
         {
-            scope.Services.TryAddScoped<IMessagesProvider, T>();
-            SetMessagesProviderFromServiceProvider(scope);
-            return scope;
+            view.Services.TryAddScoped<IMessagesProvider, T>();
+            SetMessagesProviderFromServiceProvider(view);
+            return view;
         }
 
         /// <summary>
@@ -54,8 +54,8 @@ namespace Vernuntii.Extensions
         /// </summary>
         /// <param name="extensions"></param>
         /// <param name="configureOptionsBuilder"></param>
-        public static IVersionIncrementationServicesScope ConfigureOptions(
-            this IVersionIncrementationServicesScope extensions,
+        public static IVersionIncrementationServicesView ConfigureOptions(
+            this IVersionIncrementationServicesView extensions,
             Action<OptionsBuilder<VersionIncrementationOptions>> configureOptionsBuilder)
         {
             if (configureOptionsBuilder is null) {
@@ -71,24 +71,24 @@ namespace Vernuntii.Extensions
         /// </summary>
         /// <param name="extensions"></param>
         /// <param name="configureOptions"></param>
-        public static IVersionIncrementationServicesScope Configure(
-            this IVersionIncrementationServicesScope extensions,
+        public static IVersionIncrementationServicesView Configure(
+            this IVersionIncrementationServicesView extensions,
             Action<VersionIncrementationOptions> configureOptions) =>
             extensions.ConfigureOptions((OptionsBuilder<VersionIncrementationOptions> optionsBuilder) => optionsBuilder.Configure(configureOptions));
 
         /// <summary>
         /// Overrides <see cref="VersionIncrementationOptions.StartVersion"/>.
         /// </summary>
-        /// <param name="features"></param>
+        /// <param name="view"></param>
         /// <param name="startVersion"></param>
-        public static IVersionIncrementationServicesScope OverrideStartVersion(
-            this IVersionIncrementationServicesScope features,
+        public static IVersionIncrementationServicesView OverrideStartVersion(
+            this IVersionIncrementationServicesView view,
             SemanticVersion startVersion)
         {
-            features.Services.AddOptions<VersionIncrementationOptions>()
+            view.Services.AddOptions<VersionIncrementationOptions>()
                 .Configure(options => options.StartVersion = startVersion);
 
-            return features;
+            return view;
         }
 
         /// <summary>
@@ -96,18 +96,18 @@ namespace Vernuntii.Extensions
         /// It looks for the key <see cref="CalculatorConfigurationKeys.StartVersion"/>.
         /// If the value is null or empty start version won't be set.
         /// </summary>
-        /// <param name="scope"></param>
+        /// <param name="view"></param>
         /// <param name="configuration"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static IVersionIncrementationServicesScope TryOverrideStartVersion(this IVersionIncrementationServicesScope scope, IConfiguration configuration)
+        public static IVersionIncrementationServicesView TryOverrideStartVersion(this IVersionIncrementationServicesView view, IConfiguration configuration)
         {
             var startVersionString = configuration.GetValue(CalculatorConfigurationKeys.StartVersion, string.Empty);
 
             if (!string.IsNullOrEmpty(startVersionString)) {
-                scope.OverrideStartVersion(SemanticVersion.Parse(startVersionString));
+                view.OverrideStartVersion(SemanticVersion.Parse(startVersionString));
             }
 
-            return scope;
+            return view;
         }
     }
 }

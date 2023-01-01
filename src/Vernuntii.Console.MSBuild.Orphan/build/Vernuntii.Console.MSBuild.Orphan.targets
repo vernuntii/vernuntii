@@ -65,7 +65,7 @@
       <Output TaskParameter="Major" PropertyName="Vernuntii_Major" />
       <Output TaskParameter="Minor" PropertyName="Vernuntii_Minor" />
       <Output TaskParameter="Patch" PropertyName="Vernuntii_Patch" />
-      <Output TaskParameter="Version" PropertyName="Vernuntii_Version" />
+      <Output TaskParameter="VersionCore" PropertyName="Vernuntii_VersionCore" />
       <Output TaskParameter="PreRelease" PropertyName="Vernuntii_PreRelease" />
       <Output TaskParameter="HyphenPreRelease" PropertyName="Vernuntii_HyphenPreRelease" />
       <Output TaskParameter="Build" PropertyName="Vernuntii_Build" />
@@ -77,12 +77,12 @@
 
     <PropertyGroup Condition="'$(UpdateVersionPropsFromVernuntiiTask)' != 'false'">
       <Version>$(Vernuntii_SemanticVersion)</Version>
-      <VersionPrefix>$(Vernuntii_Version)</VersionPrefix>
+      <VersionPrefix>$(Vernuntii_VersionCore)</VersionPrefix>
       <VersionSuffix>$(Vernuntii_PreRelease)$(Vernuntii_PlusBuild)</VersionSuffix>
       <PackageVersion>$(Vernuntii_SemanticVersion)</PackageVersion>
-      <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(Vernuntii_Version).0</AssemblyVersion>
-      <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(Vernuntii_Version)$(Vernuntii_HyphenPreRelease)+$(Vernuntii_CommitSha.Substring(0,7))</InformationalVersion>
-      <FileVersion Condition="'$(FileVersion)' == ''">$(Vernuntii_Version).0</FileVersion>
+      <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(Vernuntii_VersionCore).0</AssemblyVersion>
+      <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(Vernuntii_VersionCore)$(Vernuntii_HyphenPreRelease)+$(Vernuntii_CommitSha.Substring(0,7))</InformationalVersion>
+      <FileVersion Condition="'$(FileVersion)' == ''">$(Vernuntii_VersionCore).0</FileVersion>
     </PropertyGroup>
 
   </Target>

@@ -15,6 +15,14 @@ namespace Vernuntii.Plugins.Events
         public static readonly EventDiscriminator<string[]> SetCommandLineArguments = EventDiscriminator.New<string[]>();
 
         /// <summary>
+        /// Event when the root command is about to be sealed. Called inside <see cref="ParseCommandLineArguments"/> event.
+        /// </summary>
+        /// <remarks>
+        /// This event is the last opportunity to register arguments, commands and options, or to set the command handler.
+        /// </remarks>
+        public static readonly EventDiscriminator<ICommand> SealRootCommand = EventDiscriminator.New<ICommand>();
+
+        /// <summary>
         /// Event when command line args are getting parsed.
         /// </summary>
         public static readonly EventDiscriminator<CommandLineArgumentsParsingContext> ParseCommandLineArguments = EventDiscriminator.New<CommandLineArgumentsParsingContext>();

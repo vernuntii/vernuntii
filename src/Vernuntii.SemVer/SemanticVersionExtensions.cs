@@ -51,7 +51,7 @@ namespace Vernuntii.SemVer
                 AppendMaybePrefix(stringBuilder);
             }
 
-            if (format.HasFlag(SemanticVersionFormat.Version)) {
+            if (format.HasFlag(SemanticVersionFormat.VersionCore)) {
                 AppendVersion(stringBuilder);
             }
 

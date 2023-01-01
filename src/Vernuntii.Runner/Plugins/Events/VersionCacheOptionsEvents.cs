@@ -1,4 +1,4 @@
-﻿using Vernuntii.Plugins.VersionCaching;
+﻿using Vernuntii.Plugins.VersionPersistence;
 using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Plugins.Events;

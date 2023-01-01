@@ -17,7 +17,7 @@ namespace Vernuntii.Console
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public VersionPresentation Execute(
+        public GitVersionPresentation Execute(
             string? verbosity,
             string configPath,
             string? cacheId,
@@ -51,7 +51,7 @@ namespace Vernuntii.Console
             var output = Encoding.UTF8.GetString(outputBuffer.WrittenSpan, outputBuffer.WrittenCount);
 
             try {
-                return JsonSerializer.Deserialize<VersionPresentation>(output) ?? throw new InvalidOperationException();
+                return JsonSerializer.Deserialize<GitVersionPresentation>(output) ?? throw new InvalidOperationException();
             } catch {
                 _logger.LogError(output);
                 throw;

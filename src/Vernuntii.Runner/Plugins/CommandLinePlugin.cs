@@ -27,7 +27,7 @@ namespace Vernuntii.Plugins
             action is null ? null : CommandHandler.Create(action);
 
         /// <inheritdoc/>
-        public ICommandWrapper RootCommand { get; }
+        public ICommand RootCommand { get; }
 
         /// <inheritdoc/>
         internal bool PreferExceptionOverExitCode { get; set; }
@@ -38,6 +38,7 @@ namespace Vernuntii.Plugins
         }
 
         private readonly RootCommand _rootCommand;
+        private readonly SealableCommand _sealableRootCommand;
         private readonly ILogger _logger;
         private ParseResult _parseResult = null!;
         private ExceptionDispatchInfo? _exception;
@@ -48,15 +49,28 @@ namespace Vernuntii.Plugins
         public CommandLinePlugin(ILogger<CommandLinePlugin> logger)
         {
             _rootCommand = new RootCommand();
-            RootCommand = new CommandWrapper(_rootCommand, CreateCommandHandler);
+            var rootCommand = new HandlerWrappableCommand(_rootCommand, CreateCommandHandler);
+            var rootCommandLock = new object();
+
+            _sealableRootCommand = new SealableCommand(
+                rootCommand,
+                new ReadOnlyCommand(rootCommand, $"The root command is only permitted to be changed before the {CommandLineEvents.ParseCommandLineArguments} event"),
+                rootCommandLock);
+
+            RootCommand = new LockingCommandDecorator(_sealableRootCommand, rootCommandLock);
             _logger = logger;
         }
 
+        /// <summary>
+        /// A rethrow is attempted if <see cref="PreferExceptionOverExitCode"/> is <see langword="true"/>.
+        /// </summary>
         private void AttemptRethrow()
         {
-            if (PreferExceptionOverExitCode) {
-                _exception?.Throw();
+            if (!PreferExceptionOverExitCode) {
+                return;
             }
+
+            _exception?.Throw();
         }
 
         private void ConfigureCommandLineBuilder(CommandLineBuilder builder) =>
@@ -99,27 +113,35 @@ namespace Vernuntii.Plugins
                     MiddlewareOrder.ExceptionHandler)
                    .CancelOnProcessTermination();
 
+        private void AttemptLogCommandLineArguments(string[]? commandLineArguments)
+        {
+            if (!_logger.IsEnabled(LogLevel.Trace)) {
+                return;
+            }
+
+            string commandLineArgsToEcho;
+
+            if (commandLineArguments == null || commandLineArguments.Length == 0) {
+                commandLineArgsToEcho = " (no arguments)";
+            } else {
+                commandLineArgsToEcho = Environment.NewLine + string.Join(Environment.NewLine, commandLineArguments.Select((x, i) => $"{i}:{x}"));
+            }
+
+            _logger.LogTrace("Parse command-line arguments:{CommandLineArgs}", commandLineArgsToEcho);
+        }
+
         /// <summary>
         /// Called when <see cref="CommandLineEvents.ParseCommandLineArguments"/> is happening.
         /// </summary>
-        protected virtual async ValueTask ParseCommandLineArguments(LifecycleContext lifecycleContext, CommandLineArgumentsParsingContext argumentsParsingContext, string[]? commandLineArguments)
+        protected virtual async Task ParseCommandLineArguments(LifecycleContext lifecycleContext, CommandLineArgumentsParsingContext argumentsParsingContext, string[]? commandLineArguments)
         {
             if (_parseResult != null) {
-                throw new InvalidOperationException("Command line parse result already computed");
+                throw new InvalidOperationException("Command line parse result was already computed");
             }
 
-            if (_logger.IsEnabled(LogLevel.Trace)) {
-                string commandLineArgsToEcho;
-
-                if (commandLineArguments == null || commandLineArguments.Length == 0) {
-                    commandLineArgsToEcho = " (no arguments)";
-                } else {
-                    commandLineArgsToEcho = Environment.NewLine + string.Join(Environment.NewLine, commandLineArguments.Select((x, i) => $"{i}:{x}"));
-                }
-
-                _logger.LogTrace("Parse command-line arguments:{CommandLineArgs}", commandLineArgsToEcho);
-            }
-
+            await Events.FulfillAsync(CommandLineEvents.SealRootCommand, RootCommand);
+            _sealableRootCommand.Seal();
+            AttemptLogCommandLineArguments(commandLineArguments);
             var builder = new CommandLineBuilder(_rootCommand);
             ConfigureCommandLineBuilder(builder);
 
@@ -141,7 +163,8 @@ namespace Vernuntii.Plugins
                     MiddlewareOrder.ErrorReporting)
                 .Build();
 
-            var exitCode = await parser.InvokeAsync(commandLineArguments ?? Array.Empty<string>()).ConfigureAwait(false);
+            var nonEmptyCommandLineArguments = commandLineArguments ?? Array.Empty<string>();
+            var exitCode = await parser.InvokeAsync(nonEmptyCommandLineArguments).ConfigureAwait(false);
 
             // Is null if above middleware was not called.
             if (_parseResult is null) {
@@ -178,12 +201,158 @@ namespace Vernuntii.Plugins
             Events.Every(LifecycleEvents.BeforeEveryRun)
                 .Zip(CommandLineEvents.SetCommandLineArguments)
                 .Zip(CommandLineEvents.ParseCommandLineArguments)
-                .Subscribe(async result => {
+                .Subscribe(result => {
                     var ((lifecycleContext, commandLineArguments), argumentsParsingContext) = result;
-                    await ParseCommandLineArguments(lifecycleContext, argumentsParsingContext, commandLineArguments).ConfigureAwait(false);
+                    return ParseCommandLineArguments(lifecycleContext, argumentsParsingContext, commandLineArguments);
                 });
 
             Events.Every(CommandLineEvents.InvokeRootCommand).Subscribe(InvokeRootCommand);
+        }
+
+
+        private class HandlerWrappableCommand : ICommand
+        {
+            public ICommandHandler? Handler => _command.Handler;
+
+            private readonly Command _command;
+            private readonly Func<Func<Task<int>>?, ICommandHandler?> _commandHandlerFactory;
+
+            /// <summary>
+            /// Creates an instance of this type.
+            /// </summary>
+            /// <param name="command"></param>
+            /// <param name="commandHandlerFactory"></param>
+            /// <exception cref="ArgumentNullException"></exception>
+            public HandlerWrappableCommand(Command command, Func<Func<Task<int>>?, ICommandHandler?> commandHandlerFactory)
+            {
+                _command = command ?? throw new ArgumentNullException(nameof(command));
+                _commandHandlerFactory = commandHandlerFactory ?? throw new ArgumentNullException(nameof(commandHandlerFactory));
+            }
+
+            public ICommandHandler? SetHandler(Func<Task<int>>? commandHandler)
+            {
+                var handler = _commandHandlerFactory(commandHandler);
+                _command.Handler = handler;
+                return handler;
+            }
+
+            public void Add(Argument commandArgument) =>
+                _command.Add(commandArgument);
+
+            public void Add(Command command) =>
+                _command.Add(command);
+
+            public void Add(Option commandOption) =>
+                _command.Add(commandOption);
+        }
+
+        private class LockingCommandDecorator : ICommand
+        {
+            public ICommandHandler? Handler => _command.Handler;
+
+            private readonly ICommand _command;
+            private readonly object _commandLock;
+
+            public LockingCommandDecorator(ICommand command, object commandLock)
+            {
+                _command = command ?? throw new ArgumentNullException(nameof(command));
+                _commandLock = commandLock ?? throw new ArgumentNullException(nameof(commandLock));
+            }
+
+            public ICommandHandler? SetHandler(Func<Task<int>>? handlerFunc)
+            {
+                lock (_commandLock) {
+                    return _command.SetHandler(handlerFunc);
+                }
+            }
+
+            public void Add(Argument commandArgument)
+            {
+                lock (_commandLock) {
+                    _command.Add(commandArgument);
+                }
+            }
+
+            public void Add(Command command)
+            {
+                lock (_commandLock) {
+                    _command.Add(command);
+                }
+            }
+
+            public void Add(Option commandOption)
+            {
+                lock (_commandLock) {
+                    _command.Add(commandOption);
+                }
+            }
+        }
+
+        private class ReadOnlyCommand : ICommand
+        {
+            private const string DefaultReadOnlyMessage = "Command is read-only";
+
+            public ICommandHandler? Handler =>
+                _command.Handler;
+
+            private ICommand _command;
+            private string _readOnlyMessage;
+
+            public ReadOnlyCommand(ICommand handler, string? readOnlyMessage)
+            {
+                _command = handler ?? throw new ArgumentNullException(nameof(handler));
+                _readOnlyMessage = readOnlyMessage ?? DefaultReadOnlyMessage;
+            }
+
+            private Exception CreateReadOnlyException() =>
+                new InvalidOperationException(_readOnlyMessage);
+
+            public ICommandHandler? SetHandler(Func<Task<int>>? handlerFunc) =>
+                throw CreateReadOnlyException();
+
+            public void Add(Argument commandArgument) =>
+                throw CreateReadOnlyException();
+
+            public void Add(Command command) =>
+                throw CreateReadOnlyException();
+
+            public void Add(Option commandOption) =>
+                throw CreateReadOnlyException();
+        }
+
+        private class SealableCommand : ICommand
+        {
+            public ICommandHandler? Handler => _command.Handler;
+
+            private ICommand _command;
+            private readonly ICommand _sealedCommand;
+            private readonly object _sealLock;
+
+            public SealableCommand(ICommand command, ICommand sealedCommand, object sealLock)
+            {
+                _command = command ?? throw new ArgumentNullException(nameof(command));
+                _sealedCommand = sealedCommand ?? throw new ArgumentNullException(nameof(sealedCommand));
+                _sealLock = sealLock ?? throw new ArgumentNullException(nameof(sealLock));
+            }
+
+            public ICommandHandler? SetHandler(Func<Task<int>>? handlerFunc) =>
+                _command.SetHandler(handlerFunc);
+
+            public void Add(Argument commandArgument) =>
+                _command.Add(commandArgument);
+
+            public void Add(Command command) =>
+                _command.Add(command);
+
+            public void Add(Option commandOption) =>
+                _command.Add(commandOption);
+
+            public void Seal()
+            {
+                lock (_sealLock) {
+                    _command = _sealedCommand;
+                }
+            }
         }
     }
 }

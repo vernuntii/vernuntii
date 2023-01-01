@@ -3,10 +3,10 @@ using System.CommandLine.Parsing;
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.Plugins.Events;
-using Vernuntii.Plugins.VersionCaching;
+using Vernuntii.Plugins.VersionPersistence;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
-using Vernuntii.VersionCaching;
+using Vernuntii.VersionPersistence;
 
 namespace Vernuntii.Plugins
 {

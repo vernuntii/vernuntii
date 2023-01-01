@@ -25,7 +25,7 @@ namespace Vernuntii.Plugins
 
         private Task OnCreateServiceProvider()
         {
-            if (_pluginRegistry.TryGetPlugin<IVersionCacheCheckPlugin>(out var versionCacheChecker) && versionCacheChecker.IsCacheUpToDate) {
+            if (_pluginRegistry.TryGetPlugin<IVersionCachePlugin>(out var versionCachePlugin) && versionCachePlugin.IsCacheUpToDate) {
                 return Task.CompletedTask;
             }
 

@@ -19,13 +19,13 @@ internal class VersionIncrementerTestSuite : IDisposable
             .AddLogging()
             .AddSingleton<ICommitsAccessor>(Commits)
             .AddSingleton<ICommitVersionsAccessor>(Commits)
-            .ScopeToVernuntii(vernuntii => vernuntii
+            .TakeViewOfVernuntii(vernuntii => vernuntii
                 .AddVersionIncrementation(incrementation => incrementation
                     .UseMessagesProvider(sp => ActivatorUtilities.CreateInstance<GitCommitMessagesProvider>(sp, Commits))
                     .Configure(options => {
                         options.VersioningPreset = testOptions.VersioningPreset;
                     }))
-                .ScopeToGit(git => git
+                .TakeViewOfGit(git => git
                     .UseLatestCommitVersion()
                     .UseCommitMessagesProvider()
                     .Configure(preRelease => {

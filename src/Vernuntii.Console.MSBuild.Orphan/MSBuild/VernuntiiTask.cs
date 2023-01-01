@@ -69,7 +69,7 @@ namespace Vernuntii.Console.MSBuild
         /// E.g. 0.1.0
         /// </summary>
         [Output]
-        public string? Version { get; set; }
+        public string? VersionCore { get; set; }
 
         /// <summary>
         /// E.g. alpha
@@ -132,7 +132,7 @@ namespace Vernuntii.Console.MSBuild
                 Major = version.Major?.ToString(CultureInfo.InvariantCulture);
                 Minor = version.Major?.ToString(CultureInfo.InvariantCulture);
                 Patch = version.Major?.ToString(CultureInfo.InvariantCulture);
-                Version = version.Version;
+                VersionCore = version.VersionCore;
                 PreRelease = version.PreRelease;
                 HyphenPreRelease = version.HyphenPreRelease;
                 Build = version.Build;

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.SemVer;
-using Vernuntii.VersionCaching;
+using Vernuntii.VersionPersistence.Presentation;
 
 namespace Vernuntii.Plugins.Events
 {
@@ -10,6 +10,12 @@ namespace Vernuntii.Plugins.Events
     /// </summary>
     public static class NextVersionEvents
     {
+        /// <summary>
+        /// Configures the version presentation. 
+        /// It is required to properly display the help text, but foremost being capable to visualize the next version.
+        /// </summary>
+        public static readonly EventDiscriminator<VersionPresentationContext> ConfigureVersionPresentation = EventDiscriminator.New<VersionPresentationContext>();
+
         /// <summary>
         /// Event when global service collection is about to be configured.
         /// </summary>
