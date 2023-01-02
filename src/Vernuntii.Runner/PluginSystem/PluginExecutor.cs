@@ -26,7 +26,7 @@ namespace Vernuntii.PluginSystem
         /// </summary>
         public async Task ExecuteAsync()
         {
-            foreach (var pluginRegistration in _pluginRegistry.OrderlyPluginRegistrations) {
+            foreach (var pluginRegistration in _pluginRegistry.PluginRegistrations) {
                 var task = pluginRegistration.Plugin.OnExecution(_pluginEvents);
 
                 if (!task.IsCompletedSuccessfully) {

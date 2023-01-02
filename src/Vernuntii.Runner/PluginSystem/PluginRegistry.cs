@@ -8,7 +8,7 @@ namespace Vernuntii.PluginSystem
     /// </summary>
     internal sealed class PluginRegistry : IPluginRegistry, IAsyncDisposable, IDisposable
     {
-        public IEnumerable<IPluginRegistration> OrderlyPluginRegistrations =>
+        public IEnumerable<IPluginRegistration> PluginRegistrations =>
             _pluginRegistrations.Values;
 
         private readonly IReadOnlyDictionary<Type, IPluginRegistration> _pluginRegistrations;

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using MessagePack;
 using Microsoft.Extensions.Logging;
 using Vernuntii.SemVer;
 using Vernuntii.Serialization;
@@ -12,9 +11,8 @@ namespace Vernuntii.VersionPersistence;
 /// <summary>
 /// Manages the version cache.
 /// </summary>
-public class VersionCacheManager : IVersionCacheManager
+public class VersionCacheManager : IVersionCacheManager, ICacheIdentifierProvider
 {
-
     /// <inheritdoc/>
     public string CacheId { get; }
 
@@ -104,7 +102,7 @@ public class VersionCacheManager : IVersionCacheManager
 
             if (!cacheFile.CanRead) {
                 isRecacheRequired = true;
-                recacheReason = "Cache is empty";
+                recacheReason = "Cache is inexistent";
             } else {
                 versionCache = cacheFile.ReadCache();
 
@@ -132,27 +130,30 @@ public class VersionCacheManager : IVersionCacheManager
     }
 
     /// <inheritdoc/>
-    public bool IsRecacheRequired([NotNullWhen(false)] out IVersionCache? versionCache)
+    public bool IsCacheUpToDate([NotNullWhen(true)] out IVersionCache? versionCache, [NotNullWhen(false)] out string? reason)
     {
         using var recacheIndicator = GetRecacheIndicator(comparableVersion: null);
-        var isRecacheRequired = recacheIndicator.IsRecacheRequired(out var loadedVersionCache, out var versionCacheWriter);
 
-        if (!isRecacheRequired
-            && loadedVersionCache != null
-            && _useLastAccessRetentionTime) {
-            var newLastAccessTime = DateTime.UtcNow;
-            versionCache = new VersionCache(loadedVersionCache) { LastAccessTime = newLastAccessTime };
+        if (!recacheIndicator.IsRecacheRequired(out var internalVersionCache, out var versionCacheWriter)) {
+            if (_useLastAccessRetentionTime) {
+                var newLastAccessTime = DateTime.UtcNow;
+                versionCache = new VersionCache(internalVersionCache) { LastAccessTime = newLastAccessTime };
+                versionCacheWriter.Overwrite(versionCache);
 
-            _logger.LogInformation(
-                "Updated last access time of version cache to {LastAccessTime} (UTC)",
-                newLastAccessTime.ToString(@"HH\:mm\:ss", CultureInfo.InvariantCulture));
+                _logger.LogInformation(
+                    "Updated last access time of version cache to {LastAccessTime} (UTC)",
+                    newLastAccessTime.ToString(@"HH\:mm\:ss", CultureInfo.InvariantCulture));
+            } else {
+                versionCache = internalVersionCache;
+            }
 
-            versionCacheWriter.Overwrite(versionCache);
-        } else {
-            versionCache = loadedVersionCache;
+            reason = null;
+            return true;
         }
 
-        return isRecacheRequired;
+        versionCache = internalVersionCache;
+        reason = recacheIndicator.RecacheReason;
+        return false;
     }
 
     /// <inheritdoc/>

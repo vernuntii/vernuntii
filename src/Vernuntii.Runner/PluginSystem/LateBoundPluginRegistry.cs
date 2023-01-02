@@ -4,8 +4,8 @@ namespace Vernuntii.PluginSystem
 {
     internal class LateBoundPluginRegistry : IPluginRegistry
     {
-        public IEnumerable<IPluginRegistration> OrderlyPluginRegistrations =>
-            GetPluginRegistry().OrderlyPluginRegistrations;
+        public IEnumerable<IPluginRegistration> PluginRegistrations =>
+            GetPluginRegistry().PluginRegistrations;
 
         private IPluginRegistry? _pluginRegistry;
 

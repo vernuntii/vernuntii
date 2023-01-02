@@ -75,14 +75,26 @@ namespace Vernuntii.Plugins
                 _versionCacheManagerLogger);
 
             var versionHashFile = new VersionHashFile(new VersionHashFileOptions(gitDirectory, configFile), _versionCacheManager, versionCacheDirectory);
-            var isCacheUpToDate = !versionHashFile.IsVersionRecacheRequired(out var versionCache);
+            var hash = await versionHashFile.IsHashUpToDateOtherwiseUpdate();
+            string? cacheNotUpToDateReason = null;
 
-            if (isCacheUpToDate) {
-                _versionCache = versionCache;
+            if (hash.IsUpTodate) {
+                if (_versionCacheManager.IsCacheUpToDate(out var versionCache, out cacheNotUpToDateReason)) {
+                    _versionCache = versionCache;
+                }
+            } else {
+                cacheNotUpToDateReason = hash.Reason;
             }
 
             _isChecked = true;
-            _logger.LogInformation("Checked version cache in {ElapsedTime} (Cache id = {CacheId}, Up-to-date = {UpToDate})", watch.Elapsed.ToSecondsString(), _versionCacheManager.CacheId, isCacheUpToDate);
+
+            _logger.LogInformation(
+                "Checked version cache in {ElapsedTime} (Cache id = {CacheId}, Up-to-date = {UpToDate}{NotUpToDateReason})",
+                watch.Elapsed.ToSecondsString(),
+                _versionCacheManager.CacheId,
+                IsCacheUpToDate,
+                cacheNotUpToDateReason != null ? ", Reason = " + cacheNotUpToDateReason : "");
+
             await Events.FulfillAsync(VersionCacheEvents.CheckedVersionCache);
         }
 

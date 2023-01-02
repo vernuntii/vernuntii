@@ -15,6 +15,6 @@ namespace Vernuntii.VersionPersistence
         /// <summary>
         /// Checks whether recache is required.
         /// </summary>
-        bool IsRecacheRequired([NotNullWhen(false)] out IVersionCache? versionCache);
+        bool IsCacheUpToDate([NotNullWhen(true)] out IVersionCache? versionCache, [NotNullWhen(false)] out string? reason);
     }
 }

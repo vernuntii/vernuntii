@@ -1,36 +1,35 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Teronis.IO.FileLocking;
+﻿using Teronis.IO.FileLocking;
 
 namespace Vernuntii.VersionPersistence
 {
     /// <summary>
     /// Represents the cache representive hash code of a git directory.
     /// </summary>
-    public class VersionHashFile
+    internal class VersionHashFile
     {
         private const string RefsTagDirectory = "refs/tags";
         private const string RefsHeadsDirectory = "refs/heads";
         private const string PackedRefsDirectory = "packed-refs";
-        private const string HashExtension = ".hash";
+        private const string HashFileExtension = ".hash";
 
         private readonly VersionHashFileOptions _options;
-        private readonly IVersionCacheManager _cacheManager;
+        private readonly ICacheIdentifierProvider _cacheIdentifierProvider;
         private readonly IVersionCacheDirectory _cacheDirectory;
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
         /// <param name="options"></param>
-        /// <param name="cacheManager"></param>
+        /// <param name="cacheIdentifierProvider"></param>
         /// <param name="cacheDirectory"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public VersionHashFile(
             VersionHashFileOptions options,
-            IVersionCacheManager cacheManager,
+            ICacheIdentifierProvider cacheIdentifierProvider,
             IVersionCacheDirectory cacheDirectory)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
+            _cacheIdentifierProvider = cacheIdentifierProvider ?? throw new ArgumentNullException(nameof(cacheIdentifierProvider));
             _cacheDirectory = cacheDirectory ?? throw new ArgumentNullException(nameof(cacheDirectory));
         }
 
@@ -40,12 +39,12 @@ namespace Vernuntii.VersionPersistence
         /// hashes differ *or* the data inside the cache file (not to be confused with the hash file)
         /// got invalid (e.g. last access time exceeded) then a recache is required.
         /// </summary>
-        /// <param name="versionCache">
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <returns>
         /// The version cache when recache is not required. Is definitively <see langword="null"/> if
         /// returned boolean is <see langword="false"/>.
-        /// </param>
-        /// <exception cref="InvalidOperationException"></exception>
-        public bool IsVersionRecacheRequired([NotNullWhen(false)] out IVersionCache? versionCache)
+        /// </returns>
+        public async Task<UpToDateResult<string>> IsHashUpToDateOtherwiseUpdate()
         {
             _cacheDirectory.CreateCacheDirectoryIfNotExisting();
 
@@ -54,24 +53,24 @@ namespace Vernuntii.VersionPersistence
             var refsTagDirectory = Path.Combine(gitDirectory, RefsTagDirectory);
             var refsHeadDirectory = Path.Combine(gitDirectory, RefsHeadsDirectory);
             var packedRefsFile = Path.Combine(gitDirectory, PackedRefsDirectory);
-            var hashFile = Path.Combine(_cacheDirectory.CacheDirectoryPath, $"{_cacheManager.CacheId}{HashExtension}");
+            var hashFile = Path.Combine(_cacheDirectory.CacheDirectoryPath, $"{_cacheIdentifierProvider.CacheId}{HashFileExtension}");
 
-            var upToDateHashCode = new UpToDateHashCode();
+            var filesHashCode = new FilesHashCode();
 
             if (configFile != null) {
-                upToDateHashCode.AddFile(configFile);
+                filesHashCode.AddFile(configFile);
             }
 
             if (Directory.Exists(refsTagDirectory)) {
-                upToDateHashCode.AddDirectory(refsTagDirectory);
+                filesHashCode.AddDirectory(refsTagDirectory);
             }
 
             if (Directory.Exists(refsHeadDirectory)) {
-                upToDateHashCode.AddDirectory(refsHeadDirectory);
+                filesHashCode.AddDirectory(refsHeadDirectory);
             }
 
             if (File.Exists(packedRefsFile)) {
-                upToDateHashCode.AddFile(packedRefsFile);
+                filesHashCode.AddFile(packedRefsFile);
             }
 
             using var upToDateFileStream = FileStreamLocker.Default.WaitUntilAcquired(hashFile)
@@ -80,28 +79,27 @@ namespace Vernuntii.VersionPersistence
             using var upToDateFileBuffer = new MemoryStream((int)upToDateFileStream.Length);
             upToDateFileStream.CopyTo(upToDateFileBuffer);
 
-            var upToDateHashCodeBytes = upToDateHashCode.ToHashCode();
+            var upToDateHashCodeBytes = await filesHashCode.ToHashCodeAsync().ConfigureAwait(false);
             var upToDateFileHashCode = upToDateFileBuffer.ToArray();
             var isUpToDateHashEqual = upToDateFileHashCode.SequenceEqual(upToDateHashCodeBytes);
 
-            bool isCacheUpToDate;
+            if (!isUpToDateHashEqual) {
+                string reason;
 
-            if (isUpToDateHashEqual && !_cacheManager.IsRecacheRequired(out versionCache)) {
-                isCacheUpToDate = true;
-            } else {
-                isCacheUpToDate = false;
-                versionCache = null;
-
-                if (!isUpToDateHashEqual) {
+                if (upToDateFileStream.Length == 0) {
+                    reason = "Hash is inexistent";
+                } else {
                     upToDateFileStream.SetLength(0);
                     upToDateFileStream.Flush();
-
-                    using var binaryWriter = new BinaryWriter(upToDateFileStream);
-                    binaryWriter.Write(upToDateHashCodeBytes);
+                    reason = "Hash has changed";
                 }
+
+                using var binaryWriter = new BinaryWriter(upToDateFileStream);
+                binaryWriter.Write(upToDateHashCodeBytes);
+                return UpToDateResult<string>.NotUpToDate(reason);
             }
 
-            return !isCacheUpToDate;
+            return UpToDateResult<string>.UpToDate;
         }
     }
 }

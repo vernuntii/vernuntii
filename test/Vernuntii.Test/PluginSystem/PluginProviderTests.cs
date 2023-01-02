@@ -11,7 +11,7 @@ namespace Vernuntii.PluginSystem
             PluginRegistrar builder = new();
             var pluginDescriptor = PluginDescriptor.Create<EmptyPlugin>();
             builder.Add(pluginDescriptor);
-            var set = builder.BuildOrderlySet();
+            var set = builder.BuildOrderedSet();
 
             set.Should().ContainSingle().
                 Subject.Should().BeEquivalentTo(pluginDescriptor);
@@ -23,7 +23,7 @@ namespace Vernuntii.PluginSystem
             PluginRegistrar builder = new();
             var pluginDescriptor = PluginDescriptor.Create<PluginWithDependency>();
             builder.Add(pluginDescriptor);
-            var set = builder.BuildOrderlySet();
+            var set = builder.BuildOrderedSet();
 
             var supplementedPluginDescriptor = pluginDescriptor with {
                 PluginDependencies = new[] { new ImportPluginAttribute<EmptyPlugin>() { TryRegister = true } }
@@ -40,7 +40,7 @@ namespace Vernuntii.PluginSystem
             PluginRegistrar builder = new();
             var pluginDescriptor = PluginDescriptor.Create<PluginWithSmallerOrder>();
             builder.Add(pluginDescriptor);
-            var set = builder.BuildOrderlySet();
+            var set = builder.BuildOrderedSet();
 
             var supplementedPluginDescriptor = pluginDescriptor with {
                 PluginDependencies = new[] { new ImportPluginAttribute<EmptyPlugin>() { TryRegister = true } },

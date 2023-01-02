@@ -5,14 +5,14 @@ namespace Vernuntii.PluginSystem
 {
     internal class PluginRegistrar : IPluginRegistrar
     {
-        private static PluginDescriptor Supplement(PluginDescriptor pluginDescriptor)
+        private static PluginDescriptor SupplementPluginDescriptor(PluginDescriptor pluginDescriptor)
         {
             var attributes = pluginDescriptor.ImplementationType.GetCustomAttributes(inherit: false);
-            var pluginDependencyDescriptors = FindAttributes<IPluginDependencyDescriptor>();
+            var pluginDependencies = FindAttributes<IPluginDependencyDescriptor>();
             var pluginOrder = (attributes.SingleOrDefault(x => x.GetType() == typeof(PluginAttribute)) as PluginAttribute)?.Order ?? PluginDescriptor.DefaultOrder;
 
             pluginDescriptor = pluginDescriptor with {
-                PluginDependencies = pluginDependencyDescriptors.ToList(),
+                PluginDependencies = pluginDependencies.ToList(),
                 PluginOrder = pluginOrder
             };
 
@@ -36,7 +36,7 @@ namespace Vernuntii.PluginSystem
         public PluginRegistrar() =>
             _uniquePluginDescriptors = new Dictionary<Type, PluginDescriptor>();
 
-        private IEnumerable<IPluginDependencyDescriptor> AddSupplemented(Queue<PluginDescriptor> supplementedPluginDescriptors)
+        private IEnumerable<IPluginDependencyDescriptor> EnumerateSupplementedPluginDescriptors(Queue<PluginDescriptor> supplementedPluginDescriptors)
         {
             while (supplementedPluginDescriptors.TryDequeue(out var next)) {
                 _uniquePluginDescriptors.Add(next.ServiceType, next);
@@ -56,9 +56,9 @@ namespace Vernuntii.PluginSystem
             }
 
             var backlog = new Queue<PluginDescriptor>();
-            backlog.Enqueue(Supplement(pluginDescriptor));
+            backlog.Enqueue(SupplementPluginDescriptor(pluginDescriptor));
 
-            foreach (var pluginDependency in AddSupplemented(backlog)) {
+            foreach (var pluginDependency in EnumerateSupplementedPluginDescriptors(backlog)) {
                 pluginDescriptorKey = pluginDependency.ServiceType;
 
                 if (_uniquePluginDescriptors.ContainsKey(pluginDescriptorKey)) {
@@ -66,28 +66,31 @@ namespace Vernuntii.PluginSystem
                         continue;
                     }
 
-                    throw new DuplicatePluginException();
+                    throw new DuplicatePluginException($"The '{pluginDependency.ServiceType}->{pluginDependency.ImplementationType}' plugin already exists");
                 }
 
-                backlog.Enqueue(Supplement(new PluginDescriptor(pluginDependency.ServiceType, pluginDependency.ImplementationType)));
+                backlog.Enqueue(SupplementPluginDescriptor(new PluginDescriptor(pluginDependency.ServiceType, pluginDependency.ImplementationType)));
             }
         }
 
+        // TODO: internal->private via IoC (see dependent test cases)
         /// <summary>
         /// Builds a set that is ordered by <see cref="PluginDescriptor.PluginOrder"/>.
         /// </summary>
-        internal IReadOnlySet<PluginDescriptor> BuildOrderlySet() =>
+        internal IReadOnlySet<PluginDescriptor> BuildOrderedSet() =>
             _uniquePluginDescriptors.Values.ToImmutableSortedSet(PluginDescriptorOrderComparer.Default);
 
         /// <summary>
         /// Builds a service provider with the plugin descriptors that has been added so far.
         /// </summary>
-        public ServiceProvider BuildServiceProvider(Action<IServiceCollection>? postConfigure, out IReadOnlySet<PluginDescriptor> orderlyPluginDescriptors)
+        /// <param name="postConfigure"></param>
+        /// <param name="pluginDescriptors">The plugin descriptors ordered by their individual order.</param>
+        public ServiceProvider BuildServiceProvider(Action<IServiceCollection>? postConfigure, out IReadOnlySet<PluginDescriptor> pluginDescriptors)
         {
             var services = new ServiceCollection();
-            orderlyPluginDescriptors = BuildOrderlySet();
+            pluginDescriptors = BuildOrderedSet();
 
-            foreach (var pluginDescriptor in orderlyPluginDescriptors) {
+            foreach (var pluginDescriptor in pluginDescriptors) {
                 IList<ServiceDescriptor> serviceDescriptors = services;
                 serviceDescriptors.Add(pluginDescriptor.ToServiceDescriptor());
             }

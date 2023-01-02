@@ -8,9 +8,9 @@ namespace Vernuntii.PluginSystem
     public interface IPluginRegistry
     {
         /// <summary>
-        /// Gets the plugin registration sorted by order.
+        /// Gets the plugin registrations.
         /// </summary>
-        IEnumerable<IPluginRegistration> OrderlyPluginRegistrations { get; }
+        IEnumerable<IPluginRegistration> PluginRegistrations { get; }
 
         /// <summary>
         /// Gets the plugin by its type.

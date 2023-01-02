@@ -36,7 +36,7 @@ namespace Vernuntii.VersionPersistence
             TimeSpan? lastAccessRetentionTime) =>
             useLastAccessRetentionTime && IsExpiredSinceLastAccess(versionCache.LastAccessTime, lastAccessRetentionTime);
 
-        private static bool IsCacheDueToMismatchingVersions(
+        private static bool IsCacheRequiredBecauseMismatchingVersion(
             IVersionCache versionCache,
             ISemanticVersion? comparableVersion) =>
             comparableVersion != null && !SemanticVersionComparer.VersionReleaseBuild.Equals(comparableVersion, versionCache.Version);
@@ -55,7 +55,7 @@ namespace Vernuntii.VersionPersistence
                 recacheReason = "Expiration time";
             } else if (IsCacheExpiredSinceLastAccess(versionCache, useLastAccessRetentionTime, lastAccessRetentionTime)) {
                 recacheReason = "Last access time";
-            } else if (IsCacheDueToMismatchingVersions(versionCache, comparableVersion)) {
+            } else if (IsCacheRequiredBecauseMismatchingVersion(versionCache, comparableVersion)) {
                 recacheReason = "Version mismatch";
             } else {
                 recacheReason = null;

@@ -1,11 +1,12 @@
-﻿using K4os.Hash.xxHash;
+﻿using System.Buffers;
+using K4os.Hash.xxHash;
 
 namespace Vernuntii.VersionPersistence
 {
     /// <summary>
     /// Calculates a hash of multiple _files.
     /// </summary>
-    public class UpToDateHashCode
+    public class FilesHashCode
     {
         private readonly List<string> _files = new();
 
@@ -41,19 +42,28 @@ namespace Vernuntii.VersionPersistence
         }
 
         /// <summary>
-        /// Writes hashcodes of unique and ordered files to a byte array.
+        /// Generates a hash code that represents the ordered files you added so far.
         /// </summary>
-        public byte[] ToHashCode()
+        public async Task<byte[]> ToHashCodeAsync()
         {
-            var sortedFiles = new SortedSet<string>(_files, StringComparer.InvariantCulture);
+            var readFileTasks = new SortedSet<string>(_files, StringComparer.InvariantCulture).Select(x => Task.Run(async () => {
+                const int bufferSize = 1024 * 1024; // 1 MB
+                var hashAlgorithm = new XXH64();
+                using var stream = File.OpenRead(x);
+                using var memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+                int size;
+
+                while ((size = await stream.ReadAsync(memoryOwner.Memory).ConfigureAwait(false)) != 0) {
+                    hashAlgorithm.Update(memoryOwner.Memory.Span[..size]);
+                }
+
+                return hashAlgorithm.DigestBytes();
+            }));
+
             var hashAlgorithm = new XXH64();
 
-            foreach (var file in sortedFiles) {
-                try {
-                    hashAlgorithm.Update(File.ReadAllBytes(file));
-                } catch {
-                    // Can safely be ignored.
-                }
+            foreach (var readFileTask in readFileTasks) {
+                hashAlgorithm.Update(await readFileTask.ConfigureAwait(false));
             }
 
             return hashAlgorithm.DigestBytes();
