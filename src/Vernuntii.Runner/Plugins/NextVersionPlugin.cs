@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -103,18 +104,6 @@ namespace Vernuntii.Plugins
                         new ImmutableVersionCacheDataTuples(versionCacheDataTuples),
                         skipDataLookup: false);
                 }
-
-                //var newBranch = repository.GetActiveBranch();
-
-                //// Get cache or calculate version.
-                //versionCache = versionCacheManager.RecacheCache(
-                //    newVersion,
-                //    newBranch);
-
-                //// Get cache or calculate version.
-                //versionCache = versionCacheManager.RecacheCache(
-                //    incrementedVersion,
-                //    new ImmutableVersionCacheDataTuples(versionCacheDataTuples));
             }
 
             await Events.FulfillAsync(NextVersionEvents.CalculatedNextVersion, versionCache.Version).ConfigureAwait(false);
@@ -146,12 +135,18 @@ namespace Vernuntii.Plugins
                 Description = "The kind of presentation." + presentationKindAndPartsHelpText
             };
 
-            IReadOnlyContentwiseCollection<VersionCachePart>? presentationPartAllowlist = null;
+            IReadOnlyContentwiseCollection<VersionCachePart>? presentableParts = null;
 
             Option<VersionPresentationParts> presentationPartsOption = new(
                 new[] { presentationPartsOptionLongAlias },
-                argumentResult => new VersionPresentationParts(
-                    argumentResult.ParseList(VersionCachePart.New, presentationPartAllowlist))) {
+                new ParseArgument<VersionPresentationParts>(argumentResult => {
+                    var presentationPartAllowlist = VersionPresentationParts.AllowAll(presentableParts);
+                    var parts = argumentResult.ParseList(VersionCachePart.New, presentationPartAllowlist);
+
+                    return parts.Contains(VersionPresentationParts.s_allPart)
+                        ? VersionPresentationParts.Of(presentableParts)
+                        : new VersionPresentationParts(parts);
+                })) {
                 Description = "The parts of the presentation to be displayed." + presentationKindAndPartsHelpText
             };
 
@@ -177,8 +172,7 @@ namespace Vernuntii.Plugins
                     var versionPresentationContext = new VersionPresentationContext();
                     versionPresentationContext.ImportNextVersionRequirements(); // Adds next-version-agnostic defaults
                     await Events.FulfillAsync(NextVersionEvents.ConfigureVersionPresentation, versionPresentationContext);
-                    _presentationParts = new VersionPresentationParts(versionPresentationContext.PresentableParts);
-                    presentationPartAllowlist = _presentationParts;
+                    presentableParts = new VersionPresentationParts(versionPresentationContext.PresentableParts);
                 });
 
             Events.Earliest(CommandLineEvents.ParsedCommandLineArguments).Subscribe(parseResult => {

@@ -6,59 +6,98 @@ namespace Vernuntii.VersionPersistence.Presentation;
 
 public class VersionPresentationParts : IReadOnlySet<VersionCachePart>, IReadOnlyContentwiseCollection<VersionCachePart>
 {
+    /// <summary>
+    /// A special part which represents all representable parts.
+    /// </summary>
+    internal static readonly VersionCachePart s_allPart = VersionCachePart.New("All");
+
+    /// <summary>
+    /// A default instance that contains no presentable parts.
+    /// </summary>
+    public static readonly VersionPresentationParts Empty =
+        new VersionPresentationParts(ImmutableHashSet<VersionCachePart>.Empty, ImmutableList<VersionCachePart>.Empty);
+
+    /// <summary>
+    /// A default instance that contains 'All'.
+    /// </summary>
+    internal static readonly VersionPresentationParts s_all =
+        new VersionPresentationParts(new[] { s_allPart });
+
     public static VersionPresentationParts Of(params VersionCachePart[] parts) =>
         new VersionPresentationParts(parts);
 
-    public static readonly VersionPresentationParts Empty =
-        new VersionPresentationParts(ImmutableHashSet<VersionCachePart>.Empty);
+    /// <summary>
+    /// Creates an instance of <see cref="VersionPresentationParts"/> with <paramref name="parts"/>.
+    /// </summary>
+    /// <param name="parts"></param>
+    /// <returns>
+    /// <see cref="Empty"/> if <paramref name="parts"/> is null.
+    /// </returns>
+    public static VersionPresentationParts Of(IEnumerable<VersionCachePart>? parts) => parts is null
+        ? Empty
+        : new VersionPresentationParts(parts);
 
-    public int Count => _parts.Count;
+    internal static VersionPresentationParts AllowAll(IEnumerable<VersionCachePart>? parts) => parts is null
+        ? s_all
+        : new VersionPresentationParts(parts.Append(s_allPart));
 
-    private IImmutableSet<VersionCachePart> _parts;
+    /// <inheritdoc/>
+    public int Count =>
+        _partList.Count;
 
-    private VersionPresentationParts(IImmutableSet<VersionCachePart> parts) =>
-        _parts = parts;
+    private IImmutableSet<VersionCachePart> _partSet;
+    private IImmutableList<VersionCachePart> _partList;
+
+    private VersionPresentationParts(IImmutableSet<VersionCachePart> partSet, IImmutableList<VersionCachePart> partList)
+    {
+        _partSet = partSet;
+        _partList = partList;
+    }
 
     /// <summary>
     /// Creates an instance of this type.
     /// </summary>
     /// <param name="parts"></param>
-    public VersionPresentationParts(IEnumerable<VersionCachePart> parts) =>
-        _parts = parts.ToImmutableHashSet();
+    public VersionPresentationParts(IEnumerable<VersionCachePart> parts)
+    {
+        _partSet = parts.ToImmutableHashSet();
+        _partList = parts.ToImmutableList();
+    }
 
     /// <inheritdoc/>
     public bool Contains(VersionCachePart item) =>
-        _parts.Contains(item);
+        _partSet.Contains(item);
 
+    /// <inheritdoc/>
     public bool TryGetValue(VersionCachePart value1, out VersionCachePart value2) =>
-        _parts.TryGetValue(value1, out value2);
+        _partSet.TryGetValue(value1, out value2);
 
     /// <inheritdoc/>
     public bool IsProperSubsetOf(IEnumerable<VersionCachePart> other) =>
-        _parts.IsProperSubsetOf(other);
+        _partSet.IsProperSubsetOf(other);
 
     /// <inheritdoc/>
     public bool IsProperSupersetOf(IEnumerable<VersionCachePart> other) =>
-        _parts.IsProperSupersetOf(other);
+        _partSet.IsProperSupersetOf(other);
     /// <inheritdoc/>
     public bool IsSubsetOf(IEnumerable<VersionCachePart> other) =>
-        _parts.IsSubsetOf(other);
+        _partSet.IsSubsetOf(other);
 
     /// <inheritdoc/>
     public bool IsSupersetOf(IEnumerable<VersionCachePart> other) =>
-        _parts.IsSupersetOf(other);
+        _partSet.IsSupersetOf(other);
 
     /// <inheritdoc/>
     public bool Overlaps(IEnumerable<VersionCachePart> other) =>
-        _parts.Overlaps(other);
+        _partSet.Overlaps(other);
 
     /// <inheritdoc/>
     public bool SetEquals(IEnumerable<VersionCachePart> other) =>
-        _parts.SetEquals(other);
+        _partSet.SetEquals(other);
 
     public IEnumerator<VersionCachePart> GetEnumerator() =>
-        _parts.GetEnumerator();
+        _partList.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() =>
-        ((IEnumerable)_parts).GetEnumerator();
+        ((IEnumerable)_partList).GetEnumerator();
 }

@@ -62,9 +62,9 @@ namespace Vernuntii.Console
                 var stringBuilder = new StringBuilder();
 
                 stringBuilder.Append($"--config-path \"{configPath}\"" +
-                    " --presentation-kind complex" +
-                    " --presentation-parts all" +
-                    " --presentation-view json");
+                    " --presentation-kind Complex" +
+                    " --presentation-parts All" +
+                    " --presentation-view Json");
 
                 if (!string.IsNullOrWhiteSpace(verbosity)) {
                     stringBuilder.Append($" --verbosity {verbosity}");
