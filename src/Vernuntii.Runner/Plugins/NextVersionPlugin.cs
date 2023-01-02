@@ -140,10 +140,10 @@ namespace Vernuntii.Plugins
             Option<VersionPresentationParts> presentationPartsOption = new(
                 new[] { presentationPartsOptionLongAlias },
                 new ParseArgument<VersionPresentationParts>(argumentResult => {
-                    var presentationPartAllowlist = VersionPresentationParts.AllowAll(presentableParts);
+                    var presentationPartAllowlist = VersionPresentationParts.AllowAll(presentableParts, VersionCachePartEqualityComparer.InvariantCultureIgnoreCase);
                     var parts = argumentResult.ParseList(VersionCachePart.New, presentationPartAllowlist);
 
-                    return parts.Contains(VersionPresentationParts.s_allPart)
+                    return VersionPresentationParts.HasAllPart(parts)
                         ? VersionPresentationParts.Of(presentableParts)
                         : new VersionPresentationParts(parts);
                 })) {

@@ -9,19 +9,13 @@ public class VersionPresentationParts : IReadOnlySet<VersionCachePart>, IReadOnl
     /// <summary>
     /// A special part which represents all representable parts.
     /// </summary>
-    internal static readonly VersionCachePart s_allPart = VersionCachePart.New("All");
+    private static readonly VersionCachePart s_allPart = VersionCachePart.New("All");
 
     /// <summary>
     /// A default instance that contains no presentable parts.
     /// </summary>
     public static readonly VersionPresentationParts Empty =
         new VersionPresentationParts(ImmutableHashSet<VersionCachePart>.Empty, ImmutableList<VersionCachePart>.Empty);
-
-    /// <summary>
-    /// A default instance that contains 'All'.
-    /// </summary>
-    internal static readonly VersionPresentationParts s_all =
-        new VersionPresentationParts(new[] { s_allPart });
 
     public static VersionPresentationParts Of(params VersionCachePart[] parts) =>
         new VersionPresentationParts(parts);
@@ -37,9 +31,12 @@ public class VersionPresentationParts : IReadOnlySet<VersionCachePart>, IReadOnl
         ? Empty
         : new VersionPresentationParts(parts);
 
-    internal static VersionPresentationParts AllowAll(IEnumerable<VersionCachePart>? parts) => parts is null
-        ? s_all
-        : new VersionPresentationParts(parts.Append(s_allPart));
+    internal static VersionPresentationParts AllowAll(IEnumerable<VersionCachePart>? parts, IEqualityComparer<VersionCachePart> equalityComparer) => parts is null
+        ? new VersionPresentationParts(new[] { s_allPart }, equalityComparer)
+        : new VersionPresentationParts(parts.Append(s_allPart), equalityComparer);
+
+    internal static bool HasAllPart(IEnumerable<VersionCachePart> parts) =>
+        parts.Contains(s_allPart);
 
     /// <inheritdoc/>
     public int Count =>
@@ -58,11 +55,19 @@ public class VersionPresentationParts : IReadOnlySet<VersionCachePart>, IReadOnl
     /// Creates an instance of this type.
     /// </summary>
     /// <param name="parts"></param>
-    public VersionPresentationParts(IEnumerable<VersionCachePart> parts)
+    /// <param name="equalityComparer"></param>
+    internal VersionPresentationParts(IEnumerable<VersionCachePart> parts, IEqualityComparer<VersionCachePart> equalityComparer)
     {
-        _partSet = parts.ToImmutableHashSet();
+        _partSet = parts.ToImmutableHashSet(equalityComparer);
         _partList = parts.ToImmutableList();
     }
+
+    /// <summary>
+    /// Creates an instance of this type.
+    /// </summary>
+    /// <param name="parts"></param>
+    public VersionPresentationParts(IEnumerable<VersionCachePart> parts)
+        : this(parts, EqualityComparer<VersionCachePart>.Default) { }
 
     /// <inheritdoc/>
     public bool Contains(VersionCachePart item) =>
