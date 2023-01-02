@@ -57,7 +57,10 @@ namespace Vernuntii.Plugins
                 return Verbosity.Information;
             }
 
-            
+            if (result.Symbol.Name == "verbose") {
+                result.ErrorMessage = "When using --verbose, you cannot specify a verbosity. Use --verbosity instead.";
+                return default;
+            }
 
             try {
                 var argument = new Argument<Verbosity>();

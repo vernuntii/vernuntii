@@ -89,7 +89,8 @@ namespace Vernuntii.Plugins
                         new ConfigurationEvents.ConfiguredConfigurationBuilderResult() { ConfigPath = addedFilePath }).ConfigureAwait(false);
                 });
 
-            Events.Every(ConfigurationEvents.CreateConfiguration)
+            // TODO: Every once every lifecycle
+            Events.Earliest(ConfigurationEvents.CreateConfiguration)
                 .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
                 .Subscribe(result => {
                     if (_pluginRegistry.TryGetPlugin<IVersionCachePlugin>(out var versionCacheChecker) && versionCacheChecker.IsCacheUpToDate) {

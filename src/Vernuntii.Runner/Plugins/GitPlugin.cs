@@ -173,12 +173,15 @@ public class GitPlugin : Plugin, IGitPlugin
 
         var nextCommandLineParseResult = Events.Earliest(CommandLineEvents.ParsedCommandLineArguments);
 
+        Events.Earliest(ServicesEvents.ConfigureServices)
+            .Subscribe(() => Events.FulfillAsync(ConfigurationEvents.CreateConfiguration));
+
         Events.Earliest(NextVersionEvents.ConfigureServices)
-            .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
             .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)))
+            .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
             .Zip(ConfigurationEvents.CreatedConfiguration)
             .Subscribe(async result => {
-                var (((services, configurationBuilderResult), overridePostPreRelease), configuration) = result;
+                var (((services, overridePostPreRelease), configurationBuilderResult), configuration) = result;
 
                 await Events.FulfillAsync(GitEvents.ConfigureServices, services).ConfigureAwait(false);
                 await EnsureCreatedGitCommand(configurationBuilderResult.ConfigPath).ConfigureAwait(false);
@@ -212,13 +215,8 @@ public class GitPlugin : Plugin, IGitPlugin
                 await Events.FulfillAsync(GitEvents.ConfiguredServices, services).ConfigureAwait(false);
             });
 
-        //nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)).Replay(1).RefCount().Subscribe(out var nextDuplicateVersionFails).DisposeWhenDisposing(this);
-        //Events.Earliest(NextVersionEvents.CreatedScopedServiceProvider).Transform(sp => sp.GetRequiredService<IRepository>()).Replay(1).RefCount().Subscribe(out var nextCreatedScopedServiceProvider).DisposeWhenDisposing(this);
-
         // On next version calculation we want to set bad exit code if equivalent commit version already exists
         Events.Every(NextVersionEvents.CalculatedNextVersion)
-            //.WithAwaitedFrom(nextDuplicateVersionFails)
-            //.WithAwaitedFrom(nextCreatedScopedServiceProvider)
             .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)))
             .Zip(Events.Earliest(NextVersionEvents.CreatedScopedServiceProvider).Transform(sp => sp.GetRequiredService<IRepository>()))
             .Subscribe(result => {

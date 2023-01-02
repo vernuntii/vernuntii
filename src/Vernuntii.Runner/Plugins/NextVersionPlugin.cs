@@ -73,7 +73,9 @@ namespace Vernuntii.Plugins
             if (_pluginRegistry.TryGetPlugin<IVersionCachePlugin>(out var versionCachePlugin) && versionCachePlugin.IsCacheUpToDate) {
                 versionCache = versionCachePlugin.VersionCache;
             } else {
+                await Events.FulfillAsync(ServicesEvents.CreateServiceProvider).ConfigureAwait(false);
                 using var calculationServiceProviderScope = await CreateServiceScope().ConfigureAwait(false);
+
                 var calculationServiceProvider = calculationServiceProviderScope.ServiceProvider;
                 //var repository = calculationServiceProvider.GetRequiredService<IRepository>();
                 var versionCalculation = calculationServiceProvider.GetRequiredService<IVersionIncrementation>();
@@ -202,6 +204,9 @@ namespace Vernuntii.Plugins
 
                     return Events.FulfillAsync(VersionCacheEvents.CheckVersionCache);
                 });
+
+            Events.Earliest(ServicesEvents.ConfigureServices)
+                .Subscribe(() => Events.FulfillAsync(ConfigurationEvents.CreateConfiguration));
 
             Events.Earliest(ServicesEvents.ConfigureServices)
                 .Zip(ConfigurationEvents.CreatedConfiguration)

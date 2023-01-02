@@ -45,6 +45,7 @@ namespace Vernuntii.Runner
             _pluginRegistry = pluginRegistry;
             var loggingPlugin = pluginRegistry.GetPlugin<ILoggingPlugin>();
             _logger = loggingPlugin.CreateLogger<VernuntiiRunner>();
+
             MeasureEventSystemPerformance(loggingPlugin.CreateLogger<EventSystem>());
         }
 
@@ -118,8 +119,6 @@ namespace Vernuntii.Runner
                 }
 
                 await _pluginEvents.FulfillAsync(CommandLineEvents.ParsedCommandLineArguments, commandLineArgumentsParsingContext.ParseResult).ConfigureAwait(false);
-                await _pluginEvents.FulfillAsync(ConfigurationEvents.CreateConfiguration).ConfigureAwait(false);
-                await _pluginEvents.FulfillAsync(ServicesEvents.CreateServiceProvider).ConfigureAwait(false);
                 await _pluginEvents.FulfillAsync(LoggingEvents.EnableLoggingInfrastructure).ConfigureAwait(false);
             }
 
@@ -199,8 +198,7 @@ namespace Vernuntii.Runner
                 return;
             }
 
-            _logger.LogTrace("Destroying plugins");
-            await _pluginExecutor.DestroyAsync().ConfigureAwait(false);
+            await _pluginExecutor.DestroyAsync(_logger).ConfigureAwait(false);
             // Which Includes the logging plugin, so new log messages are not written to console
         }
 

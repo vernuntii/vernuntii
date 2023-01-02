@@ -1,4 +1,7 @@
-﻿using Vernuntii.PluginSystem.Reactive;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Vernuntii.Diagnostics;
+using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.PluginSystem
 {
@@ -9,6 +12,7 @@ namespace Vernuntii.PluginSystem
     {
         private readonly PluginRegistry _pluginRegistry;
         private readonly EventSystem _pluginEvents;
+        private readonly Stopwatch _pluginsLifetime;
 
         /// <summary>
         /// Creates an instance of this type.
@@ -17,6 +21,9 @@ namespace Vernuntii.PluginSystem
         /// <param name="pluginEvents"></param>
         internal PluginExecutor(PluginRegistry pluginRegistry, EventSystem pluginEvents)
         {
+            _pluginsLifetime = new Stopwatch();
+            _pluginsLifetime.Start();
+
             _pluginRegistry = pluginRegistry;
             _pluginEvents = pluginEvents;
         }
@@ -40,5 +47,14 @@ namespace Vernuntii.PluginSystem
         /// </summary>
         public ValueTask DestroyAsync() =>
             _pluginRegistry.DisposeAsync();
+
+        /// <summary>
+        /// Destroys the plugins.
+        /// </summary>
+        public ValueTask DestroyAsync(ILogger logger)
+        {
+            logger.LogTrace("Destroying plugins (Execution lifetime = {ExecutionLifetime})", _pluginsLifetime.Elapsed.ToSecondsString());
+            return DestroyAsync();
+        }
     }
 }
