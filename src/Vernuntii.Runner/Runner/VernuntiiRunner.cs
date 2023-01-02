@@ -125,7 +125,6 @@ namespace Vernuntii.Runner
 
             if (_alreadyInitiatedLifecycleOnce) {
                 await _pluginEvents.FulfillAsync(LifecycleEvents.BeforeNextRun, _lifecycleContext).ConfigureAwait(false);
-                await _pluginEvents.FulfillAsync(VersionCacheEvents.CheckVersionCache).ConfigureAwait(false);
             }
 
             _alreadyInitiatedLifecycleOnce = true;

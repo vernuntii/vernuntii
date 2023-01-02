@@ -23,6 +23,11 @@ namespace Vernuntii.Plugins.Events
         public static readonly EventDiscriminator<ICommand> SealRootCommand = EventDiscriminator.New<ICommand>();
 
         /// <summary>
+        /// Event when the root command got sealed. Called inside <see cref="ParseCommandLineArguments"/> event.
+        /// </summary>
+        public static readonly EventDiscriminator<IReadOnlyCommand> SealedRootCommand = EventDiscriminator.New<IReadOnlyCommand>();
+
+        /// <summary>
         /// Event when command line args are getting parsed.
         /// </summary>
         public static readonly EventDiscriminator<CommandLineArgumentsParsingContext> ParseCommandLineArguments = EventDiscriminator.New<CommandLineArgumentsParsingContext>();

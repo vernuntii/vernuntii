@@ -9,14 +9,14 @@ namespace Vernuntii.Plugins.Events
     public sealed class VersionCacheEvents
     {
         /// <summary>
+        /// Event that may get fulfilled by third-party plugins signaling that the version cache needs to be checked.
+        /// </summary>
+        public static readonly EventDiscriminator CheckVersionCache = EventDiscriminator.New();
+
+        /// <summary>
         /// Event when the version cache manager is going to be created.
         /// </summary>
         public static readonly EventDiscriminator<VersionCacheManagerContext> CreateVersionCacheManager = EventDiscriminator.New<VersionCacheManagerContext>();
-
-        /// <summary>
-        /// Event before up-to-date check.
-        /// </summary>
-        public static readonly EventDiscriminator CheckVersionCache = EventDiscriminator.New();
 
         /// <summary>
         /// Event after up-to-date check.

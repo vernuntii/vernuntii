@@ -29,12 +29,7 @@ namespace Vernuntii.Plugins
 
         /// <inheritdoc/>
         [MemberNotNullWhen(true, nameof(VersionCache))]
-        public bool IsCacheUpToDate {
-            get {
-                ThrowIfNotChecked();
-                return VersionCache != null;
-            }
-        }
+        public bool IsCacheUpToDate => _versionCache != null;
 
         private readonly ILogger<VersionCachePlugin> _logger;
         private readonly ILogger<VersionCacheManager> _versionCacheManagerLogger;
@@ -91,19 +86,15 @@ namespace Vernuntii.Plugins
             await Events.FulfillAsync(VersionCacheEvents.CheckedVersionCache);
         }
 
-        private void OnVersionCacheCheck()
-        {
-            // TODO: Implement daemon cleanup
-        }
-
         /// <inheritdoc/>
         protected override void OnExecution()
         {
             Events.Every(ConfigurationEvents.ConfiguredConfigurationBuilder)
                 .Zip(GitEvents.CreatedGitCommand)
                 .Zip(VersionCacheOptionsEvents.ParsedVersionCacheOptions)
+                .Zip(VersionCacheEvents.CheckVersionCache)
                 .Subscribe(result => {
-                    var ((configuredConfigurationBuilderResult, gitCommand), versionCacheOptions) = result;
+                    var (((configuredConfigurationBuilderResult, gitCommand), versionCacheOptions), _) = result;
                     return CheckVersionCache(configuredConfigurationBuilderResult.ConfigPath, gitCommand, versionCacheOptions);
                 });
 
@@ -113,8 +104,6 @@ namespace Vernuntii.Plugins
                     var (services, _) = result;
                     services.AddSingleton<IVersionCacheManager>(_versionCacheManager);
                 });
-
-            Events.Earliest(VersionCacheEvents.CheckVersionCache).Subscribe(OnVersionCacheCheck);
         }
     }
 }

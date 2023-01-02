@@ -91,27 +91,6 @@ public class VersionCacheManager : IVersionCacheManager
         return _cacheFileFactory.Open(cacheFilePath);
     }
 
-    /// <summary>
-    /// Tries to get the cache, but does not cache any exceptions.
-    /// </summary>
-    /// <remarks>
-    /// The method is very naive and can throw any kind of IO exception.
-    /// </remarks>
-    /// <param name="versionCacheWriter"></param>
-    /// <returns>The naive pre-check</returns>
-    /// <exception cref="MessagePackSerializationException"/>
-    private IVersionCache ReadCache(out IManagedValueWriter<IVersionCache> versionCacheWriter)
-    {
-        var cacheFile = OpenCacheFile();
-
-        //MaybeDeleteOtherCacheFiles(
-        //    CacheDirectoryPath,
-        //    skippableCacheFileName: cacheFileName);
-
-        versionCacheWriter = cacheFile;
-        return cacheFile.ReadCache();
-    }
-
     private RecacheIndicator GetRecacheIndicator(ISemanticVersion? comparableVersion)
     {
         IVersionCache? versionCache = null;
@@ -120,14 +99,22 @@ public class VersionCacheManager : IVersionCacheManager
         string? recacheReason;
 
         try {
-            versionCache = ReadCache(out versionCacheWriter);
+            var cacheFile = OpenCacheFile();
+            versionCacheWriter = cacheFile;
 
-            isRecacheRequired = _versionCacheEvaluator.IsRecacheRequired(
-                versionCache,
-                _useLastAccessRetentionTime,
-                _lastAccessRetentionTime,
-                comparableVersion,
-                out recacheReason);
+            if (!cacheFile.CanRead) {
+                isRecacheRequired = true;
+                recacheReason = "Cache is empty";
+            } else {
+                versionCache = cacheFile.ReadCache();
+
+                isRecacheRequired = _versionCacheEvaluator.IsRecacheRequired(
+                    versionCache,
+                    _useLastAccessRetentionTime,
+                    _lastAccessRetentionTime,
+                    comparableVersion,
+                    out recacheReason);
+            }
         } catch (VersionCacheSerializationException error) when (versionCacheWriter is not null) {
             isRecacheRequired = true;
             recacheReason = "Cache is damaged";

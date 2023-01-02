@@ -168,25 +168,22 @@ namespace Vernuntii.Plugins
             _commandLine.RootCommand.Add(emptyCachesOption);
 
             Events.Earliest(CommandLineEvents.SealRootCommand)
-                .Subscribe(async command => {
+                .Subscribe(async _ => {
                     var versionPresentationContext = new VersionPresentationContext();
                     versionPresentationContext.ImportNextVersionRequirements(); // Adds next-version-agnostic defaults
-                    await Events.FulfillAsync(NextVersionEvents.ConfigureVersionPresentation, versionPresentationContext);
+                    await Events.FulfillAsync(NextVersionEvents.ConfigureVersionPresentation, versionPresentationContext).ConfigureAwait(false);
                     presentableParts = new VersionPresentationParts(versionPresentationContext.PresentableParts);
                 });
 
             Events.Earliest(CommandLineEvents.ParsedCommandLineArguments).Subscribe(parseResult => {
-                if (parseResult.CommandResult.Command.Handler != _commandHandler) {
-                    return Task.CompletedTask;
+                if (!ReferenceEquals(parseResult.CommandResult.Command.Handler, _commandHandler)) {
+                    return;
                 }
 
                 _presentationKind = parseResult.GetValueForOption(presentationKindOption);
                 _presentationParts = parseResult.GetValueForOption(presentationPartsOption);
                 _presentationView = parseResult.GetValueForOption(presentationViewOption);
                 _emptyCaches = parseResult.GetValueForOption(emptyCachesOption);
-
-                // Check version cache
-                return Events.FulfillAsync(VersionCacheEvents.CheckVersionCache);
             });
         }
 
@@ -196,6 +193,15 @@ namespace Vernuntii.Plugins
             ConfigureCommandLine();
 
             Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(_ => _loadingVersionStopwatch.Restart());
+
+            Events.Earliest(CommandLineEvents.SealedRootCommand)
+                .Subscribe(command => {
+                    if (!ReferenceEquals(command.Handler, _commandHandler)) {
+                        return Task.CompletedTask;
+                    }
+
+                    return Events.FulfillAsync(VersionCacheEvents.CheckVersionCache);
+                });
 
             Events.Earliest(ServicesEvents.ConfigureServices)
                 .Zip(ConfigurationEvents.CreatedConfiguration)

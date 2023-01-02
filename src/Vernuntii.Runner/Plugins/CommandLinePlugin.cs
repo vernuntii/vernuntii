@@ -130,6 +130,13 @@ namespace Vernuntii.Plugins
             _logger.LogTrace("Parse command-line arguments:{CommandLineArgs}", commandLineArgsToEcho);
         }
 
+        private async Task SealRootCommandAsync()
+        {
+            await Events.FulfillAsync(CommandLineEvents.SealRootCommand, RootCommand);
+            _sealableRootCommand.Seal();
+            await Events.FulfillAsync(CommandLineEvents.SealedRootCommand, RootCommand);
+        }
+
         /// <summary>
         /// Called when <see cref="CommandLineEvents.ParseCommandLineArguments"/> is happening.
         /// </summary>
@@ -139,8 +146,7 @@ namespace Vernuntii.Plugins
                 throw new InvalidOperationException("Command line parse result was already computed");
             }
 
-            await Events.FulfillAsync(CommandLineEvents.SealRootCommand, RootCommand);
-            _sealableRootCommand.Seal();
+            await SealRootCommandAsync().ConfigureAwait(false);
             AttemptLogCommandLineArguments(commandLineArguments);
             var builder = new CommandLineBuilder(_rootCommand);
             ConfigureCommandLineBuilder(builder);

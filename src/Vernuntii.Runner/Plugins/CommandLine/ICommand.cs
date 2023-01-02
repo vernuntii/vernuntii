@@ -6,13 +6,8 @@ namespace Vernuntii.Plugins.CommandLine
     /// <summary>
     /// A wrapper for <see cref="Command"/>.
     /// </summary>
-    public interface ICommand
+    public interface ICommand : IReadOnlyCommand
     {
-        /// <summary>
-        /// The command handlerFunc.
-        /// </summary>
-        ICommandHandler? Handler { get; }
-
         /// <summary>
         /// Sets the command handlerFunc.
         /// </summary>
