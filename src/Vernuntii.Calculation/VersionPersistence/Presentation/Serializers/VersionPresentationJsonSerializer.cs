@@ -49,11 +49,15 @@ namespace Vernuntii.VersionPersistence.Presentation.Serializers
 
                     writer.WriteNullValue();
                 } else {
+                    writer.WriteStartObject();
+
                     foreach (var presentationPart in _presentationParts) {
                         VersionPresentationSerializerHelpers.GetData(versionCache, presentationPart, out var data, out var dataType);
                         writer.WritePropertyName(presentationPart.Name);
                         JsonSerializer.Serialize(writer, data, dataType, options);
                     }
+
+                    writer.WriteEndObject();
                 }
             }
         }
