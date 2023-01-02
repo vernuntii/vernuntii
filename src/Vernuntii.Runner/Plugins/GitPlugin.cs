@@ -159,10 +159,12 @@ public class GitPlugin : Plugin, IGitPlugin
     /// <inheritdoc/>
     protected override void OnExecution()
     {
-        Events.Earliest(ConfigurationEvents.ConfiguredConfigurationBuilder)
+        Events.Earliest(GitEvents.CreateGitCommand)
+            .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
             .Subscribe(async result => {
+                var (_, configurationBuilder) = result;
                 _isConfiguredConfigurationBuilder = true;
-                await EnsureCreatedGitCommand(result.ConfigPath).ConfigureAwait(false);
+                await EnsureCreatedGitCommand(configurationBuilder.ConfigPath).ConfigureAwait(false);
             });
 
         Events.Earliest(VersionCacheEvents.CreateVersionCacheManager)

@@ -103,7 +103,6 @@ namespace Vernuntii.Runner
             await _pluginEvents.FulfillAsync(LifecycleEvents.BeforeEveryRun, _lifecycleContext).ConfigureAwait(false);
 
             if (!_alreadyInitiatedLifecycleOnce) {
-                _logger.LogTrace("Set command-line arguments");
                 await _pluginEvents.FulfillAsync(CommandLineEvents.SetCommandLineArguments, ConsoleArguments).ConfigureAwait(false);
 
                 var commandLineArgumentsParsingContext = new CommandLineArgumentsParsingContext();
@@ -137,7 +136,6 @@ namespace Vernuntii.Runner
             var exitCode = (int)ExitCode.NotExecuted;
             using var exitCodeSubscription = _pluginEvents.Earliest(CommandLineEvents.InvokedRootCommand).Subscribe(i => exitCode = i);
 
-            _logger.LogTrace("Invoke command-line root command");
             await _pluginEvents.FulfillAsync(CommandLineEvents.InvokeRootCommand).ConfigureAwait(false);
 
             if (exitCode == (int)ExitCode.NotExecuted) {

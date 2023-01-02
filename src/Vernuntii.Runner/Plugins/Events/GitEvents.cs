@@ -22,6 +22,11 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event is happening when the git command has been created.
         /// </summary>
+        public static readonly EventDiscriminator CreateGitCommand = EventDiscriminator.New();
+
+        /// <summary>
+        /// Event is happening when the git command has been created.
+        /// </summary>
         public static readonly EventDiscriminator<IGitCommand> CreatedGitCommand = EventDiscriminator.New<IGitCommand>();
 
         /// <summary>
