@@ -2,7 +2,7 @@
   "profiles": {
     "Vernuntii.Console.any": {
       "commandName": "Project",
-      "commandLineArgs": "--presentation-view text --presentation-parts all --presentation-kind Complex --verbose Verbose"
+      "commandLineArgs": "--presentation-view text --presentation-parts all --presentation-kind Complex --verbosity Verbose"
     },
     "WSL": {
       "commandName": "WSL2",

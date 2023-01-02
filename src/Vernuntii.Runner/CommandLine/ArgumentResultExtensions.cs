@@ -58,4 +58,7 @@ internal static class ArgumentResultExtensions
 
         return values;
     }
+
+    public static bool IsParentOptionTokenEquals(this SymbolResult result, string token) =>
+        result.Parent is OptionResult optionsResult && StringComparer.InvariantCulture.Equals(optionsResult.Token?.Value, token);
 }

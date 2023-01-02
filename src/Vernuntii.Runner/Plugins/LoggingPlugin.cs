@@ -9,6 +9,7 @@ using NLog.Extensions.Logging;
 using NLog.Layouts;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
+using Vernuntii.CommandLine;
 using Vernuntii.Logging;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
@@ -53,13 +54,16 @@ namespace Vernuntii.Plugins
          * If value is specified, then log on specified log level.
          */
         private readonly Option<Verbosity?> _verbosityOption = new(new[] { "--verbose", "--verbosity", "-v" }, parseArgument: result => {
-            if (result.Tokens.Count == 0) {
-                return Verbosity.Information;
-            }
-
-            if (result.Symbol.Name == "verbose") {
+            if (result.IsParentOptionTokenEquals("--verbose") && result.Tokens.Count != 0) {
                 result.ErrorMessage = "When using --verbose, you cannot specify a verbosity. Use --verbosity instead.";
                 return default;
+            } else if (result.IsParentOptionTokenEquals("--verbosity") && result.Tokens.Count == 0) {
+                result.ErrorMessage = "When using --verbosity, you must specify a verbosity. Use --verbose instead.";
+                return default;
+            }
+
+            if (result.Tokens.Count == 0) {
+                return Verbosity.Information;
             }
 
             try {
