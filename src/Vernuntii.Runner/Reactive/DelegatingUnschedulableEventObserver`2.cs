@@ -2,7 +2,7 @@
 
 internal class DelegatingUnschedulableEventObserver<T, TState> : IUnschedulableEventFulfiller<T>
 {
-    internal delegate ValueTask HandleEventDelegate(in Tuple tuple);
+    internal delegate void HandleEventDelegate(in Tuple tuple);
 
     private readonly HandleEventDelegate _eventHandler;
     private readonly TState _state;
