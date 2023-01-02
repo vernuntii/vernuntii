@@ -27,7 +27,7 @@ namespace Vernuntii.Extensions
             IServiceCollection services,
             IConfiguration? gitConfiguration = null,
             IVersioningPresetManager? presetManager = null,
-            bool tryCreateVersioningPresetExtension = false,
+            bool setVersioningPresetExtension = false,
             bool allowShallowRepository = true)
         {
             services
@@ -51,23 +51,23 @@ namespace Vernuntii.Extensions
                     .UseConfigurationDefaults(gitConfiguration);
             }
 
-            if (tryCreateVersioningPresetExtension) {
+            if (setVersioningPresetExtension) {
                 services
                     .TakeViewOfVernuntii()
                     .TakeViewOfGit()
                     .ConfigureBranchCases(branchCases => branchCases
-                    .TryCreateVersioningPresetExtension());
+                    .ForEachSetVersioningPresetExtensionFactory());
             }
 
             return services;
         }
 
-        public static IBranchCasesProvider CreateBranchCasesProvider(string directory, string fileName, bool tryCreateVersioningPresetExtension = false)
+        public static IBranchCasesProvider CreateBranchCasesProvider(string directory, string fileName, bool setVersioningPresetExtension = false)
         {
             var services = ConfigureServiceCollection(
                 new ServiceCollection(),
                 gitConfiguration: ConfigurationFixture.Default.FindYamlConfigurationFile(directory, fileName),
-                tryCreateVersioningPresetExtension: tryCreateVersioningPresetExtension, allowShallowRepository: true);
+                setVersioningPresetExtension: setVersioningPresetExtension, allowShallowRepository: true);
 
             return services.BuildServiceProvider().CreateScope().ServiceProvider.GetRequiredService<IBranchCasesProvider>();
         }

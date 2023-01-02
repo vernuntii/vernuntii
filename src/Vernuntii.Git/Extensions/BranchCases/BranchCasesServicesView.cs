@@ -2,11 +2,11 @@
 
 namespace Vernuntii.Extensions.BranchCases
 {
-    internal class BranchCasesFeatures : IBranchCasesServicesView
+    internal class BranchCasesServicesView : IBranchCasesServicesView
     {
         public IServiceCollection Services { get; }
 
-        public BranchCasesFeatures(IServiceCollection services) =>
+        public BranchCasesServicesView(IServiceCollection services) =>
             Services = services ?? throw new ArgumentNullException(nameof(services));
     }
 }

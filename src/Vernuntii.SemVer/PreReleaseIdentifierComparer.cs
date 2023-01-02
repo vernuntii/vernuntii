@@ -23,7 +23,7 @@ public static class PreReleaseIdentifierComparer
         /// Pre-release identifiers are compared as numbers if they are numeric, otherwise they will be compared
         /// as strings.
         /// </summary>
-        private int CompareeIdentifier(string preRelease, string otherPreRelease)
+        private int CompareIdentifier(string preRelease, string otherPreRelease)
         {
             int result;
 
@@ -72,7 +72,7 @@ public static class PreReleaseIdentifierComparer
                     return 1;
                 }
 
-                result = CompareeIdentifier(identifierEnumerator.Current, otherIdentifierEnumerator.Current);
+                result = CompareIdentifier(identifierEnumerator.Current, otherIdentifierEnumerator.Current);
 
                 if (result != 0) {
                     return result;

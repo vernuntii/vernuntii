@@ -34,7 +34,7 @@ namespace Vernuntii.Configuration
             var branchCase = CreateBranchCasesProvider(
                 MessageIndicatorsDirectory,
                 MessageIndicatorsListValidFileName,
-                tryCreateVersioningPresetExtension: true).NestedBranchCases["NameAsItem"];
+                setVersioningPresetExtension: true).NestedBranchCases["NameAsItem"];
 
             var expectedVersioningPreset = VersioningPreset.Manual with {
                 MessageConvention = MessageConvention.None with {
@@ -53,7 +53,7 @@ namespace Vernuntii.Configuration
             var branchCase = CreateBranchCasesProvider(
                 MessageIndicatorsDirectory,
                 MessageIndicatorsListValidFileName,
-                tryCreateVersioningPresetExtension: true).NestedBranchCases["RegexObject"];
+                setVersioningPresetExtension: true).NestedBranchCases["RegexObject"];
 
             var expectedVersioningPreset = VersioningPreset.Manual with {
                 MessageConvention = MessageConvention.None with {
@@ -87,7 +87,7 @@ namespace Vernuntii.Configuration
 
         public static IEnumerable<object[]> ValidMessageIndicatorStringShouldMatchGenerator()
         {
-            var branchCases = CreateBranchCasesProvider(MessageIndicatorsDirectory, MessageIndicatorsStringValidFileName, tryCreateVersioningPresetExtension: true).NestedBranchCases;
+            var branchCases = CreateBranchCasesProvider(MessageIndicatorsDirectory, MessageIndicatorsStringValidFileName, setVersioningPresetExtension: true).NestedBranchCases;
 
             yield return new object[] {
                  VersioningPreset.Manual with {
