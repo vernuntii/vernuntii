@@ -176,7 +176,7 @@ namespace Vernuntii.Plugins
                 });
 
             Events.Earliest(CommandLineEvents.ParsedCommandLineArguments).Subscribe(parseResult => {
-                if (!ReferenceEquals(parseResult.CommandResult.Command.Handler, _commandHandler)) {
+                if (parseResult.IsCommandHandlerNotEquivalentTo(_commandHandler)) {
                     return;
                 }
 
@@ -194,9 +194,9 @@ namespace Vernuntii.Plugins
 
             Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(_ => _loadingVersionStopwatch.Restart());
 
-            Events.Earliest(CommandLineEvents.SealedRootCommand)
-                .Subscribe(command => {
-                    if (!ReferenceEquals(command.Handler, _commandHandler)) {
+            Events.Earliest(CommandLineEvents.ParsedCommandLineArguments)
+                .Subscribe(parseResult => {
+                    if (parseResult.IsCommandHandlerNotEquivalentTo(_commandHandler)) {
                         return Task.CompletedTask;
                     }
 

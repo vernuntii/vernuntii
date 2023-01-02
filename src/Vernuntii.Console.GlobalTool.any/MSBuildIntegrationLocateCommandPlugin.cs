@@ -125,7 +125,7 @@ namespace Vernuntii.Console.GlobalTool
                         downloadPackage: downloadPackage,
                         packageSource: packageSource,
                         verbosity: _loggingPlugin.Verbosity)
-                        ?? throw new PackageNotInstalledException($"Package {packageName}@{packageVersion} is not installed");
+                        ?? throw new PackageNotInstalledException($"Package {packageName} (Version = {packageVersion}) is not installed");
                 } catch (PackageNotInstalledException) {
                     if (_logger.IsEnabled(LogLevel.Debug)) {
                         var packageSources = packageSource?.Split(";");

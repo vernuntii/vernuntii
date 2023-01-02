@@ -134,7 +134,6 @@ namespace Vernuntii.Plugins
         {
             await Events.FulfillAsync(CommandLineEvents.SealRootCommand, RootCommand);
             _sealableRootCommand.Seal();
-            await Events.FulfillAsync(CommandLineEvents.SealedRootCommand, RootCommand);
         }
 
         /// <summary>
