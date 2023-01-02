@@ -56,6 +56,6 @@
         /// <summary>
         /// The commit sha of the current branch.
         /// </summary>
-        public string? CommitSha { get; set; }
+        public string? BranchTip { get; set; }
     }
 }

@@ -72,7 +72,7 @@
       <Output TaskParameter="PlusBuild" PropertyName="Vernuntii_PlusBuild" />
       <Output TaskParameter="SemanticVersion" PropertyName="Vernuntii_SemanticVersion" />
       <Output TaskParameter="BranchName" PropertyName="Vernuntii_BranchName" />
-      <Output TaskParameter="CommitSha" PropertyName="Vernuntii_CommitSha" />
+      <Output TaskParameter="BranchTip" PropertyName="Vernuntii_BranchTip" />
     </VernuntiiTask>
 
     <PropertyGroup Condition="'$(UpdateVersionPropsFromVernuntiiTask)' != 'false'">
@@ -81,7 +81,7 @@
       <VersionSuffix>$(Vernuntii_PreRelease)$(Vernuntii_PlusBuild)</VersionSuffix>
       <PackageVersion>$(Vernuntii_SemanticVersion)</PackageVersion>
       <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(Vernuntii_VersionCore).0</AssemblyVersion>
-      <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(Vernuntii_VersionCore)$(Vernuntii_HyphenPreRelease)+$(Vernuntii_CommitSha.Substring(0,7))</InformationalVersion>
+      <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(Vernuntii_VersionCore)$(Vernuntii_HyphenPreRelease)+$(Vernuntii_BranchTip.Substring(0,7))</InformationalVersion>
       <FileVersion Condition="'$(FileVersion)' == ''">$(Vernuntii_VersionCore).0</FileVersion>
     </PropertyGroup>
 

@@ -111,7 +111,7 @@ namespace Vernuntii.Console.MSBuild
         /// The commit sha of current branch.
         /// </summary>
         [Output]
-        public string? CommitSha { get; set; }
+        public string? BranchTip { get; set; }
 
         /// <inheritdoc/>
         public override bool Execute()
@@ -139,7 +139,7 @@ namespace Vernuntii.Console.MSBuild
                 PlusBuild = version.PlusBuild;
                 SemanticVersion = version.SemanticVersion;
                 BranchName = version.BranchName;
-                CommitSha = version.CommitSha;
+                BranchTip = version.BranchTip;
             } catch (Exception error) {
                 Log.LogError($"Error during console process execution: {error}");
                 return false;

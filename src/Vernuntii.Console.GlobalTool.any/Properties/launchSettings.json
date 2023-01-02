@@ -2,7 +2,7 @@
   "profiles": {
     "Vernuntii.Console.GlobalTool.any": {
       "commandName": "Project",
-      "commandLineArgs": "--verbosity Verbose msbuild-integration locate AutoImportProps"
+      "commandLineArgs": "--verbosity Verbose msbuild-integration locate AutoImportProps --download-package"
     }
   }
 }

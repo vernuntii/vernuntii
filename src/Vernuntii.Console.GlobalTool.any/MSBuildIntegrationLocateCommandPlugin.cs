@@ -16,7 +16,7 @@ namespace Vernuntii.Console.GlobalTool
 
         private static bool TryFindPackageVersion(string packageName, [NotNullWhen(true)] out string? version)
         {
-            var pkgverFile = Path.Combine(AppContext.BaseDirectory, $"{packageName}{PackageVersionFileExtension}");
+            var pkgverFile = Path.Combine(AppContext.BaseDirectory, packageName + PackageVersionFileExtension);
 
             if (File.Exists(pkgverFile)) {
                 version = File.ReadAllText(pkgverFile).Trim();
