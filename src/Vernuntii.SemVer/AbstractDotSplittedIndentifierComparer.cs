@@ -37,6 +37,22 @@ internal abstract class AbstractDotSplittedIndentifierComparer : IDotSplittedIde
     }
 
     /// <inheritdoc/>
+    public int Compare(IEnumerable<string>? dotSplittedIdentifiers, string? otherDottedIdentifier)
+    {
+        dotSplittedIdentifiers ??= s_emptyIdentifiers;
+        var otherDotSplittedIdentifiers = SemanticVersionBuilder.ParseDottedIdentifier(ParsingVersionPart, IdentifierParser, otherDottedIdentifier);
+        return Compare(dotSplittedIdentifiers, otherDotSplittedIdentifiers);
+    }
+
+    /// <inheritdoc/>
+    public int Compare(string? dottedIdentifier, IEnumerable<string>? otherDotSplittedIdentifiers)
+    {
+        var dotSplittedIdentifiers = SemanticVersionBuilder.ParseDottedIdentifier(ParsingVersionPart, IdentifierParser, dottedIdentifier);
+        otherDotSplittedIdentifiers ??= s_emptyIdentifiers;
+        return Compare(dotSplittedIdentifiers, otherDotSplittedIdentifiers);
+    }
+
+    /// <inheritdoc/>
     public int Compare(string? x, string? y)
     {
         var identifiers = SemanticVersionBuilder.ParseDottedIdentifier(ParsingVersionPart, IdentifierParser, x);
@@ -77,6 +93,6 @@ internal abstract class AbstractDotSplittedIndentifierComparer : IDotSplittedIde
         SemanticVersion.CombineDotSplitted(dotSplittedIdentifiers).GetHashCode(StringComparisonType);
 
     /// <inheritdoc/>
-    public int GetHashCode([DisallowNull] string dottedIdentifier) => 
+    public int GetHashCode([DisallowNull] string dottedIdentifier) =>
         dottedIdentifier.GetHashCode(StringComparisonType);
 }

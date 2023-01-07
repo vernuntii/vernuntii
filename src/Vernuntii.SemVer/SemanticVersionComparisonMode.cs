@@ -1,23 +1,22 @@
-﻿namespace Vernuntii.SemVer
+﻿namespace Vernuntii.SemVer;
+
+/// <summary>
+/// The comparison mode for <see cref="SemanticVersionComparer"/>.
+/// </summary>
+public enum SemanticVersionComparisonMode
 {
     /// <summary>
-    /// The comparison mode for <see cref="SemanticVersionComparer"/>.
+    /// Compares only the version numbers.
     /// </summary>
-    public enum SemanticVersionComparisonMode
-    {
-        /// <summary>
-        /// Compares only the version numbers.
-        /// </summary>
-        Version,
+    Version,
 
-        /// <summary>
-        /// Compares version numbers and pre-release
-        /// </summary>
-        VersionRelease,
+    /// <summary>
+    /// Compares version numbers and pre-release
+    /// </summary>
+    VersionRelease,
 
-        /// <summary>
-        /// Compares version number, pre-release and build
-        /// </summary>
-        VersionReleaseBuild
-    }
+    /// <summary>
+    /// Compares version number, pre-release and build
+    /// </summary>
+    VersionReleaseBuild
 }

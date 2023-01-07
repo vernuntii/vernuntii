@@ -1,15 +1,14 @@
 ﻿using Vernuntii.SemVer.Parser;
 
-namespace Vernuntii.SemVer
+namespace Vernuntii.SemVer;
+
+/// <summary>
+/// Provides an instance of <see cref="ISemanticVersionParser"/>.
+/// </summary>
+public interface ISemanticVersionParserProvider
 {
     /// <summary>
-    /// Provides an instance of <see cref="ISemanticVersionParser"/>.
+    /// Semantic version parser.
     /// </summary>
-    public interface ISemanticVersionParserProvider
-    {
-        /// <summary>
-        /// Semantic version parser.
-        /// </summary>
-        ISemanticVersionParser Parser { get; }
-    }
+    ISemanticVersionParser Parser { get; }
 }
