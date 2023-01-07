@@ -54,7 +54,7 @@ namespace Vernuntii.Plugins
             }
 
             cacheOptions.LastAccessRetentionTime = parseResult.GetValueForOption(_cacheLastAccessRetentionTimeOption);
-            return Events.FulfillAsync(VersionCacheOptionsEvents.ParsedVersionCacheOptions, cacheOptions);
+            return Events.EmitAsync(VersionCacheOptionsEvents.ParsedVersionCacheOptions, cacheOptions);
         }
 
         protected override void OnExecution()

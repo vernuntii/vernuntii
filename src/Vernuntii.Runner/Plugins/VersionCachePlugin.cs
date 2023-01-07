@@ -61,7 +61,7 @@ namespace Vernuntii.Plugins
             var versionCacheDirectory = new VersionCacheDirectory(new VersionCacheDirectoryOptions(gitDirectory));
 
             var versionCacheManagerOptions = new VersionCacheManagerContext();
-            await Events.FulfillAsync(VersionCacheEvents.CreateVersionCacheManager, versionCacheManagerOptions);
+            await Events.EmitAsync(VersionCacheEvents.CreateVersionCacheManager, versionCacheManagerOptions);
 
             var messagePackVersionCacheFileFactory = MessagePackVersionCacheFileFactory.Of(
                 versionCacheManagerOptions.Serializers.Values.Select(x => x.Formatter),
@@ -95,15 +95,15 @@ namespace Vernuntii.Plugins
                 IsCacheUpToDate,
                 cacheNotUpToDateReason != null ? ", Reason = " + cacheNotUpToDateReason : "");
 
-            await Events.FulfillAsync(VersionCacheEvents.CheckedVersionCache);
+            await Events.EmitAsync(VersionCacheEvents.CheckedVersionCache);
         }
 
         /// <inheritdoc/>
         protected override void OnExecution()
         {
             // TODO: Outsource git dependencies from this plugin
-            Events.Every(VersionCacheEvents.CheckVersionCache)
-                .Subscribe(() => Events.FulfillAsync(GitEvents.CreateGitCommand));
+            Events.OnceEvery(LifecycleEvents.BeforeEveryRun, VersionCacheEvents.CheckVersionCache)
+                .Subscribe(() => Events.EmitAsync(GitEvents.CreateGitCommand));
 
             Events.Every(ConfigurationEvents.ConfiguredConfigurationBuilder)
                 .Zip(GitEvents.CreatedGitCommand)

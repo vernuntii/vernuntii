@@ -100,13 +100,13 @@ namespace Vernuntii.Runner
         {
             await EnsureHavingOperablePlugins().ConfigureAwait(false);
             _lifecycleContext = new LifecycleContext();
-            await _pluginEvents.FulfillAsync(LifecycleEvents.BeforeEveryRun, _lifecycleContext).ConfigureAwait(false);
+            await DistinguishableEventEmitter.EmitAsync(_pluginEvents, LifecycleEvents.BeforeEveryRun, _lifecycleContext).ConfigureAwait(false);
 
             if (!_alreadyInitiatedLifecycleOnce) {
-                await _pluginEvents.FulfillAsync(CommandLineEvents.SetCommandLineArguments, ConsoleArguments).ConfigureAwait(false);
+                await DistinguishableEventEmitter.EmitAsync(_pluginEvents, CommandLineEvents.SetCommandLineArguments, ConsoleArguments).ConfigureAwait(false);
 
                 var commandLineArgumentsParsingContext = new CommandLineArgumentsParsingContext();
-                await _pluginEvents.FulfillAsync(CommandLineEvents.ParseCommandLineArguments, commandLineArgumentsParsingContext).ConfigureAwait(false);
+                await DistinguishableEventEmitter.EmitAsync(_pluginEvents, CommandLineEvents.ParseCommandLineArguments, commandLineArgumentsParsingContext).ConfigureAwait(false);
 
                 if (_lifecycleContext.ExitCode.HasValue) {
                     return (ExitCode)_lifecycleContext.ExitCode.Value;
@@ -117,12 +117,12 @@ namespace Vernuntii.Runner
                     return ExitCode.Failure;
                 }
 
-                await _pluginEvents.FulfillAsync(CommandLineEvents.ParsedCommandLineArguments, commandLineArgumentsParsingContext.ParseResult).ConfigureAwait(false);
-                await _pluginEvents.FulfillAsync(LoggingEvents.EnableLoggingInfrastructure).ConfigureAwait(false);
+                await DistinguishableEventEmitter.EmitAsync(_pluginEvents, CommandLineEvents.ParsedCommandLineArguments, commandLineArgumentsParsingContext.ParseResult).ConfigureAwait(false);
+                await _pluginEvents.EmitAsync(LoggingEvents.EnableLoggingInfrastructure).ConfigureAwait(false);
             }
 
             if (_alreadyInitiatedLifecycleOnce) {
-                await _pluginEvents.FulfillAsync(LifecycleEvents.BeforeNextRun, _lifecycleContext).ConfigureAwait(false);
+                await DistinguishableEventEmitter.EmitAsync(_pluginEvents, LifecycleEvents.BeforeNextRun, _lifecycleContext).ConfigureAwait(false);
             }
 
             _alreadyInitiatedLifecycleOnce = true;
@@ -136,7 +136,7 @@ namespace Vernuntii.Runner
             var exitCode = (int)ExitCode.NotExecuted;
             using var exitCodeSubscription = _pluginEvents.Earliest(CommandLineEvents.InvokedRootCommand).Subscribe(i => exitCode = i);
 
-            await _pluginEvents.FulfillAsync(CommandLineEvents.InvokeRootCommand).ConfigureAwait(false);
+            await _pluginEvents.EmitAsync(CommandLineEvents.InvokeRootCommand).ConfigureAwait(false);
 
             if (exitCode == (int)ExitCode.NotExecuted) {
                 throw new InvalidOperationException("The Vernuntii runner was not executed");

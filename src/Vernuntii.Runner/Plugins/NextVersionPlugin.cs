@@ -58,7 +58,7 @@ namespace Vernuntii.Plugins
         private async ValueTask<IServiceScope> CreateServiceScope()
         {
             var scope = _globalServiceProvider.CreateScope();
-            await Events.FulfillAsync(NextVersionEvents.CreatedScopedServiceProvider, scope.ServiceProvider).ConfigureAwait(false);
+            await Events.EmitAsync(NextVersionEvents.CreatedScopedServiceProvider, scope.ServiceProvider).ConfigureAwait(false);
             return scope;
         }
 
@@ -73,7 +73,7 @@ namespace Vernuntii.Plugins
             if (_pluginRegistry.TryGetPlugin<IVersionCachePlugin>(out var versionCachePlugin) && versionCachePlugin.IsCacheUpToDate) {
                 versionCache = versionCachePlugin.VersionCache;
             } else {
-                await Events.FulfillAsync(ServicesEvents.CreateServiceProvider).ConfigureAwait(false);
+                await Events.EmitAsync(ServicesEvents.CreateServiceProvider).ConfigureAwait(false);
                 using var calculationServiceProviderScope = await CreateServiceScope().ConfigureAwait(false);
 
                 var calculationServiceProvider = calculationServiceProviderScope.ServiceProvider;
@@ -108,7 +108,7 @@ namespace Vernuntii.Plugins
                 }
             }
 
-            await Events.FulfillAsync(NextVersionEvents.CalculatedNextVersion, versionCache.Version).ConfigureAwait(false);
+            await Events.EmitAsync(NextVersionEvents.CalculatedNextVersion, versionCache.Version).ConfigureAwait(false);
 
             var formattedVersion = new VersionCacheStringBuilder(versionCache)
                 .UsePresentationKind(_presentationKind)
@@ -173,7 +173,7 @@ namespace Vernuntii.Plugins
                 .Subscribe(async _ => {
                     var versionPresentationContext = new VersionPresentationContext();
                     versionPresentationContext.ImportNextVersionRequirements(); // Adds next-version-agnostic defaults
-                    await Events.FulfillAsync(NextVersionEvents.ConfigureVersionPresentation, versionPresentationContext).ConfigureAwait(false);
+                    await Events.EmitAsync(NextVersionEvents.ConfigureVersionPresentation, versionPresentationContext).ConfigureAwait(false);
                     presentableParts = new VersionPresentationParts(versionPresentationContext.PresentableParts);
                 });
 
@@ -198,22 +198,22 @@ namespace Vernuntii.Plugins
 
             Events.Earliest(CommandLineEvents.ParsedCommandLineArguments)
                 .Subscribe(parseResult => {
-                    if (parseResult.IsCommandHandlerNotEquivalentTo(_commandHandler)) {
-                        return Task.CompletedTask;
+                    if (parseResult.IsCommandHandlerEquivalentTo(_commandHandler)) {
+                        return Events.EmitAsync(VersionCacheEvents.CheckVersionCache);
                     }
 
-                    return Events.FulfillAsync(VersionCacheEvents.CheckVersionCache);
+                    return Task.CompletedTask;
                 });
 
             Events.Earliest(ServicesEvents.ConfigureServices)
-                .Subscribe(() => Events.FulfillAsync(ConfigurationEvents.CreateConfiguration));
+                .Subscribe(() => Events.EmitAsync(ConfigurationEvents.CreateConfiguration));
 
             Events.Earliest(ServicesEvents.ConfigureServices)
                 .Zip(ConfigurationEvents.CreatedConfiguration)
                 .Subscribe(async result => {
                     var (services, configuration) = result;
 
-                    await Events.FulfillAsync(NextVersionEvents.ConfigureServices, services).ConfigureAwait(false);
+                    await Events.EmitAsync(NextVersionEvents.ConfigureServices, services).ConfigureAwait(false);
 
                     services
                         .TakeViewOfVernuntii()

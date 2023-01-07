@@ -15,7 +15,7 @@ internal class LatestEvent<T> : EveryEvent<T>
 
     private bool _hasEventData;
 
-    protected override IEventDataHolder<T> CanEvaluate(T eventData)
+    protected override IEventDataHolder<T>? InspectEmission(T eventData)
     {
         _eventData = eventData;
         _hasEventData = true;

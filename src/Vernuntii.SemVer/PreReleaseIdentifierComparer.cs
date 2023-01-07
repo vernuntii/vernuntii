@@ -16,7 +16,7 @@ public static class PreReleaseIdentifierComparer
     private class ComparerImpl : AbstractDotSplittedIndentifierComparer
     {
         protected override StringComparison StringComparisonType { get; } = StringComparison.OrdinalIgnoreCase;
-        protected override SemanticVersionPart IdentifierParsingVersionPart { get; } = SemanticVersionPart.PreRelease;
+        protected override SemanticVersionPart ParsingVersionPart { get; } = SemanticVersionPart.PreRelease;
         protected override IDottedIdentifierParser IdentifierParser { get; } = PreReleaseIdentifierParser.Strict;
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace Vernuntii.Plugins
             }
 
             var services = _services;
-            var task = Events.FulfillAsync(ServicesEvents.ConfigureServices, services);
+            var task = Events.EmitAsync(ServicesEvents.ConfigureServices, services);
 
             void CreateServiceBuilder()
             {
@@ -57,7 +57,7 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.Every(ServicesEvents.CreateServiceProvider)
+            Events.OnceEvery(LifecycleEvents.BeforeEveryRun, ServicesEvents.CreateServiceProvider)
                 .Subscribe(OnCreateServiceProvider);
         }
 

@@ -4,36 +4,36 @@ namespace Vernuntii.PluginSystem.Reactive;
 
 internal static class EventChainFragment
 {
-    public static EventChainFragment<T> Create<T>(IFulfillableEvent<T> @event, IUnschedulableEventFulfiller<T> eventFulfiller, object eventId) =>
-        new(@event, eventFulfiller, eventId);
+    public static EventChainFragment<T> Create<T>(IEmittableEvent<T> @event, IUnschedulableEventEmitter<T> eventEmitter, object eventId) =>
+        new(@event, eventEmitter, eventId);
 
-    public static EventChainFragment<T> Create<T>(IFulfillableEvent<T> @event) =>
+    public static EventChainFragment<T> Create<T>(IEmittableEvent<T> @event) =>
         new(@event);
 }
 
 internal record EventChainFragment<T>
 {
-    internal IFulfillableEvent<T> Event { get; }
+    internal IEmittableEvent<T> Event { get; }
 
-    internal IUnschedulableEventFulfiller<T>? EventFulfiller =>
-        _eventInitiator ?? throw new InvalidOperationException();
+    internal IUnschedulableEventEmitter<T>? EventEmitter =>
+        _eventEmitter ?? throw new InvalidOperationException();
 
     internal object? EventId { get; }
 
     [MemberNotNullWhen(true,
         nameof(EventId),
-        nameof(EventFulfiller))]
-    internal bool IsEventInitiable => EventId != null;
+        nameof(EventEmitter))]
+    internal bool IsEventIdentifiable => EventId != null;
 
-    private readonly IUnschedulableEventFulfiller<T>? _eventInitiator;
+    private readonly IUnschedulableEventEmitter<T>? _eventEmitter;
 
-    public EventChainFragment(IFulfillableEvent<T> @event, IUnschedulableEventFulfiller<T> eventFulfiller, object eventId)
+    public EventChainFragment(IEmittableEvent<T> @event, IUnschedulableEventEmitter<T> eventEmitter, object eventId)
     {
         Event = @event;
-        _eventInitiator = eventFulfiller;
+        _eventEmitter = eventEmitter;
         EventId = eventId;
     }
 
-    public EventChainFragment(IFulfillableEvent<T> @event) =>
+    public EventChainFragment(IEmittableEvent<T> @event) =>
         Event = @event;
 }

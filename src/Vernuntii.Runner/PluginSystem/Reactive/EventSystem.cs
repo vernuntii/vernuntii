@@ -4,7 +4,7 @@ namespace Vernuntii.PluginSystem.Reactive;
 
 internal record EventSystem : IEventSystem
 {
-    private readonly Dictionary<object, EventObserverCollection> _eventObservers = new();
+    private readonly Dictionary<object, EventEmitterCollection> _eventEmitters = new();
     private readonly object _lock = new();
 
     internal EventSystem()
@@ -17,22 +17,22 @@ internal record EventSystem : IEventSystem
     EventChain<T> IEventChainFactory.Create<T>(EventChainFragment<T> fragment) =>
         CreateEventChain(fragment);
 
-    internal IDisposable AddObserver(object eventId, ITypeInversedUnschedulableEventFulfiller eventObserver)
+    internal IDisposable AddEmitter(object eventId, ITypeInversedUnschedulableEventEmitter eventEmitter)
     {
         lock (_lock) {
-            if (!_eventObservers.TryGetValue(eventId, out var eventObservers)) {
-                eventObservers = new EventObserverCollection();
-                _eventObservers[eventId] = eventObservers;
+            if (!_eventEmitters.TryGetValue(eventId, out var eventEmitters)) {
+                eventEmitters = new EventEmitterCollection();
+                _eventEmitters[eventId] = eventEmitters;
             }
 
-            return eventObservers.Add(eventObserver);
+            return eventEmitters.Add(eventEmitter);
         }
     }
 
-    internal virtual async Task FulfillScheduledEventsAsync<T>(object eventId, T eventData, EventFulfillmentContext fulfillmentContext)
+    internal virtual async Task EmitScheduledEventEmissionsAsync<T>(object eventId, T eventData, EventEmissionContext emissionContext)
     {
-        foreach (var scheduledEventInvocation in fulfillmentContext.ScheduledEventFulfillments) {
-            var task = scheduledEventInvocation.Item1(scheduledEventInvocation.Item2);
+        foreach (var scheduledEventEmissions in emissionContext.ScheduledEventEmissions) {
+            var task = scheduledEventEmissions.Item1(scheduledEventEmissions.Item2);
 
             if (!task.IsCompletedSuccessfully) {
                 await task.ConfigureAwait(false);
@@ -40,31 +40,31 @@ internal record EventSystem : IEventSystem
         }
     }
 
-    public Task FullfillAsync<T>(object eventId, T eventData)
+    public Task EmitAsync<T>(object eventId, T eventData)
     {
-        var fulfillmentContext = new EventFulfillmentContext();
+        var context = new EventEmissionContext();
 
         lock (_lock) {
-            if (!_eventObservers.TryGetValue(eventId, out var eventHandlers)) {
+            if (!_eventEmitters.TryGetValue(eventId, out var eventHandlers)) {
                 return Task.CompletedTask;
             }
 
-            eventHandlers.Fulfill(fulfillmentContext, eventData);
+            eventHandlers.Emit(context, eventData);
         }
 
-        return FulfillScheduledEventsAsync(eventId, eventData, fulfillmentContext);
+        return EmitScheduledEventEmissionsAsync(eventId, eventData, context);
     }
 
-    private class EventObserverCollection
+    private class EventEmitterCollection
     {
         private static ulong s_nextId;
 
-        private readonly SortedSet<EventObserverEntry> _eventObserverEntries = new();
+        private readonly SortedSet<EventEmitterEntry> _eventEmitterEntries = new();
 
-        public IDisposable Add(ITypeInversedUnschedulableEventFulfiller eventHandler)
+        public IDisposable Add(ITypeInversedUnschedulableEventEmitter eventHandler)
         {
-            var entries = _eventObserverEntries;
-            var entry = new EventObserverEntry(Interlocked.Increment(ref s_nextId), eventHandler);
+            var entries = _eventEmitterEntries;
+            var entry = new EventEmitterEntry(Interlocked.Increment(ref s_nextId), eventHandler);
 
             lock (entries) {
                 entries.Add(entry);
@@ -86,38 +86,38 @@ internal record EventSystem : IEventSystem
                 (entries, entry));
         }
 
-        public void Fulfill<T>(EventFulfillmentContext context, T eventData)
+        public void Emit<T>(EventEmissionContext context, T eventData)
         {
-            var entriesCount = _eventObserverEntries.Count;
-            var entries = ArrayPool<EventObserverEntry>.Shared.Rent(entriesCount);
+            var entriesCount = _eventEmitterEntries.Count;
+            var entries = ArrayPool<EventEmitterEntry>.Shared.Rent(entriesCount);
 
             try {
-                _eventObserverEntries.CopyTo(entries, 0, entriesCount);
+                _eventEmitterEntries.CopyTo(entries, 0, entriesCount);
 
                 for (var i = 0; i < entriesCount; i++) {
-                    entries[i].Handler.Fulfill(context, eventData);
+                    entries[i].Handler.Emit(context, eventData);
                 }
             } finally {
-                ArrayPool<EventObserverEntry>.Shared.Return(entries);
+                ArrayPool<EventEmitterEntry>.Shared.Return(entries);
             }
         }
 
-        protected readonly record struct EventObserverEntry : IComparable<EventObserverEntry>
+        protected readonly record struct EventEmitterEntry : IComparable<EventEmitterEntry>
         {
             public ulong Id { get; }
 
-            public ITypeInversedUnschedulableEventFulfiller Handler =>
+            public ITypeInversedUnschedulableEventEmitter Handler =>
                 _eventHandler ?? throw new InvalidOperationException();
 
-            private readonly ITypeInversedUnschedulableEventFulfiller? _eventHandler;
+            private readonly ITypeInversedUnschedulableEventEmitter? _eventHandler;
 
-            public EventObserverEntry(ulong id, ITypeInversedUnschedulableEventFulfiller eventHandler)
+            public EventEmitterEntry(ulong id, ITypeInversedUnschedulableEventEmitter eventHandler)
             {
                 Id = id;
                 _eventHandler = eventHandler;
             }
 
-            public int CompareTo(EventObserverEntry other) =>
+            public int CompareTo(EventEmitterEntry other) =>
                 Id.CompareTo(other.Id);
         }
     }

@@ -2,82 +2,86 @@
 
 namespace Vernuntii.Reactive;
 
-internal class EveryEvent<T> : IEventDataHolder<T>, IFulfillableEvent<T>, IUnschedulableEventFulfiller<T>
+internal class EveryEvent<T> : IEventDataHolder<T>, IEmittableEvent<T>, IUnschedulableEventEmitter<T>
 {
     [MaybeNull]
-    internal virtual T EventData => throw new InvalidOperationException();
+    internal virtual T EventData =>
+        throw new InvalidOperationException();
 
-    internal virtual bool HasEventData => false;
-    internal virtual bool IsCompleted => false;
+    internal virtual bool HasEventData =>
+        false;
 
     [MaybeNull]
-    T IEventDataHolder<T>.EventData => EventData;
+    T IEventDataHolder<T>.EventData =>
+        EventData;
 
-    bool IEventDataHolder<T>.HasEventData => HasEventData;
+    bool IEventDataHolder<T>.HasEventData =>
+        HasEventData;
 
-    protected bool HasEventEntries => _eventEntries.Count != 0;
+    protected bool HasEventEntries =>
+        _eventSubscriptions.Count != 0;
 
-    private readonly SortedSet<EventFulfillerEntry> _eventEntries = new();
+    private readonly SortedSet<EventSubscription> _eventSubscriptions = new();
 
-    protected virtual IEventDataHolder<T> CanEvaluate(T eventData) =>
+    protected virtual IEventDataHolder<T>? InspectEmission(T eventData) =>
         new EventDataHolder<T>(eventData, hasEventData: true);
 
-    protected void Fullfill(EventFulfillmentContext context, T eventData)
+    protected void Emit(EventEmissionContext context, T eventData)
     {
-        foreach (var eventEntry in _eventEntries) {
-            if (eventEntry.Handler.IsFulfillmentUnschedulable) {
-                eventEntry.Handler.Fulfill(context, eventData);
-
-            } else {
-                context.ScheduleFulfillment(eventEntry.Handler, eventData);
+        foreach (var eventEntry in _eventSubscriptions) {
+            if (eventEntry.Handler.IsEmissionUnschedulable) {
+                eventEntry.Handler.Emit(context, eventData);
+            } else if (!context.IsCompleting) {
+                // For now, we do not publicly allow handling completion
+                context.ScheduleEventEmission(eventEntry.Handler, eventData);
             }
         }
     }
 
-    protected virtual void PostEvaluation(EventFulfillmentContext context, T eventData) =>
-        Fullfill(context, eventData);
+    protected virtual void MakeEmission(EventEmissionContext context, T eventData) =>
+        Emit(context, eventData);
 
-    internal void Evaluate(EventFulfillmentContext context, T eventData)
+    internal void EvaluateEmission(EventEmissionContext context, T eventData)
     {
-        var result = CanEvaluate(eventData);
+        var result = InspectEmission(eventData);
 
-        if (!result.HasEventData) {
+        if (result is null || !result.HasEventData) {
             return;
         }
 
-        PostEvaluation(context, eventData);
+        MakeEmission(context, eventData);
     }
 
-    void IUnschedulableEventFulfiller<T>.Fulfill(EventFulfillmentContext context, T eventData) =>
-        Evaluate(context, eventData);
+    void IUnschedulableEventEmitter<T>.Emit(EventEmissionContext context, T eventData) =>
+        EvaluateEmission(context, eventData);
 
-    public virtual IDisposable Subscribe(IEventFulfiller<T> eventFulfiller)
+    public virtual IDisposable Subscribe(IEventEmitter<T> eventEmitter)
     {
-        var eventEntry = new EventFulfillerEntry(eventFulfiller);
-        _eventEntries.Add(eventEntry);
+        var eventEntry = new EventSubscription(eventEmitter);
+        _eventSubscriptions.Add(eventEntry);
 
-        return new DelegatingDisposable<(ISet<EventFulfillerEntry>, EventFulfillerEntry)>(
+        return new DelegatingDisposable<(ISet<EventSubscription>, EventSubscription)>(
             static result => result.Item1.Remove(result.Item2),
-            (_eventEntries, eventEntry));
+            (_eventSubscriptions, eventEntry));
     }
 
-    protected readonly record struct EventFulfillerEntry : IComparable<EventFulfillerEntry>
+    protected readonly record struct EventSubscription : IComparable<EventSubscription>
     {
         private static uint s_nextId;
 
         public uint Id { get; }
-        public IEventFulfiller<T> Handler =>
-            _eventFulfiller ?? throw new InvalidOperationException();
+        public IEventEmitter<T> Handler =>
+            _eventEmitter ?? throw new InvalidOperationException();
 
-        private readonly IEventFulfiller<T>? _eventFulfiller;
+        private readonly IEventEmitter<T>? _eventEmitter;
 
-        public EventFulfillerEntry(IEventFulfiller<T> eventFulfiller)
+        public EventSubscription(IEventEmitter<T> eventEmitter)
         {
             Id = Interlocked.Increment(ref s_nextId);
-            _eventFulfiller = eventFulfiller;
+            _eventEmitter = eventEmitter;
         }
 
-        public int CompareTo(EventFulfillerEntry other) =>
+        public int CompareTo(EventSubscription other) =>
             Id.CompareTo(other.Id);
     }
 }

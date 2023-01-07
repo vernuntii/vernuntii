@@ -102,7 +102,7 @@ public class GitPlugin : Plugin, IGitPlugin
         }
 
         _gitCommandFactoryRequest = new GitCommandFactoryRequest();
-        await Events.FulfillAsync(GitEvents.RequestGitCommandFactory, _gitCommandFactoryRequest).ConfigureAwait(false);
+        await Events.EmitAsync(GitEvents.RequestGitCommandFactory, _gitCommandFactoryRequest).ConfigureAwait(false);
     }
 
     [MemberNotNull(nameof(_resolvedWorkingTreeDirectory))]
@@ -153,7 +153,7 @@ public class GitPlugin : Plugin, IGitPlugin
         }
 
         _logger.LogInformation("Use repository directory: {_workingTreeDirectory}", _resolvedWorkingTreeDirectory);
-        await Events.FulfillAsync(GitEvents.CreatedGitCommand, _gitCommand).ConfigureAwait(false);
+        await Events.EmitAsync(GitEvents.CreatedGitCommand, _gitCommand).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -176,7 +176,7 @@ public class GitPlugin : Plugin, IGitPlugin
         var nextCommandLineParseResult = Events.Earliest(CommandLineEvents.ParsedCommandLineArguments);
 
         Events.Earliest(ServicesEvents.ConfigureServices)
-            .Subscribe(() => Events.FulfillAsync(ConfigurationEvents.CreateConfiguration));
+            .Subscribe(() => Events.EmitAsync(ConfigurationEvents.CreateConfiguration));
 
         Events.Earliest(NextVersionEvents.ConfigureServices)
             .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)))
@@ -185,7 +185,7 @@ public class GitPlugin : Plugin, IGitPlugin
             .Subscribe(async result => {
                 var (((services, overridePostPreRelease), configurationBuilderResult), configuration) = result;
 
-                await Events.FulfillAsync(GitEvents.ConfigureServices, services).ConfigureAwait(false);
+                await Events.EmitAsync(GitEvents.ConfigureServices, services).ConfigureAwait(false);
                 await EnsureCreatedGitCommand(configurationBuilderResult.ConfigPath).ConfigureAwait(false);
 
                 services
@@ -214,7 +214,7 @@ public class GitPlugin : Plugin, IGitPlugin
                             .SetPostPreRelease(overridePostPreRelease));
                 }
 
-                await Events.FulfillAsync(GitEvents.ConfiguredServices, services).ConfigureAwait(false);
+                await Events.EmitAsync(GitEvents.ConfiguredServices, services).ConfigureAwait(false);
             });
 
         // On next version calculation we want to set bad exit code if equivalent commit version already exists

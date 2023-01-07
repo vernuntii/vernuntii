@@ -16,7 +16,7 @@ public static class BuildIdentifierComparer
     private class ComparerImpl : AbstractDotSplittedIndentifierComparer
     {
         protected override StringComparison StringComparisonType { get; } = StringComparison.Ordinal;
-        protected override SemanticVersionPart IdentifierParsingVersionPart { get; } = SemanticVersionPart.Build;
+        protected override SemanticVersionPart ParsingVersionPart { get; } = SemanticVersionPart.Build;
         protected override IDottedIdentifierParser IdentifierParser { get; } = PreReleaseIdentifierParser.Strict;
 
         /// <summary>

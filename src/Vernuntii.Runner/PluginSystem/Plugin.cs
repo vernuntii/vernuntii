@@ -161,7 +161,7 @@ namespace Vernuntii.PluginSystem
         }
 
         /// <summary>
-        /// The event system owned by one plugin.
+        /// The event system that wraps another event system but enables plugin-agnostic behaviour.
         /// </summary>
         protected internal class PluginEventSystem : IEventSystem
         {
@@ -169,29 +169,17 @@ namespace Vernuntii.PluginSystem
             /// If <see langword="true"/>, then the created event chains from <see cref="Events"/> will inherit the disposable registrar of this plugin.
             /// The event that build on an event chain inherits the registrar from said event chain.
             /// </summary>
-            public bool AutoUnsubscribeEvents {
-                get => _usingUnsubscriptionRegistrar is not null;
-
-                set {
-                    if (value) {
-                        _usingUnsubscriptionRegistrar = _onRequestUsingUnsubscriptionRegistrar;
-                    } else {
-                        _usingUnsubscriptionRegistrar = null;
-                    }
-                }
-            }
+            public bool AutoUnsubscribeEvents { get; set; }
 
             /// <summary>
-            /// The created event chain from this factory will inherit this registrar.
+            /// The created event chain from this factory will inherit this registrar if <see cref="AutoUnsubscribeEvents"/> is <see langword="true"/>.
             /// The event that build on an event chain inherits the registrar from said event chain.
             /// </summary>
-            private IDisposableRegistrar? _usingUnsubscriptionRegistrar;
-
-            private readonly IDisposableRegistrar _onRequestUsingUnsubscriptionRegistrar;
+            private readonly IDisposableRegistrar _unsubscriptionRegistrar;
             private IEventSystem? _eventSystem;
 
-            internal PluginEventSystem(IDisposableRegistrar onRequestUsingUnsubscriptionRegistrar) =>
-                _onRequestUsingUnsubscriptionRegistrar = onRequestUsingUnsubscriptionRegistrar;
+            internal PluginEventSystem(IDisposableRegistrar unsubscriptionRegistrar) =>
+                _unsubscriptionRegistrar = unsubscriptionRegistrar;
 
             internal void InitializeEventSystem(IEventSystem eventSystem)
             {
@@ -210,19 +198,24 @@ namespace Vernuntii.PluginSystem
                 }
             }
 
-            Task IDistinguishableEventFulfiller.FullfillAsync<T>(object eventId, T eventData)
+            Task IDistinguishableEventEmitter.EmitAsync<T>(object eventId, T eventData)
             {
                 ThrowIfEventSystemIsUninitialized();
-                return _eventSystem.FullfillAsync(eventId, eventData);
+                return _eventSystem.EmitAsync(eventId, eventData);
             }
 
             EventChain<T> IEventChainFactory.Create<T>(EventChainFragment<T> fragment)
             {
                 ThrowIfEventSystemIsUninitialized();
+                var eventChain = _eventSystem.Create(fragment);
 
-                return _eventSystem.Create(fragment) with {
-                    UnsubscriptionRegistrar = _usingUnsubscriptionRegistrar
-                };
+                if (AutoUnsubscribeEvents) {
+                    return eventChain with {
+                        UnsubscriptionRegistrar = _unsubscriptionRegistrar
+                    };
+                }
+
+                return eventChain;
             }
         }
     }

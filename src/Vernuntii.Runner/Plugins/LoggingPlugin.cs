@@ -153,7 +153,7 @@ namespace Vernuntii.Plugins
         {
             ReconfigureLoggingInfrastructure();
 
-            await Events.FulfillAsync(LoggingEvents.EnabledLoggingInfrastructure, this).ConfigureAwait(false);
+            await Events.EmitAsync(LoggingEvents.EnabledLoggingInfrastructure, this).ConfigureAwait(false);
 
             if (_enabledLoggingInfrastructureEvent != null) {
                 _enabledLoggingInfrastructureEvent.Invoke(this);
@@ -164,20 +164,6 @@ namespace Vernuntii.Plugins
             }
 
             _logger.Trace("Enabled logging infrastructure");
-        }
-
-        /// <inheritdoc/>
-        protected override void OnExecution()
-        {
-            // We need to lazy load, because command line plugin has dependency on this plugin
-            _pluginRegistry.GetPlugin<ICommandLinePlugin>().RootCommand.Add(_verbosityOption);
-
-            Events
-                .Earliest(CommandLineEvents.ParsedCommandLineArguments)
-                .Subscribe(parseResult => _verbosity = parseResult.GetValueForOption(_verbosityOption));
-
-            Events.Earliest(LoggingEvents.EnableLoggingInfrastructure).Subscribe(EnableLoggingInfrastructure);
-            Events.Earliest(ServicesEvents.ConfigureServices).Subscribe(sp => sp.AddLogging(Bind));
         }
 
         /// <inheritdoc/>
@@ -194,6 +180,19 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         public void AddProvider(ILoggerProvider provider) =>
             _loggerFactory.AddProvider(provider);
+
+        /// <inheritdoc/>
+        protected override void OnExecution()
+        {
+            // We need to lazy load, because command line plugin has dependency on this plugin
+            _pluginRegistry.GetPlugin<ICommandLinePlugin>().RootCommand.Add(_verbosityOption);
+
+            Events.Earliest(CommandLineEvents.ParsedCommandLineArguments)
+                .Subscribe(parseResult => _verbosity = parseResult.GetValueForOption(_verbosityOption));
+
+            Events.Earliest(LoggingEvents.EnableLoggingInfrastructure).Subscribe(EnableLoggingInfrastructure);
+            Events.Earliest(ServicesEvents.ConfigureServices).Subscribe(sp => sp.AddLogging(Bind));
+        }
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)

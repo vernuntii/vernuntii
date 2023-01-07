@@ -66,7 +66,7 @@ internal sealed record PerformanceMeasuringEventSystem : EventSystem
     internal PerformanceMeasuringEventSystem(ILogger<EventSystem> logger) =>
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    internal override async Task FulfillScheduledEventsAsync<T>(object eventId, T eventData, EventFulfillmentContext fulfillmentContext)
+    internal override async Task EmitScheduledEventEmissionsAsync<T>(object eventId, T eventData, EventEmissionContext emissionContext)
     {
         var depth = Interlocked.Increment(ref _currentDepth);
         var watch = new Stopwatch();
@@ -74,14 +74,14 @@ internal sealed record PerformanceMeasuringEventSystem : EventSystem
         _depthRelativeWatches.AddOrUpdate(depth, static (_, watch) => watch, static (_, _, watch) => watch, watch);
 
         _logger.LogTrace(
-            DepthIndicator(depth, true) + "Fulfill event {EventId}<{EventType}>",
+            DepthIndicator(depth, true) + "Emit event {EventId}<{EventType}>",
             eventId,
             typeof(T).Name);
 
-        await base.FulfillScheduledEventsAsync(eventId, eventData, fulfillmentContext);
+        await base.EmitScheduledEventEmissionsAsync(eventId, eventData, emissionContext);
 
         _logger.LogTrace(
-            DepthIndicator(depth, false) + "Fulfilled event {EventId}<{EventType}> in {FulfillmentTime}{PreviousDepthsTimes}",
+            DepthIndicator(depth, false) + "Emitted event {EventId}<{EventType}> in {EmissionTime}{PreviousDepthsTimes}",
             eventId,
             typeof(T).Name,
             watch.Elapsed.ToSecondsString(),

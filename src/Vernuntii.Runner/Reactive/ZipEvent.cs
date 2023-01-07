@@ -9,14 +9,14 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
         nameof(_rightQueue))]
     private bool _isOperable => _leftQueue != null && _rightQueue != null;
 
-    private readonly IFulfillableEvent<T1> _left;
-    private readonly IFulfillableEvent<T2> _right;
+    private readonly IEmittableEvent<T1> _left;
+    private readonly IEmittableEvent<T2> _right;
     private Queue<T1>? _leftQueue;
     private Queue<T2>? _rightQueue;
     private readonly LeftEventHandler _leftHandler;
     private readonly RightEventHandler _rightHandler;
 
-    public ZipEvent(IFulfillableEvent<T1> left, IFulfillableEvent<T2> right)
+    public ZipEvent(IEmittableEvent<T1> left, IEmittableEvent<T2> right)
     {
         _leftHandler = new(this);
         _rightHandler = new(this);
@@ -50,16 +50,16 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
         DeinitializeQueue(ref _rightQueue);
     }
 
-    public override IDisposable Subscribe(IEventFulfiller<(T1, T2)> eventHandler)
+    public override IDisposable Subscribe(IEventEmitter<(T1, T2)> eventHandler)
     {
         AttemptInitialize();
 
-        return DelegatingDisposable.Create(new Action[] {
+        return DelegatingDisposable.Create(
             base.Subscribe(eventHandler).Dispose,
             _left.Subscribe(_leftHandler).Dispose,
             _right.Subscribe(_rightHandler).Dispose,
             AttemptDeinitialize
-        });
+        );
     }
 
     [MemberNotNull(
@@ -72,12 +72,12 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
         }
     }
 
-    private void Evaluate<TFulfilled, TOther>(
-        EventFulfillmentContext context,
-        TFulfilled eventData,
-        Queue<TFulfilled> queue,
+    private void Evaluate<TEmitted, TOther>(
+        EventEmissionContext context,
+        TEmitted eventData,
+        Queue<TEmitted> queue,
         Queue<TOther> otherQueue,
-        Func<TFulfilled, TOther, (T1, T2)> zipEventDataFactory)
+        Func<TEmitted, TOther, (T1, T2)> zipEventDataFactory)
     {
         if (otherQueue.Count == 0) {
             queue.Enqueue(eventData);
@@ -86,10 +86,10 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
 
         var otherEventData = otherQueue.Dequeue();
         var zipEventData = zipEventDataFactory(eventData, otherEventData);
-        Evaluate(context, zipEventData);
+        EvaluateEmission(context, zipEventData);
     }
 
-    public void OnFulfilled(EventFulfillmentContext context, T1 eventData)
+    private void EvaluateLeft(EventEmissionContext context, T1 eventData)
     {
         ThrowIfNotInitialized();
 
@@ -101,7 +101,7 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
             static (eventData, otherEventData) => (eventData, otherEventData));
     }
 
-    public void OnFulfilled(EventFulfillmentContext context, T2 eventData)
+    public void EvaluateRight(EventEmissionContext context, T2 eventData)
     {
         ThrowIfNotInitialized();
 
@@ -113,25 +113,25 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
             static (eventData, otherEventData) => (otherEventData, eventData));
     }
 
-    private class LeftEventHandler : IUnschedulableEventFulfiller<T1>
+    private class LeftEventHandler : IUnschedulableEventEmitter<T1>
     {
         private readonly ZipEvent<T1, T2> _condition;
 
         public LeftEventHandler(ZipEvent<T1, T2> condition) =>
             _condition = condition;
 
-        public void Fulfill(EventFulfillmentContext context, T1 eventData) =>
-            _condition.OnFulfilled(context, eventData);
+        public void Emit(EventEmissionContext context, T1 eventData) =>
+            _condition.EvaluateLeft(context, eventData);
     }
 
-    private class RightEventHandler : IUnschedulableEventFulfiller<T2>
+    private class RightEventHandler : IUnschedulableEventEmitter<T2>
     {
         private readonly ZipEvent<T1, T2> _condition;
 
         public RightEventHandler(ZipEvent<T1, T2> condition) =>
             _condition = condition;
 
-        public void Fulfill(EventFulfillmentContext context, T2 eventData) =>
-            _condition.OnFulfilled(context, eventData);
+        public void Emit(EventEmissionContext context, T2 eventData) =>
+            _condition.EvaluateRight(context, eventData);
     }
 }

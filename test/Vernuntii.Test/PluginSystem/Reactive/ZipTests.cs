@@ -21,7 +21,7 @@ public class ZipTests
             .Zip(s_number1)
             .Subscribe(eventData => actualNumbers = eventData);
 
-        await pluginSystem.FullfillAsync(s_number1.EventId, 1);
+        await pluginSystem.EmitAsync(s_number1.EventId, 1);
 
         actualNumbers.Should().Be(expectedNumbers);
     }
@@ -38,10 +38,10 @@ public class ZipTests
              .Zip(s_number2)
              .Subscribe(eventData => actualNumbers = eventData);
 
-        await pluginSystem.FullfillAsync(s_number1.EventId, 1);
+        await pluginSystem.EmitAsync(s_number1.EventId, 1);
         actualNumbers.Should().Be((0, 0));
 
-        await pluginSystem.FullfillAsync(s_number2.EventId, 2);
+        await pluginSystem.EmitAsync(s_number2.EventId, 2);
         actualNumbers.Should().Be(expectedNumbers);
     }
 
@@ -58,13 +58,13 @@ public class ZipTests
             .Zip(s_number3)
             .Subscribe(eventData => actualNumbers = eventData);
 
-        await pluginSystem.FullfillAsync(s_number1.EventId, 1);
+        await pluginSystem.EmitAsync(s_number1.EventId, 1);
         actualNumbers.Should().Be(((0, 0), 0));
 
-        await pluginSystem.FullfillAsync(s_number2.EventId, 2);
+        await pluginSystem.EmitAsync(s_number2.EventId, 2);
         actualNumbers.Should().Be(((0, 0), 0));
 
-        await pluginSystem.FullfillAsync(s_number3.EventId, 3);
+        await pluginSystem.EmitAsync(s_number3.EventId, 3);
         actualNumbers.Should().Be(expectedNumbers);
     }
 }

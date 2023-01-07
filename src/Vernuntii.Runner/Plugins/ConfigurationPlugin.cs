@@ -84,7 +84,7 @@ namespace Vernuntii.Plugins
 
                     _isConfigurationBuilderConfigured = true;
 
-                    await Events.FulfillAsync(
+                    await Events.EmitAsync(
                         ConfigurationEvents.ConfiguredConfigurationBuilder,
                         new ConfigurationEvents.ConfiguredConfigurationBuilderResult() { ConfigPath = addedFilePath }).ConfigureAwait(false);
                 });
@@ -100,7 +100,7 @@ namespace Vernuntii.Plugins
                     var (_, builderResult) = result;
                     Configuration = configurationBuilder.Build();
                     _logger.LogInformation("Used configuration file: {ConfigurationFilePath}", builderResult.ConfigPath ?? "<none>");
-                    return Events.FulfillAsync(ConfigurationEvents.CreatedConfiguration, Configuration);
+                    return Events.EmitAsync(ConfigurationEvents.CreatedConfiguration, Configuration);
                 });
             ;
         }

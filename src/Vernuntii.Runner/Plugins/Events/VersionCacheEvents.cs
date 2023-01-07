@@ -9,7 +9,7 @@ namespace Vernuntii.Plugins.Events
     public sealed class VersionCacheEvents
     {
         /// <summary>
-        /// Event that may get fulfilled by third-party plugins signaling that the version cache needs to be checked.
+        /// Event that may get emitted by third-party plugins signaling that the version cache needs to be checked.
         /// </summary>
         public static readonly EventDiscriminator CheckVersionCache = EventDiscriminator.New();
 

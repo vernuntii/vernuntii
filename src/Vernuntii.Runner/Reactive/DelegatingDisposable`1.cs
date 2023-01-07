@@ -1,15 +1,24 @@
 ﻿namespace Vernuntii.Reactive;
 
-internal class DelegatingDisposable<T> : IDisposable
+internal class DelegatingDisposable<T> : IDelegatingDisposable
 {
-    private Action<T>? _disposeHandler;
-    private readonly T _state;
+    public bool IsDisposed =>
+        _disposeHandler == null;
+
+    internal Action<T>? _disposeHandler;
+    internal T _state;
+
+    private protected DelegatingDisposable() =>
+        _state = default!;
 
     public DelegatingDisposable(Action<T> disposeHandler, T state)
     {
         _disposeHandler = disposeHandler ?? throw new ArgumentNullException(nameof(disposeHandler));
         _state = state;
     }
+
+    internal DelegatingDisposable(Func<IDisposableLifetime, (Action<T> DisposeHandler, T State)> argumentsFactory) =>
+        (_disposeHandler, _state) = argumentsFactory(this);
 
     public void Dispose()
     {

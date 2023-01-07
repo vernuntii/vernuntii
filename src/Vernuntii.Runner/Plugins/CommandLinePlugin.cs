@@ -132,7 +132,7 @@ namespace Vernuntii.Plugins
 
         private async Task SealRootCommandAsync()
         {
-            await Events.FulfillAsync(CommandLineEvents.SealRootCommand, RootCommand);
+            await Events.EmitAsync(CommandLineEvents.SealRootCommand, RootCommand);
             _sealableRootCommand.Seal();
         }
 
@@ -196,7 +196,7 @@ namespace Vernuntii.Plugins
 
             // This calls the middleware again.
             var exitCode = await _parseResult.InvokeAsync().ConfigureAwait(false);
-            await Events.FulfillAsync(CommandLineEvents.InvokedRootCommand, exitCode).ConfigureAwait(false);
+            await Events.EmitAsync(CommandLineEvents.InvokedRootCommand, exitCode).ConfigureAwait(false);
             AttemptRethrow();
         }
 

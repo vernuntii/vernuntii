@@ -4,7 +4,7 @@
 /// The implementer can produce instances of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface IFulfillableEvent<out T>
+public interface IEmittableEvent<out T>
 {
     /// <summary>
     /// Those who subscribe with <paramref name="eventHandler"/> are able to get notified about new events.
@@ -13,5 +13,5 @@ public interface IFulfillableEvent<out T>
     /// <returns>
     /// An instance that cancels the subscription if disposed.
     /// </returns>
-    IDisposable Subscribe(IEventFulfiller<T> eventHandler);
+    IDisposable Subscribe(IEventEmitter<T> eventHandler);
 }

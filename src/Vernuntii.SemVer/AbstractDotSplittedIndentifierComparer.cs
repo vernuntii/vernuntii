@@ -18,7 +18,7 @@ internal abstract class AbstractDotSplittedIndentifierComparer : IDotSplittedIde
     /// </summary>
     protected abstract StringComparison StringComparisonType { get; }
 
-    protected abstract SemanticVersionPart IdentifierParsingVersionPart { get; }
+    protected abstract SemanticVersionPart ParsingVersionPart { get; }
     protected abstract IDottedIdentifierParser IdentifierParser { get; }
 
     private StringComparer? _stringComparer;
@@ -39,8 +39,8 @@ internal abstract class AbstractDotSplittedIndentifierComparer : IDotSplittedIde
     /// <inheritdoc/>
     public int Compare(string? x, string? y)
     {
-        var identifiers = SemanticVersionBuilder.ParseDottedIdentifier(IdentifierParsingVersionPart, IdentifierParser, x);
-        var otherIdentifiers = SemanticVersionBuilder.ParseDottedIdentifier(IdentifierParsingVersionPart, IdentifierParser, y);
+        var identifiers = SemanticVersionBuilder.ParseDottedIdentifier(ParsingVersionPart, IdentifierParser, x);
+        var otherIdentifiers = SemanticVersionBuilder.ParseDottedIdentifier(ParsingVersionPart, IdentifierParser, y);
         return Compare(identifiers, otherIdentifiers);
     }
 
@@ -52,14 +52,14 @@ internal abstract class AbstractDotSplittedIndentifierComparer : IDotSplittedIde
     public bool Equals(IEnumerable<string>? dotSplittedIdentifiers, string? otherDottedIdentifier)
     {
         dotSplittedIdentifiers ??= s_emptyIdentifiers;
-        var otherDotSplittedIdentifiers = SemanticVersionBuilder.ParseDottedIdentifier(IdentifierParsingVersionPart, IdentifierParser, otherDottedIdentifier);
+        var otherDotSplittedIdentifiers = SemanticVersionBuilder.ParseDottedIdentifier(ParsingVersionPart, IdentifierParser, otherDottedIdentifier);
         return Equals(dotSplittedIdentifiers, otherDotSplittedIdentifiers);
     }
 
     /// <inheritdoc/>
     public bool Equals(string? dottedIdentifier, IEnumerable<string>? otherDotSplittedIdentifiers)
     {
-        var dotSplittedIdentifiers = SemanticVersionBuilder.ParseDottedIdentifier(IdentifierParsingVersionPart, IdentifierParser, dottedIdentifier);
+        var dotSplittedIdentifiers = SemanticVersionBuilder.ParseDottedIdentifier(ParsingVersionPart, IdentifierParser, dottedIdentifier);
         otherDotSplittedIdentifiers ??= s_emptyIdentifiers;
         return Equals(dotSplittedIdentifiers, otherDotSplittedIdentifiers);
     }
@@ -67,8 +67,8 @@ internal abstract class AbstractDotSplittedIndentifierComparer : IDotSplittedIde
     /// <inheritdoc/>
     public bool Equals(string? x, string? y)
     {
-        var identifiers = SemanticVersionBuilder.ParseDottedIdentifier(IdentifierParsingVersionPart, IdentifierParser, x);
-        var otherIdentifiers = SemanticVersionBuilder.ParseDottedIdentifier(IdentifierParsingVersionPart, IdentifierParser, y);
+        var identifiers = SemanticVersionBuilder.ParseDottedIdentifier(ParsingVersionPart, IdentifierParser, x);
+        var otherIdentifiers = SemanticVersionBuilder.ParseDottedIdentifier(ParsingVersionPart, IdentifierParser, y);
         return Equals(identifiers, otherIdentifiers);
     }
 
@@ -77,5 +77,6 @@ internal abstract class AbstractDotSplittedIndentifierComparer : IDotSplittedIde
         SemanticVersion.CombineDotSplitted(dotSplittedIdentifiers).GetHashCode(StringComparisonType);
 
     /// <inheritdoc/>
-    public int GetHashCode([DisallowNull] string dottedIdentifier) => dottedIdentifier.GetHashCode(StringComparisonType);
+    public int GetHashCode([DisallowNull] string dottedIdentifier) => 
+        dottedIdentifier.GetHashCode(StringComparisonType);
 }
