@@ -7,7 +7,7 @@ namespace Vernuntii.SemVer
     /// <summary>
     /// A strict semantic version implementation.
     /// </summary>
-    public record SemanticVersion : ISemanticVersion, ISemanticVersionParserProvider, IComparable<SemanticVersion>
+    public record SemanticVersion : ISemanticVersion, ISemanticVersionContextProvider, IComparable<SemanticVersion>
     {
         internal static readonly string[] s_emptyIdentifiers = Array.Empty<string>();
 
@@ -16,15 +16,21 @@ namespace Vernuntii.SemVer
             ? string.Empty
             : string.Join('.', values);
 
+        private static ISemanticVersionContext GetContextFromKind(SemanticVersionParserContextKind contextKind) => contextKind switch {
+            SemanticVersionParserContextKind.Strict => SemanticVersionContext.Strict,
+            SemanticVersionParserContextKind.Erase => SemanticVersionContext.Erase,
+            _ => throw new NotSupportedException($"The parser kind \"{contextKind}\" is not supported")
+        };
+
         /// <summary>
         /// Tries to parse a version string.
         /// </summary>
         /// <param name="value"></param>
-        /// <param name="parser"></param>
+        /// <param name="context"></param>
         /// <param name="version"></param>
-        public static bool TryParse(string value, ISemanticVersionParser parser, [NotNullWhen(true)] out SemanticVersion? version)
+        public static bool TryParse(string value, ISemanticVersionContext context, [NotNullWhen(true)] out SemanticVersion? version)
         {
-            if (parser.TryParse(
+            if (context.Parser.TryParse(
                 value,
                 out var prefix,
                 out var major,
@@ -32,7 +38,7 @@ namespace Vernuntii.SemVer
                 out var patch,
                 out var preReleaseIdentifiers,
                 out var buildIdentifiers)) {
-                version = new SemanticVersion(parser, prefix, major.Value, minor.Value, patch.Value, preReleaseIdentifiers?.ToArray(), buildIdentifiers?.ToArray());
+                version = new SemanticVersion(context, prefix, major.Value, minor.Value, patch.Value, preReleaseIdentifiers?.ToArray(), buildIdentifiers?.ToArray());
                 return true;
             }
 
@@ -44,19 +50,28 @@ namespace Vernuntii.SemVer
         /// Tries to parse a version string.
         /// </summary>
         /// <param name="value"></param>
+        /// <param name="context"></param>
+        /// <param name="version"></param>
+        public static bool TryParse(string value, SemanticVersionParserContextKind context, [NotNullWhen(true)] out SemanticVersion? version) =>
+            TryParse(value, GetContextFromKind(context), out version);
+
+        /// <summary>
+        /// Tries to parse a version string with <see cref="SemanticVersionContext.Strict"/>.
+        /// </summary>
+        /// <param name="value"></param>
         /// <param name="version"></param>
         public static bool TryParse(string value, [NotNullWhen(true)] out SemanticVersion? version) =>
-            TryParse(value, SemanticVersionParser.Strict, out version);
+            TryParse(value, SemanticVersionContext.Strict, out version);
 
         /// <summary>
         /// Parses a version string.
         /// </summary>
         /// <param name="value"></param>
-        /// <param name="parser"></param>
+        /// <param name="context"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static SemanticVersion Parse(string value, ISemanticVersionParser parser)
+        public static SemanticVersion Parse(string value, ISemanticVersionContext context)
         {
-            if (!TryParse(value, parser, out var result)) {
+            if (!TryParse(value, context, out var result)) {
                 throw new ArgumentException($"Version string is not SemVer-compatible: {value}");
             }
 
@@ -67,9 +82,18 @@ namespace Vernuntii.SemVer
         /// Parses a version string.
         /// </summary>
         /// <param name="value"></param>
+        /// <param name="contextKind"></param>
+        /// <exception cref="ArgumentException"></exception>
+        public static SemanticVersion Parse(string value, SemanticVersionParserContextKind contextKind) =>
+            Parse(value, GetContextFromKind(contextKind));
+
+        /// <summary>
+        /// Parses a version string with <see cref="SemanticVersionContext.Strict"/>.
+        /// </summary>
+        /// <param name="value"></param>
         /// <exception cref="ArgumentException"></exception>
         public static SemanticVersion Parse(string value) =>
-            Parse(value, SemanticVersionParser.Strict);
+            Parse(value, SemanticVersionContext.Strict);
 
         /// <summary>
         /// 0.0.0
@@ -96,7 +120,7 @@ namespace Vernuntii.SemVer
             get => _prefix;
 
             init {
-                ValidatePrefix(Parser.PrefixValidator, value);
+                ValidatePrefix(Context.PrefixValidator, value);
                 _prefix = value;
             }
         }
@@ -107,19 +131,19 @@ namespace Vernuntii.SemVer
         /// <inheritdoc/>
         public uint Major {
             get => _major;
-            init => _major = ParseVersionNumber(Parser.VersionParser, SemanticVersionPart.Major, value);
+            init => _major = ParseVersionNumber(Context.VersionParser, SemanticVersionPart.Major, value);
         }
 
         /// <inheritdoc/>
         public uint Minor {
             get => _minor;
-            init => _minor = ParseVersionNumber(Parser.VersionParser, SemanticVersionPart.Minor, value);
+            init => _minor = ParseVersionNumber(Context.VersionParser, SemanticVersionPart.Minor, value);
         }
 
         /// <inheritdoc/>
         public uint Patch {
             get => _patch;
-            init => _patch = ParseVersionNumber(Parser.VersionParser, SemanticVersionPart.Patch, value);
+            init => _patch = ParseVersionNumber(Context.VersionParser, SemanticVersionPart.Patch, value);
         }
 
         /// <inheritdoc/>
@@ -128,7 +152,7 @@ namespace Vernuntii.SemVer
 
             init {
                 _preRelease = null;
-                _preReleaseIdentifiers = ParseDotSplittedIdentifier(SemanticVersionPart.PreRelease, Parser.PreReleaseParser, value);
+                _preReleaseIdentifiers = ParseDotSplittedIdentifier(SemanticVersionPart.PreRelease, Context.PreReleaseParser, value);
             }
         }
 
@@ -138,7 +162,7 @@ namespace Vernuntii.SemVer
 
             init {
                 _preRelease = null;
-                _preReleaseIdentifiers = ParseDottedIdentifier(SemanticVersionPart.PreRelease, Parser.PreReleaseParser, value);
+                _preReleaseIdentifiers = ParseDottedIdentifier(SemanticVersionPart.PreRelease, Context.PreReleaseParser, value);
             }
         }
 
@@ -151,7 +175,7 @@ namespace Vernuntii.SemVer
 
             init {
                 _build = null;
-                _buildIdentifiers = ParseDotSplittedIdentifier(SemanticVersionPart.Build, Parser.BuildParser, value);
+                _buildIdentifiers = ParseDotSplittedIdentifier(SemanticVersionPart.Build, Context.BuildParser, value);
             }
         }
 
@@ -161,7 +185,7 @@ namespace Vernuntii.SemVer
 
             init {
                 _build = null;
-                _buildIdentifiers = ParseDottedIdentifier(SemanticVersionPart.Build, Parser.BuildParser, value);
+                _buildIdentifiers = ParseDottedIdentifier(SemanticVersionPart.Build, Context.BuildParser, value);
             }
         }
 
@@ -178,7 +202,7 @@ namespace Vernuntii.SemVer
         /// when you create a shallow copy of this instance for example by using
         /// <see cref="With"/>.
         /// </summary>
-        public ISemanticVersionParser Parser { get; }
+        public ISemanticVersionContext Context { get; }
 
         private string _prefix;
         private uint _major;
@@ -194,7 +218,7 @@ namespace Vernuntii.SemVer
         /// </summary>
         public SemanticVersion()
         {
-            Parser = SemanticVersionParser.Strict;
+            Context = SemanticVersionContext.Strict;
             _prefix = string.Empty;
             _preReleaseIdentifiers = s_emptyIdentifiers;
             _buildIdentifiers = s_emptyIdentifiers;
@@ -206,7 +230,7 @@ namespace Vernuntii.SemVer
         /// <param name="semanticVersion"></param>
         public SemanticVersion(ISemanticVersion semanticVersion)
         {
-            Parser = semanticVersion.GetParserOrStrict();
+            Context = semanticVersion.GetContextOrStrict();
             _prefix = semanticVersion.Prefix;
             _major = semanticVersion.Major;
             _minor = semanticVersion.Minor;
@@ -220,9 +244,9 @@ namespace Vernuntii.SemVer
         /// <summary>
         /// Creates a semantic version.
         /// </summary>
-        public SemanticVersion(ISemanticVersionParser parser)
+        public SemanticVersion(ISemanticVersionContext parser)
         {
-            Parser = parser ?? throw new ArgumentNullException(nameof(parser));
+            Context = parser ?? throw new ArgumentNullException(nameof(parser));
             _prefix = string.Empty;
             _preReleaseIdentifiers = s_emptyIdentifiers;
             _buildIdentifiers = s_emptyIdentifiers;
@@ -231,7 +255,7 @@ namespace Vernuntii.SemVer
         /// <summary>
         /// Creates
         /// </summary>
-        /// <param name="parser"></param>
+        /// <param name="context"></param>
         /// <param name="prefix"></param>
         /// <param name="major"></param>
         /// <param name="minor"></param>
@@ -239,7 +263,7 @@ namespace Vernuntii.SemVer
         /// <param name="preReleaseIdentifiers"></param>
         /// <param name="buildIdentifiers"></param>
         internal SemanticVersion(
-            ISemanticVersionParser parser,
+            ISemanticVersionContext context,
             string? prefix,
             uint major,
             uint minor,
@@ -247,7 +271,7 @@ namespace Vernuntii.SemVer
             IReadOnlyList<string>? preReleaseIdentifiers,
             IReadOnlyList<string>? buildIdentifiers)
         {
-            Parser = parser;
+            Context = context;
             _prefix = prefix ?? string.Empty;
             _major = major;
             _minor = minor;

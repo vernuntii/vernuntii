@@ -5,6 +5,9 @@
 /// </summary>
 public sealed class GitCommandFactoryRequest
 {
+    /// <summary>
+    /// The git-specific directory resolver.
+    /// </summary>
     public IGitDirectoryResolver? GitDirectoryResolver { get; set; }
 
     /// <summary>

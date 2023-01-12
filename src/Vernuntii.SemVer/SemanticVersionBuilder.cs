@@ -170,7 +170,7 @@ namespace Vernuntii.SemVer
         public SemanticVersionBuilder WithOnlyCore() =>
             WithoutPreRelease().WithoutBuild();
 
-        private SemanticVersion BuildByParsing(ISemanticVersionParser parser)
+        private SemanticVersion BuildByParsing(ISemanticVersionContext parser)
         {
             string? prefix;
 
@@ -223,15 +223,15 @@ namespace Vernuntii.SemVer
         /// Builds the version.
         /// </summary>
         /// <param name="parser"></param>
-        public SemanticVersion ToVersion(ISemanticVersionParser parser) =>
+        public SemanticVersion ToVersion(ISemanticVersionContext parser) =>
             BuildByParsing(parser);
 
         /// <summary>
-        /// Builds the version. If it does implement <see cref="ISemanticVersionParserProvider"/>
+        /// Builds the version. If it does implement <see cref="ISemanticVersionContextProvider"/>
         /// its parser will be taken, otherwise <see cref="SemanticVersionParser.Strict"/>.
         /// </summary>
         public SemanticVersion ToVersion() =>
-            ToVersion(BaseVersion.GetParserOrStrict());
+            ToVersion(BaseVersion.GetContextOrStrict());
 
         /// <inheritdoc/>
         public static implicit operator SemanticVersion(SemanticVersionBuilder builder) =>

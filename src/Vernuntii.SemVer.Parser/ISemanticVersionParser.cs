@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Vernuntii.SemVer.Parser.Parsers;
 
 namespace Vernuntii.SemVer.Parser
 {
@@ -8,26 +7,6 @@ namespace Vernuntii.SemVer.Parser
     /// </summary>
     public interface ISemanticVersionParser
     {
-        /// <summary>
-        /// Prefix validator.
-        /// </summary>
-        IPrefixValidator PrefixValidator { get; }
-
-        /// <summary>
-        /// A version number parser.
-        /// </summary>
-        INumericIdentifierParser VersionParser { get; }
-
-        /// <summary>
-        /// A pre-release parser.
-        /// </summary>
-        IDottedIdentifierParser PreReleaseParser { get; }
-
-        /// <summary>
-        /// A build parser.
-        /// </summary>
-        IDottedIdentifierParser BuildParser { get; }
-
         /// <summary>
         /// Tries to parse the value.
         /// </summary>

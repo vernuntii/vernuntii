@@ -11,6 +11,9 @@ internal class SemanticVersionMessagePackFormatter : IMessagePackFormatter<ISema
     public void Serialize(ref MessagePackWriter writer, ISemanticVersion value, MessagePackSerializerOptions options) =>
         writer.Write(value.ToString());
 
-    public ISemanticVersion Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options) =>
-        SemanticVersion.Parse(reader.ReadString());
+    public ISemanticVersion Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    {
+        var versionString = reader.ReadString();
+        return SemanticVersion.Parse(versionString);
+    }
 }

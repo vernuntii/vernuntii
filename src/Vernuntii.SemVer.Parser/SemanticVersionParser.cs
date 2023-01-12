@@ -33,19 +33,25 @@ namespace Vernuntii.SemVer.Parser
             init => _prefixValidator = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// A version number parser.
+        /// </summary>
         public INumericIdentifierParser VersionParser {
             get => _numericIdentifierParser;
             init => _numericIdentifierParser = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// A pre-release parser.
+        /// </summary>
         public IDottedIdentifierParser PreReleaseParser {
             get => _preReleaseIdentifierParser;
             init => _preReleaseIdentifierParser = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// A build parser.
+        /// </summary>
         public IDottedIdentifierParser BuildParser {
             get => _buildIdentifierParser;
             init => _buildIdentifierParser = value ?? throw new ArgumentNullException(nameof(value));

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using Vernuntii.SemVer.Parser;
 
 namespace Vernuntii.SemVer
 {
@@ -20,14 +19,14 @@ namespace Vernuntii.SemVer
         /// Gets Parser or default.
         /// </summary>
         /// <param name="version"></param>
-        /// <param name="parser"></param>
-        [return: NotNullIfNotNull("parser")]
-        public static ISemanticVersionParser? GetParserOrDefault(this ISemanticVersion version, ISemanticVersionParser? parser)
+        /// <param name="context"></param>
+        [return: NotNullIfNotNull(nameof(context))]
+        public static ISemanticVersionContext? GetContextOrDefault(this ISemanticVersion version, ISemanticVersionContext? context)
         {
-            if (version is ISemanticVersionParserProvider parserProvider) {
-                return parserProvider.Parser;
+            if (version is ISemanticVersionContextProvider parserProvider) {
+                return parserProvider.Context;
             } else {
-                return parser;
+                return context;
             }
         }
 
@@ -35,8 +34,8 @@ namespace Vernuntii.SemVer
         /// Gets Parser or default.
         /// </summary>
         /// <param name="version"></param>
-        public static ISemanticVersionParser GetParserOrStrict(this ISemanticVersion version) =>
-            GetParserOrDefault(version, SemanticVersionParser.Strict);
+        public static ISemanticVersionContext GetContextOrStrict(this ISemanticVersion version) =>
+            GetContextOrDefault(version, SemanticVersionContext.Strict);
 
         /// <summary>
         /// Gets the version in a custom format.

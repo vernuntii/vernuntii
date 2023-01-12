@@ -1,7 +1,11 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using Vernuntii.Git;
+using Vernuntii.Git.Commands;
 using Vernuntii.Plugins;
+using Vernuntii.Plugins.Events;
+using Vernuntii.PluginSystem.Reactive;
+using Vernuntii.Reactive;
 using Vernuntii.Runner;
 
 namespace Vernuntii.Console.GlobalTool.Benchmark
@@ -21,10 +25,10 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
 
         private VernuntiiRunner CreateRunner(string cacheId) => new VernuntiiRunnerBuilder()
             .ConfigurePlugins(plugins => {
-                //plugins.Add(PluginAction.WhenExecuting<IGitPlugin>.CreatePluginDescriptor(plugin =>
-                //    plugin.SetGitCommand(_repository, _repository.GitCommand)));
+                plugins.Add(PluginAction.HandleEvents(events =>
+                    events.Every(GitEvents.RequestGitCommandFactory).Subscribe(request => new GitCommandFactory(_repository.GitCommand))));
 
-                plugins.Add(PluginAction.WhenExecuting<ILoggingPlugin>.CreatePluginDescriptor(plugin =>
+                plugins.Add(PluginAction.HandlePlugin<ILoggingPlugin>(plugin =>
                     plugin.WriteToStandardError = false));
             })
             .Build(new[] {
@@ -34,13 +38,13 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
                 "Verbose"
             });
 
-        private VernuntiiRunner CreateStaticRunner() => CreateRunner(nameof(VernuntiiRunnerBenchmarks));
+        private VernuntiiRunner CreateStaticRunner() => CreateRunner("BENCHMARKS");
 
-        //[GlobalSetup(Target = nameof(RunConsoleWithCache))]
-        //public Task BeforeRunConsoleWithCache() => CreateStaticRunner().RunAsync();
+        [GlobalSetup(Target = nameof(RunConsoleWithCache))]
+        public async Task BeforeRunConsoleWithCache() => await CreateStaticRunner().RunAsync();
 
-        //[Benchmark]
-        //public Task<int> RunConsoleWithCache() => CreateStaticRunner().RunAsync();
+        [Benchmark]
+        public async Task RunConsoleWithCache() => await CreateStaticRunner().RunAsync();
 
         //[IterationSetup(Target = nameof(RunConsoleWithoutCache))]
         //public void BeforeRunConsoleWithoutCache() => _randomCacheId = Guid.NewGuid().ToString();
@@ -48,7 +52,18 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
         //[Benchmark]
         //public Task<int> RunConsoleWithoutCache() => CreateRunner(_randomCacheId).RunAsync();
 
-        //[GlobalCleanup]
-        //public void Cleanup() => _repository.Dispose();
+        [GlobalCleanup]
+        public void Cleanup() => _repository.Dispose();
+
+        private class GitCommandFactory : IGitCommandFactory
+        {
+            private readonly IGitCommand _gitCommand;
+
+            public GitCommandFactory(IGitCommand gitCommand) =>
+                _gitCommand = gitCommand;
+
+            public IGitCommand CreateCommand(string gitDirectory) =>
+                _gitCommand;
+        }
     }
 }

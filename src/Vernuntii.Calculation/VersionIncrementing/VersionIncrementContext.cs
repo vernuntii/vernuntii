@@ -221,7 +221,7 @@ namespace Vernuntii.VersionIncrementing
         {
             var startVersionTransformResult = HeightIdentifierTransformer.Transform(_incremenationOptions.StartVersion);
             var currentVersionTransformResult = HeightIdentifierTransformer.Transform(CurrentVersion);
-            var versionNumberParser = CurrentVersion.GetParserOrStrict().VersionParser;
+            var versionNumberParser = CurrentVersion.GetContextOrStrict().VersionParser;
 
             _ = currentVersionTransformResult.TryParseHeight(versionNumberParser, out var currentVersionHeight);
             _ = startVersionTransformResult.TryParseHeight(versionNumberParser, out var startVersionHeight);

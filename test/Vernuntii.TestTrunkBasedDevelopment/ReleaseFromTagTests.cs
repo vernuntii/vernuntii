@@ -4,6 +4,8 @@ using Vernuntii.Git.Commands;
 using Vernuntii.Plugins;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
+using Vernuntii.PluginSystem.Reactive;
+using Vernuntii.Reactive;
 using Vernuntii.Runner;
 using Vernuntii.SemVer;
 using Xunit;
@@ -21,10 +23,9 @@ namespace Vernuntii
         {
             _vernuntii = VernuntiiRunnerBuilder.WithNextVersionRequirements()
                 .ConfigurePlugins(plugins => {
-                    plugins.Add(
-                        PluginEventAction.OnEveryEvent(
-                            GitEvents.RequestGitCommandFactory,
-                            request => request.GitCommandFactory = new GitCommandProvider(_temporaryRepository.GitCommand)));
+                    plugins.Add(PluginAction.HandleEvents(events => events
+                        .Every(GitEvents.RequestGitCommandFactory)
+                        .Subscribe(request => request.GitCommandFactory = new GitCommandProvider(_temporaryRepository.GitCommand))));
 
                     plugins.Add(_configurableServices);
                 })

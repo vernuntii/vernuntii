@@ -45,7 +45,7 @@ namespace Vernuntii.VersionTransformers
             }
 
             _transformResult = _transformer.Transform(version);
-            _ = _transformResult.TryParseHeight(version.GetParserOrStrict().VersionParser, out _parsedHeightNumber);
+            _ = _transformResult.TryParseHeight(version.GetContextOrStrict().VersionParser, out _parsedHeightNumber);
         }
 
         public ISemanticVersion TransformVersion(ISemanticVersion version)
