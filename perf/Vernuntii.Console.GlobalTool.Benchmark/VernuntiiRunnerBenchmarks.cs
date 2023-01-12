@@ -23,10 +23,11 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
             _repository.CommitEmpty();
         }
 
-        private VernuntiiRunner CreateRunner(string cacheId) => new VernuntiiRunnerBuilder()
+        private VernuntiiRunner CreateRunner(string cacheId) => VernuntiiRunnerBuilder
+            .WithNextVersionRequirements()
             .ConfigurePlugins(plugins => {
                 plugins.Add(PluginAction.HandleEvents(events =>
-                    events.Every(GitEvents.RequestGitCommandFactory).Subscribe(request => new GitCommandFactory(_repository.GitCommand))));
+                    events.Every(GitEvents.RequestGitCommandFactory).Subscribe(request => request.GitCommandFactory = new GitCommandFactory(_repository.GitCommand))));
 
                 plugins.Add(PluginAction.HandlePlugin<ILoggingPlugin>(plugin =>
                     plugin.WriteToStandardError = false));
