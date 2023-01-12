@@ -4,12 +4,19 @@ using SoftCircuits.Collections;
 
 namespace Vernuntii.PluginSystem
 {
-    internal class PluginRegistryFactory
+    internal class PluginRegistryBuilder
     {
-        private readonly PluginRegistrar _pluginRegistrar;
+        private readonly List<Action<IServiceCollection>> _configurePluginServicesActions = new();
 
-        public PluginRegistryFactory(PluginRegistrar pluginRegistrar) =>
-            _pluginRegistrar = pluginRegistrar ?? throw new ArgumentNullException(nameof(pluginRegistrar));
+        /// <inheritdoc/>
+        public void ConfigurePluginServices(Action<IServiceCollection> configure)
+        {
+            if (configure is null) {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            _configurePluginServicesActions.Add(configure);
+        }
 
         /// <summary>
         /// The plugin get built by the order of <paramref name="pluginDescriptors"/>.
@@ -37,14 +44,17 @@ namespace Vernuntii.PluginSystem
             return new ReadOnlyDictionary<Type, IPluginRegistration>(pluginRegistrations);
         }
 
-        public PluginRegistry Create(Action<IServiceCollection> postConfigureServices)
+        public PluginRegistry Build(PluginRegistrar pluginRegistrar)
         {
             var lazyPluginRegistry = new LateBoundPluginRegistry(out var commitPluginRegistry);
 
-            var pluginProvider = _pluginRegistrar.BuildServiceProvider(
+            var pluginProvider = pluginRegistrar.BuildServiceProvider(
                 services => {
                     services.AddSingleton<IPluginRegistry>(lazyPluginRegistry);
-                    postConfigureServices(services);
+
+                    foreach (var configureServices in _configurePluginServicesActions) {
+                        configureServices(services);
+                    }
                 },
                 out var pluginDescriptors);
 

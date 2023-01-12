@@ -7,9 +7,5 @@ namespace Vernuntii.Plugins
     /// </summary>
     public interface INextVersionPlugin : IPlugin
     {
-        /// <summary>
-        /// The exit code used instead when the command-line handler is about to succeed.
-        /// </summary>
-        int? ExitCodeOnSuccess { get; set; }
     }
 }

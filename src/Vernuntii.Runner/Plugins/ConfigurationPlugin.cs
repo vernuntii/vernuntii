@@ -85,13 +85,13 @@ namespace Vernuntii.Plugins
                     _isConfigurationBuilderConfigured = true;
 
                     await Events.EmitAsync(
-                        ConfigurationEvents.ConfiguredConfigurationBuilder,
+                        ConfigurationEvents.OnConfiguredConfigurationBuilder,
                         new ConfigurationEvents.ConfiguredConfigurationBuilderResult() { ConfigPath = addedFilePath }).ConfigureAwait(false);
                 });
 
             // TODO: Every once every lifecycle
             Events.Earliest(ConfigurationEvents.CreateConfiguration)
-                .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
+                .Zip(ConfigurationEvents.OnConfiguredConfigurationBuilder)
                 .Subscribe(result => {
                     if (_pluginRegistry.TryGetPlugin<IVersionCachePlugin>(out var versionCacheChecker) && versionCacheChecker.IsCacheUpToDate) {
                         return Task.CompletedTask;
@@ -100,7 +100,7 @@ namespace Vernuntii.Plugins
                     var (_, builderResult) = result;
                     Configuration = configurationBuilder.Build();
                     _logger.LogInformation("Used configuration file: {ConfigurationFilePath}", builderResult.ConfigPath ?? "<none>");
-                    return Events.EmitAsync(ConfigurationEvents.CreatedConfiguration, Configuration);
+                    return Events.EmitAsync(ConfigurationEvents.OnCreatedConfiguration, Configuration);
                 });
             ;
         }

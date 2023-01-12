@@ -21,7 +21,7 @@ namespace Vernuntii.Plugins.Events
         /// <remarks>
         /// This event is the last opportunity to register arguments, commands and options, or to set the command handler.
         /// </remarks>
-        public static readonly EventDiscriminator<ICommand> SealRootCommand = EventDiscriminator.New<ICommand>();
+        public static readonly EventDiscriminator<ICommand> OnSealRootCommand = EventDiscriminator.New<ICommand>();
 
         /// <summary>
         /// Event when command line args are getting parsed.

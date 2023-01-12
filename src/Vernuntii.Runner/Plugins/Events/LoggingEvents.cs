@@ -15,6 +15,6 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when logging infrastructure is enabled.
         /// </summary>
-        public static readonly EventDiscriminator<ILoggingPlugin> EnabledLoggingInfrastructure = EventDiscriminator.New<ILoggingPlugin>();
+        public static readonly EventDiscriminator<ILoggingPlugin> OnEnabledLoggingInfrastructure = EventDiscriminator.New<ILoggingPlugin>();
     }
 }

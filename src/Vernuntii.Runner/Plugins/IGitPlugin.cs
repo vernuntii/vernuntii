@@ -13,7 +13,7 @@ namespace Vernuntii.Plugins
     {
         /// <summary>
         /// The git directory. It is available after
-        /// <see cref="ConfigurationEvents.ConfiguredConfigurationBuilder"/>.
+        /// <see cref="ConfigurationEvents.OnConfiguredConfigurationBuilder"/>.
         /// </summary>
         string WorkingTreeDirectory { get; }
 

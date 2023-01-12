@@ -22,10 +22,11 @@ namespace Vernuntii.Plugins
     /// Plugin that produces the next version and writes it to console.
     /// </summary>
     [ImportPlugin<SharedOptionsPlugin>(TryRegister = true)]
+    [ImportPlugin<NextVersionDaemonPlugin>(TryRegister = true)]
     public class NextVersionPlugin : Plugin, INextVersionPlugin
     {
-        /// <inheritdoc/>
-        public int? ExitCodeOnSuccess { get; set; }
+        ///// <inheritdoc/>
+        //public int? ExitCodeOnSuccess { get; set; }
 
         private readonly Stopwatch _loadingVersionStopwatch = new();
         private readonly IPluginRegistry _pluginRegistry;
@@ -41,6 +42,15 @@ namespace Vernuntii.Plugins
 
         private readonly IServicesPlugin _globalServiceProvider;
 
+        /// <summary>
+        /// Creates an instance of this type.
+        /// </summary>
+        /// <param name="pluginRegistry"></param>
+        /// <param name="sharedOptions"></param>
+        /// <param name="commandLine"></param>
+        /// <param name="globalServiceProvider"></param>
+        /// <param name="logger"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public NextVersionPlugin(
             IPluginRegistry pluginRegistry,
             SharedOptionsPlugin sharedOptions,
@@ -58,14 +68,14 @@ namespace Vernuntii.Plugins
         private async ValueTask<IServiceScope> CreateServiceScope()
         {
             var scope = _globalServiceProvider.CreateScope();
-            await Events.EmitAsync(NextVersionEvents.CreatedScopedServiceProvider, scope.ServiceProvider).ConfigureAwait(false);
+            await Events.EmitAsync(NextVersionEvents.OnCreatedScopedServiceProvider, scope.ServiceProvider).ConfigureAwait(false);
             return scope;
         }
 
-        private async Task<int> HandleRootCommandInvocation()
+        private async Task CalculateNextVersion()
         {
             if (_presentationParts is null) {
-                throw new InvalidOperationException($"The presentation parts should have been set during the {nameof(CommandLineEvents.SealRootCommand)} event");
+                throw new InvalidOperationException($"The presentation parts should have been set during the {nameof(CommandLineEvents.OnSealRootCommand)} event");
             }
 
             IVersionCache versionCache;
@@ -75,17 +85,12 @@ namespace Vernuntii.Plugins
             } else {
                 await Events.EmitAsync(ServicesEvents.CreateServiceProvider).ConfigureAwait(false);
                 using var calculationServiceProviderScope = await CreateServiceScope().ConfigureAwait(false);
-
                 var calculationServiceProvider = calculationServiceProviderScope.ServiceProvider;
-                //var repository = calculationServiceProvider.GetRequiredService<IRepository>();
                 var versionCalculation = calculationServiceProvider.GetRequiredService<IVersionIncrementation>();
                 var incrementedVersion = versionCalculation.GetIncrementedVersion();
-
                 var versionCacheManager = calculationServiceProvider.GetService<IVersionCacheManager>();
-
                 var versionCacheDataTuples = new VersionCacheDataTuples();
                 versionCacheDataTuples.AddData(VersionCacheParts.Version, incrementedVersion);
-
                 var versionCacheDataTuplesEnrichers = calculationServiceProvider.GetService<IEnumerable<IVersionCacheDataTuplesEnricher>>();
 
                 if (versionCacheDataTuplesEnrichers is not null) {
@@ -108,7 +113,7 @@ namespace Vernuntii.Plugins
                 }
             }
 
-            await Events.EmitAsync(NextVersionEvents.CalculatedNextVersion, versionCache.Version).ConfigureAwait(false);
+            await Events.EmitAsync(NextVersionEvents.OnCalculatedNextVersion, versionCache).ConfigureAwait(false);
 
             var formattedVersion = new VersionCacheStringBuilder(versionCache)
                 .UsePresentationKind(_presentationKind)
@@ -118,8 +123,22 @@ namespace Vernuntii.Plugins
 
             Console.Write(formattedVersion);
             _logger.LogInformation("Loaded version {Version} in {LoadTime}", versionCache.Version, _loadingVersionStopwatch.Elapsed.ToSecondsString());
+        }
 
-            return ExitCodeOnSuccess ?? (int)ExitCode.Success;
+        private async Task<int> HandleRootCommandInvocation()
+        {
+            var commandInvocation = new CommandInvocation();
+            await Events.EmitAsync(NextVersionEvents.OnInvokeNextVersionCommand, commandInvocation).ConfigureAwait(false);
+
+            if (commandInvocation.IsHandled) {
+                return (int)ExitCode.Success;
+            }
+
+            await Events.EmitAsync(NextVersionEvents.CalculateNextVersion).ConfigureAwait(false);
+
+            var commandInvocationResult = new CommandInvocationResult();
+            await Events.EmitAsync(NextVersionEvents.OnInvokedNextVersionCommand, commandInvocationResult).ConfigureAwait(false);
+            return commandInvocationResult.ExitCode ?? (int)ExitCode.Success;
         }
 
         private void ConfigureCommandLine()
@@ -169,11 +188,11 @@ namespace Vernuntii.Plugins
             _commandLine.RootCommand.Add(presentationViewOption);
             _commandLine.RootCommand.Add(emptyCachesOption);
 
-            Events.Earliest(CommandLineEvents.SealRootCommand)
+            Events.Earliest(CommandLineEvents.OnSealRootCommand)
                 .Subscribe(async _ => {
                     var versionPresentationContext = new VersionPresentationContext();
                     versionPresentationContext.ImportNextVersionRequirements(); // Adds next-version-agnostic defaults
-                    await Events.EmitAsync(NextVersionEvents.ConfigureVersionPresentation, versionPresentationContext).ConfigureAwait(false);
+                    await Events.EmitAsync(NextVersionEvents.OnConfigureVersionPresentation, versionPresentationContext).ConfigureAwait(false);
                     presentableParts = new VersionPresentationParts(versionPresentationContext.PresentableParts);
                 });
 
@@ -209,11 +228,11 @@ namespace Vernuntii.Plugins
                 .Subscribe(() => Events.EmitAsync(ConfigurationEvents.CreateConfiguration));
 
             Events.Earliest(ServicesEvents.ConfigureServices)
-                .Zip(ConfigurationEvents.CreatedConfiguration)
+                .Zip(ConfigurationEvents.OnCreatedConfiguration)
                 .Subscribe(async result => {
                     var (services, configuration) = result;
 
-                    await Events.EmitAsync(NextVersionEvents.ConfigureServices, services).ConfigureAwait(false);
+                    await Events.EmitAsync(NextVersionEvents.OnConfigureServices, services).ConfigureAwait(false);
 
                     services
                         .TakeViewOfVernuntii()
@@ -225,6 +244,30 @@ namespace Vernuntii.Plugins
                         services.TakeViewOfVernuntii().AddVersionIncrementation(view => view.UseVersioningMode(_sharedOptions.OverrideVersioningMode));
                     }
                 });
+
+            Events.Every(NextVersionEvents.CalculateNextVersion).Subscribe(CalculateNextVersion);
+        }
+
+        /// <summary>
+        /// The result of the command invocation after the next version has been calculated.
+        /// </summary>
+        public class CommandInvocation
+        {
+            /// <summary>
+            /// If you set it to <see langword="false"/>, the command invocation won't be handled.
+            /// </summary>
+            public bool IsHandled { get; set; } = true;
+        }
+
+        /// <summary>
+        /// The result of the command invocation after the next version has been calculated.
+        /// </summary>
+        public class CommandInvocationResult
+        {
+            /// <summary>
+            /// The exit code, that will returned.
+            /// </summary>
+            public int? ExitCode { get; set; }
         }
     }
 }

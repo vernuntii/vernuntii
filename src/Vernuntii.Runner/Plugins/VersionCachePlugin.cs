@@ -105,8 +105,8 @@ namespace Vernuntii.Plugins
             Events.OnceEvery(LifecycleEvents.BeforeEveryRun, VersionCacheEvents.CheckVersionCache)
                 .Subscribe(() => Events.EmitAsync(GitEvents.CreateGitCommand));
 
-            Events.Every(ConfigurationEvents.ConfiguredConfigurationBuilder)
-                .Zip(GitEvents.CreatedGitCommand)
+            Events.Every(ConfigurationEvents.OnConfiguredConfigurationBuilder)
+                .Zip(GitEvents.OnCreatedGitCommand)
                 .Zip(VersionCacheOptionsEvents.ParsedVersionCacheOptions)
                 .Zip(VersionCacheEvents.CheckVersionCache)
                 .Subscribe(result => {

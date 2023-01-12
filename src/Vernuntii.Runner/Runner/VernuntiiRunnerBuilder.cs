@@ -25,7 +25,7 @@ namespace Vernuntii.Runner
             builder.Add<IConfigurationPlugin, ConfigurationPlugin>();
         }
 
-        private static void AddPluginServices(IServiceCollection services)
+        private static void AddRequiredPluginServices(IServiceCollection services)
         {
             services.TryAddSingleton<ILoggerFactory>(sp => sp.GetRequiredService<ILoggingPlugin>());
             services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(Logger<>)));
@@ -35,9 +35,20 @@ namespace Vernuntii.Runner
             AddRequiredPlugins
         };
 
-        private readonly List<Action<IServiceCollection>> _configurePluginServicesActions = new() {
-            AddPluginServices
-        };
+        private readonly PluginRegistryBuilder _pluginRegistryBuilder;
+
+        /// <summary>
+        /// Creates an instance of this type.
+        /// </summary>
+        public VernuntiiRunnerBuilder()
+        {
+            _pluginRegistryBuilder = new();
+            _pluginRegistryBuilder.ConfigurePluginServices(AddRequiredPluginServices);
+        }
+
+        //private readonly List<Action<IServiceCollection>> _configurePluginServicesActions = new() {
+        //    AddRequiredPluginServices
+        //};
 
         /// <inheritdoc/>
         public IVernuntiiRunnerBuilder ConfigurePlugins(Action<IPluginRegistrar> configure)
@@ -53,25 +64,14 @@ namespace Vernuntii.Runner
         /// <inheritdoc/>
         public IVernuntiiRunnerBuilder ConfigurePluginServices(Action<IServiceCollection> configure)
         {
-            if (configure is null) {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            _configurePluginServicesActions.Add(configure);
+            _pluginRegistryBuilder.ConfigurePluginServices(configure);
             return this;
         }
 
         /// <inheritdoc/>
         public VernuntiiRunner Build(string[]? args)
         {
-            var pluginProviderBuilder = CreatePluginProviderBuilder();
-            var pluginRegistry = CreatePluginRegistry();
-
-            return new VernuntiiRunner(pluginRegistry) {
-                ConsoleArguments = args ?? Array.Empty<string>()
-            };
-
-            PluginRegistrar CreatePluginProviderBuilder()
+            PluginRegistrar CreatePluginRegistrar()
             {
                 var pluginProviderBuilder = new PluginRegistrar();
 
@@ -82,16 +82,11 @@ namespace Vernuntii.Runner
                 return pluginProviderBuilder;
             }
 
-            PluginRegistry CreatePluginRegistry()
-            {
-                var pluginRegistryFactory = new PluginRegistryFactory(pluginProviderBuilder);
+            var pluginRegistrar = CreatePluginRegistrar();
 
-                return pluginRegistryFactory.Create(services => {
-                    foreach (var configureServices in _configurePluginServicesActions) {
-                        configureServices(services);
-                    }
-                });
-            }
+            return new VernuntiiRunner(_pluginRegistryBuilder, pluginRegistrar) {
+                ConsoleArguments = args ?? Array.Empty<string>()
+            };
         }
     }
 }

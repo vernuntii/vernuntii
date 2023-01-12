@@ -3,7 +3,7 @@
 /// <summary>
 /// Requests an instance of <see cref="IGitCommandFactory"/>.
 /// </summary>
-public sealed class GitCommandFactoryRequest
+public sealed class GitCommandCreationCustomization
 {
     /// <summary>
     /// The git-specific directory resolver.

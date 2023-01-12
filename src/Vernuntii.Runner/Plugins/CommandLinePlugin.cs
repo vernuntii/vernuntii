@@ -1,11 +1,11 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
-using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.CommandLine.NamingConventionBinder;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Runner;
 using Vernuntii.Plugins.CommandLine;
@@ -24,7 +24,7 @@ namespace Vernuntii.Plugins
     {
         /// <inheritdoc/>
         private static ICommandHandler? CreateCommandHandler(Func<Task<int>>? action) =>
-            action is null ? null : CommandHandler.Create(action);
+            action is null ? null : CommandHandler.Create(action); // CommandHandler originates from NamingConventionBinder
 
         /// <inheritdoc/>
         public ICommand RootCommand { get; }
@@ -38,7 +38,7 @@ namespace Vernuntii.Plugins
         }
 
         private readonly RootCommand _rootCommand;
-        private readonly SealableCommand _sealableRootCommand;
+        private readonly SwappableCommand _sealableRootCommand;
         private readonly ILogger _logger;
         private ParseResult _parseResult = null!;
         private ExceptionDispatchInfo? _exception;
@@ -49,10 +49,10 @@ namespace Vernuntii.Plugins
         public CommandLinePlugin(ILogger<CommandLinePlugin> logger)
         {
             _rootCommand = new RootCommand();
-            var rootCommand = new HandlerWrappableCommand(_rootCommand, CreateCommandHandler);
+            var rootCommand = new HandlerWrappingCommand(_rootCommand, CreateCommandHandler);
             var rootCommandLock = new object();
 
-            _sealableRootCommand = new SealableCommand(
+            _sealableRootCommand = new SwappableCommand(
                 rootCommand,
                 new ReadOnlyCommand(rootCommand, $"The root command is only permitted to be changed before the {CommandLineEvents.ParseCommandLineArguments} event"),
                 rootCommandLock);
@@ -83,10 +83,15 @@ namespace Vernuntii.Plugins
                    .RegisterWithDotnetSuggest()
                    .UseTypoCorrections()
                    .UseParseErrorReporting()
+                   // This middleware is called as many times as ParseResult.InvokeAsync is invoked.
+                   // This middleware is called when a parser exception occured before.
+                   // This middleware is called when --help was used.
                    .AddMiddleware(
-                    async (ctx, next) => {
+                    async (context, next) => {
                         try {
-                            await next(ctx).ConfigureAwait(false);
+                            // Neither does a middleware throw if the parsing fails or the help text is displayed, nor does the pipeline continue from that middleware.
+                            // "ParseCommandLineArguments" relies on the latter. In case of failing parsing, a bad exit code is returned on "ParseResult.InvokeAsync".
+                            await next(context).ConfigureAwait(false);
                             _exception = null;
                         } catch (Exception error) {
                             // Unwraps error to make the actual error more valuable for casual users.
@@ -106,14 +111,14 @@ namespace Vernuntii.Plugins
 
                             UnwrapError(ref error);
                             _logger.LogCritical(error, $"{nameof(Vernuntii)} stopped due to an exception.");
-                            ctx.ExitCode = (int)ExitCode.Failure;
+                            context.ExitCode = (int)ExitCode.Failure;
                             _exception = ExceptionDispatchInfo.Capture(error);
                         }
                     },
                     MiddlewareOrder.ExceptionHandler)
                    .CancelOnProcessTermination();
 
-        private void AttemptLogCommandLineArguments(string[]? commandLineArguments)
+        private void AttemptLoggingCommandLineArguments(string[]? commandLineArguments)
         {
             if (!_logger.IsEnabled(LogLevel.Trace)) {
                 return;
@@ -132,28 +137,31 @@ namespace Vernuntii.Plugins
 
         private async Task SealRootCommandAsync()
         {
-            await Events.EmitAsync(CommandLineEvents.SealRootCommand, RootCommand);
-            _sealableRootCommand.Seal();
+            await Events.EmitAsync(CommandLineEvents.OnSealRootCommand, RootCommand);
+            _sealableRootCommand.Swap();
         }
 
         /// <summary>
         /// Called when <see cref="CommandLineEvents.ParseCommandLineArguments"/> is happening.
         /// </summary>
-        protected virtual async Task ParseCommandLineArguments(LifecycleContext lifecycleContext, CommandLineArgumentsParsingContext argumentsParsingContext, string[]? commandLineArguments)
+        protected virtual async Task ParseCommandLineArguments(
+            LifecycleContext lifecycleContext,
+            CommandLineArgumentsParsingContext argumentsParsingContext,
+            string[]? commandLineArguments)
         {
             if (_parseResult != null) {
                 throw new InvalidOperationException("Command line parse result was already computed");
             }
 
             await SealRootCommandAsync().ConfigureAwait(false);
-            AttemptLogCommandLineArguments(commandLineArguments);
+            AttemptLoggingCommandLineArguments(commandLineArguments);
             var builder = new CommandLineBuilder(_rootCommand);
             ConfigureCommandLineBuilder(builder);
 
             var parser = builder
                 // This middleware is not called when a parser exception occured before.
                 // This middleware is not called when --help was used.
-                // This middleware gets called TWICE but in the first call it will NEVER call the root command!
+                // This middleware gets called TWICE, but in the first call we do not invoke the root command, instead we parse!
                 .AddMiddleware(
                     (ctx, next) => {
                         var firstCall = _parseResult is null;
@@ -203,7 +211,7 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.Every(LifecycleEvents.BeforeEveryRun)
+            Events.Earliest(LifecycleEvents.BeforeEveryRun)
                 .Zip(CommandLineEvents.SetCommandLineArguments)
                 .Zip(CommandLineEvents.ParseCommandLineArguments)
                 .Subscribe(result => {
@@ -214,8 +222,7 @@ namespace Vernuntii.Plugins
             Events.Every(CommandLineEvents.InvokeRootCommand).Subscribe(InvokeRootCommand);
         }
 
-
-        private class HandlerWrappableCommand : ICommand
+        private class HandlerWrappingCommand : ICommand
         {
             public ICommandHandler? Handler => _command.Handler;
 
@@ -228,7 +235,7 @@ namespace Vernuntii.Plugins
             /// <param name="command"></param>
             /// <param name="commandHandlerFactory"></param>
             /// <exception cref="ArgumentNullException"></exception>
-            public HandlerWrappableCommand(Command command, Func<Func<Task<int>>?, ICommandHandler?> commandHandlerFactory)
+            public HandlerWrappingCommand(Command command, Func<Func<Task<int>>?, ICommandHandler?> commandHandlerFactory)
             {
                 _command = command ?? throw new ArgumentNullException(nameof(command));
                 _commandHandlerFactory = commandHandlerFactory ?? throw new ArgumentNullException(nameof(commandHandlerFactory));
@@ -325,19 +332,19 @@ namespace Vernuntii.Plugins
                 throw CreateReadOnlyException();
         }
 
-        private class SealableCommand : ICommand
+        private class SwappableCommand : ICommand
         {
             public ICommandHandler? Handler => _command.Handler;
 
             private ICommand _command;
             private readonly ICommand _sealedCommand;
-            private readonly object _sealLock;
+            private readonly object _swapLock;
 
-            public SealableCommand(ICommand command, ICommand sealedCommand, object sealLock)
+            public SwappableCommand(ICommand command, ICommand swappableCommand, object swapLock)
             {
                 _command = command ?? throw new ArgumentNullException(nameof(command));
-                _sealedCommand = sealedCommand ?? throw new ArgumentNullException(nameof(sealedCommand));
-                _sealLock = sealLock ?? throw new ArgumentNullException(nameof(sealLock));
+                _sealedCommand = swappableCommand ?? throw new ArgumentNullException(nameof(swappableCommand));
+                _swapLock = swapLock ?? throw new ArgumentNullException(nameof(swapLock));
             }
 
             public ICommandHandler? SetHandler(Func<Task<int>>? handlerFunc) =>
@@ -352,9 +359,9 @@ namespace Vernuntii.Plugins
             public void Add(Option commandOption) =>
                 _command.Add(commandOption);
 
-            public void Seal()
+            public void Swap()
             {
-                lock (_sealLock) {
+                lock (_swapLock) {
                     _command = _sealedCommand;
                 }
             }

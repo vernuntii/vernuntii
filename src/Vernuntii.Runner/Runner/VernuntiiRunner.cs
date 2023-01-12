@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Plugins;
 using Vernuntii.Plugins.CommandLine;
@@ -14,20 +15,13 @@ namespace Vernuntii.Runner
     /// <summary>
     /// Represents the main entry point to calculate the next version.
     /// </summary>
-    public sealed class VernuntiiRunner : IAsyncDisposable
+    public sealed class VernuntiiRunner : IVernuntiiRunner, IAsyncDisposable
     {
-        /// <summary>
-        /// The console arguments.
-        /// </summary>
+        /// <inheritdoc/>
         public string[] ConsoleArguments {
             get => _args;
             init => _args = value ?? throw new ArgumentNullException(nameof(value));
         }
-
-        /// <summary>
-        /// Additional plugins.
-        /// </summary>
-        public IEnumerable<PluginDescriptor>? PluginDescriptors { get; init; }
 
         private bool _isDisposed;
         private readonly PluginRegistry _pluginRegistry;
@@ -40,10 +34,11 @@ namespace Vernuntii.Runner
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        internal VernuntiiRunner(PluginRegistry pluginRegistry)
+        internal VernuntiiRunner(PluginRegistryBuilder pluginRegistryBuilder, PluginRegistrar pluginRegistrar)
         {
-            _pluginRegistry = pluginRegistry;
-            var loggingPlugin = pluginRegistry.GetPlugin<ILoggingPlugin>();
+            pluginRegistryBuilder.ConfigurePluginServices(services => services.AddSingleton(this));
+            _pluginRegistry = pluginRegistryBuilder.Build(pluginRegistrar);
+            var loggingPlugin = _pluginRegistry.GetPlugin<ILoggingPlugin>();
             _logger = loggingPlugin.CreateLogger<VernuntiiRunner>();
 
             MeasureEventSystemPerformance(loggingPlugin.CreateLogger<EventSystem>());
@@ -78,7 +73,7 @@ namespace Vernuntii.Runner
         }
 
         [MemberNotNull(nameof(_pluginEvents), nameof(_pluginExecutor))]
-        private async ValueTask EnsureHavingOperablePlugins()
+        private async Task EnsureHavingOperablePlugins()
         {
             if (_pluginEvents is not null && _pluginExecutor is not null) {
                 return;
@@ -96,7 +91,7 @@ namespace Vernuntii.Runner
         /// <returns>
         /// A short-circuit exit code indicating to short-circuit the program.
         /// </returns>
-        private async ValueTask<ExitCode?> InitiateLifecycleAsync()
+        private async Task<ExitCode?> InitiateLifecycleAsync()
         {
             await EnsureHavingOperablePlugins().ConfigureAwait(false);
             _lifecycleContext = new LifecycleContext();
@@ -129,7 +124,7 @@ namespace Vernuntii.Runner
             return null;
         }
 
-        private async ValueTask<int> RunAsyncCore()
+        private async Task<int> RunAsyncCore()
         {
             EnsureHavingPluginEvents();
 
@@ -145,13 +140,8 @@ namespace Vernuntii.Runner
             return exitCode;
         }
 
-        /// <summary>
-        /// Runs Vernuntii for console.
-        /// </summary>
-        /// <returns>
-        /// The promise of an exit code.
-        /// </returns>
-        public async ValueTask<int> RunAsync()
+        /// <inheritdoc/>
+        public async Task<int> RunAsync()
         {
             EnsureNotDisposed();
             await EnsureHavingOperablePlugins().ConfigureAwait(false);
@@ -165,10 +155,7 @@ namespace Vernuntii.Runner
             return await RunAsyncCore().ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Runs Vernuntii for getting the next version. The presence of <see cref="INextVersionPlugin"/> and its dependencies is expected.
-        /// </summary>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <inheritdoc/>
         public async Task<ISemanticVersion> NextVersionAsync()
         {
             EnsureNotDisposed();
@@ -178,8 +165,8 @@ namespace Vernuntii.Runner
             ISemanticVersion? nextVersion = null;
 
             using var subscription = _pluginEvents
-                .Earliest(NextVersionEvents.CalculatedNextVersion)
-                .Subscribe(calculatedNextVersion => nextVersion = calculatedNextVersion);
+                .Earliest(NextVersionEvents.OnCalculatedNextVersion)
+                .Subscribe(nextVersionCache => nextVersion = nextVersionCache.Version);
 
             _ = await RunAsyncCore().ConfigureAwait(false);
 

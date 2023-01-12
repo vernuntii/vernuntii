@@ -80,7 +80,7 @@ namespace Vernuntii.PluginSystem
 
         /// <summary>
         /// Called when this plugin got notified about the event system.
-        /// The plugin base method implementation of this must not be called.
+        /// The plugin base method implementation of (<see cref="Plugin"/>) must not be called.
         /// </summary>
         protected virtual void OnExecution()
         {

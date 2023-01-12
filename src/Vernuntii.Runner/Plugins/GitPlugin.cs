@@ -34,7 +34,7 @@ public class GitPlugin : Plugin, IGitPlugin
     /// If it has been set manually then this will be
     /// used instead of the directory of the config path
     /// to resolve the git directory via the git directory resolver.
-    /// Retrievable after <see cref="ConfigurationEvents.ConfiguredConfigurationBuilder"/>.
+    /// Retrievable after <see cref="ConfigurationEvents.OnConfiguredConfigurationBuilder"/>.
     /// </summary>
     [AllowNull]
     public string WorkingTreeDirectory {
@@ -48,9 +48,9 @@ public class GitPlugin : Plugin, IGitPlugin
 
     /// <summary>
     /// The git command.
-    /// Available after <see cref="ConfigurationEvents.ConfiguredConfigurationBuilder"/>.
+    /// Available after <see cref="ConfigurationEvents.OnConfiguredConfigurationBuilder"/>.
     /// </summary>
-    public IGitCommand GitCommand => _gitCommand ?? throw new InvalidOperationException($"The event \"{nameof(ConfigurationEvents.ConfiguredConfigurationBuilder)}\" must be called");
+    public IGitCommand GitCommand => _gitCommand ?? throw new InvalidOperationException($"The event \"{nameof(ConfigurationEvents.OnConfiguredConfigurationBuilder)}\" must be called");
 
     private readonly SharedOptionsPlugin _sharedOptions = null!;
     private IGitCommand? _gitCommand;
@@ -66,7 +66,7 @@ public class GitPlugin : Plugin, IGitPlugin
     private string? _workingTreeDirectory;
     private string? _resolvedWorkingTreeDirectory;
     private readonly ILogger _logger = null!;
-    private GitCommandFactoryRequest? _gitCommandFactoryRequest;
+    private GitCommandCreationCustomization? _gitCommandFactoryRequest;
 
     public GitPlugin(
         ICommandLinePlugin commandlinePlugin,
@@ -89,7 +89,7 @@ public class GitPlugin : Plugin, IGitPlugin
     private void EnsureNotYetConfiguredConfigurationBuilder()
     {
         if (_isConfiguredConfigurationBuilder) {
-            throw new InvalidOperationException($"The event \"{nameof(ConfigurationEvents.ConfiguredConfigurationBuilder)}\" was already called");
+            throw new InvalidOperationException($"The event \"{nameof(ConfigurationEvents.OnConfiguredConfigurationBuilder)}\" was already called");
         }
     }
 
@@ -100,8 +100,8 @@ public class GitPlugin : Plugin, IGitPlugin
             return;
         }
 
-        _gitCommandFactoryRequest = new GitCommandFactoryRequest();
-        await Events.EmitAsync(GitEvents.RequestGitCommandFactory, _gitCommandFactoryRequest).ConfigureAwait(false);
+        _gitCommandFactoryRequest = new GitCommandCreationCustomization();
+        await Events.EmitAsync(GitEvents.OnCustomizeGitCommandCreation, _gitCommandFactoryRequest).ConfigureAwait(false);
     }
 
     [MemberNotNull(nameof(_resolvedWorkingTreeDirectory))]
@@ -152,14 +152,14 @@ public class GitPlugin : Plugin, IGitPlugin
         }
 
         _logger.LogInformation("Use repository directory: {_workingTreeDirectory}", _resolvedWorkingTreeDirectory);
-        await Events.EmitAsync(GitEvents.CreatedGitCommand, _gitCommand).ConfigureAwait(false);
+        await Events.EmitAsync(GitEvents.OnCreatedGitCommand, _gitCommand).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     protected override void OnExecution()
     {
         Events.Earliest(GitEvents.CreateGitCommand)
-            .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
+            .Zip(ConfigurationEvents.OnConfiguredConfigurationBuilder)
             .Subscribe(async result => {
                 var (_, configurationBuilder) = result;
                 _isConfiguredConfigurationBuilder = true;
@@ -169,7 +169,7 @@ public class GitPlugin : Plugin, IGitPlugin
         Events.Earliest(VersionCacheEvents.CreateVersionCacheManager)
             .Subscribe(context => context.ImportGitRequirements());
 
-        Events.Earliest(NextVersionEvents.ConfigureVersionPresentation)
+        Events.Earliest(NextVersionEvents.OnConfigureVersionPresentation)
             .Subscribe(context => context.ImportGitRequirements());
 
         var nextCommandLineParseResult = Events.Earliest(CommandLineEvents.ParsedCommandLineArguments);
@@ -177,14 +177,14 @@ public class GitPlugin : Plugin, IGitPlugin
         Events.Earliest(ServicesEvents.ConfigureServices)
             .Subscribe(() => Events.EmitAsync(ConfigurationEvents.CreateConfiguration));
 
-        Events.Earliest(NextVersionEvents.ConfigureServices)
+        Events.Earliest(NextVersionEvents.OnConfigureServices)
             .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)))
-            .Zip(ConfigurationEvents.ConfiguredConfigurationBuilder)
-            .Zip(ConfigurationEvents.CreatedConfiguration)
+            .Zip(ConfigurationEvents.OnConfiguredConfigurationBuilder)
+            .Zip(ConfigurationEvents.OnCreatedConfiguration)
             .Subscribe(async result => {
                 var (((services, overridePostPreRelease), configurationBuilderResult), configuration) = result;
 
-                await Events.EmitAsync(GitEvents.ConfigureServices, services).ConfigureAwait(false);
+                await Events.EmitAsync(GitEvents.OnConfigureServices, services).ConfigureAwait(false);
                 await CreateGitCommandOnce(configurationBuilderResult.ConfigPath).ConfigureAwait(false);
 
                 services
@@ -213,18 +213,19 @@ public class GitPlugin : Plugin, IGitPlugin
                             .SetPostPreRelease(overridePostPreRelease));
                 }
 
-                await Events.EmitAsync(GitEvents.ConfiguredServices, services).ConfigureAwait(false);
+                await Events.EmitAsync(GitEvents.OnConfiguredServices, services).ConfigureAwait(false);
             });
 
         // On next version calculation we want to set bad exit code if equivalent commit version already exists
-        Events.Every(NextVersionEvents.CalculatedNextVersion)
+        Events.Every(NextVersionEvents.OnCalculatedNextVersion)
+            .Zip(NextVersionEvents.OnInvokedNextVersionCommand)
             .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)))
-            .Zip(Events.Earliest(NextVersionEvents.CreatedScopedServiceProvider).Transform(sp => sp.GetRequiredService<IRepository>()))
+            .Zip(Events.Earliest(NextVersionEvents.OnCreatedScopedServiceProvider).Transform(sp => sp.GetRequiredService<IRepository>()))
             .Subscribe(result => {
-                var ((nextVersion, duplicateVersionFails), repository) = result;
+                var (((nextVersionCache, commandResult), duplicateVersionFails), repository) = result;
 
-                if (duplicateVersionFails && repository.HasCommitVersion(nextVersion)) {
-                    _nextVersionPlugin.ExitCodeOnSuccess = (int)ExitCode.VersionDuplicate;
+                if (duplicateVersionFails && repository.HasCommitVersion(nextVersionCache.Version)) {
+                    commandResult.ExitCode = (int)ExitCode.VersionDuplicate;
                 }
             });
     }

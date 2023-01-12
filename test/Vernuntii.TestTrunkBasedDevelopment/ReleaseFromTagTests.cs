@@ -16,7 +16,7 @@ namespace Vernuntii
     public class ReleaseFromTagTests : IDisposable
     {
         private readonly TemporaryRepository _temporaryRepository = new(DefaultTemporaryRepositoryLogger);
-        private readonly ConfigureServicesPlugin<IServiceCollection> _configurableServices = ConfigureServicesPlugin.FromEvent(GitEvents.ConfiguredServices);
+        private readonly ConfigureServicesPlugin<IServiceCollection> _configurableServices = ConfigureServicesPlugin.FromEvent(GitEvents.OnConfiguredServices);
         private readonly VernuntiiRunner _vernuntii;
 
         public ReleaseFromTagTests()
@@ -24,7 +24,7 @@ namespace Vernuntii
             _vernuntii = VernuntiiRunnerBuilder.WithNextVersionRequirements()
                 .ConfigurePlugins(plugins => {
                     plugins.Add(PluginAction.HandleEvents(events => events
-                        .Every(GitEvents.RequestGitCommandFactory)
+                        .Every(GitEvents.OnCustomizeGitCommandCreation)
                         .Subscribe(request => request.GitCommandFactory = new GitCommandProvider(_temporaryRepository.GitCommand))));
 
                     plugins.Add(_configurableServices);

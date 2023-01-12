@@ -11,7 +11,7 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event is happening when the configuration builder has been configured.
         /// </summary>
-        public static readonly EventDiscriminator<ConfiguredConfigurationBuilderResult> ConfiguredConfigurationBuilder = EventDiscriminator.New<ConfiguredConfigurationBuilderResult>();
+        public static readonly EventDiscriminator<ConfiguredConfigurationBuilderResult> OnConfiguredConfigurationBuilder = EventDiscriminator.New<ConfiguredConfigurationBuilderResult>();
 
         /// <summary>
         /// Event is happening when the configuration is getting created.
@@ -21,10 +21,10 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event is happening when the configuration got created.
         /// </summary>
-        public static readonly EventDiscriminator<IConfiguration> CreatedConfiguration = EventDiscriminator.New<IConfiguration>();
+        public static readonly EventDiscriminator<IConfiguration> OnCreatedConfiguration = EventDiscriminator.New<IConfiguration>();
 
         /// <summary>
-        /// The result of <see cref="ConfiguredConfigurationBuilder"/>.
+        /// The result of <see cref="OnConfiguredConfigurationBuilder"/>.
         /// </summary>
         public sealed class ConfiguredConfigurationBuilderResult
         {
@@ -32,6 +32,9 @@ namespace Vernuntii.Plugins.Events
             {
             }
 
+            /// <summary>
+            /// The config path.
+            /// </summary>
             public string? ConfigPath { get; init; }
         }
     }
