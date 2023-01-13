@@ -95,7 +95,7 @@ namespace Vernuntii.Plugins
                 IsCacheUpToDate,
                 cacheNotUpToDateReason != null ? ", Reason = " + cacheNotUpToDateReason : "");
 
-            await Events.EmitAsync(VersionCacheEvents.CheckedVersionCache);
+            await Events.EmitAsync(VersionCacheEvents.OnCheckedVersionCache);
         }
 
         /// <inheritdoc/>
@@ -107,15 +107,15 @@ namespace Vernuntii.Plugins
 
             Events.Every(ConfigurationEvents.OnConfiguredConfigurationBuilder)
                 .Zip(GitEvents.OnCreatedGitCommand)
-                .Zip(VersionCacheOptionsEvents.ParsedVersionCacheOptions)
+                .Zip(VersionCacheOptionsEvents.OnParsedVersionCacheOptions)
                 .Zip(VersionCacheEvents.CheckVersionCache)
                 .Subscribe(result => {
                     var (((configuredConfigurationBuilderResult, gitCommand), versionCacheOptions), _) = result;
                     return CheckVersionCache(configuredConfigurationBuilderResult.ConfigPath, gitCommand, versionCacheOptions);
                 });
 
-            Events.Every(ServicesEvents.ConfigureServices)
-                .Zip(VersionCacheEvents.CheckedVersionCache)
+            Events.Every(ServicesEvents.OnConfigureServices)
+                .Zip(VersionCacheEvents.OnCheckedVersionCache)
                 .Subscribe(result => {
                     var (services, _) = result;
                     services.AddSingleton<IVersionCacheManager>(_versionCacheManager);

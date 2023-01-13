@@ -87,7 +87,7 @@ namespace Vernuntii.Plugins
                     services.AddSingleton(PresetManager.MessageIndicators);
                     services.AddSingleton(PresetManager.ConfiguredMessageIndicatorFactories);
                     services.AddSingleton(PresetManager.HeightConventions);
-                    await Events.EmitAsync(VersioningPresetsEvents.ConfiguredGlobalServices, services).ConfigureAwait(false);
+                    await Events.EmitAsync(VersioningPresetsEvents.OnConfiguredGlobalServices, services).ConfigureAwait(false);
                 });
         }
     }

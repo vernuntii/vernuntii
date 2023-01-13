@@ -224,10 +224,10 @@ namespace Vernuntii.Plugins
                     return Task.CompletedTask;
                 });
 
-            Events.Earliest(ServicesEvents.ConfigureServices)
+            Events.Earliest(ServicesEvents.OnConfigureServices)
                 .Subscribe(() => Events.EmitAsync(ConfigurationEvents.CreateConfiguration));
 
-            Events.Earliest(ServicesEvents.ConfigureServices)
+            Events.Earliest(ServicesEvents.OnConfigureServices)
                 .Zip(ConfigurationEvents.OnCreatedConfiguration)
                 .Subscribe(async result => {
                     var (services, configuration) = result;
@@ -256,7 +256,7 @@ namespace Vernuntii.Plugins
             /// <summary>
             /// If you set it to <see langword="false"/>, the command invocation won't be handled.
             /// </summary>
-            public bool IsHandled { get; set; } = true;
+            public bool IsHandled { get; set; }
         }
 
         /// <summary>

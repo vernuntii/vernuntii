@@ -21,6 +21,6 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event after up-to-date check.
         /// </summary>
-        public static readonly EventDiscriminator CheckedVersionCache = EventDiscriminator.New();
+        public static readonly EventDiscriminator OnCheckedVersionCache = EventDiscriminator.New();
     }
 }

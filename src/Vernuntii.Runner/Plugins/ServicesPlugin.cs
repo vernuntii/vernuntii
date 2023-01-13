@@ -30,7 +30,7 @@ namespace Vernuntii.Plugins
             }
 
             var services = _services;
-            var task = Events.EmitAsync(ServicesEvents.ConfigureServices, services);
+            var task = Events.EmitAsync(ServicesEvents.OnConfigureServices, services);
 
             void CreateServiceBuilder()
             {

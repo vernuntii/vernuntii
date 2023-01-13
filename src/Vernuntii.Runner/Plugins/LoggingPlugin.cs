@@ -191,7 +191,7 @@ namespace Vernuntii.Plugins
                 .Subscribe(parseResult => _verbosity = parseResult.GetValueForOption(_verbosityOption));
 
             Events.Earliest(LoggingEvents.EnableLoggingInfrastructure).Subscribe(EnableLoggingInfrastructure);
-            Events.Earliest(ServicesEvents.ConfigureServices).Subscribe(sp => sp.AddLogging(Bind));
+            Events.Earliest(ServicesEvents.OnConfigureServices).Subscribe(sp => sp.AddLogging(Bind));
         }
 
         /// <inheritdoc/>

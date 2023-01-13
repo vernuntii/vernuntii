@@ -174,7 +174,7 @@ public class GitPlugin : Plugin, IGitPlugin
 
         var nextCommandLineParseResult = Events.Earliest(CommandLineEvents.ParsedCommandLineArguments);
 
-        Events.Earliest(ServicesEvents.ConfigureServices)
+        Events.Earliest(ServicesEvents.OnConfigureServices)
             .Subscribe(() => Events.EmitAsync(ConfigurationEvents.CreateConfiguration));
 
         Events.Earliest(NextVersionEvents.OnConfigureServices)

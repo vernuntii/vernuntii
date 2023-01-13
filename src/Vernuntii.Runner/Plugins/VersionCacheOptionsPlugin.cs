@@ -54,7 +54,7 @@ namespace Vernuntii.Plugins
             }
 
             cacheOptions.LastAccessRetentionTime = parseResult.GetValueForOption(_cacheLastAccessRetentionTimeOption);
-            return Events.EmitAsync(VersionCacheOptionsEvents.ParsedVersionCacheOptions, cacheOptions);
+            return Events.EmitAsync(VersionCacheOptionsEvents.OnParsedVersionCacheOptions, cacheOptions);
         }
 
         protected override void OnExecution()
@@ -79,8 +79,8 @@ namespace Vernuntii.Plugins
                 .Subscribe(OnParseCommandLineArguments);
 
             Events
-                .Earliest(ServicesEvents.ConfigureServices)
-                .Zip(VersionCacheOptionsEvents.ParsedVersionCacheOptions)
+                .Earliest(ServicesEvents.OnConfigureServices)
+                .Zip(VersionCacheOptionsEvents.OnParsedVersionCacheOptions)
                 .Subscribe(result => {
                     var (services, cacheOptions) = result;
                     services.AddSingleton<IVersionCacheOptions>(cacheOptions);
