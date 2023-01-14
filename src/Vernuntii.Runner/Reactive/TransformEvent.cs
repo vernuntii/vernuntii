@@ -11,9 +11,8 @@ internal class TransformEvent<TSource, TResult> : IEmittableEvent<TResult>
         _eventDataTransformHandler = transformHandler ?? throw new ArgumentNullException(nameof(transformHandler));
     }
 
-    public IDisposable Subscribe(IEventEmitter<TResult> eventFilfiller) =>
-        DelegatingDisposable.Create(
-            _source.SubscribeUnscheduled(
-                static (context, eventData, state) => state.EventFilfiller.Emit(context, state.TransformEventData(eventData)),
-                (EventFilfiller: eventFilfiller, TransformEventData: _eventDataTransformHandler)).Dispose);
+    public IDisposable Subscribe(IEventEmitter<TResult> eventEmitter) =>
+        _source.SubscribeUnscheduled(
+            static (context, eventData, state) => context.MakeOrScheduleEventEmission(state.EventEmitter, state.TransformEventData(eventData)),
+            (EventEmitter: eventEmitter, TransformEventData: _eventDataTransformHandler));
 }

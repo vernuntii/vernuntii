@@ -29,7 +29,6 @@ namespace Vernuntii.Runner
         private PluginExecutor? _pluginExecutor;
         private readonly ILogger _logger;
         private string[] _args = Array.Empty<string>();
-        private LifecycleContext? _lifecycleContext;
 
         /// <summary>
         /// Creates an instance of this type.
@@ -73,7 +72,7 @@ namespace Vernuntii.Runner
         }
 
         [MemberNotNull(nameof(_pluginEvents), nameof(_pluginExecutor))]
-        private async Task EnsureHavingOperablePlugins()
+        private async Task EnsureExecutingPluginOnce()
         {
             if (_pluginEvents is not null && _pluginExecutor is not null) {
                 return;
@@ -91,11 +90,27 @@ namespace Vernuntii.Runner
         /// <returns>
         /// A short-circuit exit code indicating to short-circuit the program.
         /// </returns>
-        private async Task<ExitCode?> InitiateLifecycleAsync()
+        [MemberNotNull(nameof(_pluginEvents), nameof(_pluginExecutor))]
+        private async Task<ExitCode?> BeginLifecycleAsync(bool preferExceptionOverExitCode)
         {
-            await EnsureHavingOperablePlugins().ConfigureAwait(false);
-            _lifecycleContext = new LifecycleContext();
-            await DistinguishableEventEmitter.EmitAsync(_pluginEvents, LifecycleEvents.BeforeEveryRun, _lifecycleContext).ConfigureAwait(false);
+            await EnsureExecutingPluginOnce().ConfigureAwait(false);
+
+            var commandLineLifecycleContext = default(CommandLineEvents.LifecycleContext);
+            using var commandLineOnBeforeEveryRunSubscription = _pluginEvents.Earliest(CommandLineEvents.OnBeforeEveryRun).Subscribe(context => {
+                commandLineLifecycleContext = context;
+            });
+
+            var lifecycleContext = new LifecycleContext();
+            await DistinguishableEventEmitter.EmitAsync(_pluginEvents, LifecycleEvents.BeforeEveryRun, lifecycleContext).ConfigureAwait(false);
+
+            if (commandLineLifecycleContext is null) {
+                throw new NotImplementedException("The command-line lifecycle event was not fired, which may indicate that the command-line plugin was configured incorrectly");
+            }
+            commandLineLifecycleContext.PreferExceptionOverExitCode = preferExceptionOverExitCode;
+
+            if (_alreadyInitiatedLifecycleOnce) {
+                await DistinguishableEventEmitter.EmitAsync(_pluginEvents, LifecycleEvents.BeforeNextRun, lifecycleContext).ConfigureAwait(false);
+            }
 
             if (!_alreadyInitiatedLifecycleOnce) {
                 await DistinguishableEventEmitter.EmitAsync(_pluginEvents, CommandLineEvents.SetCommandLineArguments, ConsoleArguments).ConfigureAwait(false);
@@ -103,8 +118,8 @@ namespace Vernuntii.Runner
                 var commandLineArgumentsParsingContext = new CommandLineArgumentsParsingContext();
                 await DistinguishableEventEmitter.EmitAsync(_pluginEvents, CommandLineEvents.ParseCommandLineArguments, commandLineArgumentsParsingContext).ConfigureAwait(false);
 
-                if (_lifecycleContext.ExitCode.HasValue) {
-                    return (ExitCode)_lifecycleContext.ExitCode.Value;
+                if (commandLineLifecycleContext.ExitCode.HasValue) {
+                    return (ExitCode)commandLineLifecycleContext.ExitCode.Value;
                 }
 
                 if (!commandLineArgumentsParsingContext.HasParseResult) {
@@ -114,10 +129,6 @@ namespace Vernuntii.Runner
 
                 await DistinguishableEventEmitter.EmitAsync(_pluginEvents, CommandLineEvents.ParsedCommandLineArguments, commandLineArgumentsParsingContext.ParseResult).ConfigureAwait(false);
                 await _pluginEvents.EmitAsync(LoggingEvents.EnableLoggingInfrastructure).ConfigureAwait(false);
-            }
-
-            if (_alreadyInitiatedLifecycleOnce) {
-                await DistinguishableEventEmitter.EmitAsync(_pluginEvents, LifecycleEvents.BeforeNextRun, _lifecycleContext).ConfigureAwait(false);
             }
 
             _alreadyInitiatedLifecycleOnce = true;
@@ -144,9 +155,7 @@ namespace Vernuntii.Runner
         public async Task<int> RunAsync()
         {
             EnsureNotDisposed();
-            await EnsureHavingOperablePlugins().ConfigureAwait(false);
-            _pluginRegistry.GetPlugin<ICommandLinePlugin>().PreferExceptionOverExitCode = false;
-            var shortCircuitExitCode = await InitiateLifecycleAsync().ConfigureAwait(false);
+            var shortCircuitExitCode = await BeginLifecycleAsync(preferExceptionOverExitCode: false).ConfigureAwait(false);
 
             if (shortCircuitExitCode.HasValue) {
                 return (int)shortCircuitExitCode.Value;
@@ -159,9 +168,7 @@ namespace Vernuntii.Runner
         public async Task<ISemanticVersion> NextVersionAsync()
         {
             EnsureNotDisposed();
-            await EnsureHavingOperablePlugins().ConfigureAwait(false);
-            _pluginRegistry.GetPlugin<ICommandLinePlugin>().PreferExceptionOverExitCode = true;
-            _ = await InitiateLifecycleAsync().ConfigureAwait(false);
+            _ = await BeginLifecycleAsync(preferExceptionOverExitCode: true).ConfigureAwait(false);
             ISemanticVersion? nextVersion = null;
 
             using var subscription = _pluginEvents

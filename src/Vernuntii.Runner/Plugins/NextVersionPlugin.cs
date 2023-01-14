@@ -8,6 +8,7 @@ using Vernuntii.Collections;
 using Vernuntii.CommandLine;
 using Vernuntii.Diagnostics;
 using Vernuntii.Extensions;
+using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
@@ -25,15 +26,13 @@ namespace Vernuntii.Plugins
     [ImportPlugin<NextVersionDaemonPlugin>(TryRegister = true)]
     public class NextVersionPlugin : Plugin, INextVersionPlugin
     {
-        ///// <inheritdoc/>
-        //public int? ExitCodeOnSuccess { get; set; }
+        /// <inheritdoc/>
+        public ICommandSeat Command { get; }
 
         private readonly Stopwatch _loadingVersionStopwatch = new();
         private readonly IPluginRegistry _pluginRegistry;
         private readonly SharedOptionsPlugin _sharedOptions = null!;
         private readonly ILogger _logger;
-        private readonly ICommandLinePlugin _commandLine;
-        private ICommandHandler? _commandHandler;
 
         private VersionPresentationKind _presentationKind;
         private VersionPresentationParts? _presentationParts;
@@ -60,9 +59,14 @@ namespace Vernuntii.Plugins
         {
             _pluginRegistry = pluginRegistry ?? throw new ArgumentNullException(nameof(pluginRegistry));
             _sharedOptions = sharedOptions ?? throw new ArgumentNullException(nameof(sharedOptions));
-            _commandLine = commandLine ?? throw new ArgumentNullException(nameof(commandLine));
             _globalServiceProvider = globalServiceProvider ?? throw new ArgumentNullException(nameof(globalServiceProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            if (commandLine is null) {
+                throw new ArgumentNullException(nameof(commandLine));
+            }
+
+            Command = commandLine.RequestRootCommandSeat();
         }
 
         private async ValueTask<IServiceScope> CreateServiceScope()
@@ -141,7 +145,7 @@ namespace Vernuntii.Plugins
             return commandInvocationResult.ExitCode ?? (int)ExitCode.Success;
         }
 
-        private void ConfigureCommandLine()
+        private void InitializeCommandLine()
         {
             var presentationPartsOptionLongAlias = "--presentation-parts";
 
@@ -182,46 +186,45 @@ namespace Vernuntii.Plugins
                 Description = "Empties all caches where version informations are stored. This happens before the cache process itself."
             };
 
-            _commandHandler = _commandLine.RootCommand.SetHandler(HandleRootCommandInvocation);
-            _commandLine.RootCommand.Add(presentationKindOption);
-            _commandLine.RootCommand.Add(presentationPartsOption);
-            _commandLine.RootCommand.Add(presentationViewOption);
-            _commandLine.RootCommand.Add(emptyCachesOption);
+
+            Command.SetHandler(HandleRootCommandInvocation);
+            Command.Add(presentationKindOption);
+            Command.Add(presentationPartsOption);
+            Command.Add(presentationViewOption);
+            Command.Add(emptyCachesOption);
 
             Events.Earliest(CommandLineEvents.OnSealRootCommand)
                 .Subscribe(async _ => {
                     var versionPresentationContext = new VersionPresentationContext();
-                    versionPresentationContext.ImportNextVersionRequirements(); // Adds next-version-agnostic defaults
+                    versionPresentationContext.ImportNextVersionRequirements(); // Adds next-version-specific defaults
                     await Events.EmitAsync(NextVersionEvents.OnConfigureVersionPresentation, versionPresentationContext).ConfigureAwait(false);
                     presentableParts = new VersionPresentationParts(versionPresentationContext.PresentableParts);
                 });
 
-            Events.Earliest(CommandLineEvents.ParsedCommandLineArguments).Subscribe(parseResult => {
-                if (parseResult.IsCommandHandlerNotEquivalentTo(_commandHandler)) {
-                    return;
-                }
-
-                _presentationKind = parseResult.GetValueForOption(presentationKindOption);
-                _presentationParts = parseResult.GetValueForOption(presentationPartsOption);
-                _presentationView = parseResult.GetValueForOption(presentationViewOption);
-                _emptyCaches = parseResult.GetValueForOption(emptyCachesOption);
-            });
+            Events.Earliest(CommandLineEvents.ParsedCommandLineArguments)
+                .Where(() => Command.IsSeatTaken)
+                .Subscribe(parseResult => {
+                    _presentationKind = parseResult.GetValueForOption(presentationKindOption);
+                    _presentationParts = parseResult.GetValueForOption(presentationPartsOption);
+                    _presentationView = parseResult.GetValueForOption(presentationViewOption);
+                    _emptyCaches = parseResult.GetValueForOption(emptyCachesOption);
+                });
         }
 
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            ConfigureCommandLine();
+            InitializeCommandLine();
 
             Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(_ => _loadingVersionStopwatch.Restart());
 
             Events.Earliest(CommandLineEvents.ParsedCommandLineArguments)
                 .Subscribe(parseResult => {
-                    if (parseResult.IsCommandHandlerEquivalentTo(_commandHandler)) {
-                        return Events.EmitAsync(VersionCacheEvents.CheckVersionCache);
+                    if (!Command.IsSeatTaken) {
+                        return Task.CompletedTask;
                     }
 
-                    return Task.CompletedTask;
+                    return Events.EmitAsync(VersionCacheEvents.CheckVersionCache);
                 });
 
             Events.Earliest(ServicesEvents.OnConfigureServices)

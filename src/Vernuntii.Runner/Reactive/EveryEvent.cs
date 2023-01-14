@@ -57,12 +57,12 @@ internal class EveryEvent<T> : IEventDataHolder<T>, IEmittableEvent<T>, IUnsched
 
     public virtual IDisposable Subscribe(IEventEmitter<T> eventEmitter)
     {
-        var eventEntry = new EventSubscription(eventEmitter);
-        _eventSubscriptions.Add(eventEntry);
+        var eventSubscription = new EventSubscription(eventEmitter);
+        _eventSubscriptions.Add(eventSubscription);
 
         return new DelegatingDisposable<(ISet<EventSubscription>, EventSubscription)>(
             static result => result.Item1.Remove(result.Item2),
-            (_eventSubscriptions, eventEntry));
+            (_eventSubscriptions, eventSubscription));
     }
 
     protected readonly record struct EventSubscription : IComparable<EventSubscription>

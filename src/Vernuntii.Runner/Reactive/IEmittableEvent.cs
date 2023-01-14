@@ -7,11 +7,11 @@
 public interface IEmittableEvent<out T>
 {
     /// <summary>
-    /// Those who subscribe with <paramref name="eventHandler"/> are able to get notified about new events.
+    /// Those who subscribe with <paramref name="eventEmitter"/> are able to get notified about new events.
     /// </summary>
-    /// <param name="eventHandler"></param>
+    /// <param name="eventEmitter"></param>
     /// <returns>
     /// An instance that cancels the subscription if disposed.
     /// </returns>
-    IDisposable Subscribe(IEventEmitter<T> eventHandler);
+    IDisposable Subscribe(IEventEmitter<T> eventEmitter);
 }

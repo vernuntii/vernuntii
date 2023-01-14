@@ -11,10 +11,16 @@ public interface ICommandLinePlugin : IPlugin
     /// <summary>
     /// The root command.
     /// </summary>
-    ICommand RootCommand { get; }
+    /// <remarks>
+    /// To set the command handler you have to request a seat by calling <see cref="RequestRootCommandSeat"/>.
+    /// </remarks>
+    IExtensibleCommand RootCommand { get; }
 
     /// <summary>
-    /// If <see langword="true"/> and an exception has been thrown during command invocation, then exception will be rethrown and the (bad) exit code won't not returned.
+    /// Creates a <b>new</b> command seat.
     /// </summary>
-    internal bool PreferExceptionOverExitCode { get; set; }
+    /// <remarks>
+    /// The last requested command seat is taken when the root command is about to be sealed.
+    /// </remarks>
+    ICommandSeat RequestRootCommandSeat();
 }

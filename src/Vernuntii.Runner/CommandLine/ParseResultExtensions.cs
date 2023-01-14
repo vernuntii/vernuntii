@@ -3,7 +3,7 @@ using System.CommandLine.Parsing;
 
 namespace Vernuntii.CommandLine;
 
-public static class ParseResultExtensions
+internal static class ParseResultExtensions
 {
     /// <summary>
     /// Checks if the command handler of parse result is equivalent to <paramref name="commandHandler"/>.

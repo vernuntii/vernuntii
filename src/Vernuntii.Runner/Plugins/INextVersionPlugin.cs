@@ -1,4 +1,5 @@
-﻿using Vernuntii.PluginSystem;
+﻿using Vernuntii.Plugins.CommandLine;
+using Vernuntii.PluginSystem;
 
 namespace Vernuntii.Plugins
 {
@@ -7,5 +8,9 @@ namespace Vernuntii.Plugins
     /// </summary>
     public interface INextVersionPlugin : IPlugin
     {
+        /// <summary>
+        /// The command that calculates the next version on invocation.
+        /// </summary>
+        ICommandSeat Command { get; }
     }
 }

@@ -11,6 +11,11 @@ namespace Vernuntii.Plugins.Events
     public static class CommandLineEvents
     {
         /// <summary>
+        /// The event is called before a run is started.
+        /// </summary>
+        public static readonly EventDiscriminator<LifecycleContext> OnBeforeEveryRun = EventDiscriminator.New<LifecycleContext>();
+
+        /// <summary>
         /// Represents an event for dispatching the command line args.
         /// </summary>
         public static readonly EventDiscriminator<string[]> SetCommandLineArguments = EventDiscriminator.New<string[]>();
@@ -21,7 +26,7 @@ namespace Vernuntii.Plugins.Events
         /// <remarks>
         /// This event is the last opportunity to register arguments, commands and options, or to set the command handler.
         /// </remarks>
-        public static readonly EventDiscriminator<ICommand> OnSealRootCommand = EventDiscriminator.New<ICommand>();
+        public static readonly EventDiscriminator<IExtensibleCommand> OnSealRootCommand = EventDiscriminator.New<IExtensibleCommand>();
 
         /// <summary>
         /// Event when command line args are getting parsed.
@@ -43,5 +48,21 @@ namespace Vernuntii.Plugins.Events
         /// It is also fired when the parsing of arguments failed.
         /// </summary>
         public static readonly EventDiscriminator<int> InvokedRootCommand = EventDiscriminator.New<int>();
+
+        /// <summary>
+        /// Represents the lifecycle context for <see cref="ICommandLinePlugin"/>.
+        /// </summary>
+        public class LifecycleContext
+        {
+            /// <summary>
+            /// The exit code the Vernuntii runner will use.
+            /// </summary>
+            public int? ExitCode { get; set; }
+
+            /// <summary>
+            /// If <see langword="true"/> and an exception has been thrown during command invocation, then exception will be rethrown and the (bad) exit code won't not returned.
+            /// </summary>
+            public bool PreferExceptionOverExitCode { get; set; }
+        }
     }
 }

@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Vernuntii.Runner;
 using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;
-using Vernuntii.Plugins.Lifecycle;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
 
@@ -23,25 +22,20 @@ namespace Vernuntii.Plugins
     public class CommandLinePlugin : Plugin, ICommandLinePlugin
     {
         /// <inheritdoc/>
-        private static ICommandHandler? CreateCommandHandler(Func<Task<int>>? action) =>
-            action is null ? null : CommandHandler.Create(action); // CommandHandler originates from NamingConventionBinder
+        private static ICommandHandler? WrapCommandHandler(Func<Task<int>>? action) =>
+            action is null ? null : CommandHandler.Create(action); // CommandHandler originates from NamingConventionBinder assembly
 
         /// <inheritdoc/>
-        public ICommand RootCommand { get; }
-
-        /// <inheritdoc/>
-        internal bool PreferExceptionOverExitCode { get; set; }
-
-        bool ICommandLinePlugin.PreferExceptionOverExitCode {
-            get => PreferExceptionOverExitCode;
-            set => PreferExceptionOverExitCode = value;
-        }
+        public IExtensibleCommand RootCommand => _rootCommandWrapper;
 
         private readonly RootCommand _rootCommand;
+        private readonly ICommand _rootCommandWrapper;
+        private readonly object _rootCommandLock;
         private readonly SwappableCommand _sealableRootCommand;
         private readonly ILogger _logger;
         private ParseResult _parseResult = null!;
         private ExceptionDispatchInfo? _exception;
+        private CommandSeat? _lastRequestedCommandSeat;
 
         /// <summary>
         /// Creates an instance of this type.
@@ -49,29 +43,36 @@ namespace Vernuntii.Plugins
         public CommandLinePlugin(ILogger<CommandLinePlugin> logger)
         {
             _rootCommand = new RootCommand();
-            var rootCommand = new HandlerWrappingCommand(_rootCommand, CreateCommandHandler);
-            var rootCommandLock = new object();
+            var rootCommand = new HandlerWrappingCommand(_rootCommand, WrapCommandHandler);
 
             _sealableRootCommand = new SwappableCommand(
                 rootCommand,
-                new ReadOnlyCommand(rootCommand, $"The root command is only permitted to be changed before the {CommandLineEvents.ParseCommandLineArguments} event"),
-                rootCommandLock);
+                new ReadOnlyCommand($"The root command is only permitted to be changed before the {CommandLineEvents.ParseCommandLineArguments}/{CommandLineEvents.OnSealRootCommand} event"));
 
-            RootCommand = new LockingCommandDecorator(_sealableRootCommand, rootCommandLock);
+            _rootCommandLock = new object();
+            _rootCommandWrapper = new LockingCommandDecorator(_sealableRootCommand, _rootCommandLock);
             _logger = logger;
         }
 
-        /// <summary>
-        /// A rethrow is attempted if <see cref="PreferExceptionOverExitCode"/> is <see langword="true"/>.
-        /// </summary>
-        private void AttemptRethrow()
+        /// <inheritdoc cref="ICommandLinePlugin.RequestRootCommandSeat"/>
+        public ICommandSeat RequestRootCommandSeat()
         {
-            if (!PreferExceptionOverExitCode) {
-                return;
+            lock (_rootCommandLock) {
+                return _lastRequestedCommandSeat = new CommandSeat();
             }
-
-            _exception?.Throw();
         }
+
+        private Task OnBeforeEveryRun()
+        {
+            _exception = null;
+            return Events.EmitAsync(CommandLineEvents.OnBeforeEveryRun, new CommandLineEvents.LifecycleContext());
+        }
+
+        /// <summary>
+        /// A rethrow is attempted if <see cref="CommandLineEvents.LifecycleContext.PreferExceptionOverExitCode"/> is <see langword="true"/>.
+        /// </summary>
+        private void AttemptRethrow() =>
+            _exception?.Throw();
 
         private void ConfigureCommandLineBuilder(CommandLineBuilder builder) =>
                builder
@@ -96,20 +97,15 @@ namespace Vernuntii.Plugins
                         } catch (Exception error) {
                             // Unwraps error to make the actual error more valuable for casual users.
                             [Conditional("RELEASE")]
-                            static void UnwrapError(ref Exception error)
+                            static void UnwrapError<T>(ref Exception error) where T : Exception
                             {
-                                UnwrapError<TargetInvocationException>(ref error);
-
-                                static void UnwrapError<T>(ref Exception error) where T : Exception
-                                {
-                                    if (error is T dependencyResolutionException
-                                        && dependencyResolutionException.InnerException is not null) {
-                                        error = dependencyResolutionException.InnerException;
-                                    }
+                                if (error is T dependencyResolutionException
+                                    && dependencyResolutionException.InnerException is not null) {
+                                    error = dependencyResolutionException.InnerException;
                                 }
                             }
 
-                            UnwrapError(ref error);
+                            UnwrapError<TargetInvocationException>(ref error);
                             _logger.LogCritical(error, $"{nameof(Vernuntii)} stopped due to an exception.");
                             context.ExitCode = (int)ExitCode.Failure;
                             _exception = ExceptionDispatchInfo.Capture(error);
@@ -138,14 +134,18 @@ namespace Vernuntii.Plugins
         private async Task SealRootCommandAsync()
         {
             await Events.EmitAsync(CommandLineEvents.OnSealRootCommand, RootCommand);
-            _sealableRootCommand.Swap();
+
+            lock (_rootCommandLock) {
+                _lastRequestedCommandSeat?.TakeSeat(_rootCommandWrapper);
+                _sealableRootCommand.Swap(swapped: true);
+            }
         }
 
         /// <summary>
         /// Called when <see cref="CommandLineEvents.ParseCommandLineArguments"/> is happening.
         /// </summary>
         protected virtual async Task ParseCommandLineArguments(
-            LifecycleContext lifecycleContext,
+            CommandLineEvents.LifecycleContext lifecycleContext,
             CommandLineArgumentsParsingContext argumentsParsingContext,
             string[]? commandLineArguments)
         {
@@ -189,29 +189,36 @@ namespace Vernuntii.Plugins
                 argumentsParsingContext.ParseResult = _parseResult;
             }
 
-            AttemptRethrow();
+            if (lifecycleContext.PreferExceptionOverExitCode) {
+                AttemptRethrow();
+            }
         }
 
         /// <summary>
         /// Called when <see cref="CommandLineEvents.InvokeRootCommand"/> is happening.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
-        protected virtual async Task InvokeRootCommand()
+        protected virtual async Task InvokeRootCommand(CommandLineEvents.LifecycleContext lifecycleContext)
         {
-            if (RootCommand.Handler is null) {
-                throw new InvalidOperationException("Root command handler is not set");
+            if (_rootCommand.Handler is null) {
+                throw new InvalidOperationException("The root command handler has not been set");
             }
 
             // This calls the middleware again.
             var exitCode = await _parseResult.InvokeAsync().ConfigureAwait(false);
             await Events.EmitAsync(CommandLineEvents.InvokedRootCommand, exitCode).ConfigureAwait(false);
-            AttemptRethrow();
+
+            if (lifecycleContext.PreferExceptionOverExitCode) {
+                AttemptRethrow();
+            }
         }
 
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.Earliest(LifecycleEvents.BeforeEveryRun)
+            Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(OnBeforeEveryRun);
+
+            Events.Earliest(CommandLineEvents.OnBeforeEveryRun)
                 .Zip(CommandLineEvents.SetCommandLineArguments)
                 .Zip(CommandLineEvents.ParseCommandLineArguments)
                 .Subscribe(result => {
@@ -219,12 +226,16 @@ namespace Vernuntii.Plugins
                     return ParseCommandLineArguments(lifecycleContext, argumentsParsingContext, commandLineArguments);
                 });
 
-            Events.Every(CommandLineEvents.InvokeRootCommand).Subscribe(InvokeRootCommand);
+            Events.Every(CommandLineEvents.OnBeforeEveryRun)
+                .Zip(CommandLineEvents.InvokeRootCommand).Subscribe(result => {
+                    var (lifecycleContext, _) = result;
+                    return InvokeRootCommand(lifecycleContext);
+                });
         }
 
         private class HandlerWrappingCommand : ICommand
         {
-            public ICommandHandler? Handler => _command.Handler;
+            public bool IsReadOnly => false;
 
             private readonly Command _command;
             private readonly Func<Func<Task<int>>?, ICommandHandler?> _commandHandlerFactory;
@@ -241,12 +252,8 @@ namespace Vernuntii.Plugins
                 _commandHandlerFactory = commandHandlerFactory ?? throw new ArgumentNullException(nameof(commandHandlerFactory));
             }
 
-            public ICommandHandler? SetHandler(Func<Task<int>>? commandHandler)
-            {
-                var handler = _commandHandlerFactory(commandHandler);
-                _command.Handler = handler;
-                return handler;
-            }
+            public void SetHandler(Func<Task<int>>? commandHandler) =>
+                _command.Handler = _commandHandlerFactory(commandHandler);
 
             public void Add(Argument commandArgument) =>
                 _command.Add(commandArgument);
@@ -260,7 +267,7 @@ namespace Vernuntii.Plugins
 
         private class LockingCommandDecorator : ICommand
         {
-            public ICommandHandler? Handler => _command.Handler;
+            public bool IsReadOnly => _command.IsReadOnly;
 
             private readonly ICommand _command;
             private readonly object _commandLock;
@@ -271,10 +278,10 @@ namespace Vernuntii.Plugins
                 _commandLock = commandLock ?? throw new ArgumentNullException(nameof(commandLock));
             }
 
-            public ICommandHandler? SetHandler(Func<Task<int>>? handlerFunc)
+            public void SetHandler(Func<Task<int>>? handlerFunc)
             {
                 lock (_commandLock) {
-                    return _command.SetHandler(handlerFunc);
+                    _command.SetHandler(handlerFunc);
                 }
             }
 
@@ -302,24 +309,19 @@ namespace Vernuntii.Plugins
 
         private class ReadOnlyCommand : ICommand
         {
-            private const string DefaultReadOnlyMessage = "Command is read-only";
+            public bool IsReadOnly => true;
 
-            public ICommandHandler? Handler =>
-                _command.Handler;
+            private const string DefaultReadOnlyMessage = "Command is read-only and cannot be changed";
 
-            private ICommand _command;
             private string _readOnlyMessage;
 
-            public ReadOnlyCommand(ICommand handler, string? readOnlyMessage)
-            {
-                _command = handler ?? throw new ArgumentNullException(nameof(handler));
+            public ReadOnlyCommand(string? readOnlyMessage) =>
                 _readOnlyMessage = readOnlyMessage ?? DefaultReadOnlyMessage;
-            }
 
             private Exception CreateReadOnlyException() =>
                 new InvalidOperationException(_readOnlyMessage);
 
-            public ICommandHandler? SetHandler(Func<Task<int>>? handlerFunc) =>
+            public void SetHandler(Func<Task<int>>? handlerFunc) =>
                 throw CreateReadOnlyException();
 
             public void Add(Argument commandArgument) =>
@@ -334,20 +336,20 @@ namespace Vernuntii.Plugins
 
         private class SwappableCommand : ICommand
         {
-            public ICommandHandler? Handler => _command.Handler;
+            public bool IsReadOnly => _command.IsReadOnly;
 
             private ICommand _command;
-            private readonly ICommand _sealedCommand;
-            private readonly object _swapLock;
+            private readonly ICommand _originalCommand;
+            private readonly ICommand _swappableCommand;
 
-            public SwappableCommand(ICommand command, ICommand swappableCommand, object swapLock)
+            public SwappableCommand(ICommand command, ICommand swappableCommand)
             {
-                _command = command ?? throw new ArgumentNullException(nameof(command));
-                _sealedCommand = swappableCommand ?? throw new ArgumentNullException(nameof(swappableCommand));
-                _swapLock = swapLock ?? throw new ArgumentNullException(nameof(swapLock));
+                _originalCommand = command ?? throw new ArgumentNullException(nameof(command));
+                _swappableCommand = swappableCommand ?? throw new ArgumentNullException(nameof(swappableCommand));
+                _command = _originalCommand;
             }
 
-            public ICommandHandler? SetHandler(Func<Task<int>>? handlerFunc) =>
+            public void SetHandler(Func<Task<int>>? handlerFunc) =>
                 _command.SetHandler(handlerFunc);
 
             public void Add(Argument commandArgument) =>
@@ -359,10 +361,12 @@ namespace Vernuntii.Plugins
             public void Add(Option commandOption) =>
                 _command.Add(commandOption);
 
-            public void Swap()
+            public void Swap(bool swapped)
             {
-                lock (_swapLock) {
-                    _command = _sealedCommand;
+                if (swapped) {
+                    _command = _swappableCommand;
+                } else {
+                    _command = _originalCommand;
                 }
             }
         }
