@@ -11,12 +11,6 @@ namespace Vernuntii.Runner
     /// </summary>
     public sealed class VernuntiiRunnerBuilder : IVernuntiiRunnerBuilder
     {
-        /// <summary>
-        /// Creates a builder for a Vernuntii runner including capabilities to calculate the next version.
-        /// </summary>
-        public static IVernuntiiRunnerBuilder WithNextVersionRequirements() => new VernuntiiRunnerBuilder()
-            .ConfigurePlugins(builder => builder.AddNextVersionRequirements());
-
         private static void AddRequiredPlugins(IPluginRegistrar builder)
         {
             builder.Add<ILoggingPlugin, LoggingPlugin>();
@@ -40,10 +34,22 @@ namespace Vernuntii.Runner
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
-        public VernuntiiRunnerBuilder()
+        public VernuntiiRunnerBuilder(VernuntiiRunnerBuilderOptions options)
         {
             _pluginRegistryBuilder = new();
-            _pluginRegistryBuilder.ConfigurePluginServices(AddRequiredPluginServices);
+            ConfigurePluginServices(AddRequiredPluginServices);
+
+            if (options.AddNextVersionRequirements) {
+                ConfigurePlugins(plugins => plugins.AddNextVersionRequirements());
+            }
+        }
+
+        /// <summary>
+        /// Creates an instance of this type using <see cref="VernuntiiRunnerBuilderOptions.Default"/>.
+        /// </summary>
+        public VernuntiiRunnerBuilder()
+            : this(VernuntiiRunnerBuilderOptions.Default)
+        {
         }
 
         //private readonly List<Action<IServiceCollection>> _configurePluginServicesActions = new() {

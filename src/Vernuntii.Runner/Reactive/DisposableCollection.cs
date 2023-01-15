@@ -153,12 +153,12 @@ internal class DisposableCollection : IDisposableLifetime, IEnumerable<IDisposab
     /// <summary>
     /// Disposes all so far added disposables and removes them from the collection.
     /// </summary>
-    /// <param name="permanent">
-    /// If true, then this instance will be kept permanent.
+    /// <param name="permanently">
+    /// If true, then this instance will be ultimately disposed.
     /// </param>
-    public void Dispose(bool permanent)
+    public void Dispose(bool permanently)
     {
-        if (permanent) {
+        if (permanently) {
             Dispose();
         } else {
             DisposeCollection();

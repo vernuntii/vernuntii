@@ -5,10 +5,8 @@ using Microsoft.Extensions.Logging;
 using Vernuntii.Plugins;
 using Vernuntii.Plugins.CommandLine;
 using Vernuntii.Plugins.Events;
-using Vernuntii.Plugins.Lifecycle;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
-using Vernuntii.SemVer;
 
 namespace Vernuntii.Runner
 {
@@ -18,6 +16,9 @@ namespace Vernuntii.Runner
     public sealed class VernuntiiRunner : IVernuntiiRunner, IAsyncDisposable
     {
         /// <inheritdoc/>
+        public IEventSystem PluginEvents => _pluginEvents;
+
+        /// <inheritdoc/>
         public string[] ConsoleArguments {
             get => _args;
             init => _args = value ?? throw new ArgumentNullException(nameof(value));
@@ -25,22 +26,25 @@ namespace Vernuntii.Runner
 
         private bool _isDisposed;
         private readonly PluginRegistry _pluginRegistry;
-        private EventSystem? _pluginEvents;
+        private EventSystem _pluginEvents;
         private PluginExecutor? _pluginExecutor;
         private readonly ILogger _logger;
         private string[] _args = Array.Empty<string>();
+        private SemaphoreSlim _lifecycleLock;
 
         /// <summary>
         /// Creates an instance of this type.
         /// </summary>
         internal VernuntiiRunner(PluginRegistryBuilder pluginRegistryBuilder, PluginRegistrar pluginRegistrar)
         {
+            _lifecycleLock = new SemaphoreSlim(initialCount: 1, maxCount: 1);
             pluginRegistryBuilder.ConfigurePluginServices(services => services.AddSingleton(this));
             _pluginRegistry = pluginRegistryBuilder.Build(pluginRegistrar);
             var loggingPlugin = _pluginRegistry.GetPlugin<ILoggingPlugin>();
             _logger = loggingPlugin.CreateLogger<VernuntiiRunner>();
 
             MeasureEventSystemPerformance(loggingPlugin.CreateLogger<EventSystem>());
+            _pluginEvents ??= new EventSystem();
         }
 
         [Conditional("DEBUG")]
@@ -56,14 +60,6 @@ namespace Vernuntii.Runner
             }
         }
 
-        [MemberNotNull(nameof(_pluginEvents))]
-        private void EnsureHavingPluginEvents()
-        {
-            if (_pluginEvents is null) {
-                throw new InvalidOperationException("The Plugin event cache has not been created");
-            }
-        }
-
         [MemberNotNullWhen(true, nameof(_pluginExecutor))]
         private bool ChackHavingPluginExecutor()
         {
@@ -71,14 +67,13 @@ namespace Vernuntii.Runner
             return _pluginExecutor is not null;
         }
 
-        [MemberNotNull(nameof(_pluginEvents), nameof(_pluginExecutor))]
+        [MemberNotNull(nameof(_pluginExecutor))]
         private async Task EnsureExecutingPluginOnce()
         {
-            if (_pluginEvents is not null && _pluginExecutor is not null) {
+            if (_pluginExecutor is not null) {
                 return;
             }
 
-            _pluginEvents ??= new EventSystem();
             _pluginExecutor = new PluginExecutor(_pluginRegistry, _pluginEvents);
             _logger.LogTrace("Execute plugins");
             await _pluginExecutor.ExecuteAsync().ConfigureAwait(false);
@@ -90,8 +85,8 @@ namespace Vernuntii.Runner
         /// <returns>
         /// A short-circuit exit code indicating to short-circuit the program.
         /// </returns>
-        [MemberNotNull(nameof(_pluginEvents), nameof(_pluginExecutor))]
-        private async Task<ExitCode?> BeginLifecycleAsync(bool preferExceptionOverExitCode)
+        [MemberNotNull(nameof(_pluginExecutor))]
+        private async Task<(LifecycleEvents.LifecycleContext LifecycleContext, ExitCode? ShortCircuitExitCode)> BeginLifecycleAsync(bool preferExceptionOverExitCode)
         {
             await EnsureExecutingPluginOnce().ConfigureAwait(false);
 
@@ -100,7 +95,7 @@ namespace Vernuntii.Runner
                 commandLineLifecycleContext = context;
             });
 
-            var lifecycleContext = new LifecycleContext();
+            var lifecycleContext = new LifecycleEvents.LifecycleContext();
             await DistinguishableEventEmitter.EmitAsync(_pluginEvents, LifecycleEvents.BeforeEveryRun, lifecycleContext).ConfigureAwait(false);
 
             if (commandLineLifecycleContext is null) {
@@ -119,12 +114,12 @@ namespace Vernuntii.Runner
                 await DistinguishableEventEmitter.EmitAsync(_pluginEvents, CommandLineEvents.ParseCommandLineArguments, commandLineArgumentsParsingContext).ConfigureAwait(false);
 
                 if (commandLineLifecycleContext.ExitCode.HasValue) {
-                    return (ExitCode)commandLineLifecycleContext.ExitCode.Value;
+                    return (lifecycleContext, (ExitCode)commandLineLifecycleContext.ExitCode.Value);
                 }
 
                 if (!commandLineArgumentsParsingContext.HasParseResult) {
                     _logger.LogError("The command-line parse result is unexpectedly null");
-                    return ExitCode.Failure;
+                    return (lifecycleContext, ExitCode.Failure);
                 }
 
                 await DistinguishableEventEmitter.EmitAsync(_pluginEvents, CommandLineEvents.ParsedCommandLineArguments, commandLineArgumentsParsingContext.ParseResult).ConfigureAwait(false);
@@ -132,13 +127,11 @@ namespace Vernuntii.Runner
             }
 
             _alreadyInitiatedLifecycleOnce = true;
-            return null;
+            return (lifecycleContext, null);
         }
 
         private async Task<int> RunAsyncCore()
         {
-            EnsureHavingPluginEvents();
-
             var exitCode = (int)ExitCode.NotExecuted;
             using var exitCodeSubscription = _pluginEvents.Earliest(CommandLineEvents.InvokedRootCommand).Subscribe(i => exitCode = i);
 
@@ -152,36 +145,59 @@ namespace Vernuntii.Runner
         }
 
         /// <inheritdoc/>
-        public async Task<int> RunAsync()
+        internal async Task<int> RunAsync(bool preferExceptionOverExitCode)
         {
-            EnsureNotDisposed();
-            var shortCircuitExitCode = await BeginLifecycleAsync(preferExceptionOverExitCode: false).ConfigureAwait(false);
+            await _lifecycleLock.WaitAsync();
+            LifecycleEvents.LifecycleContext lifecycleContext;
+            int exitCode;
 
-            if (shortCircuitExitCode.HasValue) {
-                return (int)shortCircuitExitCode.Value;
+            try {
+                EnsureNotDisposed();
+                (lifecycleContext, var shortCircuitExitCode) = await BeginLifecycleAsync(preferExceptionOverExitCode).ConfigureAwait(false);
+
+                if (shortCircuitExitCode.HasValue) {
+                    return (int)shortCircuitExitCode.Value;
+                }
+
+                exitCode = await RunAsyncCore().ConfigureAwait(false);
+            } finally {
+                _lifecycleLock.Release();
             }
 
-            return await RunAsyncCore().ConfigureAwait(false);
+            await lifecycleContext.WaitForBackgroundTasks().ConfigureAwait(false);
+            return exitCode;
         }
 
         /// <inheritdoc/>
-        public async Task<ISemanticVersion> NextVersionAsync()
+        public Task<int> RunAsync() =>
+            RunAsync(preferExceptionOverExitCode: false);
+
+        /// <inheritdoc/>
+        public async Task<NextVersionResult> NextVersionAsync()
         {
-            EnsureNotDisposed();
-            _ = await BeginLifecycleAsync(preferExceptionOverExitCode: true).ConfigureAwait(false);
-            ISemanticVersion? nextVersion = null;
+            await _lifecycleLock.WaitAsync();
+            LifecycleEvents.LifecycleContext lifecycleContext;
+            NextVersionResult? nextVersionResult = null;
 
-            using var subscription = _pluginEvents
-                .Earliest(NextVersionEvents.OnCalculatedNextVersion)
-                .Subscribe(nextVersionCache => nextVersion = nextVersionCache.Version);
+            try {
+                EnsureNotDisposed();
+                (lifecycleContext, _) = await BeginLifecycleAsync(preferExceptionOverExitCode: true).ConfigureAwait(false);
 
-            _ = await RunAsyncCore().ConfigureAwait(false);
+                using var subscription = _pluginEvents
+                    .Earliest(NextVersionEvents.OnCalculatedNextVersion)
+                    .Subscribe(result => nextVersionResult = result);
 
-            if (nextVersion is null) {
-                throw new InvalidOperationException("The next version was not calculated");
+                _ = await RunAsyncCore().ConfigureAwait(false);
+
+                if (nextVersionResult is null) {
+                    throw new InvalidOperationException("The next version was not calculated");
+                }
+            } finally {
+                _lifecycleLock.Release();
             }
 
-            return nextVersion;
+            await lifecycleContext.WaitForBackgroundTasks().ConfigureAwait(false);
+            return nextVersionResult;
         }
 
         private async Task DestroyPluginsAsync()
@@ -204,6 +220,7 @@ namespace Vernuntii.Runner
                 await _pluginRegistry.DisposeAsync().ConfigureAwait(false);
             }
 
+            _lifecycleLock.Dispose();
             _isDisposed = true;
         }
     }

@@ -1,23 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace Vernuntii.Reactive;
 
-namespace Vernuntii.Reactive;
-
-internal class EveryEvent<T> : IEventDataHolder<T>, IEmittableEvent<T>, IUnschedulableEventEmitter<T>
+internal class EveryEvent<T> : IEmittableEvent<T>, IUnschedulableEventEmitter<T>
 {
-    [MaybeNull]
-    internal virtual T EventData =>
-        throw new InvalidOperationException();
-
-    internal virtual bool HasEventData =>
-        false;
-
-    [MaybeNull]
-    T IEventDataHolder<T>.EventData =>
-        EventData;
-
-    bool IEventDataHolder<T>.HasEventData =>
-        HasEventData;
-
     protected bool HasEventEntries =>
         _eventSubscriptions.Count != 0;
 
@@ -45,7 +29,7 @@ internal class EveryEvent<T> : IEventDataHolder<T>, IEmittableEvent<T>, IUnsched
     {
         var result = InspectEmission(eventData);
 
-        if (result is null || !result.HasEventData) {
+        if (result is null) {
             return;
         }
 

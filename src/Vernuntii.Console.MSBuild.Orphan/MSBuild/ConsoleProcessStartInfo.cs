@@ -1,6 +1,6 @@
 ﻿using Kenet.SimpleProcess;
 
-namespace Vernuntii.Console
+namespace Vernuntii.Console.MSBuild
 {
     internal record ConsoleProcessStartInfo : SimpleProcessStartInfo
     {

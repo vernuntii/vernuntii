@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Vernuntii.Console;
+namespace Vernuntii.Console.MSBuild;
 
 internal static class EncodingExtensions
 {

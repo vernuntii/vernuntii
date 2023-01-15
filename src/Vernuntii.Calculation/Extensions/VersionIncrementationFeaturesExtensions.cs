@@ -77,6 +77,16 @@ namespace Vernuntii.Extensions
             extensions.ConfigureOptions((OptionsBuilder<VersionIncrementationOptions> optionsBuilder) => optionsBuilder.Configure(configureOptions));
 
         /// <summary>
+        /// Post-configures the instance of <see cref="VersionIncrementationOptions"/>.
+        /// </summary>
+        /// <param name="extensions"></param>
+        /// <param name="configureOptions"></param>
+        public static IVersionIncrementationServicesView PostConfigure(
+            this IVersionIncrementationServicesView extensions,
+            Action<VersionIncrementationOptions> configureOptions) =>
+            extensions.ConfigureOptions((OptionsBuilder<VersionIncrementationOptions> optionsBuilder) => optionsBuilder.PostConfigure(configureOptions));
+
+        /// <summary>
         /// Overrides <see cref="VersionIncrementationOptions.StartVersion"/>.
         /// </summary>
         /// <param name="view"></param>

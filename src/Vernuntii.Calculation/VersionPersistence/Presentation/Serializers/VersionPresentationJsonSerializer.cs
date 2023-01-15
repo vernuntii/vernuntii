@@ -8,7 +8,7 @@ namespace Vernuntii.VersionPersistence.Presentation.Serializers
     {
         public static readonly VersionPresentationJsonSerializer Default = new();
 
-        public string? SerializeSemanticVersion(
+        public string SerializeSemanticVersion(
             IVersionCache versionCache,
             VersionPresentationKind presentationKind,
             VersionPresentationParts presentationParts) =>

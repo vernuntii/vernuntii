@@ -2,7 +2,7 @@
 {
     internal interface IVersionPresentationSerializer
     {
-        string? SerializeSemanticVersion(
+        string SerializeSemanticVersion(
             IVersionCache versionCache,
             VersionPresentationKind presentationKind,
             VersionPresentationParts presentationParts);

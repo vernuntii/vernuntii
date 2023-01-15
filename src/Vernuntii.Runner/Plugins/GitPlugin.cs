@@ -222,9 +222,9 @@ public class GitPlugin : Plugin, IGitPlugin
             .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)))
             .Zip(Events.Earliest(NextVersionEvents.OnCreatedScopedServiceProvider).Transform(sp => sp.GetRequiredService<IRepository>()))
             .Subscribe(result => {
-                var (((nextVersionCache, commandResult), duplicateVersionFails), repository) = result;
+                var (((nextVersionResult, commandResult), duplicateVersionFails), repository) = result;
 
-                if (duplicateVersionFails && repository.HasCommitVersion(nextVersionCache.Version)) {
+                if (duplicateVersionFails && repository.HasCommitVersion(nextVersionResult.VersionCache.Version)) {
                     commandResult.ExitCode = (int)ExitCode.VersionDuplicate;
                 }
             });

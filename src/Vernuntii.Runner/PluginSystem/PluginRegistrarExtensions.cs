@@ -117,8 +117,8 @@ namespace Vernuntii.PluginSystem
         /// <param name="plugins"></param>
         public static IPluginRegistrar AddNextVersionRequirements(this IPluginRegistrar plugins)
         {
-            plugins.Add<IGitPlugin, GitPlugin>();
-            plugins.Add<INextVersionPlugin, NextVersionPlugin>();
+            plugins.TryAdd<IGitPlugin, GitPlugin>();
+            plugins.TryAdd<INextVersionPlugin, NextVersionPlugin>();
             return plugins;
         }
     }

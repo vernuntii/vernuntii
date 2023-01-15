@@ -8,10 +8,10 @@ internal class EarliestEvent<T> : LatestEvent<T>
 {
     protected override IEventDataHolder<T>? InspectEmission(T eventData)
     {
-        if (!HasEventData) {
-            return base.InspectEmission(eventData);
+        if (HasEventData) {
+            return this;
         }
 
-        return this;
+        return base.InspectEmission(eventData);
     }
 }

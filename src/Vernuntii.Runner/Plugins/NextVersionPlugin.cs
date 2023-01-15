@@ -117,15 +117,16 @@ namespace Vernuntii.Plugins
                 }
             }
 
-            await Events.EmitAsync(NextVersionEvents.OnCalculatedNextVersion, versionCache).ConfigureAwait(false);
-
-            var formattedVersion = new VersionCacheStringBuilder(versionCache)
+            var versionCacheString = new VersionCacheStringBuilder(versionCache)
                 .UsePresentationKind(_presentationKind)
                 .UsePresentationParts(_presentationParts)
                 .UsePresentationView(_presentationView)
                 .ToString();
 
-            Console.Write(formattedVersion);
+            var nextVersion = new NextVersionResult(versionCacheString, versionCache);
+            await Events.EmitAsync(NextVersionEvents.OnCalculatedNextVersion, nextVersion).ConfigureAwait(false);
+
+            Console.Write(versionCacheString);
             _logger.LogInformation("Loaded version {Version} in {LoadTime}", versionCache.Version, _loadingVersionStopwatch.Elapsed.ToSecondsString());
         }
 

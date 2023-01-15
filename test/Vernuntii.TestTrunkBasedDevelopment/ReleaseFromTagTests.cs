@@ -1,11 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Vernuntii.Git;
-using Vernuntii.Git.Commands;
-using Vernuntii.Plugins;
-using Vernuntii.Plugins.Events;
-using Vernuntii.PluginSystem;
-using Vernuntii.PluginSystem.Reactive;
-using Vernuntii.Reactive;
+﻿using Vernuntii.Git;
 using Vernuntii.Runner;
 using Vernuntii.SemVer;
 using Xunit;
@@ -13,35 +6,34 @@ using Xunit.Priority;
 
 namespace Vernuntii
 {
-    public class ReleaseFromTagTests : IDisposable
+    public class ReleaseFromTagTests : IAsyncLifetime
     {
-        private readonly TemporaryRepository _temporaryRepository = new(DefaultTemporaryRepositoryLogger);
-        private readonly ConfigureServicesPlugin<IServiceCollection> _configurableServices = ConfigureServicesPlugin.FromEvent(GitEvents.OnConfiguredServices);
+        private readonly TemporaryRepository _temporaryRepository = new();
+        //private readonly ConfigureServicesPlugin<IServiceCollection> _configurableServices = ConfigureServicesPlugin.FromEvent(GitEvents.OnConfiguredServices);
         private readonly VernuntiiRunner _vernuntii;
 
         public ReleaseFromTagTests()
         {
-            _vernuntii = VernuntiiRunnerBuilder.WithNextVersionRequirements()
-                .ConfigurePlugins(plugins => {
-                    plugins.Add(PluginAction.HandleEvents(events => events
-                        .Every(GitEvents.OnCustomizeGitCommandCreation)
-                        .Subscribe(request => request.GitCommandFactory = new GitCommandProvider(_temporaryRepository.GitCommand))));
-
-                    plugins.Add(_configurableServices);
-                })
+            _vernuntii = new VernuntiiRunnerBuilder()
+                .UseTemporaryRepository(_temporaryRepository)
+                //.ConfigurePlugins(plugins => {
+                //    plugins.Add(_configurableServices);
+                //})
                 .Build(new[] {
                     "--config-path",
                     "ReleaseFromTag.yml",
                 });
         }
 
+        public Task InitializeAsync() => Task.CompletedTask;
+
         [Fact, Priority(0)]
         public async Task ReleaseImplicitSnapshot()
         {
             _temporaryRepository.CommitEmpty();
 
-            var nextVersion = await _vernuntii.NextVersionAsync();
-            _temporaryRepository.TagLightweight(nextVersion.Format(SemanticVersionFormat.VersionReleaseBuild));
+            var nextVersionResult = await _vernuntii.NextVersionAsync();
+            _temporaryRepository.TagLightweight(nextVersionResult.VersionCache.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
 
             var snapshotVersion = _temporaryRepository
                 .GetCommitVersions(unsetCache: true)
@@ -56,10 +48,14 @@ namespace Vernuntii
             _temporaryRepository.CommitEmpty();
             var releaseVersion = "0.1.0";
             _temporaryRepository.TagLightweight(releaseVersion);
-            var nextVersion = await _vernuntii.NextVersionAsync();
-            Assert.Equal(releaseVersion, nextVersion.Format(SemanticVersionFormat.VersionReleaseBuild));
+            var nextVersionResult = await _vernuntii.NextVersionAsync();
+            Assert.Equal(releaseVersion, nextVersionResult.VersionCache.Version.Format(SemanticVersionFormat.VersionReleaseBuild));
         }
 
-        public void Dispose() => _temporaryRepository.Dispose();
+        public async Task DisposeAsync()
+        {
+            await _vernuntii.DisposeAsync();
+            _temporaryRepository.Dispose();
+        }
     }
 }

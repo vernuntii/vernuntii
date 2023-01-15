@@ -27,7 +27,7 @@ internal class OnceEveryEvent<TOnce, TEvery> : EveryEvent<(TOnce, TEvery)>
                 base.Subscribe(eventEmitter),
                 _once.SubscribeUnscheduled(
                 (_, once) => {
-                    emptiableDisposables.Dispose(permanent: false);
+                    emptiableDisposables.Dispose(permanently: false);
 
                     emptiableDisposables.TryAdd(
                         () => _every.SubscribeUnscheduled((context, every) => EvaluateEmission(context, (once, every))),

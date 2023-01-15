@@ -2,6 +2,7 @@
 using System.Globalization;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Vernuntii.Plugins;
 
 namespace Vernuntii.Console.MSBuild
 {
@@ -117,18 +118,19 @@ namespace Vernuntii.Console.MSBuild
         public override bool Execute()
         {
             try {
-                var executor = new ConsoleProcessExecutor(
-                    consoleExecutablePath: ConsoleExecutablePath!,
-                    logger: Log);
+                var executor = new ConsoleProcessExecutor(logger: Log);
 
-                var version = executor.Execute(
-                    verbosity: Verbosity,
-                    configPath: ConfigPath!,
-                    cacheId: CacheId,
-                    cacheCreationRetentionTime: CacheCreationRetentionTime,
-                    cacheLastAccessRetentionTime: CacheLastAccessRetentionTime,
-                    emptyCaches: EmptyCaches);
+                var executionArguments = new ConsoleProcessExecutionArguments() {
+                    ConsoleExecutablePath = ConsoleExecutablePath,
+                    Verbosity = Verbosity,
+                    ConfigPath = ConfigPath,
+                    CacheId = CacheId,
+                    CacheCreationRetentionTime = CacheCreationRetentionTime,
+                    CacheLastAccessRetentionTime = CacheLastAccessRetentionTime,
+                    EmptyCaches = EmptyCaches
+                };
 
+                var version = executor.Execute(executionArguments);
                 Major = version.Major?.ToString(CultureInfo.InvariantCulture);
                 Minor = version.Major?.ToString(CultureInfo.InvariantCulture);
                 Patch = version.Major?.ToString(CultureInfo.InvariantCulture);
@@ -140,6 +142,8 @@ namespace Vernuntii.Console.MSBuild
                 SemanticVersion = version.SemanticVersion;
                 BranchName = version.BranchName;
                 BranchTip = version.BranchTip;
+            } catch (NextVersionApiException error) {
+                Log.LogError(error.ToString());
             } catch (Exception error) {
                 Log.LogError($"Error during console process execution: {error}");
                 return false;

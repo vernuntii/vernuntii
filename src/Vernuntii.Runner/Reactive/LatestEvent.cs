@@ -2,13 +2,20 @@
 
 namespace Vernuntii.Reactive;
 
-internal class LatestEvent<T> : EveryEvent<T>
+internal class LatestEvent<T> : EveryEvent<T>, IEventDataHolder<T>
 {
     [MaybeNull]
-    internal override T EventData => _eventData;
+    internal virtual T EventData => _eventData;
 
     [MemberNotNullWhen(true, nameof(EventData))]
-    internal override bool HasEventData => _hasEventData;
+    internal virtual bool HasEventData => _hasEventData;
+
+    [MaybeNull]
+    T IEventDataHolder<T>.EventData =>
+        EventData;
+
+    bool IEventDataHolder<T>.HasEventData =>
+        HasEventData;
 
     [AllowNull, MaybeNull]
     private T _eventData;

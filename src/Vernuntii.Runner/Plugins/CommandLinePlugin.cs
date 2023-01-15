@@ -34,6 +34,7 @@ namespace Vernuntii.Plugins
         private readonly SwappableCommand _sealableRootCommand;
         private readonly ILogger _logger;
         private ParseResult _parseResult = null!;
+        private bool _allowCommandHandlerInvocation;
         private ExceptionDispatchInfo? _exception;
         private CommandSeat? _lastRequestedCommandSeat;
 
@@ -71,8 +72,18 @@ namespace Vernuntii.Plugins
         /// <summary>
         /// A rethrow is attempted if <see cref="CommandLineEvents.LifecycleContext.PreferExceptionOverExitCode"/> is <see langword="true"/>.
         /// </summary>
-        private void AttemptRethrow() =>
+        private void AttemptRethrow()
+        {
             _exception?.Throw();
+
+            // Maybe some parsing errors?
+            if (_parseResult.Errors.Count > 0) {
+                throw new CommandLineArgumentsException($"""
+                    While parsing the command-line arguments, one or more parsing errors occured:
+                    - {string.Join(Environment.NewLine + "- ", _parseResult.Errors.Select(x => x.Message))}
+                    """);
+            }
+        }
 
         private void ConfigureCommandLineBuilder(CommandLineBuilder builder) =>
                builder
@@ -110,6 +121,9 @@ namespace Vernuntii.Plugins
                             context.ExitCode = (int)ExitCode.Failure;
                             _exception = ExceptionDispatchInfo.Capture(error);
                         }
+
+                        // After the parse result could have been changed the last, we capture it to operate on it later on
+                        _parseResult = context.ParseResult;
                     },
                     MiddlewareOrder.ExceptionHandler)
                    .CancelOnProcessTermination();
@@ -163,16 +177,7 @@ namespace Vernuntii.Plugins
                 // This middleware is not called when --help was used.
                 // This middleware gets called TWICE, but in the first call we do not invoke the root command, instead we parse!
                 .AddMiddleware(
-                    (ctx, next) => {
-                        var firstCall = _parseResult is null;
-                        _parseResult = ctx.ParseResult;
-
-                        if (firstCall) {
-                            return Task.CompletedTask;
-                        } else {
-                            return next(ctx);
-                        }
-                    },
+                    (ctx, next) => _allowCommandHandlerInvocation ? next(ctx) : Task.CompletedTask,
                     MiddlewareOrder.ErrorReporting)
                 .Build();
 
@@ -204,8 +209,8 @@ namespace Vernuntii.Plugins
                 throw new InvalidOperationException("The root command handler has not been set");
             }
 
-            // This calls the middleware again.
-            var exitCode = await _parseResult.InvokeAsync().ConfigureAwait(false);
+            _allowCommandHandlerInvocation = true;
+            var exitCode = await _parseResult.InvokeAsync().ConfigureAwait(false); // Call the middleware again
             await Events.EmitAsync(CommandLineEvents.InvokedRootCommand, exitCode).ConfigureAwait(false);
 
             if (lifecycleContext.PreferExceptionOverExitCode) {

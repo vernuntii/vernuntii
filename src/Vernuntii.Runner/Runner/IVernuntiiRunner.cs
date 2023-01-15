@@ -1,5 +1,6 @@
 ﻿using Vernuntii.Plugins;
-using Vernuntii.SemVer;
+using Vernuntii.Plugins.Events;
+using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Runner;
 
@@ -11,13 +12,18 @@ public interface IVernuntiiRunner
     /// <summary>
     /// The console arguments.
     /// </summary>
-    string[] ConsoleArguments { get; init; }
+    string[] ConsoleArguments { get; }
+
+    /// <summary>
+    /// The plugin event system.
+    /// </summary>
+    IEventSystem PluginEvents { get; }
 
     /// <summary>
     /// Runs Vernuntii for getting the next version. The presence of <see cref="INextVersionPlugin"/> and its dependencies is expected.
     /// </summary>
     /// <exception cref="InvalidOperationException"></exception>
-    Task<ISemanticVersion> NextVersionAsync();
+    Task<NextVersionResult> NextVersionAsync();
 
     /// <summary>
     /// Runs Vernuntii for console.

@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.Console
+﻿namespace Vernuntii.Console.MSBuild
 {
     internal class GitVersionPresentation
     {

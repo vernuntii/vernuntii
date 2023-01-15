@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Vernuntii.Configuration\Vernuntii.Configuration.csproj" />
+    <ProjectReference Include="..\Vernuntii.Console.MSBuild.Core\Vernuntii.Console.MSBuild.Core.csproj" />
     <ProjectReference Include="..\Vernuntii.Git\Vernuntii.Git.csproj" />
     <ProjectReference Include="..\Vernuntii.Calculation\Vernuntii.Calculation.csproj" />
   </ItemGroup>

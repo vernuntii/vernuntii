@@ -23,8 +23,7 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
             _repository.CommitEmpty();
         }
 
-        private VernuntiiRunner CreateRunner(string cacheId) => VernuntiiRunnerBuilder
-            .WithNextVersionRequirements()
+        private VernuntiiRunner CreateRunner(string cacheId) => new VernuntiiRunnerBuilder()
             .ConfigurePlugins(plugins => {
                 plugins.Add(PluginAction.HandleEvents(events =>
                     events.Every(GitEvents.OnCustomizeGitCommandCreation).Subscribe(request => request.GitCommandFactory = new GitCommandFactory(_repository.GitCommand))));

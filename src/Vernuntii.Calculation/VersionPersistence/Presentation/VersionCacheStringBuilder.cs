@@ -75,7 +75,7 @@ namespace Vernuntii.VersionPersistence.Presentation
         /// Builds string.
         /// </summary>
         /// <exception cref="NotSupportedException"></exception>
-        public override string? ToString() =>
+        public override string ToString() =>
             VersionPresentationSerializerFactory
                 .CreateSerializer(_presentationView)
                 .SerializeSemanticVersion(_presentationCache, _presentationKind, _presentationParts);
