@@ -187,11 +187,11 @@ namespace Vernuntii.Plugins
             // We need to lazy load, because command line plugin has dependency on this plugin
             _pluginRegistry.GetPlugin<ICommandLinePlugin>().RootCommand.Add(_verbosityOption);
 
-            Events.Earliest(CommandLineEvents.ParsedCommandLineArguments)
+            Events.Once(CommandLineEvents.ParsedCommandLineArguments)
                 .Subscribe(parseResult => _verbosity = parseResult.GetValueForOption(_verbosityOption));
 
-            Events.Earliest(LoggingEvents.EnableLoggingInfrastructure).Subscribe(EnableLoggingInfrastructure);
-            Events.Earliest(ServicesEvents.OnConfigureServices).Subscribe(sp => sp.AddLogging(Bind));
+            Events.Once(LoggingEvents.EnableLoggingInfrastructure).Subscribe(EnableLoggingInfrastructure);
+            Events.Once(ServicesEvents.OnConfigureServices).Subscribe(sp => sp.AddLogging(Bind));
         }
 
         /// <inheritdoc/>

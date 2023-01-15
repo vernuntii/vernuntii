@@ -158,7 +158,11 @@ public class GitPlugin : Plugin, IGitPlugin
     /// <inheritdoc/>
     protected override void OnExecution()
     {
-        Events.Earliest(GitEvents.CreateGitCommand)
+        Events.Once(LifecycleEvents.BeforeEveryRun)
+            .Zip(VersionCacheEvents.CheckVersionCache)
+            .Subscribe(() => Events.EmitAsync(GitEvents.CreateGitCommand));
+
+        Events.Once(GitEvents.CreateGitCommand)
             .Zip(ConfigurationEvents.OnConfiguredConfigurationBuilder)
             .Subscribe(async result => {
                 var (_, configurationBuilder) = result;
@@ -166,18 +170,18 @@ public class GitPlugin : Plugin, IGitPlugin
                 await CreateGitCommandOnce(configurationBuilder.ConfigPath).ConfigureAwait(false);
             });
 
-        Events.Earliest(VersionCacheEvents.CreateVersionCacheManager)
+        Events.Once(VersionCacheEvents.CreateVersionCacheManager)
             .Subscribe(context => context.ImportGitRequirements());
 
-        Events.Earliest(NextVersionEvents.OnConfigureVersionPresentation)
+        Events.Once(NextVersionEvents.OnConfigureVersionPresentation)
             .Subscribe(context => context.ImportGitRequirements());
 
-        var nextCommandLineParseResult = Events.Earliest(CommandLineEvents.ParsedCommandLineArguments);
+        var nextCommandLineParseResult = Events.Once(CommandLineEvents.ParsedCommandLineArguments);
 
-        Events.Earliest(ServicesEvents.OnConfigureServices)
+        Events.Once(ServicesEvents.OnConfigureServices)
             .Subscribe(() => Events.EmitAsync(ConfigurationEvents.CreateConfiguration));
 
-        Events.Earliest(NextVersionEvents.OnConfigureServices)
+        Events.Once(NextVersionEvents.OnConfigureServices)
             .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_overridePostPreReleaseOption)))
             .Zip(ConfigurationEvents.OnConfiguredConfigurationBuilder)
             .Zip(ConfigurationEvents.OnCreatedConfiguration)
@@ -216,11 +220,13 @@ public class GitPlugin : Plugin, IGitPlugin
                 await Events.EmitAsync(GitEvents.OnConfiguredServices, services).ConfigureAwait(false);
             });
 
+        var repository = Events.Once(NextVersionEvents.OnCreatedScopedServiceProvider).Transform(sp => sp.GetRequiredService<IRepository>());
+
         // On next version calculation we want to set bad exit code if equivalent commit version already exists
         Events.Every(NextVersionEvents.OnCalculatedNextVersion)
             .Zip(NextVersionEvents.OnInvokedNextVersionCommand)
             .Zip(nextCommandLineParseResult.Transform(parseResult => parseResult.GetValueForOption(_duplicateVersionFailsOption)))
-            .Zip(Events.Earliest(NextVersionEvents.OnCreatedScopedServiceProvider).Transform(sp => sp.GetRequiredService<IRepository>()))
+            .Zip(repository)
             .Subscribe(result => {
                 var (((nextVersionResult, commandResult), duplicateVersionFails), repository) = result;
 

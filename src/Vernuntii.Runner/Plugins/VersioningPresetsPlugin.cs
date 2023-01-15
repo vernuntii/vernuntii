@@ -79,7 +79,7 @@ namespace Vernuntii.Plugins
         /// </summary>
         protected override void OnExecution()
         {
-            Events.Earliest(NextVersionEvents.OnConfigureServices)
+            Events.Once(NextVersionEvents.OnConfigureServices)
                 .Subscribe(async services => {
                     services.AddSingleton(PresetManager);
                     services.AddSingleton(PresetManager.VersioningPresets);

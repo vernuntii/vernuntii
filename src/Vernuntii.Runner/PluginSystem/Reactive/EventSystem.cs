@@ -77,10 +77,11 @@ internal record EventSystem : IEventSystem
                     lock (entries) {
                         entries.Remove(entry);
 
-                        if (entries.Count == 0) {
-                            // Reset id
-                            s_nextId = 0;
-                        }
+                        // BUG:
+                        //if (entries.Count == 0) {
+                        //    // Reset id
+                        //    s_nextId = 0;
+                        //}
                     }
                 },
                 (entries, entry));

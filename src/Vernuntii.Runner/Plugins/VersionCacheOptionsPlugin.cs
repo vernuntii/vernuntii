@@ -74,12 +74,10 @@ namespace Vernuntii.Plugins
             _commandLinePlugin.RootCommand.Add(_cacheLastAccessRetentionTimeOption);
             _commandLinePlugin.RootCommand.Add(_cacheIdOption);
 
-            Events
-                .Earliest(CommandLineEvents.ParsedCommandLineArguments)
+            Events.Once(CommandLineEvents.ParsedCommandLineArguments)
                 .Subscribe(OnParseCommandLineArguments);
 
-            Events
-                .Earliest(ServicesEvents.OnConfigureServices)
+            Events.Once(ServicesEvents.OnConfigureServices)
                 .Zip(VersionCacheOptionsEvents.OnParsedVersionCacheOptions)
                 .Subscribe(result => {
                     var (services, cacheOptions) = result;

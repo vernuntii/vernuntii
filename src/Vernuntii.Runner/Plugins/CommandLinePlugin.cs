@@ -223,7 +223,7 @@ namespace Vernuntii.Plugins
         {
             Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(OnBeforeEveryRun);
 
-            Events.Earliest(CommandLineEvents.OnBeforeEveryRun)
+            Events.Once(CommandLineEvents.OnBeforeEveryRun)
                 .Zip(CommandLineEvents.SetCommandLineArguments)
                 .Zip(CommandLineEvents.ParseCommandLineArguments)
                 .Subscribe(result => {

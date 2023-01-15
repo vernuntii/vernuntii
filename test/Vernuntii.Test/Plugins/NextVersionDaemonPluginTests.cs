@@ -36,7 +36,7 @@ namespace Vernuntii.Plugins
                     receivingPipe.GetClientHandleAsString()
                 });
 
-            using var overrideVersioningMode = runner.PluginEvents.Earliest(ServicesEvents.OnConfigureServices)
+            using var overrideVersioningMode = runner.PluginEvents.Once(ServicesEvents.OnConfigureServices)
                 .Subscribe(services => services
                     .TakeViewOfVernuntii()
                     .AddVersionIncrementation(incrementation => incrementation.PostConfigure(options => {

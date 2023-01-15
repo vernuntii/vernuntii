@@ -60,7 +60,7 @@ namespace Vernuntii.Plugins
             _commandLinePlugin.RootCommand.Add(_overrideVersioningModeOption);
 
             Events
-                .Earliest(CommandLineEvents.ParsedCommandLineArguments)
+                .Once(CommandLineEvents.ParsedCommandLineArguments)
                 .Subscribe(async parseResult => {
                     await Events.EmitAsync(SharedOptionsEvents.OnParseCommandLineArguments).ConfigureAwait(false);
                     // Parse options.

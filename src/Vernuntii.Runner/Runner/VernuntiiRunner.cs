@@ -91,7 +91,7 @@ namespace Vernuntii.Runner
             await EnsureExecutingPluginOnce().ConfigureAwait(false);
 
             var commandLineLifecycleContext = default(CommandLineEvents.LifecycleContext);
-            using var commandLineOnBeforeEveryRunSubscription = _pluginEvents.Earliest(CommandLineEvents.OnBeforeEveryRun).Subscribe(context => {
+            using var commandLineOnBeforeEveryRunSubscription = _pluginEvents.Once(CommandLineEvents.OnBeforeEveryRun).Subscribe(context => {
                 commandLineLifecycleContext = context;
             });
 
@@ -133,7 +133,7 @@ namespace Vernuntii.Runner
         private async Task<int> RunAsyncCore()
         {
             var exitCode = (int)ExitCode.NotExecuted;
-            using var exitCodeSubscription = _pluginEvents.Earliest(CommandLineEvents.InvokedRootCommand).Subscribe(i => exitCode = i);
+            using var exitCodeSubscription = _pluginEvents.Once(CommandLineEvents.InvokedRootCommand).Subscribe(i => exitCode = i);
 
             await _pluginEvents.EmitAsync(CommandLineEvents.InvokeRootCommand).ConfigureAwait(false);
 
@@ -184,7 +184,7 @@ namespace Vernuntii.Runner
                 (lifecycleContext, _) = await BeginLifecycleAsync(preferExceptionOverExitCode: true).ConfigureAwait(false);
 
                 using var subscription = _pluginEvents
-                    .Earliest(NextVersionEvents.OnCalculatedNextVersion)
+                    .Once(NextVersionEvents.OnCalculatedNextVersion)
                     .Subscribe(result => nextVersionResult = result);
 
                 _ = await RunAsyncCore().ConfigureAwait(false);

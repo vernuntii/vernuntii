@@ -56,9 +56,43 @@ public static class EventChainFactoryExtensions
             chainFactory.Every(onceDiscriminator),
             chainFactory.Every(everyDiscriminator));
 
+    public static EventChain<(TOnce, TFirst)> OnceFirst<TOnce, TFirst>(this IEventChainFactory chainFactory, EventChain<TOnce> once, EventChain<TFirst> first) =>
+        chainFactory.Create(new OnceFirstEvent<TOnce, TFirst>(once, first));
+
+    public static EventChain<(TOnce, TFirst)> OnceFirst<TOnce, TFirst>(
+        this IEventChainFactory chainFactory,
+        EventChain<TOnce> once,
+        IEventDiscriminator<TFirst> firstDiscriminator) =>
+        chainFactory.OnceFirst(
+            once,
+            chainFactory.Every(firstDiscriminator));
+
+    public static EventChain<(TOnce, TFirst)> OnceFirst<TOnce, TFirst>(
+        this IEventChainFactory chainFactory,
+        IEventDiscriminator<TOnce> onceDiscriminator,
+        EventChain<TFirst> first) =>
+        chainFactory.OnceFirst(
+            chainFactory.Every(onceDiscriminator),
+            first);
+
+    public static EventChain<(TOnce, TFirst)> OnceFirst<TOnce, TFirst>(
+        this IEventChainFactory chainFactory,
+        IEventDiscriminator<TOnce> onceDiscriminator,
+        IEventDiscriminator<TFirst> firstDiscriminator) =>
+        chainFactory.OnceFirst(
+            chainFactory.Every(onceDiscriminator),
+            chainFactory.Every(firstDiscriminator));
+
     public static EventChain<T> Earliest<T>(this IEventChainFactory chainFactory, IEventDiscriminator<T> discriminator)
     {
         var earliest = new EarliestEvent<T>();
         return chainFactory.Create(earliest, earliest, discriminator.EventId);
+    }
+
+    public static EventChain<T> Once<T>(this IEventChainFactory chainFactory, IEventDiscriminator<T> discriminator)
+    {
+        var every = new EveryEvent<T>();
+        var once = new OnceEvent<T>(every);
+        return chainFactory.Create(once, every, discriminator.EventId);
     }
 }

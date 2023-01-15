@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipes;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using Kenet.SimpleProcess;
@@ -13,10 +14,14 @@ namespace Vernuntii.Console.MSBuild
 {
     internal class ConsoleProcessExecutor
     {
-        private static Dictionary<ConsoleProcessExecutionArguments, VernuntiiDaemon> s_consoleExecutableAssociatedDaemonDictionary = new();
+        private static readonly Dictionary<ConsoleProcessExecutionArguments, VernuntiiDaemon> s_consoleExecutableAssociatedDaemonDictionary;
         private static bool s_areDaemonsTerminated;
 
-        static ConsoleProcessExecutor() => AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateDaemons();
+        static ConsoleProcessExecutor()
+        {
+            s_consoleExecutableAssociatedDaemonDictionary = new();
+            AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateDaemons();
+        }
 
         private static VernuntiiDaemon CreateDaemon(ConsoleProcessExecutionArguments executionArguments, TaskLoggingHelper logger)
         {

@@ -40,9 +40,9 @@ internal class NextVersionDaemonPlugin : Plugin
     protected override void OnExecution()
     {
         // We skip the the very first "next version"-invocation.
-        Events.Earliest(LifecycleEvents.BeforeEveryRun)
-            .Zip(Events.Earliest(CommandLineEvents.ParsedCommandLineArguments))
-            .Zip(Events.Earliest(NextVersionEvents.OnInvokeNextVersionCommand))
+        Events.Once(LifecycleEvents.BeforeEveryRun)
+            .Zip(Events.Once(CommandLineEvents.ParsedCommandLineArguments))
+            .Zip(Events.Once(NextVersionEvents.OnInvokeNextVersionCommand))
             .Where(_ => _nextVersionPlugin.Command.IsSeatTaken)
             .Subscribe(result => {
                 var ((lifecycleContext, parseResult), nextVersionCommandInvocation) = result;

@@ -123,8 +123,8 @@ namespace Vernuntii.Plugins
                 .UsePresentationView(_presentationView)
                 .ToString();
 
-            var nextVersion = new NextVersionResult(versionCacheString, versionCache);
-            await Events.EmitAsync(NextVersionEvents.OnCalculatedNextVersion, nextVersion).ConfigureAwait(false);
+            var nextVersionResult = new NextVersionResult(versionCacheString, versionCache);
+            await Events.EmitAsync(NextVersionEvents.OnCalculatedNextVersion, nextVersionResult).ConfigureAwait(false);
 
             Console.Write(versionCacheString);
             _logger.LogInformation("Loaded version {Version} in {LoadTime}", versionCache.Version, _loadingVersionStopwatch.Elapsed.ToSecondsString());
@@ -194,7 +194,7 @@ namespace Vernuntii.Plugins
             Command.Add(presentationViewOption);
             Command.Add(emptyCachesOption);
 
-            Events.Earliest(CommandLineEvents.OnSealRootCommand)
+            Events.Once(CommandLineEvents.OnSealRootCommand)
                 .Subscribe(async _ => {
                     var versionPresentationContext = new VersionPresentationContext();
                     versionPresentationContext.ImportNextVersionRequirements(); // Adds next-version-specific defaults
@@ -202,7 +202,7 @@ namespace Vernuntii.Plugins
                     presentableParts = new VersionPresentationParts(versionPresentationContext.PresentableParts);
                 });
 
-            Events.Earliest(CommandLineEvents.ParsedCommandLineArguments)
+            Events.Once(CommandLineEvents.ParsedCommandLineArguments)
                 .Where(() => Command.IsSeatTaken)
                 .Subscribe(parseResult => {
                     _presentationKind = parseResult.GetValueForOption(presentationKindOption);
@@ -219,19 +219,14 @@ namespace Vernuntii.Plugins
 
             Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(_ => _loadingVersionStopwatch.Restart());
 
-            Events.Earliest(CommandLineEvents.ParsedCommandLineArguments)
-                .Subscribe(parseResult => {
-                    if (!Command.IsSeatTaken) {
-                        return Task.CompletedTask;
-                    }
+            Events.OnceFirst(LifecycleEvents.BeforeEveryRun, CommandLineEvents.ParsedCommandLineArguments)
+                .Where(() => Command.IsSeatTaken)
+                .Subscribe(_ => Events.EmitAsync(VersionCacheEvents.CheckVersionCache));
 
-                    return Events.EmitAsync(VersionCacheEvents.CheckVersionCache);
-                });
-
-            Events.Earliest(ServicesEvents.OnConfigureServices)
+            Events.Once(ServicesEvents.OnConfigureServices)
                 .Subscribe(() => Events.EmitAsync(ConfigurationEvents.CreateConfiguration));
 
-            Events.Earliest(ServicesEvents.OnConfigureServices)
+            Events.Once(ServicesEvents.OnConfigureServices)
                 .Zip(ConfigurationEvents.OnCreatedConfiguration)
                 .Subscribe(async result => {
                     var (services, configuration) = result;

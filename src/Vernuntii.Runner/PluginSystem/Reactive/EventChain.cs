@@ -45,9 +45,9 @@ public sealed record EventChain<T> : IEventChainFactory, IEmittableEvent<T>
                     var (eventHandler, lifetime) = state;
                     context.MakeOrScheduleEventEmission(eventHandler, eventData);
 
-                    if (context.IsCompleting) {
-                        lifetime.Dispose();
-                    }
+                    //if (context.IsCompleting) {
+                    //    lifetime.Dispose();
+                    //}
                 }, (eventHandler, lifetime))
                 .Dispose)
             .Dispose;

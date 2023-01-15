@@ -101,16 +101,14 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            // TODO: Outsource git dependencies from this plugin
-            Events.OnceEvery(LifecycleEvents.BeforeEveryRun, VersionCacheEvents.CheckVersionCache)
-                .Subscribe(() => Events.EmitAsync(GitEvents.CreateGitCommand));
-
-            Events.Every(ConfigurationEvents.OnConfiguredConfigurationBuilder)
-                .Zip(GitEvents.OnCreatedGitCommand)
-                .Zip(VersionCacheOptionsEvents.OnParsedVersionCacheOptions)
+            Events.OnceFirst(
+                    LifecycleEvents.BeforeEveryRun,
+                    Events.Once(ConfigurationEvents.OnConfiguredConfigurationBuilder)
+                        .Zip(GitEvents.OnCreatedGitCommand)
+                        .Zip(VersionCacheOptionsEvents.OnParsedVersionCacheOptions))
                 .Zip(VersionCacheEvents.CheckVersionCache)
                 .Subscribe(result => {
-                    var (((configuredConfigurationBuilderResult, gitCommand), versionCacheOptions), _) = result;
+                    var ((_, ((configuredConfigurationBuilderResult, gitCommand), versionCacheOptions)), _) = result;
                     return CheckVersionCache(configuredConfigurationBuilderResult.ConfigPath, gitCommand, versionCacheOptions);
                 });
 

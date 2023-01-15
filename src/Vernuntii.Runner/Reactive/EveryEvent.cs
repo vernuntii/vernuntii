@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.Reactive;
+﻿using System.Buffers;
+
+namespace Vernuntii.Reactive;
 
 internal class EveryEvent<T> : IEmittableEvent<T>, IUnschedulableEventEmitter<T>
 {
@@ -12,13 +14,18 @@ internal class EveryEvent<T> : IEmittableEvent<T>, IUnschedulableEventEmitter<T>
 
     protected void Emit(EventEmissionContext context, T eventData)
     {
-        foreach (var eventEntry in _eventSubscriptions) {
-            if (eventEntry.Handler.IsEmissionUnschedulable) {
-                eventEntry.Handler.Emit(context, eventData);
-            } else if (!context.IsCompleting) {
-                // For now, we do not publicly allow handling completion
-                context.ScheduleEventEmission(eventEntry.Handler, eventData);
+        var eventSubscriptionsCount = _eventSubscriptions.Count;
+        var eventSubscriptions = ArrayPool<EventSubscription>.Shared.Rent(_eventSubscriptions.Count);
+
+        try {
+            _eventSubscriptions.CopyTo(eventSubscriptions);
+
+            for (var index = 0; index < eventSubscriptionsCount; index++) {
+                var eventEntry = eventSubscriptions[index];
+                context.MakeOrScheduleEventEmission(eventEntry.Handler, eventData);
             }
+        } finally {
+            ArrayPool<EventSubscription>.Shared.Return(eventSubscriptions);
         }
     }
 
