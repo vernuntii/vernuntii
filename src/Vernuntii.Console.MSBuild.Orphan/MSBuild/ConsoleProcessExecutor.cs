@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipes;
+using System.Text;
 using System.Text.Json;
 using Kenet.SimpleProcess;
 using Microsoft.Build.Utilities;
@@ -12,24 +13,55 @@ namespace Vernuntii.Console.MSBuild
 {
     internal class ConsoleProcessExecutor
     {
-        private static ConcurrentDictionary<ConsoleProcessExecutionArguments, VernuntiiRunnerDaemon> s_consoleExecutableAssociatedDaemonDictionary = new();
+        private static Dictionary<ConsoleProcessExecutionArguments, VernuntiiDaemon> s_consoleExecutableAssociatedDaemonDictionary = new();
+        private static bool s_areDaemonsTerminated;
 
-        private static VernuntiiRunnerDaemon CreateDaemon(ConsoleProcessExecutionArguments executionArguments)
+        static ConsoleProcessExecutor() => AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateDaemons();
+
+        private static VernuntiiDaemon CreateDaemon(ConsoleProcessExecutionArguments executionArguments, TaskLoggingHelper logger)
         {
             var sendingPipe = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
             var receivingPipe = new AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable);
             var processArguments = $"{executionArguments.CreateConsoleArguments()} --daemon {sendingPipe.GetClientHandleAsString()} {receivingPipe.GetClientHandleAsString()}";
             var startInfo = new ConsoleProcessStartInfo(executionArguments.ConsoleExecutablePath, processArguments);
-            var processExecution = ProcessExecutorBuilder.CreateDefault(startInfo).Run();
+            var loggerHolder = new TaskLoggingHelperHolder() { Logger = logger };
+
+            var processExecution = ProcessExecutorBuilder.CreateDefault(startInfo)
+                .AddErrorWriter(bytes => loggerHolder.Logger?.LogMessage(Encoding.UTF8.GetString(bytes, bytes.Length)))
+                .Run();
+
             sendingPipe.DisposeLocalCopyOfClientHandle();
             receivingPipe.DisposeLocalCopyOfClientHandle();
-            return new VernuntiiRunnerDaemon(processExecution, sendingPipe, receivingPipe);
+            return new VernuntiiDaemon(processExecution, sendingPipe, receivingPipe, loggerHolder);
         }
 
-        private static VernuntiiRunnerDaemon GetOrCreateDaemon(ConsoleProcessExecutionArguments executionArguments) =>
-            s_consoleExecutableAssociatedDaemonDictionary.GetOrAdd(
-                executionArguments,
-                CreateDaemon);
+        private static VernuntiiDaemon GetOrCreateDaemon(ConsoleProcessExecutionArguments executionArguments, TaskLoggingHelper logger)
+        {
+            lock (s_consoleExecutableAssociatedDaemonDictionary) {
+                if (s_areDaemonsTerminated) {
+                    throw new InvalidOperationException("All daemons are terminated");
+                }
+
+                if (s_consoleExecutableAssociatedDaemonDictionary.TryGetValue(executionArguments, out var daemon)) {
+                    return daemon;
+                }
+
+                daemon = CreateDaemon(executionArguments, logger);
+                s_consoleExecutableAssociatedDaemonDictionary.Add(executionArguments, daemon);
+                return daemon;
+            }
+        }
+
+        private static void TerminateDaemons()
+        {
+            lock (s_consoleExecutableAssociatedDaemonDictionary) {
+                foreach (var daemon in s_consoleExecutableAssociatedDaemonDictionary.Values) {
+                    daemon.Dispose();
+                }
+
+                s_areDaemonsTerminated = true;
+            }
+        }
 
         private readonly TaskLoggingHelper _logger;
 
@@ -41,13 +73,14 @@ namespace Vernuntii.Console.MSBuild
         [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "<Pending>")]
         public GitVersionPresentation Execute(ConsoleProcessExecutionArguments arguments)
         {
-            var daemon = GetOrCreateDaemon(arguments);
+            var daemon = GetOrCreateDaemon(arguments, _logger);
             using var logProcessExit = daemon.Process.Exited.Register(() => _logger.LogError($"The {nameof(Vernuntii)} daemon process exited unexpectely"));
 
             MemoryStream nextVersionMessage;
             NextVersionDaemonProtocolMessageType nextVersionMessageType;
 
-            lock (daemon.ProtocolSynchronization) {
+            lock (daemon.ProtocolSynchronizationLock) {
+                daemon.LoggetHolder.Logger = _logger;
                 var sendingPipe = daemon.SendingPipe;
                 sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter);
                 sendingPipe.Flush();
@@ -66,21 +99,32 @@ namespace Vernuntii.Console.MSBuild
             }
         }
 
-        private sealed class VernuntiiRunnerDaemon : IDisposable
+        private sealed class TaskLoggingHelperHolder
+        {
+            public TaskLoggingHelper? Logger { get; set; }
+        }
+
+        private sealed class VernuntiiDaemon : IDisposable
         {
             public ProcessExecution Process { get; }
             public AnonymousPipeServerStream SendingPipe { get; }
             public NextVersionPipeReader NextVersionPipeReader { get; }
-            public object ProtocolSynchronization { get; } = new();
+            public object ProtocolSynchronizationLock { get; } = new();
+            public TaskLoggingHelperHolder LoggetHolder { get; }
 
             private readonly AnonymousPipeServerStream _receivingPipe;
 
-            public VernuntiiRunnerDaemon(ProcessExecution process, AnonymousPipeServerStream sendingPipe, AnonymousPipeServerStream receivingPipe)
+            public VernuntiiDaemon(
+                ProcessExecution process,
+                AnonymousPipeServerStream sendingPipe,
+                AnonymousPipeServerStream receivingPipe,
+                TaskLoggingHelperHolder loggetHolder)
             {
                 Process = process;
                 SendingPipe = sendingPipe;
                 _receivingPipe = receivingPipe;
                 NextVersionPipeReader = NextVersionPipeReader.Create(receivingPipe);
+                LoggetHolder = loggetHolder;
             }
 
             public void Dispose()
