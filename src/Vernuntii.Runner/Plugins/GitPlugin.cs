@@ -170,7 +170,7 @@ public class GitPlugin : Plugin, IGitPlugin
                 await CreateGitCommandOnce(configurationBuilder.ConfigPath).ConfigureAwait(false);
             });
 
-        Events.Once(VersionCacheEvents.CreateVersionCacheManager)
+        Events.Once(VersionCacheEvents.OnCreateVersionCacheManager)
             .Subscribe(context => context.ImportGitRequirements());
 
         Events.Once(NextVersionEvents.OnConfigureVersionPresentation)

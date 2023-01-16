@@ -33,7 +33,10 @@ namespace Vernuntii.Plugins
 
         private readonly ILogger<VersionCachePlugin> _logger;
         private readonly ILogger<VersionCacheManager> _versionCacheManagerLogger;
-        private VersionCacheManager _versionCacheManager = null!;
+        private VersionCacheManager? _versionCacheManager;
+        private string? _gitDirectory;
+        private VersionCacheDirectory? _versionCacheDirectory;
+        private VersionHashFile? _versionHashFile;
         private IVersionCache? _versionCache;
         private bool _isChecked;
 
@@ -52,31 +55,44 @@ namespace Vernuntii.Plugins
             }
         }
 
-        private async Task CheckVersionCache(string? configFile, IGitCommand gitCommand, VersionCacheOptions versionCacheOptions)
+        [MemberNotNull(nameof(_gitDirectory), nameof(_versionCacheDirectory), nameof(_versionCacheManager), nameof(_versionHashFile))]
+        private async Task CreateVersionCacheCheckDependenciesOnce(string? configFile, IGitCommand gitCommand, VersionCacheOptions versionCacheOptions)
         {
-            var watch = new Stopwatch();
-            watch.Start();
+            if (_gitDirectory is not null && _versionCacheDirectory is not null && _versionCacheManager is not null && _versionHashFile is not null) {
+                return;
+            }
 
-            var gitDirectory = gitCommand.GetGitDirectory();
-            var versionCacheDirectory = new VersionCacheDirectory(new VersionCacheDirectoryOptions(gitDirectory));
+            _gitDirectory = gitCommand.GetGitDirectory();
+            _versionCacheDirectory = new VersionCacheDirectory(new VersionCacheDirectoryOptions(_gitDirectory));
 
             var versionCacheManagerOptions = new VersionCacheManagerContext();
-            await Events.EmitAsync(VersionCacheEvents.CreateVersionCacheManager, versionCacheManagerOptions);
+
+#pragma warning disable CS8774 // Member must have a non-null value when exiting.
+            await Events.EmitAsync(VersionCacheEvents.OnCreateVersionCacheManager, versionCacheManagerOptions);
+#pragma warning restore CS8774 // Member must have a non-null value when exiting.
 
             var messagePackVersionCacheFileFactory = MessagePackVersionCacheFileFactory.Of(
                 versionCacheManagerOptions.Serializers.Values.Select(x => x.Formatter),
                 versionCacheManagerOptions.Serializers.Values.Select(x => x.Deformatter));
 
             _versionCacheManager = new VersionCacheManager(
-                versionCacheDirectory,
+                _versionCacheDirectory,
                 new VersionCacheEvaluator(),
                 versionCacheOptions,
                 messagePackVersionCacheFileFactory,
                 _versionCacheManagerLogger);
 
-            var versionHashFile = new VersionHashFile(new VersionHashFileOptions(gitDirectory, configFile), _versionCacheManager, versionCacheDirectory);
-            var hash = await versionHashFile.IsHashUpToDateOtherwiseUpdate();
-            string? cacheNotUpToDateReason = null;
+            _versionHashFile = new VersionHashFile(new VersionHashFileOptions(_gitDirectory, configFile), _versionCacheManager, _versionCacheDirectory);
+        }
+
+        private async Task CheckVersionCache(string? configFile, IGitCommand gitCommand, VersionCacheOptions versionCacheOptions)
+        {
+            var watch = new Stopwatch();
+            watch.Start();
+
+            await CreateVersionCacheCheckDependenciesOnce(configFile, gitCommand, versionCacheOptions);
+            var hash = await _versionHashFile.IsHashUpToDateOtherwiseUpdate();
+            string? cacheNotUpToDateReason;
 
             if (hash.IsUpTodate) {
                 if (_versionCacheManager.IsCacheUpToDate(out var versionCache, out cacheNotUpToDateReason)) {
@@ -98,10 +114,14 @@ namespace Vernuntii.Plugins
             await Events.EmitAsync(VersionCacheEvents.OnCheckedVersionCache);
         }
 
+        [MemberNotNull(nameof(_versionCacheManager))]
+        private VersionCacheManager GetVersionCacheManager() =>
+            _versionCacheManager ?? throw new InvalidOperationException("The version manager has not been created");
+
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.OnceFirst(
+            Events.OnceEveryReplayFirst(
                     LifecycleEvents.BeforeEveryRun,
                     Events.Once(ConfigurationEvents.OnConfiguredConfigurationBuilder)
                         .Zip(GitEvents.OnCreatedGitCommand)
@@ -116,7 +136,7 @@ namespace Vernuntii.Plugins
                 .Zip(VersionCacheEvents.OnCheckedVersionCache)
                 .Subscribe(result => {
                     var (services, _) = result;
-                    services.AddSingleton<IVersionCacheManager>(_versionCacheManager);
+                    services.AddSingleton<IVersionCacheManager>(GetVersionCacheManager());
                 });
         }
     }

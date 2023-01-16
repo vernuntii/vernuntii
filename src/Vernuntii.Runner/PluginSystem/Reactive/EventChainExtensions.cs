@@ -25,7 +25,7 @@ public static class EventChainExtensions
                 static (eventData, predicate) => predicate(eventData),
                 eventPredicate)));
 
-    public static EventChain<T> Where<T>(this EventChain<T> source, Func<bool> eventPredicate) =>
+    public static EventChain<T> When<T>(this EventChain<T> source, Func<bool> eventPredicate) =>
         source.Chain(EventChainFragment.Create(
             new WhereEvent<T, Func<bool>>(
                 source,

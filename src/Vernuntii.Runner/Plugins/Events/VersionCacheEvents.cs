@@ -16,7 +16,7 @@ namespace Vernuntii.Plugins.Events
         /// <summary>
         /// Event when the version cache manager is going to be created.
         /// </summary>
-        public static readonly EventDiscriminator<VersionCacheManagerContext> CreateVersionCacheManager = EventDiscriminator.New<VersionCacheManagerContext>();
+        public static readonly EventDiscriminator<VersionCacheManagerContext> OnCreateVersionCacheManager = EventDiscriminator.New<VersionCacheManagerContext>();
 
         /// <summary>
         /// Event after up-to-date check.

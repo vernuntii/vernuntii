@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +38,7 @@ namespace Vernuntii.Plugins
         private VersionPresentationView _presentationView;
         private bool _emptyCaches;
 
-        private readonly IServicesPlugin _globalServiceProvider;
+        private readonly IServicesPlugin _serviceProvider;
 
         /// <summary>
         /// Creates an instance of this type.
@@ -59,7 +58,7 @@ namespace Vernuntii.Plugins
         {
             _pluginRegistry = pluginRegistry ?? throw new ArgumentNullException(nameof(pluginRegistry));
             _sharedOptions = sharedOptions ?? throw new ArgumentNullException(nameof(sharedOptions));
-            _globalServiceProvider = globalServiceProvider ?? throw new ArgumentNullException(nameof(globalServiceProvider));
+            _serviceProvider = globalServiceProvider ?? throw new ArgumentNullException(nameof(globalServiceProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (commandLine is null) {
@@ -71,7 +70,7 @@ namespace Vernuntii.Plugins
 
         private async ValueTask<IServiceScope> CreateServiceScope()
         {
-            var scope = _globalServiceProvider.CreateScope();
+            var scope = _serviceProvider.CreateScope();
             await Events.EmitAsync(NextVersionEvents.OnCreatedScopedServiceProvider, scope.ServiceProvider).ConfigureAwait(false);
             return scope;
         }
@@ -203,7 +202,7 @@ namespace Vernuntii.Plugins
                 });
 
             Events.Once(CommandLineEvents.ParsedCommandLineArguments)
-                .Where(() => Command.IsSeatTaken)
+                .When(() => Command.IsSeatTaken)
                 .Subscribe(parseResult => {
                     _presentationKind = parseResult.GetValueForOption(presentationKindOption);
                     _presentationParts = parseResult.GetValueForOption(presentationPartsOption);
@@ -219,8 +218,9 @@ namespace Vernuntii.Plugins
 
             Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(_ => _loadingVersionStopwatch.Restart());
 
-            Events.OnceFirst(LifecycleEvents.BeforeEveryRun, CommandLineEvents.ParsedCommandLineArguments)
-                .Where(() => Command.IsSeatTaken)
+            // Every run, we want to check the version cache, but only after the command-line arguments have been parsed once.
+            Events.OnceEveryReplayFirst(LifecycleEvents.BeforeEveryRun, CommandLineEvents.ParsedCommandLineArguments)
+                .When(() => Command.IsSeatTaken)
                 .Subscribe(_ => Events.EmitAsync(VersionCacheEvents.CheckVersionCache));
 
             Events.Once(ServicesEvents.OnConfigureServices)
