@@ -5,61 +5,42 @@ namespace Vernuntii.Plugins.Events;
 
 internal class NextVersionDaemonEvents
 {
-    public static readonly EventDiscriminator<PipeHandles> OnEditPipeHandles = EventDiscriminator.New<PipeHandles>();
+    public static readonly EventDiscriminator<Pipes> OnEditPipes = EventDiscriminator.New<Pipes>();
 
-    public sealed class PipeHandles
+    public sealed class Pipes
     {
-        private static void CheckPipeHandle([NotNull] string? pipeHandle)
+        internal static void CheckPipeHandle([NotNull] string? pipeHandleName)
         {
-            if (string.IsNullOrWhiteSpace(pipeHandle)) {
-                throw new ArgumentException($"'{nameof(pipeHandle)}' cannot be null or whitespace.", nameof(pipeHandle));
+            if (string.IsNullOrWhiteSpace(pipeHandleName)) {
+                throw new ArgumentException($"Pipe name cannot be null or whitespace", nameof(pipeHandleName));
             }
         }
 
-        public string? ReceivingPipeHandle {
-            get => _receivingPipeHandle;
+        public string? ReceivingPipeName {
+            get => _receivingPipeName;
 
             set {
                 CheckPipeHandle(value);
-                _receivingPipeHandle = value;
+                _receivingPipeName = value;
                 _hasCustomReceivingPipeHandle = true;
             }
         }
 
-        public string? SendingPipeHandle {
-            get => _sendingPipeHandle;
-
-            set {
-                CheckPipeHandle(value);
-                _sendingPipeHandle = value;
-                _hasCustomSendingPipeHandle = true;
-            }
-        }
-
-        [MemberNotNullWhen(true, nameof(ReceivingPipeHandle))]
+        [MemberNotNullWhen(true, nameof(ReceivingPipeName))]
         internal bool _hasCustomReceivingPipeHandle { get; set; }
 
-        [MemberNotNullWhen(true, nameof(SendingPipeHandle))]
-        internal bool _hasCustomSendingPipeHandle { get; set; }
+        internal CancellationToken WaitForConnectionCancellatonToken { get; set; }
 
-        private string? _receivingPipeHandle;
-        private string? _sendingPipeHandle;
+        private string? _receivingPipeName;
 
-        internal PipeHandles(string? receivingPipeHandle, string? sendingPipeHandle)
-        {
-            _receivingPipeHandle = receivingPipeHandle;
-            _sendingPipeHandle = sendingPipeHandle;
-        }
+        internal Pipes(string? receivingPipeHandle) =>
+            _receivingPipeName = receivingPipeHandle;
 
-        [MemberNotNull(nameof(ReceivingPipeHandle), nameof(SendingPipeHandle))]
-        internal void CheckPipeHandles()
+        [MemberNotNull(nameof(ReceivingPipeName))]
+        internal void CheckPipes()
         {
             if (!_hasCustomReceivingPipeHandle) {
-                CheckPipeHandle(ReceivingPipeHandle);
-            }
-
-            if (!_hasCustomSendingPipeHandle) {
-                CheckPipeHandle(SendingPipeHandle);
+                CheckPipeHandle(ReceivingPipeName);
             }
         }
     }

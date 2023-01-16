@@ -26,10 +26,10 @@ internal class NextVersionDaemonPlugin : Plugin
     private readonly INextVersionPlugin _nextVersionPlugin;
     private readonly ILogger<NextVersionDaemonPlugin> _logger;
 
-    private readonly Option<string[]> _daemonOption = new Option<string[]>("--daemon", $"Allows to start {nameof(Vernuntii)} as daemon." +
+    private readonly Option<string> _daemonOption = new Option<string>("--daemon", $"Allows to start {nameof(Vernuntii)} as daemon." +
         $" {TwoAnonymousPipesAreRequiredMessage}.") {
-        Arity = new ArgumentArity(minimumNumberOfValues: 2, maximumNumberOfValues: 2),
-        AllowMultipleArgumentsPerToken = true,
+        //Arity = new ArgumentArity(minimumNumberOfValues:21, maximumNumberOfValues: 2),
+        //AllowMultipleArgumentsPerToken = true,
         IsHidden = true
     };
 
@@ -60,29 +60,35 @@ internal class NextVersionDaemonPlugin : Plugin
             .Where(_ => _nextVersionPlugin.Command.IsSeatTaken)
             .Subscribe(async result => {
                 var ((lifecycleContext, parseResult), nextVersionCommandInvocation) = result;
-                var receivingPipeHandles = parseResult.GetValueForOption(_daemonOption);
+                var receivingPipeHandle = parseResult.GetValueForOption(_daemonOption);
 
-                if (!AllowEditingPipeHandles && (receivingPipeHandles is null || receivingPipeHandles.Length == 0)) {
+                if (!AllowEditingPipeHandles && string.IsNullOrWhiteSpace(receivingPipeHandle)) {
                     // The option was not specified
                     return;
                 }
 
-                var pipeHandles = new NextVersionDaemonEvents.PipeHandles(
-                    receivingPipeHandle: receivingPipeHandles?.ElementAtOrDefault(0),
-                    sendingPipeHandle: receivingPipeHandles?.ElementAtOrDefault(1));
+                var pipes = new NextVersionDaemonEvents.Pipes(
+                    receivingPipeHandle: receivingPipeHandle);
 
                 if (AllowEditingPipeHandles) {
-                    await Events.EmitAsync(NextVersionDaemonEvents.OnEditPipeHandles, pipeHandles);
+                    await Events.EmitAsync(NextVersionDaemonEvents.OnEditPipes, pipes);
                 }
 
-                pipeHandles.CheckPipeHandles();
+                pipes.CheckPipes();
                 _logger.LogInformation($"{nameof(Vernuntii)} has been started as daemon");
                 var daemonProducesVersionAtStartup = parseResult.GetValueForOption(_daemonStartupVersionOption);
                 nextVersionCommandInvocation.IsHandled = !daemonProducesVersionAtStartup;
                 var daemonTimeout = parseResult.GetValueForOption(_daemonTimeout); // Seconds
 
                 lifecycleContext.NewBackgroundTask(async () => {
-                    var pipe = new Pipe();
+                    var mutexName = NextVersionDaemonProtocolDefaults.MutexPrefix + pipes.ReceivingPipeName;
+                    using var mutex = new Mutex(initiallyOwned: true, mutexName, out var isMutexNotTaken);
+
+                    if (!isMutexNotTaken) {
+                        // We cannot have two daemons with same receiving pipe names living along.
+                        Environment.Exit(0);
+                    }
+
                     Timer? timer = null;
 
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -91,7 +97,7 @@ internal class NextVersionDaemonPlugin : Plugin
                     if (daemonTimeout >= 0) {
                         daemonTimeout *= 1000; // Milliseconds
 
-                        timer = new Timer(state => {
+                        timer = new Timer(_ => {
                             // TODO:
                             //var error = new NextVersionApiException("Daemon terminated due to timeout");
                             //pipe.Reader.Complete(error);
@@ -102,98 +108,144 @@ internal class NextVersionDaemonPlugin : Plugin
                         ResetTimer();
                     }
 
-                    async Task WriteToPipeAsync(PipeWriter writer)
-                    {
-                        await using var receivingPipe = new AnonymousPipeClientStream(PipeDirection.In, pipeHandles.ReceivingPipeHandle);
+                    var receivingPipe = new NamedPipeServerStream(pipes.ReceivingPipeName, PipeDirection.In);
 
-                        while (true) {
-                            var pipeBuffer = writer.GetMemory();
+                    while (true) {
+                        var pipe = new Pipe();
 
-                            try {
-                                var bytesRead = await receivingPipe.ReadAsync(pipeBuffer);
-
-                                if (bytesRead == 0) {
-                                    break;
-                                }
-
-                                writer.Advance(bytesRead);
-                            } catch {
+                        try {
+                            if (pipes.WaitForConnectionCancellatonToken.IsCancellationRequested) {
                                 break;
                             }
 
-                            var result = await writer.FlushAsync();
-
-                            if (result.IsCompleted) {
-                                break;
-                            }
+                            await receivingPipe.WaitForConnectionAsync(pipes.WaitForConnectionCancellatonToken).WaitAsync(pipes.WaitForConnectionCancellatonToken);
+                        } catch (OperationCanceledException) {
+                            break;
                         }
 
-                        await writer.CompleteAsync();
-                    }
+                        using var cancellationTokenSource = new CancellationTokenSource();
+                        using var readerAwaiter = new AutoResetEvent(initialState: true);
 
-                    async Task ReadFromPipeAsync(PipeReader reader)
-                    {
-                        await using var sendingPipe = new AnonymousPipeClientStream(PipeDirection.Out, pipeHandles.SendingPipeHandle);
-
-                        static bool TryReadSendingPipeHandle(ref ReadOnlySequence<byte> buffer)
+                        async Task LogErrorAsync(Func<Task> taskProvider)
                         {
-                            var delimiterPosition = buffer.PositionOf(NextVersionDaemonProtocolDefaults.Delimiter);
-
-                            if (delimiterPosition == null) {
-                                //emptySequence = ReadOnlySequence<byte>.Empty;
-                                return false;
+                            try {
+                                await taskProvider();
+                            } catch (Exception error) {
+                                _logger.LogError(error, "An error occured inside the daemon");
                             }
-
-                            //emptySequence = buffer.Slice(0, delimiterPosition.Value);
-                            buffer = buffer.Slice(buffer.GetPosition(offset: 1, delimiterPosition.Value));
-                            return true;
                         }
 
-                        Exception? capturedError = null;
+                        await Task.WhenAll(
+                            LogErrorAsync(() => WriteToPipeAsync(pipe.Writer, cancellationTokenSource.Token)),
+                            LogErrorAsync(() => ReadFromPipeAsync(pipe.Reader, cancellationTokenSource.Cancel)));
 
-                        while (true) {
-                            var result = await reader.ReadAsync();
-                            var buffer = result.Buffer;
+                        receivingPipe.Disconnect();
 
-                            while (TryReadSendingPipeHandle(ref buffer)) {
-                                ResetTimer();
-                                NextVersionResult nextVersionResult;
-
+                        async Task WriteToPipeAsync(PipeWriter writer, CancellationToken cancellationToken)
+                        {
+                            while (true) {
                                 try {
-                                    nextVersionResult = await _runner.NextVersionAsync().ConfigureAwait(false);
-                                } catch (Exception error) {
-                                    var errorMessageBytes = Encoding.UTF8.GetBytes(error.ToString());
-                                    sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Failure); // Failure
-                                    await sendingPipe.WriteAsync(errorMessageBytes).ConfigureAwait(false);
-                                    await sendingPipe.FlushAsync().ConfigureAwait(false);
-                                    sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
-                                    capturedError = error;
+                                    readerAwaiter.WaitOne();
+
+                                    if (cancellationToken.IsCancellationRequested) {
+                                        break;
+                                    }
+
+                                    var pipeBuffer = writer.GetMemory();
+                                    var bytesRead = await receivingPipe.ReadAsync(pipeBuffer);
+
+                                    if (bytesRead == 0) {
+                                        break;
+                                    }
+
+                                    writer.Advance(bytesRead);
+                                } catch {
                                     break;
                                 }
 
-                                var nextVersionBytes = Encoding.UTF8.GetBytes(nextVersionResult.VersionCacheString);
-                                sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Success); // Success
-                                await sendingPipe.WriteAsync(nextVersionBytes).ConfigureAwait(false);
-                                sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
-                                await sendingPipe.FlushAsync().ConfigureAwait(false);
+                                var result = await writer.FlushAsync();
+
+                                if (result.IsCompleted) {
+                                    break;
+                                }
                             }
 
-                            // Tell the PipeReader how much of the buffer has been consumed.
-                            reader.AdvanceTo(buffer.Start, buffer.End);
-
-                            // Stop reading if there's no more data coming.
-                            if (result.IsCompleted) {
-                                break;
-                            }
+                            await writer.CompleteAsync().ConfigureAwait(false);
                         }
 
-                        // Mark the PipeReader as complete.
-                        await reader.CompleteAsync();
-                    }
+                        async Task ReadFromPipeAsync(PipeReader reader, Action complete)
+                        {
+                            static bool TryReadSendingPipeHandle(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> sendingPipeNameBuffer)
+                            {
+                                var delimiterPosition = buffer.PositionOf(NextVersionDaemonProtocolDefaults.Delimiter);
 
-                    await Task.WhenAll(
-                        WriteToPipeAsync(pipe.Writer),
-                        ReadFromPipeAsync(pipe.Reader));
+                                if (delimiterPosition == null) {
+                                    sendingPipeNameBuffer = ReadOnlySequence<byte>.Empty;
+                                    return false;
+                                }
+
+                                sendingPipeNameBuffer = buffer.Slice(0, delimiterPosition.Value);
+                                buffer = buffer.Slice(buffer.GetPosition(offset: 1, delimiterPosition.Value));
+                                return true;
+                            }
+
+                            Exception? capturedError = null;
+
+                            while (true) {
+                                var result = await reader.ReadAsync();
+                                var buffer = result.Buffer;
+
+                                var couldReadSendingPipeHandle = TryReadSendingPipeHandle(ref buffer, out var sendingPipeNameBuffer);
+
+                                if (couldReadSendingPipeHandle) {
+                                    do {
+                                        ResetTimer();
+                                        NextVersionResult nextVersionResult;
+
+                                        var sendingPipeName = Encoding.ASCII.GetString(sendingPipeNameBuffer);
+                                        await using var sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, sendingPipeName, PipeDirection.Out);
+                                        await sendingPipe.ConnectAsync();
+
+                                        try {
+                                            nextVersionResult = await _runner.NextVersionAsync().ConfigureAwait(false);
+                                        } catch (Exception error) {
+                                            var errorMessageBytes = Encoding.UTF8.GetBytes(error.ToString());
+                                            sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Failure); // Failure
+                                            await sendingPipe.WriteAsync(errorMessageBytes).ConfigureAwait(false);
+                                            await sendingPipe.FlushAsync().ConfigureAwait(false);
+                                            sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
+                                            capturedError = error;
+                                            break;
+                                        }
+
+                                        var nextVersionBytes = Encoding.UTF8.GetBytes(nextVersionResult.VersionCacheString);
+                                        sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Success); // Success
+                                        await sendingPipe.WriteAsync(nextVersionBytes).ConfigureAwait(false);
+                                        sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
+                                        await sendingPipe.FlushAsync().ConfigureAwait(false);
+                                    } while (TryReadSendingPipeHandle(ref buffer, out sendingPipeNameBuffer));
+
+                                    // EXPERIMENTAL:
+                                    break;
+                                }
+
+                                // Tell the PipeReader how much of the buffer has been consumed.
+                                reader.AdvanceTo(buffer.Start, buffer.End);
+
+                                // Stop reading if there's no more data coming.
+                                if (result.IsCompleted) {
+                                    break;
+                                } else {
+                                    // Allow writer to read next
+                                    readerAwaiter.Set();
+                                }
+                            }
+
+                            await reader.CompleteAsync().ConfigureAwait(false);
+                            complete();
+                            readerAwaiter.Set();
+                        }
+                    }
                 });
             });
     }

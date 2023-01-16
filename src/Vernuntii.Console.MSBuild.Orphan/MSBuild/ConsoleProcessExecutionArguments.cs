@@ -38,10 +38,14 @@ internal sealed record ConsoleProcessExecutionArguments
     public required string? CacheLastAccessRetentionTime { get; init; }
     public required bool EmptyCaches { get; init; }
 
+    public string Concenation =>
+        _generatedArguments ??= CreateArguments();
+
     private string _consoleExecutablePath = null!;
     private string _configPath = null!;
+    private string? _generatedArguments;
 
-    public string CreateConsoleArguments()
+    private string CreateArguments()
     {
         var stringBuilder = new StringBuilder();
 

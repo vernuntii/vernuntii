@@ -24,16 +24,21 @@ namespace Vernuntii.Plugins
             using var repository = new TemporaryRepository();
             repository.CommitEmpty();
 
-            await using var sendingPipe = new AnonymousPipeServerStream(PipeDirection.Out);
-            await using var receivingPipe = new AnonymousPipeServerStream(PipeDirection.In);
-            var receivingPipeReader = NextVersionPipeReader.Create(receivingPipe);
+            var sendingPipeName = "testing-vernuntii-daemon";
 
             await using var runner = new VernuntiiRunnerBuilder()
                 .UseTemporaryRepository(repository)
                 .Build(args: new[] {
                     "--daemon",
-                    sendingPipe.GetClientHandleAsString(),
-                    receivingPipe.GetClientHandleAsString()
+                    sendingPipeName
+                });
+
+            using var waitForConnectionCancellationTokenSource = new CancellationTokenSource();
+            runner.Plugins.GetPlugin<NextVersionDaemonPlugin>().AllowEditingPipeHandles = true;
+
+            runner.PluginEvents.Every(NextVersionDaemonEvents.OnEditPipes)
+                .Subscribe(pipeHandles => {
+                    pipeHandles.WaitForConnectionCancellatonToken = waitForConnectionCancellationTokenSource.Token;
                 });
 
             using var overrideVersioningMode = runner.PluginEvents.Once(ServicesEvents.OnConfigureServices)
@@ -53,25 +58,39 @@ namespace Vernuntii.Plugins
             var runTask = runner.RunAsync();
             var actualNextVersionStrings = new List<string>();
 
+            var receivingPipeName = "vernuntii-daemon-client" + Guid.NewGuid().ToString();
+            using var receivingPipe = new NamedPipeServerStream(receivingPipeName, PipeDirection.In);
+            var receivingPipeReader = NextVersionPipeReader.Create(receivingPipe);
+
             for (var i = 0; i < calculateNextXSuccessiveReleaseVersions; i++) {
+                using var sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, sendingPipeName, PipeDirection.Out);
+                await sendingPipe.ConnectAsync();
+
+                sendingPipe.Write(Encoding.ASCII.GetBytes(receivingPipeName));
                 sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter);
                 await sendingPipe.FlushAsync();
 
+                await receivingPipe.WaitForConnectionAsync();
                 using var nextVersionBytes = new MemoryStream();
                 var responseType = await receivingPipeReader.ReadNextVersionAsync(nextVersionBytes);
                 receivingPipeReader.ValidateNextVersion(responseType, nextVersionBytes.GetBuffer);
-                nextVersionBytes.Position = 0;
 
-                var nextVersion = Encoding.UTF8.GetString(nextVersionBytes.GetBuffer(), 0, (int)nextVersionBytes.Length);
-                actualNextVersionStrings.Add(nextVersion);
+                try {
+                    nextVersionBytes.Position = 0;
 
-                if (i + 1 < calculateNextXSuccessiveReleaseVersions) {
-                    // Add another commit to get incremented version next run
-                    repository.CommitEmpty();
+                    var nextVersion = Encoding.UTF8.GetString(nextVersionBytes.GetBuffer(), 0, (int)nextVersionBytes.Length);
+                    actualNextVersionStrings.Add(nextVersion);
+
+                    if (i + 1 < calculateNextXSuccessiveReleaseVersions) {
+                        // Add another commit to get incremented version next run
+                        repository.CommitEmpty();
+                    }
+                } finally {
+                    receivingPipe.Disconnect();
                 }
             }
 
-            await sendingPipe.DisposeAsync();
+            waitForConnectionCancellationTokenSource.Cancel();
             await runTask;
 
             // Assert

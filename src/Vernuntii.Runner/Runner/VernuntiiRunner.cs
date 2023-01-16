@@ -19,6 +19,9 @@ namespace Vernuntii.Runner
         public IEventSystem PluginEvents => _pluginEvents;
 
         /// <inheritdoc/>
+        public IPluginRegistry Plugins => _pluginRegistry;
+
+        /// <inheritdoc/>
         public string[] ConsoleArguments {
             get => _args;
             init => _args = value ?? throw new ArgumentNullException(nameof(value));

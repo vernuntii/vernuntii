@@ -1,13 +1,14 @@
-﻿using Kenet.SimpleProcess;
+﻿using System;
+using Kenet.SimpleProcess;
 
 namespace Vernuntii.Console.MSBuild
 {
     internal record ConsoleProcessStartInfo : SimpleProcessStartInfo
     {
         private static bool IsDynamicLinkLibrary(string fileNameOrPath) =>
-            fileNameOrPath.EndsWith(".dll", System.StringComparison.OrdinalIgnoreCase);
+            fileNameOrPath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase);
 
-        private static string GetFileNameOrPath(string fileNameOrPath)
+        internal static string GetFileNameOrPath(string fileNameOrPath)
         {
             if (IsDynamicLinkLibrary(fileNameOrPath)) {
                 return "dotnet";

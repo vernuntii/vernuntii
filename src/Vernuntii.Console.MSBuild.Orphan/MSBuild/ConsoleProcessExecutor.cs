@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipes;
+using System.Text;
 using System.Text.Json;
-using Kenet.SimpleProcess;
+using System.Threading;
 using Microsoft.Build.Utilities;
 using Vernuntii.Plugins;
 
@@ -12,6 +14,10 @@ namespace Vernuntii.Console.MSBuild
 {
     internal class ConsoleProcessExecutor
     {
+        private const string DaemonClientName = "vernuntii-msbuild-daemon-client";
+        private const int ConnectTimeout = 8000;
+        private const int ReconnectTimeout = 4000;
+
         private static readonly Dictionary<ConsoleProcessExecutionArguments, VernuntiiDaemon> s_consoleExecutableAssociatedDaemonDictionary;
         private static bool s_areDaemonsTerminated;
 
@@ -19,24 +25,10 @@ namespace Vernuntii.Console.MSBuild
 
         private static VernuntiiDaemon CreateDaemon(ConsoleProcessExecutionArguments executionArguments, TaskLoggingHelper logger)
         {
-            logger.LogMessage($"Spawn new {nameof(Vernuntii)} daemon");
-            var sendingPipe = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
-            var receivingPipe = new AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable);
-            var processArguments = $"{executionArguments.CreateConsoleArguments()}" +
-                " --daemon" +
-                $" {sendingPipe.GetClientHandleAsString()}" +
-                $" {receivingPipe.GetClientHandleAsString()}" +
-                " --daemon-timeout 300";
-            var startInfo = new ConsoleProcessStartInfo(executionArguments.ConsoleExecutablePath, processArguments);
             var loggerHolder = new TaskLoggingHelperHolder() { Logger = logger };
-
-            var processExecution = ProcessExecutorBuilder.CreateDefault(startInfo)
-                //.AddErrorWriter(bytes => loggerHolder.Logger?.LogMessage(Encoding.UTF8.GetString(bytes, bytes.Length)))
-                .Run();
-
-            sendingPipe.DisposeLocalCopyOfClientHandle();
-            receivingPipe.DisposeLocalCopyOfClientHandle();
-            return new VernuntiiDaemon(processExecution, sendingPipe, receivingPipe, loggerHolder);
+            var receivingPipeName = DaemonClientName + Guid.NewGuid().ToString();
+            var receivingPipe = new NamedPipeServerStream(receivingPipeName, PipeDirection.Out);
+            return new VernuntiiDaemon(executionArguments, receivingPipeName, receivingPipe, logger);
         }
 
         private static VernuntiiDaemon GetOrCreateDaemon(ConsoleProcessExecutionArguments executionArguments, TaskLoggingHelper logger)
@@ -56,51 +48,32 @@ namespace Vernuntii.Console.MSBuild
             }
         }
 
-        private static void TerminateDaemon(ConsoleProcessExecutionArguments executionArguments)
-        {
-            lock (s_consoleExecutableAssociatedDaemonDictionary) {
-                if (s_consoleExecutableAssociatedDaemonDictionary.TryGetValue(executionArguments, out var daemon)) {
-                    try {
-                        daemon.Dispose();
-                    } finally {
-                        s_consoleExecutableAssociatedDaemonDictionary.Remove(executionArguments);
-                    }
-                }
-            }
-        }
-
         private readonly TaskLoggingHelper _logger;
 
-        public ConsoleProcessExecutor(TaskLoggingHelper logger)
-        {
+        public ConsoleProcessExecutor(TaskLoggingHelper logger) =>
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
 
         [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "<Pending>")]
-        public GitVersionPresentation Execute(ConsoleProcessExecutionArguments arguments, bool isNextTry)
+        public GitVersionPresentation Execute(ConsoleProcessExecutionArguments arguments)
         {
             var daemon = GetOrCreateDaemon(arguments, _logger);
-            using var logProcessExit = daemon.Process.Exited.Register(() => _logger.LogError($"The {nameof(Vernuntii)} daemon process exited unexpectely"));
 
             MemoryStream nextVersionMessage;
             NextVersionDaemonProtocolMessageType nextVersionMessageType;
 
             lock (daemon.ProtocolSynchronizationLock) {
-                try {
-                    daemon.LoggetHolder.Logger = _logger;
-                    var sendingPipe = daemon.SendingPipe;
-                    sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter);
-                    sendingPipe.Flush();
+                using var sendingPipe = daemon.CreateConnectedSendingPipe();
+                var receivingPipeNameBytes = Encoding.ASCII.GetBytes(daemon.ReceivingPipeName);
+                sendingPipe.Write(receivingPipeNameBytes, 0, receivingPipeNameBytes.Length);
+                sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter);
+                sendingPipe.Flush();
 
+                daemon.ReceivingPipe.WaitForConnection();
+                try {
                     nextVersionMessage = new MemoryStream();
                     nextVersionMessageType = daemon.NextVersionPipeReader.ReadNextVersionAsync(nextVersionMessage).GetAwaiter().GetResult();
-                } catch {
-                    if (!isNextTry && daemon.Process.IsCompleted) {
-                        TerminateDaemon(arguments);
-                        return Execute(arguments, isNextTry: true);
-                    }
-
-                    throw;
+                } finally {
+                    daemon.ReceivingPipe.Disconnect();
                 }
             }
 
@@ -114,10 +87,6 @@ namespace Vernuntii.Console.MSBuild
             }
         }
 
-        [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "<Pending>")]
-        public GitVersionPresentation Execute(ConsoleProcessExecutionArguments arguments) =>
-            Execute(arguments, isNextTry: false);
-
         private sealed class TaskLoggingHelperHolder
         {
             public TaskLoggingHelper? Logger { get; set; }
@@ -125,39 +94,93 @@ namespace Vernuntii.Console.MSBuild
 
         private sealed class VernuntiiDaemon : IDisposable
         {
-            public ProcessExecution Process { get; }
-            public AnonymousPipeServerStream SendingPipe { get; }
+            public ConsoleProcessExecutionArguments ExecutionArguments { get; }
+            public string ReceivingPipeName { get; }
+            public NamedPipeServerStream ReceivingPipe { get; }
             public NextVersionPipeReader NextVersionPipeReader { get; }
             public object ProtocolSynchronizationLock { get; } = new();
-            public TaskLoggingHelperHolder LoggetHolder { get; }
-
-            private readonly AnonymousPipeServerStream _receivingPipe;
+            public TaskLoggingHelper Logger { get; }
 
             public VernuntiiDaemon(
-                ProcessExecution process,
-                AnonymousPipeServerStream sendingPipe,
-                AnonymousPipeServerStream receivingPipe,
-                TaskLoggingHelperHolder loggetHolder)
+                ConsoleProcessExecutionArguments executionArguments,
+                string receivingPipeName,
+                NamedPipeServerStream receivingPipe,
+                TaskLoggingHelper logger)
             {
-                Process = process;
-                SendingPipe = sendingPipe;
-                _receivingPipe = receivingPipe;
+                ExecutionArguments = executionArguments;
+                ReceivingPipeName = receivingPipeName;
+                ReceivingPipe = receivingPipe;
                 NextVersionPipeReader = NextVersionPipeReader.Create(receivingPipe);
-                LoggetHolder = loggetHolder;
+                Logger = logger;
             }
 
-            public void Dispose()
+            public NamedPipeClientStream CreateConnectedSendingPipe()
             {
+                var executonArgumentsHash = ExecutionArguments.GetHashCode().ToString();
+                var sendingPipeName = "vernuntii-daemon" + executonArgumentsHash;
+                var sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, sendingPipeName, PipeDirection.Out);
+
+                var daemonSpawnerMutexName = NextVersionDaemonProtocolDefaults.MutexPrefix + DaemonClientName + executonArgumentsHash;
+                using var daemonSpawnerMutex = new Mutex(true, daemonSpawnerMutexName, out var isDaemonSpawnerMutexNotTaken);
+
                 try {
-                    Process.Kill();
-                } catch {
-                    ; // Ignore on purpose
+                    void ConnectToDaemon()
+                    {
+                        var processArguments = ExecutionArguments.Concenation +
+                            " --daemon" +
+                            $" {sendingPipeName}" +
+                            " --daemon-timeout 300";
+
+                        var startInfo = new ProcessStartInfo(
+                            ConsoleProcessStartInfo.GetFileNameOrPath(ExecutionArguments.ConsoleExecutablePath),
+                            processArguments) {
+                            UseShellExecute = true
+                        };
+
+                        Logger.LogMessage($"Spawn new {nameof(Vernuntii)} daemon");
+                        using var process = Process.Start(startInfo);
+
+                        void LogDaemonExit() => Logger.LogMessage($"The {nameof(Vernuntii)} daemon ({process.Id}) daemon has exited unexpectly");
+
+                        if (process.HasExited) {
+                            LogDaemonExit();
+                        } else {
+                            process.Exited += (_, _) => LogDaemonExit();
+                        }
+
+                        sendingPipe.Connect(ConnectTimeout);
+                        Logger.LogMessage($"The {nameof(Vernuntii)} daemon ({process.Id}) has been spawned");
+                    }
+
+                    if (!isDaemonSpawnerMutexNotTaken) {
+                        daemonSpawnerMutex.WaitOne();
+                    }
+
+                    var daemonSpawnedMutexName = NextVersionDaemonProtocolDefaults.MutexPrefix + sendingPipeName;
+                    var isDaemonSpawnedMutexTaken = Mutex.TryOpenExisting(daemonSpawnedMutexName, out var mutex);
+                    mutex?.Dispose();
+
+                    if (!isDaemonSpawnedMutexTaken) {
+                        ConnectToDaemon();
+                    } else {
+                        try {
+                            sendingPipe.Connect(ReconnectTimeout);
+                        } catch (TimeoutException) {
+                            Logger.LogMessage($"Connecting to {nameof(Vernuntii)} daemon failed due to timeout, so we spawn a new daemon");
+                            ConnectToDaemon();
+                        }
+                    }
+
+                    Logger.LogMessage($"Connected to the {nameof(Vernuntii)} daemon via named pipe ({sendingPipeName})");
+                } finally {
+                    daemonSpawnerMutex.ReleaseMutex();
                 }
 
-                Process.Dispose();
-                _receivingPipe.Dispose();
-                SendingPipe.Dispose();
+                return sendingPipe;
             }
+
+            public void Dispose() =>
+                ReceivingPipe.Dispose();
         }
     }
 }
