@@ -164,7 +164,8 @@ jobs:
           --verbosity $MSBUILD_VERBOSITY
           --configuration $MSBUILD_CONFIGURATION
           --output ${{ env.PUBLISHABLE_PACKAGES_DIR }}
-          /clp:PerformanceSummary
+          -consoleLoggerParameters:PerformanceSummary
+          -nodeReuse:true 
         shell: bash
 
       - name: Upload package artifacts
