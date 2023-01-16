@@ -2,6 +2,7 @@
 using System.CommandLine;
 using System.IO.Pipelines;
 using System.IO.Pipes;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Plugins.Events;
@@ -29,12 +30,22 @@ internal class NextVersionDaemonPlugin : Plugin
         IsHidden = true
     };
 
+    private readonly Option<bool> _daemonStartupVersionOption = new Option<bool>("--daemon-produces-version-at-startup", $"Allows {nameof(Vernuntii)} to produce the next-version at startup.") {
+        IsHidden = true
+    };
+
+    private readonly Option<int> _daemonTimeout = new Option<int>("--daemon-timeout", () => Timeout.Infinite, "After the timeout (seconds), the daemon will be terminated. If -1, no timeout is used.") {
+        IsHidden = true
+    };
+
     public NextVersionDaemonPlugin(VernuntiiRunner runner, INextVersionPlugin nextVersionPlugin, ILogger<NextVersionDaemonPlugin> logger)
     {
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));
         _nextVersionPlugin = nextVersionPlugin ?? throw new ArgumentNullException(nameof(nextVersionPlugin));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _nextVersionPlugin.Command.Add(_daemonOption);
+        _nextVersionPlugin.Command.Add(_daemonStartupVersionOption);
+        _nextVersionPlugin.Command.Add(_daemonTimeout);
     }
 
     protected override void OnExecution()
@@ -58,9 +69,30 @@ internal class NextVersionDaemonPlugin : Plugin
                 }
 
                 _logger.LogInformation($"{nameof(Vernuntii)} has been started as daemon");
-                nextVersionCommandInvocation.IsHandled = true;
+                var daemonProducesVersionAtStartup = parseResult.GetValueForOption(_daemonStartupVersionOption);
+                nextVersionCommandInvocation.IsHandled = !daemonProducesVersionAtStartup;
+                var daemonTimeout = parseResult.GetValueForOption(_daemonTimeout); // Seconds
 
-                lifecycleContext.NewBackgroundTask(() => {
+                lifecycleContext.NewBackgroundTask(async () => {
+                    var pipe = new Pipe();
+                    Timer? timer = null;
+
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    void ResetTimer() => timer?.Change(dueTime: 0, period: daemonTimeout);
+
+                    if (daemonTimeout >= 0) {
+                        daemonTimeout *= 1000; // Milliseconds
+
+                        timer = new Timer(static state => {
+                            var pipe = (Pipe)state!;
+                            var error = new NextVersionApiException("Daemon terminated due to timeout");
+                            pipe.Reader.Complete(error);
+                            pipe.Reader.Complete(error);
+                        });
+
+                        ResetTimer();
+                    }
+
                     async Task WriteToPipeAsync(PipeWriter writer)
                     {
                         await using var receivingPipe = new AnonymousPipeClientStream(PipeDirection.In, receivingPipeHandles[0]);
@@ -116,6 +148,7 @@ internal class NextVersionDaemonPlugin : Plugin
                                 var buffer = result.Buffer;
 
                                 while (TryReadSendingPipeHandle(ref buffer)) {
+                                    ResetTimer();
                                     NextVersionResult nextVersionResult;
 
                                     try {
@@ -155,9 +188,7 @@ internal class NextVersionDaemonPlugin : Plugin
                         await reader.CompleteAsync(capturedError);
                     }
 
-                    var pipe = new Pipe();
-
-                    return Task.WhenAll(
+                    await Task.WhenAll(
                         WriteToPipeAsync(pipe.Writer),
                         ReadFromPipeAsync(pipe.Reader));
                 });

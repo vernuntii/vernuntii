@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipes;
-using System.Reflection;
-using System.Text;
 using System.Text.Json;
 using Kenet.SimpleProcess;
 using Microsoft.Build.Utilities;
@@ -20,19 +18,23 @@ namespace Vernuntii.Console.MSBuild
         static ConsoleProcessExecutor()
         {
             s_consoleExecutableAssociatedDaemonDictionary = new();
-            AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateDaemons();
+            //TerminateDaemons();
         }
 
         private static VernuntiiDaemon CreateDaemon(ConsoleProcessExecutionArguments executionArguments, TaskLoggingHelper logger)
         {
             var sendingPipe = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
             var receivingPipe = new AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable);
-            var processArguments = $"{executionArguments.CreateConsoleArguments()} --daemon {sendingPipe.GetClientHandleAsString()} {receivingPipe.GetClientHandleAsString()}";
+            var processArguments = $"{executionArguments.CreateConsoleArguments()}" +
+                " --daemon" +
+                $" {sendingPipe.GetClientHandleAsString()}" +
+                $" {receivingPipe.GetClientHandleAsString()}" +
+                " --daemon-timeout 60";
             var startInfo = new ConsoleProcessStartInfo(executionArguments.ConsoleExecutablePath, processArguments);
             var loggerHolder = new TaskLoggingHelperHolder() { Logger = logger };
 
             var processExecution = ProcessExecutorBuilder.CreateDefault(startInfo)
-                .AddErrorWriter(bytes => loggerHolder.Logger?.LogMessage(Encoding.UTF8.GetString(bytes, bytes.Length)))
+                //.AddErrorWriter(bytes => loggerHolder.Logger?.LogMessage(Encoding.UTF8.GetString(bytes, bytes.Length)))
                 .Run();
 
             sendingPipe.DisposeLocalCopyOfClientHandle();
@@ -57,16 +59,16 @@ namespace Vernuntii.Console.MSBuild
             }
         }
 
-        private static void TerminateDaemons()
-        {
-            lock (s_consoleExecutableAssociatedDaemonDictionary) {
-                foreach (var daemon in s_consoleExecutableAssociatedDaemonDictionary.Values) {
-                    daemon.Dispose();
-                }
+        //private static void TerminateDaemons()
+        //{
+        //    lock (s_consoleExecutableAssociatedDaemonDictionary) {
+        //        foreach (var daemon in s_consoleExecutableAssociatedDaemonDictionary.Values) {
+        //            daemon.Dispose();
+        //        }
 
-                s_areDaemonsTerminated = true;
-            }
-        }
+        //        s_areDaemonsTerminated = true;
+        //    }
+        //}
 
         private readonly TaskLoggingHelper _logger;
 
