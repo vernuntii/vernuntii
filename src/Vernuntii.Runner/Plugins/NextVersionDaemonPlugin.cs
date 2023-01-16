@@ -15,9 +15,12 @@ namespace Vernuntii.Plugins;
 /// <summary>
 /// Similiar to <see cref="NextVersionPlugin"/> but daemonized. Must appear after <see cref="NextVersionPlugin"/>.
 /// </summary>
+[ImportPlugin<NextVersionDaemonClientPlugin>(TryRegister = true)]/// 
 internal class NextVersionDaemonPlugin : Plugin
 {
     private const string TwoAnonymousPipesAreRequiredMessage = "Two anonymous pipe handles are required: the first for receiving and the second for sending";
+
+    internal bool AllowEditingPipeHandles { get; set; }
 
     private readonly VernuntiiRunner _runner;
     private readonly INextVersionPlugin _nextVersionPlugin;
@@ -55,19 +58,24 @@ internal class NextVersionDaemonPlugin : Plugin
             .Zip(Events.Once(CommandLineEvents.ParsedCommandLineArguments))
             .Zip(Events.Once(NextVersionEvents.OnInvokeNextVersionCommand))
             .Where(_ => _nextVersionPlugin.Command.IsSeatTaken)
-            .Subscribe(result => {
+            .Subscribe(async result => {
                 var ((lifecycleContext, parseResult), nextVersionCommandInvocation) = result;
                 var receivingPipeHandles = parseResult.GetValueForOption(_daemonOption);
 
-                if (receivingPipeHandles is null || receivingPipeHandles.Length == 0) {
+                if (!AllowEditingPipeHandles && (receivingPipeHandles is null || receivingPipeHandles.Length == 0)) {
                     // The option was not specified
                     return;
                 }
 
-                if (receivingPipeHandles.Any(string.IsNullOrWhiteSpace)) {
-                    throw new InvalidOperationException(TwoAnonymousPipesAreRequiredMessage);
+                var pipeHandles = new NextVersionDaemonEvents.PipeHandles(
+                    receivingPipeHandle: receivingPipeHandles?.ElementAtOrDefault(0),
+                    sendingPipeHandle: receivingPipeHandles?.ElementAtOrDefault(1));
+
+                if (AllowEditingPipeHandles) {
+                    await Events.EmitAsync(NextVersionDaemonEvents.OnEditPipeHandles, pipeHandles);
                 }
 
+                pipeHandles.CheckPipeHandles();
                 _logger.LogInformation($"{nameof(Vernuntii)} has been started as daemon");
                 var daemonProducesVersionAtStartup = parseResult.GetValueForOption(_daemonStartupVersionOption);
                 nextVersionCommandInvocation.IsHandled = !daemonProducesVersionAtStartup;
@@ -95,7 +103,7 @@ internal class NextVersionDaemonPlugin : Plugin
 
                     async Task WriteToPipeAsync(PipeWriter writer)
                     {
-                        await using var receivingPipe = new AnonymousPipeClientStream(PipeDirection.In, receivingPipeHandles[0]);
+                        await using var receivingPipe = new AnonymousPipeClientStream(PipeDirection.In, pipeHandles.ReceivingPipeHandle);
 
                         while (true) {
                             var pipeBuffer = writer.GetMemory();
@@ -124,7 +132,7 @@ internal class NextVersionDaemonPlugin : Plugin
 
                     async Task ReadFromPipeAsync(PipeReader reader)
                     {
-                        await using var sendingPipe = new AnonymousPipeClientStream(PipeDirection.Out, receivingPipeHandles[1]);
+                        await using var sendingPipe = new AnonymousPipeClientStream(PipeDirection.Out, pipeHandles.SendingPipeHandle);
 
                         static bool TryReadSendingPipeHandle(ref ReadOnlySequence<byte> buffer)
                         {

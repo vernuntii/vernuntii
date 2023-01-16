@@ -84,6 +84,12 @@ internal class NextVersionPipeReader
         throw CreateInvalidMessageTypeException(nextVersionMessageType);
     }
 
+    /// <summary>
+    /// Validates the next version output
+    /// </summary>
+    /// <param name="nextVersionMessageType"></param>
+    /// <param name="nextVersionMessageProvider">Only evaluated in case of a bad message type. </param>
+    /// <exception cref="NextVersionApiException"></exception>
     public void ValidateNextVersion(NextVersionDaemonProtocolMessageType nextVersionMessageType, Func<byte[]> nextVersionMessageProvider)
     {
         if (nextVersionMessageType == NextVersionDaemonProtocolMessageType.Success) {

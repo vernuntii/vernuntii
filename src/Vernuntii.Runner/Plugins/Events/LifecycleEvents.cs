@@ -18,6 +18,11 @@ namespace Vernuntii.Plugins.Events
         public static readonly EventDiscriminator<LifecycleContext> BeforeNextRun = EventDiscriminator.New<LifecycleContext>();
 
         /// <summary>
+        /// The event is called when the run ends.
+        /// </summary>
+        public static readonly EventDiscriminator EndOfRun = EventDiscriminator.New();
+
+        /// <summary>
         /// Represents the context of a lifecycle.
         /// </summary>
         public sealed class LifecycleContext

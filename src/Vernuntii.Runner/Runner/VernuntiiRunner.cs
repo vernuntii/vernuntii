@@ -141,6 +141,7 @@ namespace Vernuntii.Runner
                 throw new InvalidOperationException("The Vernuntii runner was not executed");
             }
 
+            await _pluginEvents.EmitAsync(LifecycleEvents.EndOfRun);
             return exitCode;
         }
 
