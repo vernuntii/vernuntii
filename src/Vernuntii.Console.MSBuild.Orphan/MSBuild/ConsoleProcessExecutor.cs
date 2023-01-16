@@ -19,6 +19,7 @@ namespace Vernuntii.Console.MSBuild
 
         private static VernuntiiDaemon CreateDaemon(ConsoleProcessExecutionArguments executionArguments, TaskLoggingHelper logger)
         {
+            logger.LogMessage($"Spawn new {nameof(Vernuntii)} daemon");
             var sendingPipe = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
             var receivingPipe = new AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable);
             var processArguments = $"{executionArguments.CreateConsoleArguments()}" +
