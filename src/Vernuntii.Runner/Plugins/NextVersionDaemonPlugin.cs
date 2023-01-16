@@ -86,16 +86,17 @@ internal class NextVersionDaemonPlugin : Plugin
                     Timer? timer = null;
 
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    void ResetTimer() => timer?.Change(dueTime: 0, period: daemonTimeout);
+                    void ResetTimer() => timer?.Change(dueTime: daemonTimeout, period: Timeout.Infinite);
 
                     if (daemonTimeout >= 0) {
                         daemonTimeout *= 1000; // Milliseconds
 
-                        timer = new Timer(static state => {
-                            var pipe = (Pipe)state!;
-                            var error = new NextVersionApiException("Daemon terminated due to timeout");
-                            pipe.Reader.Complete(error);
-                            pipe.Reader.Complete(error);
+                        timer = new Timer(state => {
+                            // TODO:
+                            //var error = new NextVersionApiException("Daemon terminated due to timeout");
+                            //pipe.Reader.Complete(error);
+                            //pipe.Writer.Complete(error);
+                            Environment.Exit(0);
                         });
 
                         ResetTimer();
@@ -150,50 +151,44 @@ internal class NextVersionDaemonPlugin : Plugin
 
                         Exception? capturedError = null;
 
-                        try {
-                            while (true) {
-                                var result = await reader.ReadAsync();
-                                var buffer = result.Buffer;
+                        while (true) {
+                            var result = await reader.ReadAsync();
+                            var buffer = result.Buffer;
 
-                                while (TryReadSendingPipeHandle(ref buffer)) {
-                                    ResetTimer();
-                                    NextVersionResult nextVersionResult;
+                            while (TryReadSendingPipeHandle(ref buffer)) {
+                                ResetTimer();
+                                NextVersionResult nextVersionResult;
 
-                                    try {
-                                        nextVersionResult = await _runner.NextVersionAsync().ConfigureAwait(false);
-                                    } catch (Exception error) {
-                                        var errorMessageBytes = Encoding.UTF8.GetBytes(error.ToString());
-                                        sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Failure); // Failure
-                                        await sendingPipe.WriteAsync(errorMessageBytes).ConfigureAwait(false);
-                                        await sendingPipe.FlushAsync().ConfigureAwait(false);
-                                        sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
-                                        capturedError = error;
-                                        break;
-                                    }
-
-                                    var nextVersionBytes = Encoding.UTF8.GetBytes(nextVersionResult.VersionCacheString);
-                                    sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Success); // Success
-                                    await sendingPipe.WriteAsync(nextVersionBytes).ConfigureAwait(false);
-                                    sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
+                                try {
+                                    nextVersionResult = await _runner.NextVersionAsync().ConfigureAwait(false);
+                                } catch (Exception error) {
+                                    var errorMessageBytes = Encoding.UTF8.GetBytes(error.ToString());
+                                    sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Failure); // Failure
+                                    await sendingPipe.WriteAsync(errorMessageBytes).ConfigureAwait(false);
                                     await sendingPipe.FlushAsync().ConfigureAwait(false);
-                                }
-
-                                // Tell the PipeReader how much of the buffer has been consumed.
-                                reader.AdvanceTo(buffer.Start, buffer.End);
-
-                                // Stop reading if there's no more data coming.
-                                if (result.IsCompleted) {
+                                    sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
+                                    capturedError = error;
                                     break;
                                 }
+
+                                var nextVersionBytes = Encoding.UTF8.GetBytes(nextVersionResult.VersionCacheString);
+                                sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Success); // Success
+                                await sendingPipe.WriteAsync(nextVersionBytes).ConfigureAwait(false);
+                                sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
+                                await sendingPipe.FlushAsync().ConfigureAwait(false);
                             }
 
-                            // Mark the PipeReader as complete.
-                            await reader.CompleteAsync();
-                        } catch (Exception error) {
-                            capturedError = error;
+                            // Tell the PipeReader how much of the buffer has been consumed.
+                            reader.AdvanceTo(buffer.Start, buffer.End);
+
+                            // Stop reading if there's no more data coming.
+                            if (result.IsCompleted) {
+                                break;
+                            }
                         }
 
-                        await reader.CompleteAsync(capturedError);
+                        // Mark the PipeReader as complete.
+                        await reader.CompleteAsync();
                     }
 
                     await Task.WhenAll(
