@@ -7,6 +7,14 @@
     "WSL": {
       "commandName": "WSL2",
       "distributionName": ""
+    },
+    "Vernuntii.Console.any (dclient)": {
+      "commandName": "Project",
+      "commandLineArgs": "--presentation-view text --presentation-parts all --presentation-kind Complex --verbosity Verbose --cache-id test --daemon-client"
+    },
+    "Vernuntii.Console.any (dserver)": {
+      "commandName": "Project",
+      "commandLineArgs": "--presentation-view text --presentation-parts all --presentation-kind Complex --verbosity Verbose --cache-id test --daemon \"test\""
     }
   }
 }

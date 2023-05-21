@@ -10,7 +10,7 @@ internal static class EventEmissionContextExtensions
             },
             ((Func<T, Task>)eventEmitter.EmitAsync, eventData));
 
-    internal static void MakeOrScheduleEventEmission<T>(this EventEmissionContext emissionContext, IEventEmitter<T> eventEmitter, T eventData)
+    internal static void TriggerOrScheduleEventEmission<T>(this EventEmissionContext emissionContext, IEventEmitter<T> eventEmitter, T eventData)
     {
         if (eventEmitter.IsEmissionUnschedulable) {
             eventEmitter.Emit(emissionContext, eventData);

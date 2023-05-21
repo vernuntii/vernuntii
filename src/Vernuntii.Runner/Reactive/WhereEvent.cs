@@ -19,6 +19,6 @@ internal class WhereEvent<TSource, TState> : IEmittableEvent<TSource>
                 return;
             }
 
-            context.MakeOrScheduleEventEmission(eventEmitter, eventData);
+            context.TriggerOrScheduleEventEmission(eventEmitter, eventData);
         });
 }

@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
+    <ProjectReference Include="..\Vernuntii.TestingInfrastructure\Vernuntii.TestingInfrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

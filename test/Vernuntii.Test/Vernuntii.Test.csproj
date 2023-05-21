@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Vernuntii.Console.MSBuild.Core\Vernuntii.Console.MSBuild.Core.csproj" />
-    <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
+    <ProjectReference Include="..\Vernuntii.TestingInfrastructure\Vernuntii.TestingInfrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -14,7 +14,7 @@ public interface IEventEmitter<in T>
     /// <param name="context"></param>
     /// <param name="eventData"></param>
     internal void Emit(EventEmissionContext context, T eventData) =>
-        throw new IrregularEventEmissionException("The event fulfillment is schedulable but pretends to be unschedulable");
+        throw new IrregularEventEmissionException("The event emission is be scheduled, but the implementation is missing");
 
     /// <summary>
     /// The method gets scheduled and called if the event you subscribed for got emitted.

@@ -13,6 +13,6 @@ internal class TransformEvent<TSource, TResult> : IEmittableEvent<TResult>
 
     public IDisposable Subscribe(IEventEmitter<TResult> eventEmitter) =>
         _source.SubscribeUnscheduled(
-            static (context, eventData, state) => context.MakeOrScheduleEventEmission(state.EventEmitter, state.TransformEventData(eventData)),
+            static (context, eventData, state) => context.TriggerOrScheduleEventEmission(state.EventEmitter, state.TransformEventData(eventData)),
             (EventEmitter: eventEmitter, TransformEventData: _eventDataTransformHandler));
 }

@@ -16,31 +16,31 @@ internal class NextVersionDaemonEvents
             }
         }
 
-        public string? ReceivingPipeName {
-            get => _receivingPipeName;
+        public string? DaemonPipeServerName {
+            get => _daemonPipeServerName;
 
             set {
                 CheckPipeHandle(value);
-                _receivingPipeName = value;
-                _hasCustomReceivingPipeHandle = true;
+                _daemonPipeServerName = value;
+                _hasCustomIncomingPipeServerHandle = true;
             }
         }
 
-        [MemberNotNullWhen(true, nameof(ReceivingPipeName))]
-        internal bool _hasCustomReceivingPipeHandle { get; set; }
+        [MemberNotNullWhen(true, nameof(DaemonPipeServerName))]
+        internal bool _hasCustomIncomingPipeServerHandle { get; set; }
 
         internal CancellationToken WaitForConnectionCancellatonToken { get; set; }
 
-        private string? _receivingPipeName;
+        private string? _daemonPipeServerName;
 
-        internal Pipes(string? receivingPipeHandle) =>
-            _receivingPipeName = receivingPipeHandle;
+        internal Pipes(string? daemonPipeServerName) =>
+            _daemonPipeServerName = daemonPipeServerName;
 
-        [MemberNotNull(nameof(ReceivingPipeName))]
+        [MemberNotNull(nameof(DaemonPipeServerName))]
         internal void CheckPipes()
         {
-            if (!_hasCustomReceivingPipeHandle) {
-                CheckPipeHandle(ReceivingPipeName);
+            if (!_hasCustomIncomingPipeServerHandle) {
+                CheckPipeHandle(DaemonPipeServerName);
             }
         }
     }

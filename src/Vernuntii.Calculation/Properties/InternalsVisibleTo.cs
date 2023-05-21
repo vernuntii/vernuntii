@@ -4,4 +4,4 @@
 [assembly: InternalsVisibleTo("Vernuntii.Runner")]
 [assembly: InternalsVisibleTo("Vernuntii.Test")]
 [assembly: InternalsVisibleTo("Vernuntii.Calculation.Test")]
-[assembly: InternalsVisibleTo("Vernuntii.TestInfrastructure")]
+[assembly: InternalsVisibleTo("Vernuntii.TestingInfrastructure")]

@@ -22,14 +22,14 @@ internal class EveryEvent<T> : IEmittableEvent<T>, IUnschedulableEventEmitter<T>
 
             for (var index = 0; index < eventSubscriptionsCount; index++) {
                 var eventEntry = eventSubscriptions[index];
-                context.MakeOrScheduleEventEmission(eventEntry.Handler, eventData);
+                context.TriggerOrScheduleEventEmission(eventEntry.Handler, eventData);
             }
         } finally {
             ArrayPool<EventSubscription>.Shared.Return(eventSubscriptions);
         }
     }
 
-    protected virtual void MakeEmission(EventEmissionContext context, T eventData) =>
+    protected virtual void TriggerEmission(EventEmissionContext context, T eventData) =>
         Emit(context, eventData);
 
     internal void EvaluateEmission(EventEmissionContext context, T eventData)
@@ -40,7 +40,7 @@ internal class EveryEvent<T> : IEmittableEvent<T>, IUnschedulableEventEmitter<T>
             return;
         }
 
-        MakeEmission(context, eventData);
+        TriggerEmission(context, eventData);
     }
 
     void IUnschedulableEventEmitter<T>.Emit(EventEmissionContext context, T eventData) =>

@@ -46,7 +46,7 @@ internal class NextVersionDaemonClientPlugin : Plugin
             .Subscribe(pipeHandles => {
                 //sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, sendingPipeName, PipeDirection.Out);
                 //AddDisposable(sendingPipe);
-                pipeHandles.ReceivingPipeName = sendingPipeName;
+                pipeHandles.DaemonPipeServerName = sendingPipeName;
             });
 
         Events.Once(LifecycleEvents.BeforeEveryRun)

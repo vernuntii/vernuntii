@@ -10,7 +10,7 @@ internal class OnceEvent<T> : EveryEvent<T>
     public override IDisposable Subscribe(IEventEmitter<T> eventEmitter) =>
         DelegatingDisposable.Create(lifetime => {
             var sourceSubscription = _source.SubscribeUnscheduled((context, eventData) => {
-                context.MakeOrScheduleEventEmission(eventEmitter, eventData);
+                context.TriggerOrScheduleEventEmission(eventEmitter, eventData);
                 //(context with { IsCompleting = true }).MakeOrScheduleEventEmission(eventEmitter, eventData);
                 lifetime.Dispose();
             });

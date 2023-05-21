@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Vernuntii.SemVer\Vernuntii.SemVer.csproj" />
-    <ProjectReference Include="..\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj" />
+    <ProjectReference Include="..\Vernuntii.TestingInfrastructure\Vernuntii.TestingInfrastructure.csproj" />
   </ItemGroup>
 
 </Project>

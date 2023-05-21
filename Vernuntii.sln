@@ -47,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.SemVer.Parser.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.SemVer.Test", "test\Vernuntii.SemVer.Test\Vernuntii.SemVer.Test.csproj", "{9D19B1EB-41BB-4C04-8469-5C2CB73B646D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.TestInfrastructure", "test\Vernuntii.TestInfrastructure\Vernuntii.TestInfrastructure.csproj", "{4CF5435D-DD1E-4416-B601-7AAE3B91D165}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.TestingInfrastructure", "test\Vernuntii.TestingInfrastructure\Vernuntii.TestingInfrastructure.csproj", "{4CF5435D-DD1E-4416-B601-7AAE3B91D165}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.TestTrunkBasedDevelopment", "test\Vernuntii.TestTrunkBasedDevelopment\Vernuntii.TestTrunkBasedDevelopment.csproj", "{CB381944-92E0-4336-A723-5498D8F1EE0D}"
 EndProject
@@ -59,7 +59,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		vernuntii.yml = vernuntii.yml
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.MSBuild.Test", "test\Vernuntii.Console.MSBuild.Test\Vernuntii.Console.MSBuild.Test.csproj", "{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.TestMSBuildPackageContent", "test\Vernuntii.Console.TestMSBuildPackageContent\Vernuntii.Console.TestMSBuildPackageContent.csproj", "{6A3F0B4C-301D-4CD1-8C2D-AF3C0EA3163F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Test", "test\Vernuntii.Test\Vernuntii.Test.csproj", "{4FB9D629-75BC-4B61-BECF-66284DEC61A7}"
 EndProject

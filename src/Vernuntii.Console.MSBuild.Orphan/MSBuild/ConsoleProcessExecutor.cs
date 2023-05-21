@@ -126,7 +126,7 @@ namespace Vernuntii.Console.MSBuild
                 try {
                     void ConnectToDaemon()
                     {
-                        var processArguments = ExecutionArguments.Concenation +
+                        var processArguments = ExecutionArguments.Concatenation +
                             " --daemon" +
                             $" {sendingPipeName}" +
                             " --daemon-timeout 300";

@@ -64,7 +64,7 @@ namespace Vernuntii.Plugins
 
             for (var i = 0; i < calculateNextXSuccessiveReleaseVersions; i++) {
                 using var sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, sendingPipeName, PipeDirection.Out);
-                await sendingPipe.ConnectAsync();
+                await sendingPipe.ConnectAsync(1000*10); // This does not work anymore!!!
 
                 sendingPipe.Write(Encoding.ASCII.GetBytes(receivingPipeName));
                 sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter);

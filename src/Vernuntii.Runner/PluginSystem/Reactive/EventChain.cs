@@ -43,7 +43,7 @@ public sealed record EventChain<T> : IEventChainFactory, IEmittableEvent<T>
                 _eventSystem.AddEmitter(_fragment.EventId, new TypeInversedUnschedulableEventEmitter<T>(_fragment.EventEmitter)).Dispose,
                 _fragment.Event.SubscribeUnscheduled(static (context, eventData, state) => {
                     var (eventHandler, lifetime) = state;
-                    context.MakeOrScheduleEventEmission(eventHandler, eventData);
+                    context.TriggerOrScheduleEventEmission(eventHandler, eventData);
 
                     //if (context.IsCompleting) {
                     //    lifetime.Dispose();

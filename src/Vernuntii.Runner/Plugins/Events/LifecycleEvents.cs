@@ -13,7 +13,7 @@ namespace Vernuntii.Plugins.Events
         public static readonly EventDiscriminator<LifecycleContext> BeforeEveryRun = EventDiscriminator.New<LifecycleContext>();
 
         /// <summary>
-        /// The event is called before the next run starts.
+        /// The event is called before next run starts. "Next run" refers to second and subsequent runs.
         /// </summary>
         public static readonly EventDiscriminator<LifecycleContext> BeforeNextRun = EventDiscriminator.New<LifecycleContext>();
 

@@ -24,7 +24,7 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
         _right = right ?? throw new ArgumentNullException(nameof(right));
     }
 
-    private void AttemptInitialize()
+    private void AttemptInitialization()
     {
         if (_isOperable) {
             return;
@@ -34,7 +34,7 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
         _rightQueue = new();
     }
 
-    private void AttemptDeinitialize()
+    private void AttemptDeinitialization()
     {
         if (!_isOperable || HasEventEntries) {
             return;
@@ -52,13 +52,13 @@ internal class ZipEvent<T1, T2> : EveryEvent<(T1, T2)>
 
     public override IDisposable Subscribe(IEventEmitter<(T1, T2)> eventHandler)
     {
-        AttemptInitialize();
+        AttemptInitialization();
 
         return DelegatingDisposable.Create(
             base.Subscribe(eventHandler).Dispose,
             _left.Subscribe(_leftHandler).Dispose,
             _right.Subscribe(_rightHandler).Dispose,
-            AttemptDeinitialize
+            AttemptDeinitialization
         );
     }
 
