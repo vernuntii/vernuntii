@@ -24,6 +24,6 @@ namespace Vernuntii.Runner
         /// Builds the <see cref="Vernuntii"/> runner.
         /// </summary>
         /// <param name="args"></param>
-        VernuntiiRunner Build(string[]? args);
+        IVernuntiiRunner Build(string[]? args);
     }
 }

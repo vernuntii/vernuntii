@@ -1,6 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="$(MSBuildThisFileDirectory)Project.props" />
   <Import Project="$(MSBuildThisFileDirectory)Project.targets" />
+  <ItemGroup>
+    <PackageReference Include="HexMate" Version="0.0.3" />
+  </ItemGroup>
 
 </Project>

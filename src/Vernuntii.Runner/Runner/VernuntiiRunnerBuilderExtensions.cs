@@ -8,7 +8,7 @@
         /// <summary>
         /// Builds the runner for <see cref="Vernuntii"/>.
         /// /// </summary>
-        public static VernuntiiRunner Build(this IVernuntiiRunnerBuilder builder) =>
+        public static IVernuntiiRunner Build(this IVernuntiiRunnerBuilder builder) =>
             builder.Build(args: null);
     }
 }

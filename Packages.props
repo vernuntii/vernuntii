@@ -31,6 +31,8 @@
     <PackageReference Update="System.Text.Json" Version="7.0.0" />
     <PackageReference Update="Microsoft.Build.Utilities.Core" Version="17.4.0" />
     <PackageReference Update="NuGet.Configuration" Version="6.4.0" />
+    <PackageReference Update="System.IO.Hashing" Version="7.0.0" />
+    <PackageReference Update="HexMate" Version="0.0.3" />
     <!-- For test projects -->
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.4.0" />
     <PackageReference Update="Moq" Version="4.18.3" />

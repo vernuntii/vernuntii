@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Vernuntii.Plugins;
@@ -30,6 +31,7 @@ namespace Vernuntii.Runner
         };
 
         private readonly PluginRegistryBuilder _pluginRegistryBuilder;
+        private readonly VernuntiiRunnerBuilderOptions _options;
 
         /// <summary>
         /// Creates an instance of this type.
@@ -42,6 +44,7 @@ namespace Vernuntii.Runner
             if (options.AddNextVersionRequirements) {
                 ConfigurePlugins(plugins => plugins.AddNextVersionRequirements());
             }
+            _options = options;
         }
 
         /// <summary>
@@ -75,8 +78,12 @@ namespace Vernuntii.Runner
         }
 
         /// <inheritdoc/>
-        public VernuntiiRunner Build(string[]? args)
+        public IVernuntiiRunner Build(string[]? args)
         {
+            if (_options.CheckDaemonizeFlag && VernuntiiDaemonizer.ShouldDaemonize(args, out var trimmedConsoleArguments)) {
+                return new VernuntiiDaemonizer(trimmedConsoleArguments);
+            }
+
             PluginRegistrar CreatePluginRegistrar()
             {
                 var pluginProviderBuilder = new PluginRegistrar();

@@ -13,7 +13,7 @@ namespace Vernuntii.Runner
     /// <summary>
     /// Represents the main entry point to calculate the next version.
     /// </summary>
-    public sealed class VernuntiiRunner : IVernuntiiRunner, IAsyncDisposable
+    public sealed class VernuntiiRunner : IVernuntiiRunner
     {
         /// <inheritdoc/>
         public IEventSystem PluginEvents => _pluginEvents;

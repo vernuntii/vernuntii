@@ -1,5 +1,6 @@
 ﻿using Vernuntii.Plugins;
 using Vernuntii.Plugins.Events;
+using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
 
 namespace Vernuntii.Runner;
@@ -7,7 +8,7 @@ namespace Vernuntii.Runner;
 /// <summary>
 /// Represents the main entry point to calculate the next version.
 /// </summary>
-public interface IVernuntiiRunner
+public interface IVernuntiiRunner : IAsyncDisposable
 {
     /// <summary>
     /// The console arguments.
@@ -18,6 +19,11 @@ public interface IVernuntiiRunner
     /// The plugin event system.
     /// </summary>
     IEventSystem PluginEvents { get; }
+
+    /// <summary>
+    /// The registered plugins.
+    /// </summary>
+    IPluginRegistry Plugins { get; }
 
     /// <summary>
     /// Runs Vernuntii for getting the next version. The presence of <see cref="INextVersionPlugin"/> and its dependencies is expected.

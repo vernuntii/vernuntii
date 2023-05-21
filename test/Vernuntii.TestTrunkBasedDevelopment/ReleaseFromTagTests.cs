@@ -10,7 +10,7 @@ namespace Vernuntii
     {
         private readonly TemporaryRepository _temporaryRepository = new();
         //private readonly ConfigureServicesPlugin<IServiceCollection> _configurableServices = ConfigureServicesPlugin.FromEvent(GitEvents.OnConfiguredServices);
-        private readonly VernuntiiRunner _vernuntii;
+        private readonly IVernuntiiRunner _vernuntii;
 
         public ReleaseFromTagTests()
         {

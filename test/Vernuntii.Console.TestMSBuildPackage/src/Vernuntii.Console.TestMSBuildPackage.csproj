@@ -52,11 +52,11 @@
         CustomBeforeMicrosoftCommonProps=$(MSBuildThisFileDirectory)bin/Test/Vernuntii.Console.MSBuild.Orphan.1.0.0/build/Vernuntii.Console.MSBuild.Orphan.targets;
         VernuntiiConsoleExecutableFile=$(MSBuildThisFileDirectory)bin/$(Configuration)/$(TargetFramework)/Vernuntii.Console.GlobalTool.any.exe;
         VernuntiiVerbosity=Verbose;
-        VernuntiiDaemonTimeout=5;
+        VernuntiiDaemonTimeout=-1;
       </_EnvironmentVariables>
     </PropertyGroup>
 
-    <Exec Command="dotnet build ../internal_projects/Internal.Projects.sln -c $(Configuration)" EnvironmentVariables="$(_EnvironmentVariables)" />
+    <Exec Command="dotnet pack ../internal_projects/Internal.Projects.sln -c $(Configuration)" EnvironmentVariables="$(_EnvironmentVariables)" />
     <Message Importance="high" Text="Test(s) of $(RootNamespace) succeeded" />
   </Target>
 

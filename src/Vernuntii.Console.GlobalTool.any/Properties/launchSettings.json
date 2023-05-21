@@ -3,6 +3,10 @@
     "Vernuntii.Console.GlobalTool.any": {
       "commandName": "Project",
       "commandLineArgs": "--verbosity Verbose msbuild-integration locate AutoImportProps --download-package"
+    },
+    "Vernuntii.Console.GlobalTool.any (dclient)": {
+      "commandName": "Project",
+      "commandLineArgs": "--daemonize --presentation-view text --presentation-parts all --presentation-kind Complex --verbosity Verbose --cache-id test --daemon-client"
     }
   }
 }

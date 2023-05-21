@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Globalization;
+using System.Threading.Tasks;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Vernuntii.Plugins;
+using Task = Microsoft.Build.Utilities.Task;
 
 namespace Vernuntii.Console.MSBuild
 {
@@ -119,9 +120,7 @@ namespace Vernuntii.Console.MSBuild
         [Output]
         public string? BranchTip { get; set; }
 
-        /// <inheritdoc/>
-        public override bool Execute()
-        {
+        private async Task<bool> ExecuteAsync() {
             try {
                 var executor = new ConsoleProcessExecutor(logger: Log);
 
@@ -136,7 +135,7 @@ namespace Vernuntii.Console.MSBuild
                     DaemonTimeout = DaemonTimeout
                 };
 
-                var version = executor.Execute(executionArguments);
+                var version = await executor.ExecuteAsync(executionArguments);
                 Major = version.Major?.ToString(CultureInfo.InvariantCulture);
                 Minor = version.Major?.ToString(CultureInfo.InvariantCulture);
                 Patch = version.Major?.ToString(CultureInfo.InvariantCulture);
@@ -157,5 +156,10 @@ namespace Vernuntii.Console.MSBuild
 
             return true;
         }
+
+        /// <inheritdoc/>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "<Pending>")]
+        public override bool Execute() =>
+            ExecuteAsync().GetAwaiter().GetResult();
     }
 }

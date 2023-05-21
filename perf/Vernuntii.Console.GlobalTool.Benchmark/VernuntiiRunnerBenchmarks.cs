@@ -23,7 +23,7 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
             _repository.CommitEmpty();
         }
 
-        private VernuntiiRunner CreateRunner(string cacheId) => new VernuntiiRunnerBuilder()
+        private IVernuntiiRunner CreateRunner(string cacheId) => new VernuntiiRunnerBuilder()
             .ConfigurePlugins(plugins => {
                 plugins.Add(PluginAction.HandleEvents(events =>
                     events.Every(GitEvents.OnCustomizeGitCommandCreation).Subscribe(request => request.GitCommandFactory = new GitCommandFactory(_repository.GitCommand))));
@@ -38,7 +38,7 @@ namespace Vernuntii.Console.GlobalTool.Benchmark
                 "Verbose"
             });
 
-        private VernuntiiRunner CreateStaticRunner() => CreateRunner("BENCHMARKS");
+        private IVernuntiiRunner CreateStaticRunner() => CreateRunner("BENCHMARKS");
 
         [GlobalSetup(Target = nameof(RunConsoleWithCache))]
         public async Task BeforeRunConsoleWithCache() => await CreateStaticRunner().RunAsync();
