@@ -56,7 +56,7 @@
       </_EnvironmentVariables>
     </PropertyGroup>
 
-    <Exec Command="dotnet pack ../internal_projects/Internal.Projects.sln -c $(Configuration)" EnvironmentVariables="$(_EnvironmentVariables)" />
+    <Exec Command="dotnet pack ../internal_projects/Internal.Projects.sln -c $(Configuration) -v normal" EnvironmentVariables="$(_EnvironmentVariables)" />
     <Message Importance="high" Text="Test(s) of $(RootNamespace) succeeded" />
   </Target>
 

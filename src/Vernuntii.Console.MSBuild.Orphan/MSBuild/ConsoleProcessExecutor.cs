@@ -13,7 +13,8 @@ namespace Vernuntii.Console.MSBuild
     internal class ConsoleProcessExecutor
     {
         internal const string DaemonClientPipeServerName = "vernuntii-msbuild-daemon-client";
-        internal readonly static TimeSpan DaemonClientPipeAwaitConnectionTimeout = TimeSpan.FromSeconds(10);
+        internal readonly static TimeSpan s_daemonClientPipeAwaitConnectionTimeout = TimeSpan.FromSeconds(10);
+        internal readonly static TimeSpan s_nextVersionReadTimeout = TimeSpan.FromSeconds(5);
 
         private static readonly Dictionary<ConsoleProcessExecutionArguments, VernuntiiDaemon> s_consoleExecutionArgumentsAssociatedDaemonDictionary;
         private static bool s_areDaemonsTerminated;
@@ -60,16 +61,19 @@ namespace Vernuntii.Console.MSBuild
 
             daemon.ProtocolSynchronizationLock.WaitOne();
             try {
+                _logger.LogMessage("Creating outgoing daemon pipe client");
                 using var outgoingDaemonPipeClient = await daemon.CreateOutgoingDaemonPipeClientAsync().ConfigureAwait(false);
                 var daemonClientPipeServerNameBytes = Encoding.ASCII.GetBytes(daemon.DaemonClientPipeServerName);
                 await outgoingDaemonPipeClient.WriteAsync(daemonClientPipeServerNameBytes, 0, daemonClientPipeServerNameBytes.Length).ConfigureAwait(false);
                 outgoingDaemonPipeClient.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter);
                 await outgoingDaemonPipeClient.FlushAsync().ConfigureAwait(false);
 
-                await daemon.DaemonClientPipeServer.WaitForConnectionAsync().WaitAsync(DaemonClientPipeAwaitConnectionTimeout).ConfigureAwait(false);
+                _logger.LogMessage("Waiting for daemon to connect to our daemon client pipe server");
+                await daemon.DaemonClientPipeServer.WaitForConnectionAsync().WaitAsync(s_daemonClientPipeAwaitConnectionTimeout).ConfigureAwait(false);
                 try {
                     nextVersionMessage = new MemoryStream();
-                    nextVersionMessageType = await daemon.NextVersionPipeReader.ReadNextVersionAsync(nextVersionMessage).ConfigureAwait(false);
+                    _logger.LogMessage("Reading raw next version");
+                    nextVersionMessageType = await daemon.NextVersionPipeReader.ReadNextVersionAsync(nextVersionMessage).WaitAsync(s_nextVersionReadTimeout).ConfigureAwait(false);
                 } finally {
                     daemon.DaemonClientPipeServer.Disconnect();
                 }
@@ -77,6 +81,7 @@ namespace Vernuntii.Console.MSBuild
                 daemon.ProtocolSynchronizationLock.Release();
             }
 
+            _logger.LogMessage("Validating raw next version");
             daemon.NextVersionPipeReader.ValidateNextVersion(nextVersionMessageType, nextVersionMessage.GetBuffer);
 
             try {

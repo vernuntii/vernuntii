@@ -14,15 +14,15 @@ internal class NextVersionPipeReader
     public static NextVersionPipeReader Create(Stream inboundNextVersion) =>
         new NextVersionPipeReader(PipeReader.Create(inboundNextVersion, new StreamPipeReaderOptions(leaveOpen: true)));
 
-    private readonly PipeReader _inboundNextVersion;
+    private readonly PipeReader _nextVersionReader;
 
-    private NextVersionPipeReader(PipeReader inboundNextVersion) =>
-        _inboundNextVersion = inboundNextVersion;
+    private NextVersionPipeReader(PipeReader nextVersionReader) =>
+        _nextVersionReader = nextVersionReader;
 
-    public async Task<NextVersionDaemonProtocolMessageType> ReadNextVersionAsync(Stream outboundNextVersion)
+    public async Task<NextVersionDaemonProtocolMessageType> ReadNextVersionAsync(Stream nextVersionWriter)
     {
         byte messageType;
-        var result = await _inboundNextVersion.ReadAsync();
+        var result = await _nextVersionReader.ReadAsync();
         var advancingBuffer = result.Buffer;
 
         if (result.IsCompleted) {
@@ -30,10 +30,10 @@ internal class NextVersionPipeReader
         }
 
         messageType = result.Buffer.First.Span[0];
-        _inboundNextVersion.AdvanceTo(advancingBuffer.GetPosition(offset: 1));
+        _nextVersionReader.AdvanceTo(advancingBuffer.GetPosition(offset: 1));
 
         while (true) {
-            result = await _inboundNextVersion.ReadAsync();
+            result = await _nextVersionReader.ReadAsync();
 
             if (result.IsCompleted) {
                 break;
@@ -50,10 +50,10 @@ internal class NextVersionPipeReader
             var copyingBufferEnumerator = copyingBuffer.GetEnumerator();
 
             while (copyingBufferEnumerator.MoveNext()) {
-                await outboundNextVersion.WriteAsync(copyingBufferEnumerator.Current);
+                await nextVersionWriter.WriteAsync(copyingBufferEnumerator.Current);
             }
 
-            _inboundNextVersion.AdvanceTo(consumed: advancingBuffer.End, examined: advancingBuffer.End);
+            _nextVersionReader.AdvanceTo(consumed: advancingBuffer.End, examined: advancingBuffer.End);
 
             if (delimiterPosition.HasValue) {
                 break;

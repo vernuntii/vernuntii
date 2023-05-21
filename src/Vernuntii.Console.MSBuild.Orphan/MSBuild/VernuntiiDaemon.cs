@@ -47,7 +47,7 @@ namespace Vernuntii.Console.MSBuild
 
             var daemonSpawnerMutexName = NextVersionDaemonProtocolDefaults.MutexPrefix + ConsoleProcessExecutor.DaemonClientPipeServerName + daemonNameSuffix;
             await using var daemonSpawnerMutex = new AsyncMutex(daemonSpawnerMutexName);
-            await daemonSpawnerMutex.AcquireAsync().ConfigureAwait(false);
+            await daemonSpawnerMutex.AcquireAsync(10 * 1000).ConfigureAwait(false);
 
             try {
                 void ConnectToDaemon()
