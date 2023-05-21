@@ -35,7 +35,7 @@
   </PropertyGroup>
 
   <Target Name="_EnsureSupportedPlatformForConsole">
-    <Error Text="The platform Vernuntii is currently operating on is not supported" Condition="'$(VernuntiiConsoleExecutableRuntime)' == 'UNSUPPORTED'" />
+    <Error Text="The platform Vernuntii is currently operating on is not supported" Condition="'$(VernuntiiConsoleExecutablePlatform)' == 'UNSUPPORTED_PLATFORM'" />
   </Target>
 
   <PropertyGroup>
@@ -46,7 +46,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VernuntiiConsoleExecutableFile Condition="'$(VernuntiiConsoleExecutableFile)' == ''">$(MSBuildThisFileDirectory)..\deps\console\net6.0\$(VernuntiiConsoleExecutableRuntime)\Vernuntii.Console.$(VernuntiiConsoleExecutableRuntime).dll</VernuntiiConsoleExecutableFile>
+    <VernuntiiConsoleExecutableFile Condition="'$(VernuntiiConsoleExecutableFile)' == ''">$(MSBuildThisFileDirectory)..\deps\console\net6.0\$(VernuntiiConsoleExecutablePlatform)\Vernuntii.Console.$(VernuntiiConsoleExecutablePlatform).dll</VernuntiiConsoleExecutableFile>
   </PropertyGroup>
 
   <Target Name="ExecuteVernuntiiTask" BeforeTargets="$(ExecuteVernuntiiTaskBeforeTargets)" DependsOnTargets="$(ExecuteVernuntiiTaskDependsOn)" Condition="'$(DisableVernuntii)' != 'true'">

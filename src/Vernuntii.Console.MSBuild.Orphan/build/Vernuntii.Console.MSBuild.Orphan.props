@@ -4,22 +4,22 @@
   <Choose>
     <When Condition="'$(OS)' == 'Windows_NT' OR $([MSBuild]::IsOSPlatform('Windows'))">
       <PropertyGroup>
-        <VernuntiiConsoleExecutableRuntime>win-x64</VernuntiiConsoleExecutableRuntime>
+        <VernuntiiConsoleExecutablePlatform>win-x64</VernuntiiConsoleExecutablePlatform>
       </PropertyGroup>
     </When>
     <When Condition="$([MSBuild]::IsOSPlatform('Linux'))">
       <PropertyGroup>
-      <VernuntiiConsoleExecutableRuntime>linux-x64</VernuntiiConsoleExecutableRuntime>
+      <VernuntiiConsoleExecutablePlatform>linux-x64</VernuntiiConsoleExecutablePlatform>
       </PropertyGroup>
     </When>
     <When Condition="$([MSBuild]::IsOSPlatform('OSX'))">
       <PropertyGroup>
-      <VernuntiiConsoleExecutableRuntime>osx-x64</VernuntiiConsoleExecutableRuntime>
+      <VernuntiiConsoleExecutablePlatform>osx-x64</VernuntiiConsoleExecutablePlatform>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
-        <VernuntiiConsoleExecutableRuntime>UNSUPPORTED</VernuntiiConsoleExecutableRuntime>
+        <VernuntiiConsoleExecutablePlatform>UNSUPPORTED_PLATFORM</VernuntiiConsoleExecutablePlatform>
       </PropertyGroup>
     </Otherwise>
   </Choose>

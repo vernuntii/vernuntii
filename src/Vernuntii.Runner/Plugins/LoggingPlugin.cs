@@ -200,6 +200,7 @@ namespace Vernuntii.Plugins
             _loggingConfiguration.LogFactory.Flush();
             _loggingConfiguration.LogFactory.Shutdown();
             _loggerFactory.Dispose();
+            base.Dispose(disposing);
         }
 
         private class BlockTarget : WrapperTargetBase

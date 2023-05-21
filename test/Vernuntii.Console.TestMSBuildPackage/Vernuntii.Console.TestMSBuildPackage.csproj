@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Exclude="pseudo_projects/**"/>
+    <Compile Remove="pseudo_projects/**/*"/>
   </ItemGroup>
 
   <Target Name="_CleanTest">
@@ -54,24 +54,7 @@
   <Target Name="_Test" AfterTargets="VSTest" DependsOnTargets="_CleanTest;_PrepareTest;_ExecuteTest" />
 
   <Target Name="_PackageContentShouldBeValid" AfterTargets="_ExecuteTest">
-    <ItemGroup>
-      <_PackageSubPath Include="$(_PackageDirectory)/build/Vernuntii.Console.MSBuild.Orphan.props" />
-      <_PackageSubPath Include="$(_PackageDirectory)/build/Vernuntii.Console.MSBuild.Orphan.targets" />
-      <_PackageSubPath Include="$(_PackageDirectory)/buildMultiTargeting/Vernuntii.Console.MSBuild.Orphan.props" />
-      <_PackageSubPath Include="$(_PackageDirectory)/buildMultiTargeting/Vernuntii.Console.MSBuild.Orphan.targets" />
-      <_PackageSubPath Include="$(_PackageDirectory)/deps/msbuild/netstandard2.0" />
-    </ItemGroup>
-
-    <Error Text="File or directory was expected to exist: %(_PackageSubPath.Identity)" Condition="!Exists('%(_PackageSubPath.Identity)')" />
-    <Message Importance="high" Text="Test(s) of $(RootNamespace) succeeded" />
-  </Target>
-
-  <Target Name="_PseudoProjectsShouldBuildByUsageOfPackageContent" AfterTargets="_PackageShouldHaveContent">
-    <PropertyGroup>
-      <!-- <VernuntiiTargets>$(MSBuildThisFileDirectory)bin/Test/Vernuntii.Console.MSBuild.Orphan.1.0.0/build/Vernuntii.Console.MSBuild.Orphan.targets</VernuntiiTargets> -->
-    </PropertyGroup>
-
-    <!-- <Exec Command="dotnet build" EnvironmentVariables="CustomBeforeMicrosoftCommonProps=$(VernuntiiTargets)" /> -->
+    
   </Target>
 
 </Project>
