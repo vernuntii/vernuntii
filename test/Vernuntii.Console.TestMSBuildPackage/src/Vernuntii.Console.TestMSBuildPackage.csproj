@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsTestProject>false</IsTestProject>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_TestDirectory>$(MSBuildProjectDirectory)/bin/Test</_TestDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../src/Vernuntii.Console.MSBuild.Orphan/Vernuntii.Console.MSBuild.Orphan.csproj" />
+    <ProjectReference Include="../../../src/Vernuntii.Console.GlobalTool.any/Vernuntii.Console.GlobalTool.any.csproj" />
+  </ItemGroup>
+
+  <Target Name="_CleanTest">
+    <RemoveDir Directories="$(_TestDirectory)" />
+  </Target>
+
+  <Target Name="_PrepareTest">
+    <ItemGroup>
+      <_ProjectToPack Include="../../../src/Vernuntii.Console.MSBuild.Orphan/Vernuntii.Console.MSBuild.Orphan.csproj">
+        <Properties>
+          NoBuild=true;
+          Configuration=$(Configuration);
+          PackageOutputPath=$(_TestDirectory)
+        </Properties>
+      </_ProjectToPack>
+    </ItemGroup>
+
+    <MSBuild Projects="@(_ProjectToPack)" Targets="Pack;_GetOutputItemsFromPack">
+      <Output TaskParameter="TargetOutputs" ItemName="_OutputItemsFromPack" />
+    </MSBuild>
+
+    <ItemGroup>
+      <_OutputItemsFromPack Remove="%(_OutputItemsFromPack.Identity)" Condition="'%(Extension)' != '.nupkg'" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_PackageDirectory>$(_TestDirectory)/%(_OutputItemsFromPack.Filename)</_PackageDirectory>
+    </PropertyGroup>
+
+    <Unzip SourceFiles="%(_OutputItemsFromPack.Identity)" DestinationFolder="$(_PackageDirectory)" />
+  </Target>
+
+  <Target Name="_ExecuteTest">
+    <PropertyGroup>
+      <_EnvironmentVariables>
+        CustomBeforeMicrosoftCommonProps=$(MSBuildThisFileDirectory)bin/Test/Vernuntii.Console.MSBuild.Orphan.1.0.0/build/Vernuntii.Console.MSBuild.Orphan.targets;
+        VernuntiiConsoleExecutableFile=$(MSBuildThisFileDirectory)bin/$(Configuration)/$(TargetFramework)/Vernuntii.Console.GlobalTool.any.exe;
+        VernuntiiVerbosity=Verbose;
+        VernuntiiDaemonTimeout=5;
+      </_EnvironmentVariables>
+    </PropertyGroup>
+
+    <Exec Command="dotnet build ../internal_projects/Internal.Projects.sln -c $(Configuration)" EnvironmentVariables="$(_EnvironmentVariables)" />
+    <Message Importance="high" Text="Test(s) of $(RootNamespace) succeeded" />
+  </Target>
+
+  <Target Name="_Test" AfterTargets="VSTest" DependsOnTargets="_CleanTest;_PrepareTest;_ExecuteTest" />
+
+</Project>

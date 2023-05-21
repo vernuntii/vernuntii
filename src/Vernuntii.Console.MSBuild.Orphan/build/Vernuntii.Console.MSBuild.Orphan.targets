@@ -42,7 +42,7 @@
     <ExecuteVernuntiiTaskDependsOn>
       $(ExecuteVernuntiiTaskDependsOn);
       _EnsureSupportedPlatformForConsole
-   </ExecuteVernuntiiTaskDependsOn>
+    </ExecuteVernuntiiTaskDependsOn>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -59,9 +59,17 @@
       <_VernuntiiCacheCreationRetentionTime Condition="'$(_VernuntiiCacheCreationRetentionTime)' == ''">$(VernuntiiCacheCreationRetentionTime)</_VernuntiiCacheCreationRetentionTime>
       <_VernuntiiCacheLastAccessRetentionTime Condition="'$(_VernuntiiCacheLastAccessRetentionTime)' == ''">$(VernuntiiCacheLastAccessRetentionTime)</_VernuntiiCacheLastAccessRetentionTime>
       <_VernuntiiEmptyCaches Condition="'$(_VernuntiiEmptyCaches)' == ''">$(VernuntiiEmptyCaches)</_VernuntiiEmptyCaches>
+      <_VernuntiiDaemonTimeout Condition="'$(_VernuntiiDaemonTimeout)' == ''">$(VernuntiiDaemonTimeout)</_VernuntiiDaemonTimeout>
     </PropertyGroup>
 
-    <VernuntiiTask ConsoleExecutablePath="$(_VernuntiiConsoleExecutableFile)" Verbosity="$(_VernuntiiVerbosity)" ConfigPath="$(_VernuntiiConfigPath)" CacheId="$(_VernuntiiCacheId)" CacheCreationRetentionTime="$(_VernuntiiCacheCreationRetentionTime)" CacheLastAccessRetentionTime="$(_VernuntiiCacheLastAccessRetentionTime)" EmptyCaches="$(_VernuntiiEmptyCaches)">
+    <VernuntiiTask ConsoleExecutablePath="$(_VernuntiiConsoleExecutableFile)"
+                   Verbosity="$(_VernuntiiVerbosity)"
+                   ConfigPath="$(_VernuntiiConfigPath)"
+                   CacheId="$(_VernuntiiCacheId)"
+                   CacheCreationRetentionTime="$(_VernuntiiCacheCreationRetentionTime)"
+                   CacheLastAccessRetentionTime="$(_VernuntiiCacheLastAccessRetentionTime)"
+                   EmptyCaches="$(_VernuntiiEmptyCaches)"
+                   DaemonTimeout="$(_VernuntiiDaemonTimeout)">
       <Output TaskParameter="Major" PropertyName="Vernuntii_Major" />
       <Output TaskParameter="Minor" PropertyName="Vernuntii_Minor" />
       <Output TaskParameter="Patch" PropertyName="Vernuntii_Patch" />

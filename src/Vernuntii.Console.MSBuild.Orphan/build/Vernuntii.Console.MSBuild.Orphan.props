@@ -36,6 +36,7 @@
     <VernuntiiCacheCreationRetentionTime Condition="'$(VernuntiiCacheCreationRetentionTime)' == ''"></VernuntiiCacheCreationRetentionTime>
     <VernuntiiCacheLastAccessRetentionTime Condition="'$(VernuntiiCacheLastAccessRetentionTime)' == ''"></VernuntiiCacheLastAccessRetentionTime>
     <VernuntiiEmptyCaches Condition="'$(VernuntiiEmptyCaches)' == ''">false</VernuntiiEmptyCaches>
+    <VernuntiiDaemonTimeout Condition="'$(VernuntiiDaemonTimeout)' == ''">300</VernuntiiDaemonTimeout>
     <ExecuteVernuntiiTaskDependsOn>$(ExecuteVernuntiiTaskDependsOn)</ExecuteVernuntiiTaskDependsOn>
     <ExecuteVernuntiiTaskBeforeTargets>$(ExecuteVernuntiiTaskBeforeTargets)</ExecuteVernuntiiTaskBeforeTargets>
     <UpdateVersionPropsFromVernuntiiTask Condition="'$(UpdateVersionPropsFromVernuntiiTask)' == ''">true</UpdateVersionPropsFromVernuntiiTask>

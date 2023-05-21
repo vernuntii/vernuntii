@@ -13,12 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\..\LICENSE">
+    <None Include="$(MSBuildThisFileDirectory)..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
 
-    <None Include="$(MSBuildThisFileDirectory)\..\res\icon.png">
+    <None Include="$(MSBuildThisFileDirectory)..\res\icon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>

@@ -49,6 +49,11 @@ namespace Vernuntii.Console.MSBuild
         public bool EmptyCaches { get; set; }
 
         /// <summary>
+        /// The timeout in seconds at which the daemon will be terminated after no new action. If -1, no timeout is used.
+        /// </summary>
+        public int DaemonTimeout { get; set; }
+
+        /// <summary>
         /// Major version number.
         /// </summary>
         [Output]
@@ -127,7 +132,8 @@ namespace Vernuntii.Console.MSBuild
                     CacheId = CacheId,
                     CacheCreationRetentionTime = CacheCreationRetentionTime,
                     CacheLastAccessRetentionTime = CacheLastAccessRetentionTime,
-                    EmptyCaches = EmptyCaches
+                    EmptyCaches = EmptyCaches,
+                    DaemonTimeout = DaemonTimeout
                 };
 
                 var version = executor.Execute(executionArguments);

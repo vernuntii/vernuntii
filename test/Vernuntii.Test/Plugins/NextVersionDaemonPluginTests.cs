@@ -15,7 +15,7 @@ namespace Vernuntii.Plugins
 {
     public class NextVersionDaemonPluginTests
     {
-        public const int PipeConnectionAttemptTimeout = 10 * 1000;
+        private const int PipeConnectTimeout = 10 * 1000;
 
         [Theory]
         [InlineData(1)]
@@ -61,12 +61,12 @@ namespace Vernuntii.Plugins
             var actualNextVersionStrings = new List<string>();
 
             var receivingPipeName = "vernuntii-daemon-client" + Guid.NewGuid().ToString();
-            using var receivingPipe = new NamedPipeServerStream(receivingPipeName, PipeDirection.In);
+            using var receivingPipe = new NamedPipeServerStream(receivingPipeName, PipeDirection.In, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
             var receivingPipeReader = NextVersionPipeReader.Create(receivingPipe);
 
             for (var i = 0; i < calculateNextXSuccessiveReleaseVersions; i++) {
-                using var sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, sendingPipeName, PipeDirection.Out);
-                await sendingPipe.ConnectAsync(PipeConnectionAttemptTimeout);
+                using var sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, sendingPipeName, PipeDirection.Out, PipeOptions.Asynchronous);
+                await sendingPipe.ConnectAsync(PipeConnectTimeout);
 
                 sendingPipe.Write(Encoding.ASCII.GetBytes(receivingPipeName));
                 sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter);

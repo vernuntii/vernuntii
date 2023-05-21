@@ -37,13 +37,17 @@ internal sealed record ConsoleProcessExecutionArguments
     public required string? CacheCreationRetentionTime { get; init; }
     public required string? CacheLastAccessRetentionTime { get; init; }
     public required bool EmptyCaches { get; init; }
+    public required int DaemonTimeout { get; init; }
 
+    /// <summary>
+    /// Includes NOT <see cref="DaemonTimeout"/>.
+    /// </summary>
     public string Concatenation =>
-        _generatedArguments ??= CreateArguments();
+        _cachedArguments ??= CreateArguments();
 
     private string _consoleExecutablePath = null!;
     private string _configPath = null!;
-    private string? _generatedArguments;
+    private string? _cachedArguments;
 
     private string CreateArguments()
     {

@@ -56,23 +56,22 @@ internal class NextVersionDaemonClientPlugin : Plugin
                 var (lifecycleContext, _) = result;
 
                 lifecycleContext.NewBackgroundTask(async () => {
-                    var receivingPipeName = "vernuntii-daemon-client" + Guid.NewGuid().ToString();
-                    var receivingPipe = new NamedPipeServerStream(receivingPipeName, PipeDirection.In);
-                    var nextVersionPipeReader = NextVersionPipeReader.Create(receivingPipe);
-
+                    var daemonClientPipeServerName = "vernuntii-daemon-client" + Guid.NewGuid().ToString();
+                    var daemonClientPipeServer = new NamedPipeServerStream(daemonClientPipeServerName, PipeDirection.In, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                    var nextVersionPipeReader = NextVersionPipeReader.Create(daemonClientPipeServer);
 
                     while (true) {
                         _ = Console.ReadKey();
 
                         try {
-                            using var sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, sendingPipeName, PipeDirection.Out);
+                            using var sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, sendingPipeName, PipeDirection.Out, PipeOptions.Asynchronous);
                             await sendingPipe.ConnectAsync();
 
-                            sendingPipe.Write(Encoding.ASCII.GetBytes(receivingPipeName));
+                            sendingPipe.Write(Encoding.ASCII.GetBytes(daemonClientPipeServerName));
                             sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter);
                             sendingPipe.Flush();
 
-                            await receivingPipe.WaitForConnectionAsync();
+                            await daemonClientPipeServer.WaitForConnectionAsync();
                             using var nextVersionMessage = new MemoryStream();
                             var nextVersionMessageType = await nextVersionPipeReader.ReadNextVersionAsync(nextVersionMessage).ConfigureAwait(false);
                             nextVersionPipeReader.ValidateNextVersion(nextVersionMessageType, nextVersionMessage.GetBuffer);
@@ -80,7 +79,7 @@ internal class NextVersionDaemonClientPlugin : Plugin
                         } catch (Exception error) {
                             _logger.LogError(error, "An error occured inside the daemon client");
                         } finally {
-                            receivingPipe.Disconnect();
+                            daemonClientPipeServer.Disconnect();
                         }
                     }
                 });

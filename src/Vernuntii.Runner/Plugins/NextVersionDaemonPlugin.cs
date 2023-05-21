@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.CommandLine;
+using System.Diagnostics;
 using System.IO.Pipelines;
 using System.IO.Pipes;
 using System.Runtime.CompilerServices;
@@ -9,6 +10,7 @@ using Vernuntii.Plugins.Events;
 using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.Runner;
+using PipeOptions = System.IO.Pipes.PipeOptions;
 
 namespace Vernuntii.Plugins;
 
@@ -28,6 +30,7 @@ internal class NextVersionDaemonPlugin : Plugin
 
     private readonly Option<string> _daemonOption = new Option<string>("--daemon", $"Allows to start {nameof(Vernuntii)} as daemon." +
         $" {AnonymousPipeIsRequiredMessage}.") {
+        ArgumentHelpName = "daemon-pipe-server-name",
         //Arity = new ArgumentArity(minimumNumberOfValues:21, maximumNumberOfValues: 2),
         //AllowMultipleArgumentsPerToken = true,
         IsHidden = true
@@ -37,7 +40,7 @@ internal class NextVersionDaemonPlugin : Plugin
         IsHidden = true
     };
 
-    private readonly Option<int> _daemonTimeout = new Option<int>("--daemon-timeout", () => Timeout.Infinite, "After the timeout (seconds), the daemon will be terminated. If -1, no timeout is used.") {
+    private readonly Option<int> _daemonTimeout = new Option<int>("--daemon-timeout", () => Timeout.Infinite, "The timeout in seconds at which the daemon will be terminated after no new action. If -1, no timeout is used.") {
         IsHidden = true
     };
 
@@ -75,10 +78,10 @@ internal class NextVersionDaemonPlugin : Plugin
                 }
 
                 pipes.CheckPipes();
-                _logger.LogInformation($"{nameof(Vernuntii)} has been started as daemon");
+                var daemonTimeout = parseResult.GetValueForOption(_daemonTimeout); // Seconds
+                _logger.LogInformation($"{nameof(Vernuntii)} has been started as daemon (Timeout = {{Timeout}})", daemonTimeout);
                 var daemonProducesVersionAtStartup = parseResult.GetValueForOption(_daemonStartupVersionOption);
                 nextVersionCommandInvocation.IsHandled = !daemonProducesVersionAtStartup;
-                var daemonTimeout = parseResult.GetValueForOption(_daemonTimeout); // Seconds
 
                 lifecycleContext.NewBackgroundTask(async () => {
                     var mutexName = NextVersionDaemonProtocolDefaults.MutexPrefix + pipes.DaemonPipeServerName;
@@ -87,7 +90,7 @@ internal class NextVersionDaemonPlugin : Plugin
                     // If taken ..
                     if (!isMutexNotTaken) {
                         // .. we stop the daemon immediatelly
-                        return; // Environment.Exit(0);
+                        return; // Alternative: Environment.Exit(0);
                     }
 
                     var daemonCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(pipes.WaitForConnectionCancellatonToken);
@@ -107,7 +110,7 @@ internal class NextVersionDaemonPlugin : Plugin
                         ResetTimer();
                     }
 
-                    using var daemonPipeServer = new NamedPipeServerStream(pipes.DaemonPipeServerName, PipeDirection.In, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte);
+                    using var daemonPipeServer = new NamedPipeServerStream(pipes.DaemonPipeServerName, PipeDirection.In, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
                     while (true) {
                         var pipe = new Pipe();
@@ -118,6 +121,7 @@ internal class NextVersionDaemonPlugin : Plugin
                             }
 
                             await daemonPipeServer.WaitForConnectionAsync(daemonCancellationTokenSource.Token).WaitAsync(daemonCancellationTokenSource.Token).ConfigureAwait(false);
+                            StopTimer(); // During connection we stop timer
                         } catch (OperationCanceledException) {
                             break;
                         }
@@ -127,10 +131,10 @@ internal class NextVersionDaemonPlugin : Plugin
 
                         try {
                             await Task.WhenAll(
-                                WriteToPipeAsync(pipe.Writer, writeCancellationTokenSource.Token),
-                                ReadFromPipeAsync(pipe.Reader, writeCancellationTokenSource.Cancel));
+                                ReadFromDaemonPipeServerAsync(pipe.Writer, writeCancellationTokenSource.Token),
+                                WriteToDaemonClientPipeServerAsync(pipe.Reader, writeCancellationTokenSource.Cancel));
 
-                            async Task WriteToPipeAsync(PipeWriter writer, CancellationToken cancellationToken)
+                            async Task ReadFromDaemonPipeServerAsync(PipeWriter writer, CancellationToken cancellationToken)
                             {
                                 while (true) {
                                     try {
@@ -162,7 +166,7 @@ internal class NextVersionDaemonPlugin : Plugin
                                 await writer.CompleteAsync().ConfigureAwait(false);
                             }
 
-                            async Task ReadFromPipeAsync(PipeReader reader, Action completionCallback)
+                            async Task WriteToDaemonClientPipeServerAsync(PipeReader reader, Action completionCallback)
                             {
                                 Exception? capturedError = null;
 
@@ -170,50 +174,48 @@ internal class NextVersionDaemonPlugin : Plugin
                                     var result = await reader.ReadAsync();
                                     var buffer = result.Buffer;
 
-                                    if (TryReadSendingPipeHandle(ref buffer, out var daemonClientPipeServerNameBuffer)) {
+                                    if (TryReadDaemonClientPipeServerName(ref buffer, out var daemonClientPipeServerNameBuffer)) {
                                         do {
-                                            ResetTimer();
                                             NextVersionResult nextVersionResult;
 
                                             var daemonClientPipeServerName = Encoding.ASCII.GetString(daemonClientPipeServerNameBuffer);
-                                            await using var sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, daemonClientPipeServerName, PipeDirection.Out);
-                                            await sendingPipe.ConnectAsync();
+                                            await using var daemonClientPipeServer = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, daemonClientPipeServerName, PipeDirection.Out, PipeOptions.Asynchronous);
+                                            await daemonClientPipeServer.ConnectAsync();
 
                                             try {
                                                 nextVersionResult = await _runner.NextVersionAsync().ConfigureAwait(false);
                                             } catch (Exception error) {
                                                 var errorMessageBytes = Encoding.UTF8.GetBytes(error.ToString());
-                                                sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Failure); // Failure
-                                                await sendingPipe.WriteAsync(errorMessageBytes).ConfigureAwait(false);
-                                                await sendingPipe.FlushAsync().ConfigureAwait(false);
-                                                sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
+                                                daemonClientPipeServer.WriteByte(NextVersionDaemonProtocolDefaults.Failure); // Failure
+                                                await daemonClientPipeServer.WriteAsync(errorMessageBytes).ConfigureAwait(false);
+                                                await daemonClientPipeServer.FlushAsync().ConfigureAwait(false);
+                                                daemonClientPipeServer.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
                                                 capturedError = error;
                                                 break;
                                             }
 
                                             var nextVersionBytes = Encoding.UTF8.GetBytes(nextVersionResult.VersionCacheString);
-                                            sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Success); // Success
-                                            await sendingPipe.WriteAsync(nextVersionBytes).ConfigureAwait(false);
-                                            sendingPipe.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
-                                            await sendingPipe.FlushAsync().ConfigureAwait(false);
-                                        } while (TryReadSendingPipeHandle(ref buffer, out daemonClientPipeServerNameBuffer));
+                                            daemonClientPipeServer.WriteByte(NextVersionDaemonProtocolDefaults.Success); // Success
+                                            await daemonClientPipeServer.WriteAsync(nextVersionBytes).ConfigureAwait(false);
+                                            daemonClientPipeServer.WriteByte(NextVersionDaemonProtocolDefaults.Delimiter); // Delimiter
+                                            await daemonClientPipeServer.FlushAsync().ConfigureAwait(false);
+                                        } while (TryReadDaemonClientPipeServerName(ref buffer, out daemonClientPipeServerNameBuffer));
 
-                                        // EXPERIMENTAL:
-                                        break;
+                                        break; // After we have written the next version to pipe, we can break outer while-loop
                                     }
 
-                                    // Tell the PipeReader how much of the buffer has been consumed.
+                                    // Tell the PipeReader how much of the buffer has been consumed
                                     reader.AdvanceTo(buffer.Start, buffer.End);
 
-                                    // Stop reading if there's no more data coming.
+                                    // Stop reading if there's no more data coming
                                     if (result.IsCompleted) {
                                         break;
                                     } else {
-                                        // Allow writer to read next
+                                        // We did not yet received a complete daemon client pipe server name
                                         readerAwaiter.Set();
                                     }
 
-                                    static bool TryReadSendingPipeHandle(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> sendingPipeNameBuffer)
+                                    static bool TryReadDaemonClientPipeServerName(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> sendingPipeNameBuffer)
                                     {
                                         var delimiterPosition = buffer.PositionOf(NextVersionDaemonProtocolDefaults.Delimiter);
 
@@ -235,12 +237,22 @@ internal class NextVersionDaemonPlugin : Plugin
                         } catch (Exception error) {
                             _logger.LogError(error, "An error occured inside the daemon");
                         } finally {
-                            daemonPipeServer.Disconnect();
+                            try {
+                                daemonPipeServer.Disconnect();
+                            } catch { 
+                                // Ignore on purpose
+                            }
+
+                            // After connection we reset timer.
+                            ResetTimer();
                         }
                     }
 
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     void ResetTimer() => timer?.Change(dueTime: daemonTimeout, period: Timeout.Infinite);
+
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    void StopTimer() => timer?.Change(dueTime: Timeout.Infinite, period: Timeout.Infinite);
                 });
             });
     }
