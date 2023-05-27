@@ -9,13 +9,25 @@ internal class EveryEvent<T> : IEmittableEvent<T>, IUnschedulableEventEmitter<T>
 
     private readonly SortedSet<EventSubscription> _eventSubscriptions = new();
 
-    protected virtual IEventDataHolder<T>? InspectEmission(T eventData) =>
-        new EventDataHolder<T>(eventData, hasEventData: true);
+    public virtual IDisposable Subscribe(IEventEmitter<T> eventEmitter)
+    {
+        var eventSubscription = new EventSubscription(eventEmitter);
+        _eventSubscriptions.Add(eventSubscription);
+
+        return new DelegatingDisposable<(ISet<EventSubscription>, EventSubscription)>(
+            static result => result.Item1.Remove(result.Item2),
+            (_eventSubscriptions, eventSubscription));
+    }
 
     protected void Emit(EventEmissionContext context, T eventData)
     {
         var eventSubscriptionsCount = _eventSubscriptions.Count;
-        var eventSubscriptions = ArrayPool<EventSubscription>.Shared.Rent(_eventSubscriptions.Count);
+
+        if (eventSubscriptionsCount == 0) {
+            return;
+        }
+
+        var eventSubscriptions = ArrayPool<EventSubscription>.Shared.Rent(eventSubscriptionsCount);
 
         try {
             _eventSubscriptions.CopyTo(eventSubscriptions);
@@ -32,6 +44,9 @@ internal class EveryEvent<T> : IEmittableEvent<T>, IUnschedulableEventEmitter<T>
     protected virtual void TriggerEmission(EventEmissionContext context, T eventData) =>
         Emit(context, eventData);
 
+    protected virtual IEventDataHolder<T>? InspectEmission(T eventData) =>
+        new EventDataHolder<T>(eventData, hasEventData: true);
+
     internal void EvaluateEmission(EventEmissionContext context, T eventData)
     {
         var result = InspectEmission(eventData);
@@ -45,16 +60,6 @@ internal class EveryEvent<T> : IEmittableEvent<T>, IUnschedulableEventEmitter<T>
 
     void IUnschedulableEventEmitter<T>.Emit(EventEmissionContext context, T eventData) =>
         EvaluateEmission(context, eventData);
-
-    public virtual IDisposable Subscribe(IEventEmitter<T> eventEmitter)
-    {
-        var eventSubscription = new EventSubscription(eventEmitter);
-        _eventSubscriptions.Add(eventSubscription);
-
-        return new DelegatingDisposable<(ISet<EventSubscription>, EventSubscription)>(
-            static result => result.Item1.Remove(result.Item2),
-            (_eventSubscriptions, eventSubscription));
-    }
 
     protected readonly record struct EventSubscription : IComparable<EventSubscription>
     {

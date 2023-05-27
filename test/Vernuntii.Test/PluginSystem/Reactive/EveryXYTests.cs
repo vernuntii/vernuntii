@@ -3,14 +3,14 @@ using Vernuntii.Reactive;
 
 namespace Vernuntii.PluginSystem.Reactive;
 
-public class ZipTests
+public class EveryXYTests
 {
     private static EventDiscriminator<int> s_number1 = new EventDiscriminator<int>();
     private static EventDiscriminator<int> s_number2 = new EventDiscriminator<int>();
     private static EventDiscriminator<int> s_number3 = new EventDiscriminator<int>();
 
     [Fact]
-    public async Task One_event_zip_produces_tuple()
+    public async Task Two_and_operands_produces_tuple()
     {
         var pluginSystem = new EventSystem();
         var expectedNumbers = (1, 1);
@@ -18,7 +18,7 @@ public class ZipTests
 
         using var _ = pluginSystem
             .Every(s_number1)
-            .Zip(s_number1)
+            .And(s_number1)
             .Subscribe(eventData => actualNumbers = eventData);
 
         await pluginSystem.EmitAsync(s_number1.EventId, 1);
@@ -27,7 +27,7 @@ public class ZipTests
     }
 
     [Fact]
-    public async Task Two_event_zip_produces_tuple()
+    public async Task Three_and_operands_produces_tuple()
     {
         var pluginSystem = new EventSystem();
         var expectedNumbers = (1, 2);
@@ -35,7 +35,7 @@ public class ZipTests
 
         using var _ = pluginSystem
              .Every(s_number1)
-             .Zip(s_number2)
+             .And(s_number2)
              .Subscribe(eventData => actualNumbers = eventData);
 
         await pluginSystem.EmitAsync(s_number1.EventId, 1);
@@ -46,7 +46,7 @@ public class ZipTests
     }
 
     [Fact]
-    public async Task Three_event_zip_produces_tuple()
+    public async Task Four_and_operands_produces_tuple()
     {
         var pluginSystem = new EventSystem();
         var expectedNumbers = ((1, 2), 3);
@@ -54,8 +54,8 @@ public class ZipTests
 
         using var _ = pluginSystem
             .Every(s_number1)
-            .Zip(s_number2)
-            .Zip(s_number3)
+            .And(s_number2)
+            .And(s_number3)
             .Subscribe(eventData => actualNumbers = eventData);
 
         await pluginSystem.EmitAsync(s_number1.EventId, 1);

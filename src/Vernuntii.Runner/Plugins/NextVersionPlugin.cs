@@ -193,7 +193,7 @@ namespace Vernuntii.Plugins
             Command.Add(presentationViewOption);
             Command.Add(emptyCachesOption);
 
-            Events.Once(CommandLineEvents.OnSealRootCommand)
+            Events.OneTime(CommandLineEvents.OnSealRootCommand)
                 .Subscribe(async _ => {
                     var versionPresentationContext = new VersionPresentationContext();
                     versionPresentationContext.ImportNextVersionRequirements(); // Adds next-version-specific defaults
@@ -201,7 +201,7 @@ namespace Vernuntii.Plugins
                     presentableParts = new VersionPresentationParts(versionPresentationContext.PresentableParts);
                 });
 
-            Events.Once(CommandLineEvents.ParsedCommandLineArguments)
+            Events.OneTime(CommandLineEvents.ParsedCommandLineArguments)
                 .When(() => Command.IsSeatTaken)
                 .Subscribe(parseResult => {
                     _presentationKind = parseResult.GetValueForOption(presentationKindOption);
@@ -219,15 +219,15 @@ namespace Vernuntii.Plugins
             Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(_ => _loadingVersionStopwatch.Restart());
 
             // Every run, we want to check the version cache, but only after the command-line arguments have been parsed once.
-            Events.OnceEveryReplayFirst(LifecycleEvents.BeforeEveryRun, CommandLineEvents.ParsedCommandLineArguments)
+            Events.OnceEveryXReplayOneTimeXY(LifecycleEvents.BeforeEveryRun, CommandLineEvents.ParsedCommandLineArguments)
                 .When(() => Command.IsSeatTaken)
                 .Subscribe(_ => Events.EmitAsync(VersionCacheEvents.CheckVersionCache));
 
-            Events.Once(ServicesEvents.OnConfigureServices)
+            Events.OneTime(ServicesEvents.OnConfigureServices)
                 .Subscribe(() => Events.EmitAsync(ConfigurationEvents.CreateConfiguration));
 
-            Events.Once(ServicesEvents.OnConfigureServices)
-                .Zip(ConfigurationEvents.OnCreatedConfiguration)
+            Events.OneTime(ServicesEvents.OnConfigureServices)
+                .And(ConfigurationEvents.OnCreatedConfiguration)
                 .Subscribe(async result => {
                     var (services, configuration) = result;
 

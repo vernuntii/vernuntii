@@ -223,16 +223,16 @@ namespace Vernuntii.Plugins
         {
             Events.Every(LifecycleEvents.BeforeEveryRun).Subscribe(OnBeforeEveryRun);
 
-            Events.Once(CommandLineEvents.OnBeforeEveryRun)
-                .Zip(CommandLineEvents.SetCommandLineArguments)
-                .Zip(CommandLineEvents.ParseCommandLineArguments)
+            Events.OneTime(CommandLineEvents.OnBeforeEveryRun)
+                .And(CommandLineEvents.SetCommandLineArguments)
+                .And(CommandLineEvents.ParseCommandLineArguments)
                 .Subscribe(result => {
                     var ((lifecycleContext, commandLineArguments), argumentsParsingContext) = result;
                     return ParseCommandLineArguments(lifecycleContext, argumentsParsingContext, commandLineArguments);
                 });
 
             Events.Every(CommandLineEvents.OnBeforeEveryRun)
-                .Zip(CommandLineEvents.InvokeRootCommand).Subscribe(result => {
+                .And(CommandLineEvents.InvokeRootCommand).Subscribe(result => {
                     var (lifecycleContext, _) = result;
                     return InvokeRootCommand(lifecycleContext);
                 });

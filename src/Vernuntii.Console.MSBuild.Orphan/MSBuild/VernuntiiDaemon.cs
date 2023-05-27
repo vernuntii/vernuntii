@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO.Hashing;
 using System.IO.Pipes;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Utilities;
 using Vernuntii.Plugins;
 
 namespace Vernuntii.Console.MSBuild
@@ -50,7 +46,25 @@ namespace Vernuntii.Console.MSBuild
             await daemonSpawnerMutex.AcquireAsync(10 * 1000).ConfigureAwait(false);
 
             try {
-                void ConnectToDaemon()
+                var daemonServerMutexName = NextVersionDaemonProtocolDefaults.GetDaemonServerMutexName(daemonPipeServerName);
+                var isDaemonServerMutexTaken = Mutex.TryOpenExisting(daemonServerMutexName, out var mutex);
+                mutex?.Dispose();
+
+                if (!isDaemonServerMutexTaken) {
+                    await ConnectToDaemonAsync();
+                } else {
+                    try {
+                        await daemonPipeServer.ConnectAsync(DaemonPipeServerReconnectTimeout).ConfigureAwait(false);
+                    } catch (TimeoutException) {
+                        Logger.LogMessage($"Connecting to {nameof(Vernuntii)} daemon failed due to timeout, so we spawn a new daemon");
+                        // ISSUE: recursive call
+                        await ConnectToDaemonAsync();
+                    }
+                }
+
+                Logger.LogMessage($"Connected to the {nameof(Vernuntii)} daemon via named pipe ({daemonPipeServerName})");
+
+                async Task ConnectToDaemonAsync()
                 {
                     var processArguments = "--daemonize " +
                         ExecutionArguments.Concatenation +
@@ -66,36 +80,10 @@ namespace Vernuntii.Console.MSBuild
 
                     Logger.LogMessage($"Spawn new {nameof(Vernuntii)} daemon");
                     using var process = Process.Start(startInfo);
+                    process.Close();
 
-                    void LogDaemonExit() => Logger.LogMessage($"The {nameof(Vernuntii)} daemon ({process.Id}) daemon has exited unexpectly");
-
-                    if (process.HasExited) {
-                        LogDaemonExit();
-                    } else {
-                        process.Exited += (_, _) => LogDaemonExit();
-                    }
-
-                    daemonPipeServer.Connect(DaemonPipeServerConnectTimeout);
-                    Logger.LogMessage($"The {nameof(Vernuntii)} daemon ({process.Id}) has been spawned");
+                    await daemonPipeServer.ConnectAsync(DaemonPipeServerConnectTimeout).ConfigureAwait(false);
                 }
-
-                var daemonSpawnedMutexName = NextVersionDaemonProtocolDefaults.GetDaemonServerMutexName(daemonPipeServerName);
-                var isDaemonSpawnedMutexTaken = Mutex.TryOpenExisting(daemonSpawnedMutexName, out var mutex);
-                mutex?.Dispose();
-
-                if (!isDaemonSpawnedMutexTaken) {
-                    ConnectToDaemon();
-                } else {
-                    try {
-                        await daemonPipeServer.ConnectAsync(DaemonPipeServerReconnectTimeout).ConfigureAwait(false);
-                    } catch (TimeoutException) {
-                        Logger.LogMessage($"Connecting to {nameof(Vernuntii)} daemon failed due to timeout, so we spawn a new daemon");
-                        // ISSUE: recursive call
-                        ConnectToDaemon();
-                    }
-                }
-
-                Logger.LogMessage($"Connected to the {nameof(Vernuntii)} daemon via named pipe ({daemonPipeServerName})");
             } finally {
                 await daemonSpawnerMutex.ReleaseAsync().ConfigureAwait(false);
             }

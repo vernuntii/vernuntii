@@ -23,20 +23,17 @@ public static class EventChainFactoryExtensions
     internal static EventChain<T> Create<T>(this IEventChainFactory chainFactory, IEmittableEvent<T> @event) =>
         chainFactory.Create(EventChainFragment.Create(@event));
 
-    public static EventChain<T> Every<T>(this IEventChainFactory chainFactory, IEventDiscriminator<T> discriminator)
-    {
-        var every = new EveryEvent<T>();
-        return chainFactory.Create(every, every, discriminator.EventId);
-    }
+    public static EventChain<T> Every<T>(this IEventChainFactory chainFactory, IEventDiscriminator<T> discriminator) =>
+        EventChainFactory.Every(chainFactory, discriminator);
 
-    public static EventChain<(TOnce, TEvery)> OnceEveryThenEvery<TOnce, TEvery>(this IEventChainFactory chainFactory, EventChain<TOnce> once, EventChain<TEvery> every) =>
-        chainFactory.Create(new OnceEveryThenEveryEvent<TOnce, TEvery>(once, every));
+    public static EventChain<(TOnce, TEvery)> OnceEveryThen<TOnce, TEvery>(this IEventChainFactory chainFactory, EventChain<TOnce> once, EventChain<TEvery> then) =>
+        chainFactory.Create(new OnceEveryThenEvent<TOnce, TEvery>(once, then));
 
     public static EventChain<(TOnce, TEvery)> OnceEveryThenEvery<TOnce, TEvery>(
         this IEventChainFactory chainFactory,
         EventChain<TOnce> once,
         IEventDiscriminator<TEvery> everyDiscriminator) =>
-        chainFactory.OnceEveryThenEvery(
+        chainFactory.OnceEveryThen(
             once,
             chainFactory.Every(everyDiscriminator));
 
@@ -44,7 +41,7 @@ public static class EventChainFactoryExtensions
         this IEventChainFactory chainFactory,
         IEventDiscriminator<TOnce> onceDiscriminator,
         EventChain<TEvery> every) =>
-        chainFactory.OnceEveryThenEvery(
+        chainFactory.OnceEveryThen(
             chainFactory.Every(onceDiscriminator),
             every);
 
@@ -52,47 +49,40 @@ public static class EventChainFactoryExtensions
         this IEventChainFactory chainFactory,
         IEventDiscriminator<TOnce> onceDiscriminator,
         IEventDiscriminator<TEvery> everyDiscriminator) =>
-        chainFactory.OnceEveryThenEvery(
+        chainFactory.OnceEveryThen(
             chainFactory.Every(onceDiscriminator),
             chainFactory.Every(everyDiscriminator));
 
-    public static EventChain<(TOnce, TFirst)> OnceEveryReplayFirst<TOnce, TFirst>(this IEventChainFactory chainFactory, EventChain<TOnce> once, EventChain<TFirst> first) =>
-        chainFactory.Create(new OnceEveryReplayFirstEvent<TOnce, TFirst>(once, first));
+    public static EventChain<(TOnce, TFirst)> OnceEveryXReplayOneTimeXY<TOnce, TFirst>(this IEventChainFactory chainFactory, EventChain<TOnce> oneTimeX, EventChain<TFirst> oneTimeY) =>
+        chainFactory.Create(new OnceEveryXReplayOneTimeXYEvent<TOnce, TFirst>(oneTimeX, oneTimeY));
 
-    public static EventChain<(TOnce, TFirst)> OnceEveryReplayFirst<TOnce, TFirst>(
+    public static EventChain<(TOnce, TFirst)> OnceEveryXReplayOneTimeXY<TOnce, TFirst>(
         this IEventChainFactory chainFactory,
-        EventChain<TOnce> once,
-        IEventDiscriminator<TFirst> firstDiscriminator) =>
-        chainFactory.OnceEveryReplayFirst(
-            once,
-            chainFactory.Every(firstDiscriminator));
+        EventChain<TOnce> oneTimeY,
+        IEventDiscriminator<TFirst> oneTimeXDiscriminator) =>
+        chainFactory.OnceEveryXReplayOneTimeXY(
+            oneTimeY,
+            chainFactory.Every(oneTimeXDiscriminator));
 
-    public static EventChain<(TOnce, TFirst)> OnceEveryReplayFirst<TOnce, TFirst>(
+    public static EventChain<(TOnce, TFirst)> OnceEveryXReplayOneTimeXY<TOnce, TFirst>(
         this IEventChainFactory chainFactory,
-        IEventDiscriminator<TOnce> onceDiscriminator,
-        EventChain<TFirst> first) =>
-        chainFactory.OnceEveryReplayFirst(
-            chainFactory.Every(onceDiscriminator),
-            first);
+        IEventDiscriminator<TOnce> oneTimeXDiscriminator,
+        EventChain<TFirst> oneTimeY) =>
+        chainFactory.OnceEveryXReplayOneTimeXY(
+            chainFactory.Every(oneTimeXDiscriminator),
+            oneTimeY);
 
-    public static EventChain<(TOnce, TFirst)> OnceEveryReplayFirst<TOnce, TFirst>(
+    public static EventChain<(TOnce, TFirst)> OnceEveryXReplayOneTimeXY<TOnce, TFirst>(
         this IEventChainFactory chainFactory,
-        IEventDiscriminator<TOnce> onceDiscriminator,
-        IEventDiscriminator<TFirst> firstDiscriminator) =>
-        chainFactory.OnceEveryReplayFirst(
-            chainFactory.Every(onceDiscriminator),
-            chainFactory.Every(firstDiscriminator));
+        IEventDiscriminator<TOnce> oneTimeXDiscriminator,
+        IEventDiscriminator<TFirst> oneTimeYDiscriminator) =>
+        chainFactory.OnceEveryXReplayOneTimeXY(
+            chainFactory.Every(oneTimeXDiscriminator),
+            chainFactory.Every(oneTimeYDiscriminator));
 
-    public static EventChain<T> Earliest<T>(this IEventChainFactory chainFactory, IEventDiscriminator<T> discriminator)
-    {
-        var earliest = new EarliestEvent<T>();
-        return chainFactory.Create(earliest, earliest, discriminator.EventId);
-    }
+    public static EventChain<T> Earliest<T>(this IEventChainFactory chainFactory, IEventDiscriminator<T> discriminator) =>
+        EventChainFactory.Earliest(chainFactory, discriminator);
 
-    public static EventChain<T> Once<T>(this IEventChainFactory chainFactory, IEventDiscriminator<T> discriminator)
-    {
-        var every = new EveryEvent<T>();
-        var once = new OnceEvent<T>(every);
-        return chainFactory.Create(once, every, discriminator.EventId);
-    }
+    public static EventChain<T> OneTime<T>(this IEventChainFactory chainFactory, IEventDiscriminator<T> discriminator) =>
+        EventChainFactory.OneTime(chainFactory, discriminator);
 }

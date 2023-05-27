@@ -1,0 +1,42 @@
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Vernuntii.Reactive.Centralized;
+
+internal static class EventChainFragment
+{
+    public static EventChainFragment<T> Create<T>(IObservableEvent<T> observableEvent, IUnschedulableEventObserver<T> eventObserver, object eventId) =>
+        new(observableEvent, eventObserver, eventId);
+
+    public static EventChainFragment<T> Create<T>(IObservableEvent<T> observableEvent) =>
+        new(observableEvent);
+}
+
+internal record EventChainFragment<T>
+{
+    internal IObservableEvent<T> Event { get; }
+
+    internal IUnschedulableEventObserver<T>? EventObserver =>
+        _eventObserver ?? throw new InvalidOperationException();
+
+    internal object? EventId { get; }
+
+    /// <summary>
+    /// If true, then all events of <see cref="EventObserver"/> can be bridged (e.g. to go over store)
+    /// </summary>
+    [MemberNotNullWhen(true,
+        nameof(EventId),
+        nameof(EventObserver))]
+    internal bool IsEventAllowingBridging => EventId != null;
+
+    private readonly IUnschedulableEventObserver<T>? _eventObserver;
+
+    public EventChainFragment(IObservableEvent<T> observableEvent, IUnschedulableEventObserver<T> eventObserver, object eventId)
+    {
+        Event = observableEvent;
+        _eventObserver = eventObserver;
+        EventId = eventId;
+    }
+
+    public EventChainFragment(IObservableEvent<T> observableEvent) =>
+        Event = observableEvent;
+}

@@ -10,6 +10,7 @@ using Vernuntii.PluginSystem;
 using Vernuntii.PluginSystem.Reactive;
 using Vernuntii.VersionPersistence;
 using Vernuntii.VersionPersistence.IO;
+using static Vernuntii.PluginSystem.Reactive.EventChainFactoryExtensions;
 
 namespace Vernuntii.Plugins
 {
@@ -42,10 +43,10 @@ namespace Vernuntii.Plugins
 
         public VersionCachePlugin(
             ILogger<VersionCachePlugin> logger,
-            ILogger<VersionCacheManager> gitCommandLogger)
+            ILogger<VersionCacheManager> cersionCacheManagerLogger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _versionCacheManagerLogger = gitCommandLogger;
+            _versionCacheManagerLogger = cersionCacheManagerLogger;
         }
 
         private void ThrowIfNotChecked()
@@ -121,19 +122,19 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            Events.OnceEveryReplayFirst(
+            Events.OnceEveryXReplayOneTimeXY(
                     LifecycleEvents.BeforeEveryRun,
-                    Events.Once(ConfigurationEvents.OnConfiguredConfigurationBuilder)
-                        .Zip(GitEvents.OnCreatedGitCommand)
-                        .Zip(VersionCacheOptionsEvents.OnParsedVersionCacheOptions))
-                .Zip(VersionCacheEvents.CheckVersionCache)
+                    Events.OneTime(ConfigurationEvents.OnConfiguredConfigurationBuilder)
+                        .And(GitEvents.OnCreatedGitCommand, Every)
+                        .And(VersionCacheOptionsEvents.OnParsedVersionCacheOptions))
+                .And(VersionCacheEvents.CheckVersionCache)
                 .Subscribe(result => {
                     var ((_, ((configuredConfigurationBuilderResult, gitCommand), versionCacheOptions)), _) = result;
                     return CheckVersionCache(configuredConfigurationBuilderResult.ConfigPath, gitCommand, versionCacheOptions);
                 });
 
             Events.Every(ServicesEvents.OnConfigureServices)
-                .Zip(VersionCacheEvents.OnCheckedVersionCache)
+                .And(VersionCacheEvents.OnCheckedVersionCache)
                 .Subscribe(result => {
                     var (services, _) = result;
                     services.AddSingleton<IVersionCacheManager>(GetVersionCacheManager());

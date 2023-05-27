@@ -81,6 +81,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.MSBuild.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Console.TestMSBuildPackage", "test\Vernuntii.Console.TestMSBuildPackage\src\Vernuntii.Console.TestMSBuildPackage.csproj", "{F1A62989-9F62-433F-A944-F5DDA57AAA07}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Automata", "src\Vernuntii.Automata\Vernuntii.Automata.csproj", "{01512A16-EDD0-4554-9A02-952C7DC6A28F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Automata.Test", "test\Vernuntii.Automata.Test\Vernuntii.Automata.Test.csproj", "{D7CBD765-1E24-465E-A8A0-E645DA6FB2E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -195,6 +199,14 @@ Global
 		{F1A62989-9F62-433F-A944-F5DDA57AAA07}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1A62989-9F62-433F-A944-F5DDA57AAA07}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1A62989-9F62-433F-A944-F5DDA57AAA07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01512A16-EDD0-4554-9A02-952C7DC6A28F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01512A16-EDD0-4554-9A02-952C7DC6A28F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01512A16-EDD0-4554-9A02-952C7DC6A28F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01512A16-EDD0-4554-9A02-952C7DC6A28F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7CBD765-1E24-465E-A8A0-E645DA6FB2E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7CBD765-1E24-465E-A8A0-E645DA6FB2E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7CBD765-1E24-465E-A8A0-E645DA6FB2E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7CBD765-1E24-465E-A8A0-E645DA6FB2E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -210,6 +222,7 @@ Global
 		{768353E5-594A-46D1-9DCE-3244EACDB8F1} = {865700FC-6FE5-4445-B584-C2AA3900D0E4}
 		{14CCA400-AA6F-4757-AD52-08A2D7BB6E9E} = {865700FC-6FE5-4445-B584-C2AA3900D0E4}
 		{F1A62989-9F62-433F-A944-F5DDA57AAA07} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
+		{D7CBD765-1E24-465E-A8A0-E645DA6FB2E1} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2888C95-8ED3-44F8-BD54-15A071471147}

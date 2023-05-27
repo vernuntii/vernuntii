@@ -20,7 +20,7 @@ namespace Vernuntii.Plugins;
 internal class NextVersionDaemonPlugin : Plugin
 {
     public static int DaemonClientPipeServerConnectTimeout = 3 * 1000;
-    public static int DaemonServerMutexAcquisitionTimeout = 3 * 1000;
+    public static int DaemonServerMutexAcquisitionTimeout;
 
     private const string AnonymousPipeIsRequiredMessage = "The daemon pipe server name is required: The daemon starts a pipe server that waits for connection after connection.";
 
@@ -59,9 +59,9 @@ internal class NextVersionDaemonPlugin : Plugin
     protected override void OnExecution()
     {
         // We skip the the very first "next version"-invocation.
-        Events.Once(LifecycleEvents.BeforeEveryRun)
-            .Zip(Events.Once(CommandLineEvents.ParsedCommandLineArguments))
-            .Zip(Events.Once(NextVersionEvents.OnInvokeNextVersionCommand))
+        Events.OneTime(LifecycleEvents.BeforeEveryRun)
+            .And(Events.OneTime(CommandLineEvents.ParsedCommandLineArguments))
+            .And(Events.OneTime(NextVersionEvents.OnInvokeNextVersionCommand))
             .Where(_ => _nextVersionPlugin.Command.IsSeatTaken)
             .Subscribe(async result => {
                 var ((lifecycleContext, parseResult), nextVersionCommandInvocation) = result;

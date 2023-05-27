@@ -31,7 +31,7 @@ internal class NextVersionDaemonClientPlugin : Plugin
         var isDaemonClient = false;
         var sendingPipeName = "vernuntii-daemon";
 
-        Events.Once(CommandLineEvents.ParsedCommandLineArguments)
+        Events.OneTime(CommandLineEvents.ParsedCommandLineArguments)
             .Subscribe(parseResult => {
                 isDaemonClient = parseResult.GetValueForOption(_daemonClientOption);
 
@@ -41,7 +41,7 @@ internal class NextVersionDaemonClientPlugin : Plugin
             });
 
 
-        Events.Once(NextVersionDaemonEvents.OnEditPipes)
+        Events.OneTime(NextVersionDaemonEvents.OnEditPipes)
             .When(() => isDaemonClient)
             .Subscribe(pipeHandles => {
                 //sendingPipe = new NamedPipeClientStream(NextVersionDaemonProtocolDefaults.ServerName, sendingPipeName, PipeDirection.Out);
@@ -49,8 +49,8 @@ internal class NextVersionDaemonClientPlugin : Plugin
                 pipeHandles.DaemonPipeServerName = sendingPipeName;
             });
 
-        Events.Once(LifecycleEvents.BeforeEveryRun)
-            .Zip(LifecycleEvents.EndOfRun)
+        Events.OneTime(LifecycleEvents.BeforeEveryRun)
+            .And(LifecycleEvents.EndOfRun)
             .When(() => isDaemonClient)
             .Subscribe(result => {
                 var (lifecycleContext, _) = result;

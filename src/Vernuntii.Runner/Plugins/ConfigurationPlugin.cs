@@ -65,7 +65,7 @@ namespace Vernuntii.Plugins
                 .AddConventionalYamlFileFinder()
                 .AddConventionalJsonFileFinder();
 
-            Events.Once(CommandLineEvents.ParsedCommandLineArguments)
+            Events.OneTime(CommandLineEvents.ParsedCommandLineArguments)
                 .Subscribe(async parseResult => {
                     var configPath = parseResult.GetValueForOption(configPathOption) ?? Directory.GetCurrentDirectory();
                     _logger.LogTrace("Search configuration file (Start = {ConfigPath})", configPath);
@@ -88,8 +88,8 @@ namespace Vernuntii.Plugins
                         new ConfigurationEvents.ConfiguredConfigurationBuilderResult() { ConfigPath = addedFilePath }).ConfigureAwait(false);
                 });
 
-            Events.Once(ConfigurationEvents.CreateConfiguration)
-                .Zip(ConfigurationEvents.OnConfiguredConfigurationBuilder)
+            Events.OneTime(ConfigurationEvents.CreateConfiguration)
+                .And(ConfigurationEvents.OnConfiguredConfigurationBuilder)
                 .Subscribe(result => {
                     if (_pluginRegistry.TryGetPlugin<IVersionCachePlugin>(out var versionCacheChecker) && versionCacheChecker.IsCacheUpToDate) {
                         return Task.CompletedTask;

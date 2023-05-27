@@ -43,7 +43,7 @@ namespace Vernuntii.Plugins
                     pipeHandles.WaitForConnectionCancellatonToken = waitForConnectionCancellationTokenSource.Token;
                 });
 
-            using var overrideVersioningMode = runner.PluginEvents.Once(ServicesEvents.OnConfigureServices)
+            using var overrideVersioningMode = runner.PluginEvents.OneTime(ServicesEvents.OnConfigureServices)
                 .Subscribe(services => services
                     .TakeViewOfVernuntii()
                     .AddVersionIncrementation(incrementation => incrementation.PostConfigure(options => {
