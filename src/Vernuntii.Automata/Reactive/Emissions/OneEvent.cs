@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Reactive.Emissions;
 
-internal class OneEvent<T> : EveryEvent<T>
+internal class OneEvent<T> : Event<T>
 {
     private readonly IObservableEvent<T> _source;
 
@@ -11,7 +11,6 @@ internal class OneEvent<T> : EveryEvent<T>
         DelegatingDisposable.Create(lifetime => {
             var sourceSubscription = _source.SubscribeBacklogBacked((emissionBacklog, eventData) => {
                 eventObserver.OnEmissionOrBacklog(emissionBacklog, eventData);
-                //(emissionBacklog with { IsCompleting = true }).TriggerOrScheduleEventEmission(eventObserver, eventData);
                 lifetime.Dispose();
             });
 

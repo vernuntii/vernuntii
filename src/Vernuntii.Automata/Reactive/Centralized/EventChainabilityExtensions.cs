@@ -17,7 +17,7 @@ public static class EventChainabilityExtensions
     public static IEventChainability UseUnsubscriptionRegistrar(this IEventChainability chainFactory, IDisposableRegistrar? unsubscriptionRegistrar) =>
         new AutoUnsubscribableEventChainFactory(chainFactory) { UnsubscriptionRegistrar = unsubscriptionRegistrar };
 
-    internal static EventChain<T> Chain<T>(this IEventChainability chainFactory, IObservableEvent<T> observableEvent, IUnschedulableEventObserver<T> eventObserver, object eventId) =>
+    internal static EventChain<T> Chain<T>(this IEventChainability chainFactory, IObservableEvent<T> observableEvent, IUnbackloggableEventObserver<T> eventObserver, object eventId) =>
         chainFactory.Chain(EventChainFragment.Create(observableEvent, eventObserver, eventId));
 
     internal static EventChain<T> Chain<T>(this IEventChainability chainFactory, IObservableEvent<T> observableEvent) =>
@@ -25,6 +25,9 @@ public static class EventChainabilityExtensions
 
     public static EventChain<T> Every<T>(this IEventChainability chainFactory, IEventDiscriminator<T> discriminator) =>
         EventChainabilities.Every(chainFactory, discriminator);
+
+    public static EventChain<T> Latest<T>(this IEventChainability chainFactory, IEventDiscriminator<T> discriminator) =>
+        EventChainabilities.Latest(chainFactory, discriminator);
 
     public static EventChain<T> Earliest<T>(this IEventChainability chainFactory, IEventDiscriminator<T> discriminator) =>
         EventChainabilities.Earliest(chainFactory, discriminator);

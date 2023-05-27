@@ -14,10 +14,10 @@ public interface IEventObserver<in T>
     /// <param name="emissionBacklog"></param>
     /// <param name="eventData"></param>
     internal void OnEmission(EventEmissionBacklog emissionBacklog, T eventData) =>
-        throw new IrregularEventEmissionException("The event emission is be scheduled, but the implementation is missing");
+        throw new IrregularEventEmissionException($"The event observer does not support the usage of backlog because {nameof(OnEmission)} is not implemented");
 
     /// <summary>
-    /// If the observer does use the emission emissionBacklog directly, then the call to this method gets added to the emissionBacklog of current emission emissionBacklog.
+    /// If the observer does use the emission backlog directly, then the call to this method gets added to the emissionBacklog of current emission emissionBacklog.
     /// After the synchronous emission chain reached its end the asynchronous emission emissionBacklog will be processed one by one.
     /// </summary>
     /// <param name="eventData"></param>

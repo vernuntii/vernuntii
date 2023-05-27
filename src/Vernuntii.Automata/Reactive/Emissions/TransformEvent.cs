@@ -13,6 +13,6 @@ internal class TransformEvent<TSource, TResult> : IObservableEvent<TResult>
 
     public IDisposable Subscribe(IEventObserver<TResult> eventObserver) =>
         _source.SubscribeBacklogBacked(
-            static (emissionBacklog, eventData, state) => emissionBacklog.EmitOrBacklog(state.EventObserver, state.TransformEventData(eventData)),
+            static (emissionBacklog, eventData, state) => state.EventObserver.OnEmissionOrBacklog(emissionBacklog,state.TransformEventData(eventData)),
             (EventObserver: eventObserver, TransformEventData: _transformer));
 }

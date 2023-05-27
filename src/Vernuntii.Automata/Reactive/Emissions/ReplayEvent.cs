@@ -1,41 +1,43 @@
-﻿//namespace Vernuntii.Reactive.Emissions;
+﻿namespace Vernuntii.Reactive.Emissions;
 
-//internal class ReplayEvent<T> : EveryEvent<T>
-//{
-//    private readonly int _capacity;
-//    private Queue<T> _queue;
+[Obsolete]
+internal class ReplayEvent<T> : Event<T>, IObservableEvent<T>
+{
+    private readonly int _capacity;
+    private readonly Queue<T> _queue;
 
-//    public ReplayEvent(int capacity)
-//    {
-//        if (capacity <= 0) {
-//            throw new ArgumentOutOfRangeException(nameof(capacity), "Number of elements cannot fall below one");
-//        }
+    bool IObservableEvent<T>.UseEmissionBacklog => true;
 
-//        _queue = new Queue<T>(capacity: capacity);
-//        _capacity = capacity;
-//    }
+    public ReplayEvent(int capacity)
+    {
+        if (capacity <= 0) {
+            throw new ArgumentOutOfRangeException(nameof(capacity), "The number of possible replay event datas should be greater than zero");
+        }
 
-//    protected override void TriggerEmission(EventEmissionBacklog emissionBacklog, T eventData)
-//    {
-//        lock (_queue) {
-//            if (_queue.Count == _capacity) {
-//                _queue.Dequeue();
-//                _queue.Enqueue(eventData);
-//            }
-//        }
+        _queue = new Queue<T>(capacity: capacity);
+        _capacity = capacity;
+    }
 
-//        base.TriggerEmission(emissionBacklog, eventData);
-//    }
+    protected override void TriggerEmission(EventEmissionBacklog emissionBacklog, T eventData)
+    {
+        lock (_queue) {
+            if (_queue.Count == _capacity) {
+                _queue.Dequeue();
+                _queue.Enqueue(eventData);
+            }
+        }
 
-//    public override IDisposable Subscribe(IEventObserver<T> eventObserver)
-//    {
+        base.TriggerEmission(emissionBacklog, eventData);
+    }
 
-//        lock (_queue) {
-//            foreach (var replayableEventData in _queue) {
-//                    eventObserver.OnEmission(
-//            }
-//        }
+    IDisposable IObservableEvent<T>.Subscribe(EventEmissionBacklog emissionBacklog, IEventObserver<T> eventObserver)
+    {
+        lock (_queue) {
+            foreach (var replayEventData in _queue) {
+                eventObserver.OnEmissionOrBacklog(emissionBacklog, replayEventData);
+            }
+        }
 
-//        return base.Subscribe(eventObserver);
-//    }
-//}
+        return Subscribe(eventObserver);
+    }
+}

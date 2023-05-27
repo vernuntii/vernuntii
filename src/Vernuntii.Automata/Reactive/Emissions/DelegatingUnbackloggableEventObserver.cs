@@ -1,13 +1,13 @@
 ﻿namespace Vernuntii.Reactive.Emissions;
 
-internal class DelegatingUnschedulableEventObserver<T, TState> : IUnschedulableEventObserver<T>
+internal class DelegatingUnbackloggableEventObserver<T, TState> : IUnbackloggableEventObserver<T>
 {
     internal delegate void HandleEventDelegate(in Tuple tuple);
 
     private readonly HandleEventDelegate _eventObserver;
     private readonly TState _state;
 
-    public DelegatingUnschedulableEventObserver(HandleEventDelegate eventObserver, TState state)
+    public DelegatingUnbackloggableEventObserver(HandleEventDelegate eventObserver, TState state)
     {
         _eventObserver = eventObserver ?? throw new ArgumentNullException(nameof(eventObserver));
         _state = state;

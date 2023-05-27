@@ -19,6 +19,6 @@ internal class WhereEvent<TSource, TState> : IObservableEvent<TSource>
                 return;
             }
 
-            emissionBacklog.EmitOrBacklog(eventObserver, eventData);
+            eventObserver.OnEmissionOrBacklog(emissionBacklog,  eventData);
         });
 }

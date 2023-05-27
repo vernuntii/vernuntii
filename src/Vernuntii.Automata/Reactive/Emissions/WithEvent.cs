@@ -9,7 +9,7 @@ namespace Vernuntii.Reactive.Emissions;
 /// </summary>
 /// <typeparam name="TSource"></typeparam>
 /// <typeparam name="TWith"></typeparam>
-internal class WithEvent<TSource, TWith> : EveryEvent<(TSource, TWith)>
+internal class WithEvent<TSource, TWith> : Event<(TSource, TWith)>
 {
     [MemberNotNullWhen(true,
         nameof(_sourceQueue),
@@ -120,7 +120,7 @@ internal class WithEvent<TSource, TWith> : EveryEvent<(TSource, TWith)>
             static (eventData, otherEventData) => (otherEventData, eventData));
     }
 
-    private class SourceEventHandler : IUnschedulableEventObserver<TSource>
+    private class SourceEventHandler : IUnbackloggableEventObserver<TSource>
     {
         private readonly WithEvent<TSource, TWith> _condition;
 
@@ -131,7 +131,7 @@ internal class WithEvent<TSource, TWith> : EveryEvent<(TSource, TWith)>
             _condition.EvaluateSource(emissionBacklog, eventData);
     }
 
-    private class WithEventHandler : IUnschedulableEventObserver<TWith>
+    private class WithEventHandler : IUnbackloggableEventObserver<TWith>
     {
         private readonly WithEvent<TSource, TWith> _condition;
 

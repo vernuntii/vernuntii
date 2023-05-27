@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Reactive.Emissions;
 
-internal interface IUnschedulableEventObserver<T> : IEventObserver<T>
+internal interface IUnbackloggableEventObserver<T> : IEventObserver<T>
 {
     bool IEventObserver<T>.UseEmissionBacklog => true;
 

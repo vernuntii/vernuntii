@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Reactive.Emissions;
 
-internal class LatestEvent<T> : EveryEvent<T>, IEventDataHolder<T>
+internal class LatestEvent<T> : Event<T>, IEventDataHolder<T>, IObservableEvent<T>
 {
     [MaybeNull]
     internal virtual T EventData => _eventData;
@@ -17,6 +17,8 @@ internal class LatestEvent<T> : EveryEvent<T>, IEventDataHolder<T>
     bool IEventDataHolder<T>.HasEventData =>
         HasEventData;
 
+    bool IObservableEvent<T>.UseEmissionBacklog => true;
+
     [AllowNull, MaybeNull]
     private T _eventData;
 
@@ -27,5 +29,14 @@ internal class LatestEvent<T> : EveryEvent<T>, IEventDataHolder<T>
         _eventData = eventData;
         _hasEventData = true;
         return this;
+    }
+
+    IDisposable IObservableEvent<T>.Subscribe(EventEmissionBacklog emissionBacklog, IEventObserver<T> eventObserver)
+    {
+        if (HasEventData) {
+            eventObserver.OnEmissionOrBacklog(emissionBacklog, EventData);
+        }
+
+        return Subscribe(eventObserver);
     }
 }

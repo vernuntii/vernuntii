@@ -6,6 +6,11 @@
 /// <typeparam name="T"></typeparam>
 public interface IObservableEvent<out T>
 {
+    internal bool UseEmissionBacklog => false;
+
+    internal IDisposable Subscribe(EventEmissionBacklog emissionBacklog, IEventObserver<T> eventObserver) =>
+        throw new IrregularEventSubscriptionException($"The observable event does not support the usage of backlog because {nameof(Subscribe)}({nameof(EventEmissionBacklog)},{nameof(IEventObserver<T>)}) is not implemented");
+
     /// <summary>
     /// Those who subscribe with <paramref name="eventObserver"/> are able to get notified about new events.
     /// </summary>

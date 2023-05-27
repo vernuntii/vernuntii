@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Reactive.Emissions;
 
-internal class EveryEvent<T> : IObservableEvent<T>, IUnschedulableEventObserver<T>
+internal class Event<T> : IObservableEvent<T>, IUnbackloggableEventObserver<T>
 {
     protected bool HasEventEntries =>
         _eventSubscriptions.Count != 0;
@@ -34,7 +34,7 @@ internal class EveryEvent<T> : IObservableEvent<T>, IUnschedulableEventObserver<
 
             for (var index = 0; index < eventSubscriptionsCount; index++) {
                 var eventEntry = eventSubscriptions[index];
-                emissionBacklog.EmitOrBacklog(eventEntry.Handler, eventData);
+                eventEntry.Handler.OnEmissionOrBacklog(emissionBacklog, eventData);
             }
         } finally {
             ArrayPool<EventSubscription>.Shared.Return(eventSubscriptions);
@@ -58,7 +58,7 @@ internal class EveryEvent<T> : IObservableEvent<T>, IUnschedulableEventObserver<
         TriggerEmission(emissionBacklog, eventData);
     }
 
-    void IUnschedulableEventObserver<T>.OnEmission(EventEmissionBacklog emissionBacklog, T eventData) =>
+    void IUnbackloggableEventObserver<T>.OnEmission(EventEmissionBacklog emissionBacklog, T eventData) =>
         EvaluateEmission(emissionBacklog, eventData);
 
     protected readonly record struct EventSubscription : IComparable<EventSubscription>
