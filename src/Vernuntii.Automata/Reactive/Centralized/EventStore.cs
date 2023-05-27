@@ -17,7 +17,7 @@ public record EventStore : IEventStore
     EventChain<T> IEventChainability.Chain<T>(EventChainFragment<T> fragment) =>
         CreateEventChain(fragment);
 
-    internal IDisposable AddObserver(object eventId, ITypeInversedChainableEventObserver eventObserver)
+    internal IDisposable AddObserver(EventId eventId, ITypeInversedChainableEventObserver eventObserver)
     {
         lock (_lock) {
             if (!_eventObservers.TryGetValue(eventId, out var eventObservers)) {
@@ -29,7 +29,7 @@ public record EventStore : IEventStore
         }
     }
 
-    internal virtual async Task EmitBacklogAsync<T>(object eventId, T eventData, EventEmissionBacklog emissionBacklog)
+    internal virtual async Task EmitBacklogAsync<T>(EventId eventId, T eventData, EventEmissionBacklog emissionBacklog)
     {
         foreach (var scheduledEventEmissions in emissionBacklog.Collection) {
             var task = scheduledEventEmissions.Item1(scheduledEventEmissions.Item2);
@@ -40,7 +40,7 @@ public record EventStore : IEventStore
         }
     }
 
-    public Task EmitAsync<T>(object eventId, T eventData)
+    public Task EmitAsync<T>(EventId eventId, T eventData)
     {
         var emissionBacklog = new EventEmissionBacklog();
 

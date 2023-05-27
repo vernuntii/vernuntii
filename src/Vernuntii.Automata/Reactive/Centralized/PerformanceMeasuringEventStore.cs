@@ -66,7 +66,7 @@ internal sealed record PerformanceMeasuringEventStore : EventStore
     internal PerformanceMeasuringEventStore(ILogger<EventStore> logger) =>
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    internal override async Task EmitBacklogAsync<T>(object eventId, T eventData, EventEmissionBacklog emissionBacklog)
+    internal override async Task EmitBacklogAsync<T>(EventId eventId, T eventData, EventEmissionBacklog emissionBacklog)
     {
         var depth = Interlocked.Increment(ref _currentDepth);
         var watch = new Stopwatch();

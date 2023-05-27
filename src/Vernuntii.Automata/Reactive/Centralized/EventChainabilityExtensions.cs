@@ -17,7 +17,7 @@ public static class EventChainabilityExtensions
     public static IEventChainability UseUnsubscriptionRegistrar(this IEventChainability chainFactory, IDisposableRegistrar? unsubscriptionRegistrar) =>
         new AutoUnsubscribableEventChainFactory(chainFactory) { UnsubscriptionRegistrar = unsubscriptionRegistrar };
 
-    internal static EventChain<T> Chain<T>(this IEventChainability chainFactory, IObservableEvent<T> observableEvent, IUnbackloggableEventObserver<T> eventObserver, object eventId) =>
+    internal static EventChain<T> Chain<T>(this IEventChainability chainFactory, IObservableEvent<T> observableEvent, IUnbackloggableEventObserver<T> eventObserver, EventId eventId) =>
         chainFactory.Chain(EventChainFragment.Create(observableEvent, eventObserver, eventId));
 
     internal static EventChain<T> Chain<T>(this IEventChainability chainFactory, IObservableEvent<T> observableEvent) =>

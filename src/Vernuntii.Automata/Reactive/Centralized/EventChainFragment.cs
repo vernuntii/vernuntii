@@ -4,7 +4,7 @@ namespace Vernuntii.Reactive.Centralized;
 
 internal static class EventChainFragment
 {
-    public static EventChainFragment<T> Create<T>(IObservableEvent<T> observableEvent, IUnbackloggableEventObserver<T> eventObserver, object eventId) =>
+    public static EventChainFragment<T> Create<T>(IObservableEvent<T> observableEvent, IUnbackloggableEventObserver<T> eventObserver, EventId eventId) =>
         new(observableEvent, eventObserver, eventId);
 
     public static EventChainFragment<T> Create<T>(IObservableEvent<T> observableEvent) =>
@@ -18,7 +18,7 @@ internal record EventChainFragment<T>
     internal IUnbackloggableEventObserver<T>? EventObserver =>
         _eventObserver ?? throw new InvalidOperationException();
 
-    internal object? EventId { get; }
+    internal EventId EventId { get; }
 
     /// <summary>
     /// If true, then all events of <see cref="EventObserver"/> can be bridged (e.g. to go over store)
@@ -26,11 +26,11 @@ internal record EventChainFragment<T>
     [MemberNotNullWhen(true,
         nameof(EventId),
         nameof(EventObserver))]
-    internal bool IsEventAllowingBridging => EventId != null;
+    internal bool IsEventAllowingBridging => EventId.IsInitialized;
 
     private readonly IUnbackloggableEventObserver<T>? _eventObserver;
 
-    public EventChainFragment(IObservableEvent<T> observableEvent, IUnbackloggableEventObserver<T> eventObserver, object eventId)
+    public EventChainFragment(IObservableEvent<T> observableEvent, IUnbackloggableEventObserver<T> eventObserver, EventId eventId)
     {
         Event = observableEvent;
         _eventObserver = eventObserver;

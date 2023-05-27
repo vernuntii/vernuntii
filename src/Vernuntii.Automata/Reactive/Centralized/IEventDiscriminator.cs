@@ -5,5 +5,5 @@ public interface IEventDiscriminator<TPayload>
     /// <summary>
     /// The event id.
     /// </summary>
-    object EventId { get; }
+    EventId EventId { get; }
 }

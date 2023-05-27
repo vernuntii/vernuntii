@@ -10,10 +10,12 @@ public record EventDiscriminator<TPayload> : IEventDiscriminator<TPayload>
     /// <inheritdoc/>
     public string? EventName { get; init; }
 
-    private IComparable? _cachedEventId;
+    private IComparable? _comparableEventId;
+    private EventId _eventId;
 
-    object IEventDiscriminator<TPayload>.EventId =>
-        GetEventId();
+    EventId IEventDiscriminator<TPayload>.EventId => _eventId.IsInitialized
+        ? _eventId
+        : _eventId = new EventId(GetComparableEventId());
 
     /// <summary>
     /// Creates a copy of this type.
@@ -22,7 +24,8 @@ public record EventDiscriminator<TPayload> : IEventDiscriminator<TPayload>
     public EventDiscriminator(EventDiscriminator<TPayload> original)
     {
         EventId = original.EventId;
-        _cachedEventId = original._cachedEventId;
+        _comparableEventId = original._comparableEventId;
+        _eventId = original._eventId;
     }
 
     /// <summary>
@@ -35,7 +38,7 @@ public record EventDiscriminator<TPayload> : IEventDiscriminator<TPayload>
     /// Gets the event id.
     /// </summary>
     /// <returns>Either <see cref="EventId"/>, or if <see cref="EventName"/> is null or wrhite-space its wrapped version that emits <see cref="EventName"/> on <see cref="object.ToString"/></returns>
-    public virtual IComparable GetEventId() => _cachedEventId ??= (string.IsNullOrWhiteSpace(EventName)
+    public virtual IComparable GetComparableEventId() => _comparableEventId ??= (string.IsNullOrWhiteSpace(EventName)
         ? EventId
         : new NamedEventId(this));
 

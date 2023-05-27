@@ -2,5 +2,5 @@
 
 public interface IDistinguishableEventEmitter
 {
-    Task EmitAsync<T>(object eventId, T eventData);
+    Task EmitAsync<T>(EventId eventId, T eventData);
 }

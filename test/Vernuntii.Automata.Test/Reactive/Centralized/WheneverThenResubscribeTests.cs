@@ -3,7 +3,7 @@ using Vernuntii.Reactive.Emissions;
 
 namespace Vernuntii.Reactive.Centralized;
 
-public class WheneverThenResubscribeTests
+public partial class WheneverThenResubscribeTests
 {
     [Theory]
     [InlineData(1)]

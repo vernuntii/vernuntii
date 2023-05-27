@@ -51,11 +51,11 @@ internal class Event<T> : IObservableEvent<T>, IUnbackloggableEventObserver<T>
     {
         var result = InspectEmission(eventData);
 
-        if (result is null) {
+        if (result is null || !result.HasEventData) {
             return;
         }
 
-        TriggerEmission(emissionBacklog, eventData);
+        TriggerEmission(emissionBacklog, result.EventData);
     }
 
     void IUnbackloggableEventObserver<T>.OnEmission(EventEmissionBacklog emissionBacklog, T eventData) =>
