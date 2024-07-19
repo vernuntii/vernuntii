@@ -1,8 +1,8 @@
 ﻿namespace Vernuntii.Reactive.Events;
 
-internal interface IUnbackloggableEventObserver<T> : IEventObserver<T>
+internal interface IBacklogBackedEventObserver<T> : IEventObserver<T>
 {
-    bool IEventObserver<T>.ContinueSynchronousEmissionChaining => true;
+    bool IEventObserver<T>.ContinueBacklogBackedEmissionChaining => true;
 
     /// <inheritdoc cref="IEventObserver{T}.OnEmission(EventEmissionBacklog, T)"/>
     new void OnEmission(EventEmissionBacklog emissionBacklog, T eventData);

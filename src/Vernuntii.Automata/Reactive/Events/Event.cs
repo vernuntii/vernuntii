@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Reactive.Events;
 
-internal class Event<T> : IObservableEvent<T>, IUnbackloggableEventObserver<T>
+internal class Event<T> : IObservableEvent<T>, IBacklogBackedEventObserver<T>
 {
     protected bool HasEventEntries =>
         _eventSubscriptions.Count != 0;
@@ -58,7 +58,7 @@ internal class Event<T> : IObservableEvent<T>, IUnbackloggableEventObserver<T>
         TriggerEmission(emissionBacklog, result.EventData);
     }
 
-    void IUnbackloggableEventObserver<T>.OnEmission(EventEmissionBacklog emissionBacklog, T eventData) =>
+    void IBacklogBackedEventObserver<T>.OnEmission(EventEmissionBacklog emissionBacklog, T eventData) =>
         EvaluateEmission(emissionBacklog, eventData);
 
     protected readonly record struct EventSubscription : IComparable<EventSubscription>

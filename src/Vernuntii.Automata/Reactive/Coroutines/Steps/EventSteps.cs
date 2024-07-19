@@ -2,7 +2,7 @@
 
 public static class EventSteps
 {
-    public static IStep Trace<T>(this ICoroutineDefinition _, IObservableEvent<T> observableEvent, out EventTrace<T> eventTrace)
+    public static IStep Trace<T>(this ICoroutines _, IObservableEvent<T> observableEvent, out EventTrace<T> eventTrace)
     {
         eventTrace = new EventTrace<T>();
         var eventConnector = new EventConnector<T>(eventTrace, observableEvent);
@@ -18,22 +18,7 @@ public static class EventSteps
     /// <param name="trace"></param>
     /// <param name="emission"></param>
     /// <returns></returns>
-    public static IStep Take<T>(this ICoroutineDefinition _, EventTrace<T> trace, out IYieldResult<T> emission)
-    {
-        var typedEmission = new YieldResult<T>();
-        emission = typedEmission;
-        return new TakeEventStep<T>(trace, typedEmission);
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="_"></param>
-    /// <param name="trace"></param>
-    /// <param name="emission"></param>
-    /// <returns></returns>
-    public static IStep TakeSync<T>(this ICoroutineDefinition _, EventTrace<T> trace, out IYieldResult<T> emission)
+    public static IStep Take<T>(this ICoroutines _, EventTrace<T> trace, out IYieldResult<T> emission)
     {
         var typedEmission = new YieldResult<T>();
         emission = typedEmission;

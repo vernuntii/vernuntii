@@ -6,7 +6,7 @@ using Vernuntii.Reactive.Coroutines.Steps;
 var eventBroker = new EventBroker();
 
 var coroutineExecutor = new CoroutineExecutorBuilder()
-    .AddSteps(new EventStepStore())
+    .AddStepStore(new EventStepStore())
     .Build();
 
 coroutineExecutor.Start(new PingCoroutine(eventBroker).PongWhenPinged);

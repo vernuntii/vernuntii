@@ -17,7 +17,7 @@ internal class LatestEvent<T> : Event<T>, IEventDataHolder<T>, IObservableEvent<
     bool IEventDataHolder<T>.HasEventData =>
         HasEventData;
 
-    bool IObservableEvent<T>.ContinueSynchronousSubscriptionChaining => true;
+    bool IObservableEvent<T>.ContinueBacklogBackedSubscriptionChaining => true;
 
     [AllowNull, MaybeNull]
     private T _eventData;

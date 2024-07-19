@@ -6,7 +6,7 @@
 /// <typeparam name="T"></typeparam>
 public interface IEventObserver<in T>
 {
-    internal bool ContinueSynchronousEmissionChaining => false;
+    internal bool ContinueBacklogBackedEmissionChaining => false;
 
     /// <summary>
     /// The method won't be scheduled and gets immediatelly called when the event you subscribed for gets emitted.

@@ -4,7 +4,7 @@ namespace Vernuntii.Reactive.Broker;
 
 internal static class EventChainFragment
 {
-    public static EventChainFragment<T> Create<T>(IObservableEvent<T> observableEvent, IUnbackloggableEventObserver<T> eventObserver, EventId eventId) =>
+    public static EventChainFragment<T> Create<T>(IObservableEvent<T> observableEvent, IBacklogBackedEventObserver<T> eventObserver, EventId eventId) =>
         new(observableEvent, eventObserver, eventId);
 
     public static EventChainFragment<T> Create<T>(IObservableEvent<T> observableEvent) =>
@@ -15,7 +15,7 @@ internal record EventChainFragment<T>
 {
     internal IObservableEvent<T> Event { get; }
 
-    internal IUnbackloggableEventObserver<T>? EventObserver =>
+    internal IBacklogBackedEventObserver<T>? EventObserver =>
         _eventObserver ?? throw new InvalidOperationException();
 
     internal EventId EventId { get; }
@@ -28,9 +28,9 @@ internal record EventChainFragment<T>
         nameof(EventObserver))]
     internal bool IsEventAllowingBridging => EventId.IsInitialized;
 
-    private readonly IUnbackloggableEventObserver<T>? _eventObserver;
+    private readonly IBacklogBackedEventObserver<T>? _eventObserver;
 
-    public EventChainFragment(IObservableEvent<T> observableEvent, IUnbackloggableEventObserver<T> eventObserver, EventId eventId)
+    public EventChainFragment(IObservableEvent<T> observableEvent, IBacklogBackedEventObserver<T> eventObserver, EventId eventId)
     {
         Event = observableEvent;
         _eventObserver = eventObserver;

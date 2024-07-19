@@ -4,34 +4,34 @@ public static partial class ObservableEventExtensions
 {
     private static IEventObserver<T> CreateSubscribeBacklogBackedObserver<T>(Action<EventEmissionBacklog, T> eventObserver)
     {
-        static void HandleEvent(in DelegatingUnbackloggableEventObserver<T, Action<EventEmissionBacklog, T>>.Tuple tuple) =>
-            tuple.State.Invoke(tuple.EmissionBacklog, tuple.EventData);
+        static void HandleEvent(in DelegatingBacklogBackedEventObserver<T, Action<EventEmissionBacklog, T>>.Arguments args) =>
+            args.State.Invoke(args.EmissionBacklog, args.EventData);
 
-        return new DelegatingUnbackloggableEventObserver<T, Action<EventEmissionBacklog, T>>(HandleEvent, eventObserver);
+        return new DelegatingBacklogBackedEventObserver<T, Action<EventEmissionBacklog, T>>(HandleEvent, eventObserver);
     }
 
     private static IEventObserver<T> CreateSubscribeBacklogBackedObserver<T, TState>(Action<EventEmissionBacklog, T, TState> eventObserver, TState state)
     {
-        static void HandleEvent(in DelegatingUnbackloggableEventObserver<T, (Action<EventEmissionBacklog, T, TState> EventHandler, TState State)>.Tuple tuple) =>
-            tuple.State.EventHandler.Invoke(tuple.EmissionBacklog, tuple.EventData, tuple.State.State);
+        static void HandleEvent(in DelegatingBacklogBackedEventObserver<T, (Action<EventEmissionBacklog, T, TState> EventHandler, TState State)>.Arguments args) =>
+            args.State.EventHandler.Invoke(args.EmissionBacklog, args.EventData, args.State.State);
 
-        return new DelegatingUnbackloggableEventObserver<T, (Action<EventEmissionBacklog, T, TState>, TState)>(HandleEvent, (eventObserver, state));
+        return new DelegatingBacklogBackedEventObserver<T, (Action<EventEmissionBacklog, T, TState>, TState)>(HandleEvent, (eventObserver, state));
     }
 
     private static IEventObserver<T> CreateSubscribeBacklogBackedObserver<T>(Action<EventEmissionBacklog> eventObserver)
     {
-        static void HandleEvent(in DelegatingUnbackloggableEventObserver<T, Action<EventEmissionBacklog>>.Tuple tuple) =>
-            tuple.State.Invoke(tuple.EmissionBacklog);
+        static void HandleEvent(in DelegatingBacklogBackedEventObserver<T, Action<EventEmissionBacklog>>.Arguments args) =>
+            args.State.Invoke(args.EmissionBacklog);
 
-        return new DelegatingUnbackloggableEventObserver<T, Action<EventEmissionBacklog>>(HandleEvent, eventObserver);
+        return new DelegatingBacklogBackedEventObserver<T, Action<EventEmissionBacklog>>(HandleEvent, eventObserver);
     }
 
     private static IEventObserver<T> CreateSubscribeBacklogBackedObserver<T, TState>(Action<EventEmissionBacklog, TState> eventObserver, TState state)
     {
-        static void HandleEvent(in DelegatingUnbackloggableEventObserver<T, (Action<EventEmissionBacklog, TState> EventHandler, TState State)>.Tuple tuple) =>
-            tuple.State.EventHandler.Invoke(tuple.EmissionBacklog, tuple.State.State);
+        static void HandleEvent(in DelegatingBacklogBackedEventObserver<T, (Action<EventEmissionBacklog, TState> EventHandler, TState State)>.Arguments args) =>
+            args.State.EventHandler.Invoke(args.EmissionBacklog, args.State.State);
 
-        return new DelegatingUnbackloggableEventObserver<T, (Action<EventEmissionBacklog, TState>, TState)>(HandleEvent, (eventObserver, state));
+        return new DelegatingBacklogBackedEventObserver<T, (Action<EventEmissionBacklog, TState>, TState)>(HandleEvent, (eventObserver, state));
     }
 
     internal static IDisposable SubscribeBacklogBacked<T>(this IObservableEvent<T> observableEvent, Action<EventEmissionBacklog, T> eventObserver) =>
@@ -55,7 +55,7 @@ public static partial class ObservableEventExtensions
     /// <param name="eventObserver"></param>
     /// <returns></returns>
     private static IDisposable SubscribeBacklogBacked<T>(IObservableEvent<T> observableEvent, EventEmissionBacklog emissionBacklog, IEventObserver<T> eventObserver) =>
-        observableEvent.ContinueSynchronousSubscriptionChaining
+        observableEvent.ContinueBacklogBackedSubscriptionChaining
         ? observableEvent.Subscribe(emissionBacklog, eventObserver)
         : observableEvent.Subscribe(eventObserver);
 

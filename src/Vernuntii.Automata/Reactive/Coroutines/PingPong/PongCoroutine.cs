@@ -4,7 +4,7 @@ using static Vernuntii.Reactive.Coroutines.Steps.EventSteps;
 
 namespace Vernuntii.Reactive.Coroutines.PingPong;
 
-internal class PongCoroutine : ICoroutineDefinition
+internal class PongCoroutine : ICoroutines
 {
     public static IEventDiscriminator<Pong> Ponged = EventDiscriminator.New<Pong>();
 

@@ -6,7 +6,7 @@ internal class ReplayEvent<T> : Event<T>, IObservableEvent<T>
     private readonly int _capacity;
     private readonly Queue<T> _queue;
 
-    bool IObservableEvent<T>.ContinueSynchronousSubscriptionChaining => true;
+    bool IObservableEvent<T>.ContinueBacklogBackedSubscriptionChaining => true;
 
     public ReplayEvent(int capacity)
     {

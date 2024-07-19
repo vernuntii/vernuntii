@@ -8,7 +8,7 @@ public class CoroutineExecutorBuilder
     private List<IStepStore> _stepStores = new List<IStepStore>();
     private ImmutableHashSet<StepHandlerId> _storedSteps = ImmutableHashSet<StepHandlerId>.Empty;
 
-    public CoroutineExecutorBuilder AddSteps(IStepStore store)
+    public CoroutineExecutorBuilder AddStepStore(IStepStore store)
     {
         var expectedNewStoredStepsCount = _storedSteps.Count + store.CompiledSteps.Count;
         var actualNewStoredSteps = _storedSteps.Union(store.CompiledSteps);

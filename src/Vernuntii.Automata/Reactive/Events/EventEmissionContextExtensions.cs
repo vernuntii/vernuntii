@@ -12,7 +12,7 @@ internal static class EventEmissionBacklogExtensions
 
     internal static void OnEmissionOrBacklog<T>(this IEventObserver<T> eventObserver, EventEmissionBacklog emissionBacklog, T eventData)
     {
-        if (eventObserver.ContinueSynchronousEmissionChaining) {
+        if (eventObserver.ContinueBacklogBackedEmissionChaining) {
             eventObserver.OnEmission(emissionBacklog, eventData);
             return;
         }

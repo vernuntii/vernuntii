@@ -1,5 +1,5 @@
 ﻿namespace Vernuntii.Reactive.Coroutines;
 
-public interface ICoroutineDefinition
+public interface ICoroutines
 {
 }

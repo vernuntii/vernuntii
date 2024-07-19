@@ -120,7 +120,7 @@ internal class WithEvent<TSource, TWith> : Event<(TSource, TWith)>
             static (eventData, otherEventData) => (otherEventData, eventData));
     }
 
-    private class SourceEventHandler : IUnbackloggableEventObserver<TSource>
+    private class SourceEventHandler : IBacklogBackedEventObserver<TSource>
     {
         private readonly WithEvent<TSource, TWith> _condition;
 
@@ -131,7 +131,7 @@ internal class WithEvent<TSource, TWith> : Event<(TSource, TWith)>
             _condition.EvaluateSource(emissionBacklog, eventData);
     }
 
-    private class WithEventHandler : IUnbackloggableEventObserver<TWith>
+    private class WithEventHandler : IBacklogBackedEventObserver<TWith>
     {
         private readonly WithEvent<TSource, TWith> _condition;
 
