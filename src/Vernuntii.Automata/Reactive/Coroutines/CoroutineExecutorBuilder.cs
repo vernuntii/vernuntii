@@ -1,5 +1,5 @@
 ﻿using System.Collections.Immutable;
-using Vernuntii.Reactive.Coroutines.Steps;
+using Vernuntii.Reactive.Coroutines.Stepping;
 
 namespace Vernuntii.Reactive.Coroutines;
 

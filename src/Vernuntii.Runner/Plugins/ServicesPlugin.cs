@@ -57,7 +57,7 @@ namespace Vernuntii.Plugins
         /// <inheritdoc/>
         protected override void OnExecution()
         {
-            // We only want once create the global service provider
+            // We only want to create the global service provider once
             Events.OneTime(LifecycleEvents.BeforeEveryRun)
                 .And(ServicesEvents.CreateServiceProvider)
                 .Subscribe(OnCreateServiceProvider);

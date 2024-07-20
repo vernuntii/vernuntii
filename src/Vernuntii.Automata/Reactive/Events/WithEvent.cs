@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Vernuntii.Reactive.Events;
+﻿namespace Vernuntii.Reactive.Events;
 
 /// <summary>
 /// Every <typeparamref name="TSource"/> and <typeparamref name="TWith"/> event are getting queued.

@@ -1,4 +1,4 @@
-﻿//namespace Vernuntii.Reactive.Coroutines.Steps;
+﻿//namespace Vernuntii.Reactive.Coroutines.Stepping;
 
 //internal class TryStep : ITryStep, ICatchStep
 //{

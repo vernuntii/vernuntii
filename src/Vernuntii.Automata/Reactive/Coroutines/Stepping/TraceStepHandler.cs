@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
 
-namespace Vernuntii.Reactive.Coroutines.Steps;
+namespace Vernuntii.Reactive.Coroutines.Stepping;
 
-internal class TraceEventStepHandler : IStepHandler
+internal class TraceStepHandler : IStepHandler
 {
-    public readonly static StepHandlerId HandlerId = new StepHandlerId(typeof(TraceEventStepHandler));
+    public readonly static StepHandlerId HandlerId = new StepHandlerId(typeof(TraceStepHandler));
 
     private ConcurrentDictionary<int, IEventConnection> _connections = new();
     private int _traceCounter;

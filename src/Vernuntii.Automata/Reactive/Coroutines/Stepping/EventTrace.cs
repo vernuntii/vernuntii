@@ -1,6 +1,6 @@
-﻿namespace Vernuntii.Reactive.Coroutines.Steps;
+﻿namespace Vernuntii.Reactive.Coroutines.Stepping;
 
-public record EventTrace<T>() : IEventTrace
+public sealed record EventTrace<T>() : IEventTrace
 {
     public int Id {
         get => _id.Value;

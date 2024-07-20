@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Vernuntii.Reactive.Coroutines.Steps;
+namespace Vernuntii.Reactive.Coroutines.Stepping;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public readonly struct StepHandlerId

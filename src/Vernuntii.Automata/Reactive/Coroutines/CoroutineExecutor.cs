@@ -1,8 +1,9 @@
-﻿using Vernuntii.Reactive.Coroutines.Steps;
+﻿using Vernuntii.Reactive.Coroutines.Stepping;
 
 namespace Vernuntii.Reactive.Coroutines;
 
 public delegate IAsyncEnumerable<IStep> CoroutineDefinition();
+public delegate Coroutine CoroutineFactory();
 
 internal class CoroutineExecutor : ICoroutineExecutor
 {
@@ -33,6 +34,42 @@ internal class CoroutineExecutor : ICoroutineExecutor
                 await stepStore.HandleAsync(step);
             }
         });
+
+        var coroutineLifetime = new CoroutineLifetime() {
+            CancellationTokenSource = scopedCancellationTokenSource,
+            Coroutines = new List<Task>() { coroutine }
+        };
+
+        _coroutineLifetimes.Add(coroutineLifetime);
+    }
+
+    public void Start(CoroutineFactory coroutineFactory, CancellationToken cancellationToken = default)
+    {
+        var scopedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken, cancellationToken);
+        var scopedCancellationToken = scopedCancellationTokenSource.Token;
+
+        var coroutine = Task.Run(async () => {
+
+            CoroutineMethodBuilder.CoroutineSite site;
+
+            while (true) {
+                if (Interlocked.CompareExchange(ref CoroutineMethodBuilder.s_locker, 1, 0) == 0) {
+                    CoroutineMethodBuilder.s_site = site = new();
+                    _ = coroutineFactory();
+                    break;
+                }
+            }
+
+            await foreach (var stepCompletionHandler in site.IncomingStepChannel.Reader.ReadAllAsync(cancellationToken)) {
+                var step = stepCompletionHandler.Step;
+                if (!_steps.TryGetValue(step.HandlerId, out var stepStore)) {
+                    throw new KeyNotFoundException();
+                }
+
+                await stepStore.HandleAsync(step).ConfigureAwait(false);
+                stepCompletionHandler.CompleteStep();
+            }
+        }, cancellationToken);
 
         var coroutineLifetime = new CoroutineLifetime() {
             CancellationTokenSource = scopedCancellationTokenSource,

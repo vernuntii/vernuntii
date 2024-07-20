@@ -1,4 +1,4 @@
-﻿namespace Vernuntii.Reactive.Coroutines.Steps;
+﻿namespace Vernuntii.Reactive.Coroutines.Stepping;
 
 public static class EventSteps
 {
@@ -6,7 +6,7 @@ public static class EventSteps
     {
         eventTrace = new EventTrace<T>();
         var eventConnector = new EventConnector<T>(eventTrace, observableEvent);
-        return new TraceEventStep<T>(eventTrace, eventConnector);
+        return new TraceStep<T>(eventTrace, eventConnector);
     }
 
     /// <summary>
@@ -22,6 +22,6 @@ public static class EventSteps
     {
         var typedEmission = new YieldResult<T>();
         emission = typedEmission;
-        return new TakeEventStep<T>(trace, typedEmission);
+        return new TakeStep<T>(trace, typedEmission);
     }
 }

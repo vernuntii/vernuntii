@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Vernuntii.Reactive.Broker;
+﻿namespace Vernuntii.Reactive.Broker;
 
 public class EventChainTemplate<T>
 {

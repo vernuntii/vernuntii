@@ -9,5 +9,4 @@ internal class DelegatingEventEmitter<T> : IEventEmitter<T>
 
     public Task EmitAsync(T eventData) =>
         _eventHandler(eventData);
-
 }

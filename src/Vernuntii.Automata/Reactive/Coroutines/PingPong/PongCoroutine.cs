@@ -1,6 +1,6 @@
 ﻿using Vernuntii.Reactive.Broker;
-using Vernuntii.Reactive.Coroutines.Steps;
-using static Vernuntii.Reactive.Coroutines.Steps.EventSteps;
+using Vernuntii.Reactive.Coroutines.Stepping;
+using static Vernuntii.Reactive.Coroutines.Stepping.EventSteps;
 
 namespace Vernuntii.Reactive.Coroutines.PingPong;
 
