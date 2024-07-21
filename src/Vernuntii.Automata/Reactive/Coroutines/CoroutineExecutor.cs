@@ -1,18 +1,18 @@
-﻿using Vernuntii.Reactive.Coroutines.Stepping;
+﻿using Vernuntii.Reactive.Coroutines.AsyncEffects;
 
 namespace Vernuntii.Reactive.Coroutines;
 
-public delegate IAsyncEnumerable<IStep> CoroutineDefinition();
+public delegate IAsyncEnumerable<IEffect> CoroutineDefinition();
 public delegate Coroutine CoroutineFactory();
 
 internal class CoroutineExecutor : ICoroutineExecutor
 {
-    private readonly IReadOnlyDictionary<StepHandlerId, IStepStore> _steps;
+    private readonly IReadOnlyDictionary<EffectHandlerId, IEffectStore> _steps;
     private CancellationTokenSource _cancellationTokenSource;
     private CancellationToken _cancellationToken;
     private List<CoroutineLifetime> _coroutineLifetimes;
 
-    internal CoroutineExecutor(IReadOnlyDictionary<StepHandlerId, IStepStore> steps)
+    internal CoroutineExecutor(IReadOnlyDictionary<EffectHandlerId, IEffectStore> steps)
     {
         _cancellationTokenSource = new CancellationTokenSource();
         _cancellationToken = _cancellationTokenSource.Token;
@@ -61,13 +61,13 @@ internal class CoroutineExecutor : ICoroutineExecutor
             }
 
             await foreach (var stepCompletionHandler in site.IncomingStepChannel.Reader.ReadAllAsync(cancellationToken)) {
-                var step = stepCompletionHandler.Step;
+                var step = stepCompletionHandler.Effect;
                 if (!_steps.TryGetValue(step.HandlerId, out var stepStore)) {
                     throw new KeyNotFoundException();
                 }
 
                 await stepStore.HandleAsync(step).ConfigureAwait(false);
-                stepCompletionHandler.CompleteStep();
+                stepCompletionHandler.CompleteEffect();
             }
         }, cancellationToken);
 

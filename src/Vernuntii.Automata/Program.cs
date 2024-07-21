@@ -2,7 +2,7 @@
 using Vernuntii.Reactive.Coroutines;
 using Vernuntii.Reactive.Coroutines.Impl.PingPong;
 using Vernuntii.Reactive.Coroutines.PingPong;
-using Vernuntii.Reactive.Coroutines.Stepping;
+using Vernuntii.Reactive.Coroutines.AsyncEffects;
 
 internal class Program
 {
@@ -24,7 +24,7 @@ internal class Program
         //}
 
         var coroutineExecutor = new CoroutineExecutorBuilder()
-            .AddStepStore(new EventStepStore())
+            .AddStepStore(new EffectStore())
             .Build();
 
         coroutineExecutor.Start(new PongingCoroutine(eventBroker).PongWhenPinged);

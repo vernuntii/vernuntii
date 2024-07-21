@@ -1,5 +1,5 @@
 ﻿using System.Threading.Channels;
-using Vernuntii.Reactive.Coroutines.Stepping;
+using Vernuntii.Reactive.Coroutines.AsyncEffects;
 
 namespace Vernuntii.Reactive.Coroutines;
 

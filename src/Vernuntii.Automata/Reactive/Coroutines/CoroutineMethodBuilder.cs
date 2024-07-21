@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.Design;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
-using Vernuntii.Reactive.Coroutines.Stepping;
+using Vernuntii.Reactive.Coroutines.AsyncEffects;
 
 namespace Vernuntii.Reactive.Coroutines;
 
@@ -60,7 +60,7 @@ public struct CoroutineMethodBuilder
         var site = m_site;
 
         if (site != null) {
-            if (awaiter is IStepCompletionHandler stepAcceptor) {
+            if (awaiter is IEffectCompletionHandler stepAcceptor) {
                 m_site.IncomingStepChannel.Writer.TryWrite(stepAcceptor);
 
                 //var continuationCollector = new ContinuationCollector();
@@ -123,7 +123,7 @@ public struct CoroutineMethodBuilder
 
     public class CoroutineSite
     {
-        internal Channel<IStepCompletionHandler> IncomingStepChannel = Channel.CreateUnbounded<IStepCompletionHandler>();
+        internal Channel<IEffectCompletionHandler> IncomingStepChannel = Channel.CreateUnbounded<IEffectCompletionHandler>();
     }
 }
 
