@@ -19,17 +19,45 @@ internal partial class PongingCoroutine
         while (true) {
             var pinged = await Take(pingedTrace);
 
-
-            var test = await Call(() => Task.FromResult(1));
-
-            var test = await All(new {
-                first = Task.FromResult(1),
+            var test = await All<Goofy>(new {
+                first = Task.FromResult(""),
                 second = Take(pingedTrace)
-            }, Goofy);
+            });
 
+            var blubb = await All<Goofy>(new {
+                first = Task.FromResult(""),
+                second = Take(pingedTrace)
+            });
 
             Console.WriteLine(pinged);
             await _eventBroker.EmitAsync(Ponged, new Pong(pinged.Counter)).ConfigureAwait(false);
+        }
+    }
+}
+
+partial interface IBlub
+{
+    partial class Hahaha
+    {
+        partial record blubb
+        {
+            partial struct test
+            {
+                partial class Test
+                {
+                    public async Coroutine PongWhenPinged()
+                    {
+                        while (true) {
+                            var test = await All<Goofy>(new {
+                                first = Call(() => Task.FromResult(1)),
+                                second = "hello"
+                            });
+
+                            var test2 = test.first;
+                        }
+                    }
+                }
+            }
         }
     }
 }

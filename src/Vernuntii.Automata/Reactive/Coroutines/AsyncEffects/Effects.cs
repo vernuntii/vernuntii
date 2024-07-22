@@ -24,12 +24,13 @@ internal static class Effects
         return new TakeEffect<T>(trace, emission);
     }
 
-    public static IEffectCompletionAwaiterProvider<AllEffectCompletionAwaiter<T>> All<T>(object work, T workContext)
+    public static IEffectCompletionAwaiterProvider<AllEffectCompletionAwaiter<T>> All<T>(object work)
+        where T : new()
     {
         return null!;
     }
 
-    public static IEffectCompletionAwaiterProvider<AllEffectCompletionAwaiter<T>> Call<T>(Func<Task<T>> work)
+    public static IEffectCompletionAwaiterProvider<CallEffectCompletionAwaiter<T>> Call<T>(Func<Task<T>> work)
     {
         return null!;
     }
