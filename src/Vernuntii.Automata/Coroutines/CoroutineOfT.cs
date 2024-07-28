@@ -25,7 +25,7 @@ public unsafe struct Coroutine<T>(in ValueTask<T> task, in AsyncCoroutineMethodB
             _task.ConfigureAwait(continueOnCapturedContext),
             _builder);
 
-    public struct CoroutineAwaiter(in ValueTaskAwaiter<T> awaiter, in AsyncCoroutineMethodBuilder<T>* builder) : ICriticalNotifyCompletion, ICoroutineAwaiter
+    public struct CoroutineAwaiter(in ValueTaskAwaiter<T> awaiter, in AsyncCoroutineMethodBuilder<T>* builder) : ICriticalNotifyCompletion, ICoroutineInvocationAwaiter
     {
         private readonly ValueTaskAwaiter<T> _awaiter = awaiter;
         private readonly AsyncCoroutineMethodBuilder<T>* _builder = builder;
@@ -69,12 +69,14 @@ public unsafe struct ConfiguredAwaitableCoroutine<T>(in ConfiguredValueTaskAwait
 
     public struct ConfiguredCoroutineAwaiter(
         in ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter awaiter,
-        in AsyncCoroutineMethodBuilder<T>* builder) : ICriticalNotifyCompletion, ICoroutineAwaiter
+        in AsyncCoroutineMethodBuilder<T>* builder) : ICriticalNotifyCompletion, ICoroutineInvocationAwaiter
     {
+        public readonly bool IsCompleted => _awaiter.IsCompleted;
+
         private readonly ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter _awaiter = awaiter;
         private readonly AsyncCoroutineMethodBuilder<T>* _builder = builder;
 
-        public readonly bool IsCompleted => _awaiter.IsCompleted;
+        bool ICoroutineInvocationAwaiter.IsChildCoroutine => true;
 
         internal void StartStateMachine()
         {

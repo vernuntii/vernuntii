@@ -58,7 +58,7 @@ public struct AsyncCoroutineMethodBuilder
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
-        AsyncCoroutineMethodBuilderCore.StartChildCoroutine(ref awaiter, _argument);
+        AsyncCoroutineMethodBuilderCore.ProcessAwaiterBeforeAwaitingOnCompleted(ref awaiter, ref _argument);
         _builder.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
     }
 

@@ -18,19 +18,22 @@ public unsafe struct Coroutine(in ValueTask task, in AsyncCoroutineMethodBuilder
         _builder->SetArgument(argument);
     }
 
-    public CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder);
+    public CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, isChildCoroutine: true);
 
     public ConfiguredAwaitableCoroutine ConfigureAwait(bool continueOnCapturedContext) =>
         new ConfiguredAwaitableCoroutine(
             _task.ConfigureAwait(continueOnCapturedContext),
             _builder);
 
-    public struct CoroutineAwaiter(in ValueTaskAwaiter awaiter, in AsyncCoroutineMethodBuilder* builder) : ICriticalNotifyCompletion, ICoroutineAwaiter
+    public readonly struct CoroutineAwaiter(in ValueTaskAwaiter awaiter, in AsyncCoroutineMethodBuilder* builder, bool isChildCoroutine) : ICriticalNotifyCompletion, ICoroutineInvocationAwaiter
     {
+        public readonly bool IsCompleted => _awaiter.IsCompleted;
+
         private readonly ValueTaskAwaiter _awaiter = awaiter;
         private readonly AsyncCoroutineMethodBuilder* _builder = builder;
+        private readonly bool _isChildCoroutine = isChildCoroutine;
 
-        public readonly bool IsCompleted => _awaiter.IsCompleted;
+        readonly bool ICoroutineInvocationAwaiter.IsChildCoroutine => _isChildCoroutine;
 
         internal void StartStateMachine()
         {
@@ -50,7 +53,7 @@ public unsafe struct Coroutine(in ValueTask task, in AsyncCoroutineMethodBuilder
     }
 }
 
-public unsafe struct ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable task, in AsyncCoroutineMethodBuilder* builder)
+public unsafe readonly struct ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable task, in AsyncCoroutineMethodBuilder* builder)
 {
     private readonly ConfiguredValueTaskAwaitable _task = task;
     private readonly AsyncCoroutineMethodBuilder* _builder = builder;
@@ -67,14 +70,14 @@ public unsafe struct ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitabl
 
     public ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder);
 
-    public struct ConfiguredCoroutineAwaiter(
+    public readonly struct ConfiguredCoroutineAwaiter(
         in ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter awaiter,
-        in AsyncCoroutineMethodBuilder* builder) : ICriticalNotifyCompletion, ICoroutineAwaiter
+        in AsyncCoroutineMethodBuilder* builder) : ICriticalNotifyCompletion, ICoroutineInvocationAwaiter
     {
+        public readonly bool IsCompleted => _awaiter.IsCompleted;
+
         private readonly ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter _awaiter = awaiter;
         private readonly AsyncCoroutineMethodBuilder* _builder = builder;
-
-        public readonly bool IsCompleted => _awaiter.IsCompleted;
 
         internal void StartStateMachine()
         {

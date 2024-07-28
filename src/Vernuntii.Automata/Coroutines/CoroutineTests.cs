@@ -58,10 +58,10 @@ public static class CoroutineTests
     {
         Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
         Console.WriteLine($"{nameof(CO1)} before");
-        await Task.Delay(500).ConfigureAwait(false);
+        await Task.Delay(100).ConfigureAwait(false);
         await Task.Yield();
         await CO2();
-        await Task.Delay(500).ConfigureAwait(false);
+        await Task.Delay(100).ConfigureAwait(false);
         Console.WriteLine($"{nameof(CO1)} after");
         Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
         return 500;
@@ -70,20 +70,25 @@ public static class CoroutineTests
         {
             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
             Console.WriteLine($"{nameof(CO2)} before");
-            await Task.Delay(500).ConfigureAwait(false);
+            await Task.Delay(100).ConfigureAwait(false);
             await Task.Yield();
             await CO3();
-            await Task.Delay(500).ConfigureAwait(false);
-            Console.WriteLine($"{nameof(CO3)} after");
+            await Task.Delay(100).ConfigureAwait(false);
+            Console.WriteLine($"{nameof(CO2)} after");
             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
 
             async Coroutine CO3()
             {
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
                 Console.WriteLine($"{nameof(CO3)} before");
-                await Task.Delay(500).ConfigureAwait(false);
-                await Task.Yield();
-                await Task.Delay(500).ConfigureAwait(false);
+                await Task.Delay(100).ConfigureAwait(false);
+                Task.Yield();
+                var t = await new CoroutineInvocation<int>(ValueTask.FromResult(2), test);
+                void test(in CoroutineInvocationArgumentReceiver argumentReceiver)
+                {
+                    ;
+                }
+                await Task.Delay(100).ConfigureAwait(false);
                 Console.WriteLine($"{nameof(CO3)} after");
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
             }
