@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.Design;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Vernuntii.Reactive.Coroutines.AsyncEffects;
 

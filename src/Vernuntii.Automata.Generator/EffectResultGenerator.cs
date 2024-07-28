@@ -103,10 +103,10 @@ public class EffectResultGenerator : IIncrementalGenerator
                 """));
 
             var allEffectResultClass = $$"""
-                    public class {{workClass}} : Vernuntii.Reactive.Coroutines.AsyncEffects.IAllEffectResult {
-                        private readonly static AllEffectResultProperty[] s_properties = new AllEffectResultProperty[] { {{metaProperties}} };
+                    public class {{workClass}} : global::Vernuntii.Reactive.Coroutines.AsyncEffects.IAllEffectResult {
+                        //private readonly static AllEffectResultProperty[] s_properties = new AllEffectResultProperty[] { {{metaProperties}} };
                     
-                        AllEffectResultProperty[] IAllEffectResult.FirstLevelProperties => s_properties;
+                        //AllEffectResultProperty[] Vernuntii.Reactive.Coroutines.AsyncEffects.IAllEffectResult.FirstLevelProperties => s_properties;
                     
                     {{allEffectResultClassProperties}}
                     }

@@ -1,9 +1,8 @@
 ﻿namespace Vernuntii.Reactive.Events;
 
 /// <summary>
-/// Once every <typeparamref name="TWhenever"/> event, the <typeparamref name="TResubscribe"/>
-/// event gets subscribed or the existing subscriptions renewed. After new or renewed subscription,
-/// every new <typeparamref name="TResubscribe"/> event gets emitted.
+/// Once every <typeparamref name="TWhenever"/> event, the <typeparamref name="TResubscribe"/> event gets subscribed or the existing subscriptions renewed.
+/// Then every new <typeparamref name="TResubscribe"/> event and its correlating <typeparamref name="TWhenever"/> event are getting emitted.
 /// </summary>
 /// <typeparam name="TWhenever"></typeparam>
 /// <typeparam name="TResubscribe"></typeparam>

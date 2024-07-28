@@ -2,7 +2,7 @@
 
 public interface IAllEffectResult
 {
-    AllEffectResultProperty[] FirstLevelProperties { get; }
+    //AllEffectResultProperty[] FirstLevelProperties { get; }
 }
 
 public class AllEffectResultProperty(string propertyName, bool isAwaitable)
