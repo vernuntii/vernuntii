@@ -13,9 +13,9 @@ public unsafe struct Coroutine<T>(in ValueTask<T> task, in AsyncCoroutineMethodB
         _builder->Start();
     }
 
-    internal void PropagateCoroutineArgument(in int argument)
+    internal void PropagateCoroutineScope(in CoroutineScope coroutineScope)
     {
-        _builder->SetArgument(argument);
+        _builder->SetArgument(coroutineScope);
     }
 
     public CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder);
@@ -37,9 +37,9 @@ public unsafe struct Coroutine<T>(in ValueTask<T> task, in AsyncCoroutineMethodB
             _builder->Start();
         }
 
-        internal void PropagateCoroutineArgument(in int argument)
+        internal void PropagateCoroutineScope(in CoroutineScope coroutineScope)
         {
-            _builder->SetArgument(argument);
+            _builder->SetArgument(coroutineScope);
         }
 
         public T GetResult() => _awaiter.GetResult();
@@ -60,9 +60,9 @@ public unsafe struct ConfiguredAwaitableCoroutine<T>(in ConfiguredValueTaskAwait
         _builder->Start();
     }
 
-    internal void PropagateCoroutineArgument(in int argument)
+    internal void PropagateCoroutineScope(in CoroutineScope coroutineScope)
     {
-        _builder->SetArgument(argument);
+        _builder->SetArgument(coroutineScope);
     }
 
     public ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder);
@@ -83,9 +83,9 @@ public unsafe struct ConfiguredAwaitableCoroutine<T>(in ConfiguredValueTaskAwait
             _builder->Start();
         }
 
-        internal void PropagateCoroutineArgument(in int argument)
+        internal void PropagateCoroutineScope(in CoroutineScope coroutineScope)
         {
-            _builder->SetArgument(argument);
+            _builder->SetArgument(coroutineScope);
         }
 
         public T GetResult() => _awaiter.GetResult();

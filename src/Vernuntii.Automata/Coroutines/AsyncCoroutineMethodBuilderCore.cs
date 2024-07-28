@@ -4,33 +4,30 @@ namespace Vernuntii.Coroutines;
 
 internal static class AsyncCoroutineMethodBuilderCore
 {
-    public static bool IsBoxed<T>(ref T value)
-    {
-        return
-            (typeof(T).IsInterface || typeof(T) == typeof(object)) &&
-            value != null &&
-            value.GetType().IsValueType;
-    }
-
     internal static bool IsFailingToHandleCoroutineInvocation<TCoroutineAwaiter>(
         ref TCoroutineAwaiter coroutineAwaiter,
-        in int argument) where TCoroutineAwaiter : ICoroutineInvocationAwaiter
+        in CoroutineScope coroutineScope) where TCoroutineAwaiter : ICoroutineInvocationAwaiter
     {
         if (coroutineAwaiter.IsChildCoroutine) {
             return true;
         }
 
         var coroutineInvocationAwaiter = Unsafe.As<TCoroutineAwaiter, CoroutineInvocation.CoroutineInvocationAwaiter>(ref coroutineAwaiter);
-        return true;
+
+        if (coroutineInvocationAwaiter.ArgumentReceiverAcceptor is not null) {
+            coroutineScope.HandleCoroutineInvocation(coroutineInvocationAwaiter.ArgumentReceiverAcceptor);
+        }
+
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    internal static void ProcessAwaiterBeforeAwaitingOnCompleted<TAwaiter>(ref TAwaiter awaiter, in int argument)
+    internal static void ProcessAwaiterBeforeAwaitingOnCompleted<TAwaiter>(ref TAwaiter awaiter, in CoroutineScope coroutineScope)
     {
         if (default(TAwaiter) != null && awaiter is ICoroutineInvocationAwaiter) {
             var coroutineAwaiter = Unsafe.As<TAwaiter, Coroutine.CoroutineAwaiter>(ref awaiter);
-            if (IsFailingToHandleCoroutineInvocation(ref coroutineAwaiter, argument)) {
-                coroutineAwaiter.PropagateCoroutineArgument(argument);
+            if (IsFailingToHandleCoroutineInvocation(ref coroutineAwaiter, coroutineScope)) {
+                coroutineAwaiter.PropagateCoroutineScope(coroutineScope);
                 coroutineAwaiter.StartStateMachine();
             }
         }

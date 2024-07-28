@@ -19,7 +19,7 @@ public struct AsyncCoroutineMethodBuilder<T>
 
     private PoolingAsyncValueTaskMethodBuilder<T> _builder; // Must not be readonly due to mutable struct
     internal unsafe Action? _stateMachineInitiator;
-    private int _argument;
+    private CoroutineScope _coroutineScpoe;
 
     public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
@@ -33,9 +33,9 @@ public struct AsyncCoroutineMethodBuilder<T>
         _stateMachineInitiator = null;
     }
 
-    public void SetArgument(in int argument)
+    public void SetArgument(in CoroutineScope coroutineScope)
     {
-        _argument = argument;
+        _coroutineScpoe = coroutineScope;
     }
 
     public void SetException(Exception e) => _builder.SetException(e);
@@ -58,7 +58,7 @@ public struct AsyncCoroutineMethodBuilder<T>
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
-        AsyncCoroutineMethodBuilderCore.ProcessAwaiterBeforeAwaitingOnCompleted(ref awaiter, _argument);
+        AsyncCoroutineMethodBuilderCore.ProcessAwaiterBeforeAwaitingOnCompleted(ref awaiter, _coroutineScpoe);
         _builder.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
     }
 

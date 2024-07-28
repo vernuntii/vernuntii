@@ -4,7 +4,9 @@ namespace Vernuntii.Coroutines;
 
 public readonly struct CoroutineInvocationArgumentReceiver()
 {
-    void ReceiveCoroutineInvocationArgument<T>() { }
+    public void ReceiveArgument<T>(T argument) {
+        ;
+    }
 }
 
 public delegate void CoroutineInvocationArgumentReceiverAcceptor(in CoroutineInvocationArgumentReceiver argumentReceiver);
