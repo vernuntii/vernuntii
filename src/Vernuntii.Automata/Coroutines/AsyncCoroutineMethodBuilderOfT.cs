@@ -2,22 +2,22 @@
 
 namespace Vernuntii.Coroutines;
 
-public struct AsyncCoroutineMethodBuilder
+public struct AsyncCoroutineMethodBuilder<T>
 {
-    public static AsyncCoroutineMethodBuilder Create()
+    public static AsyncCoroutineMethodBuilder<T> Create()
     {
-        return new AsyncCoroutineMethodBuilder();
+        return new AsyncCoroutineMethodBuilder<T>();
     }
 
-    public unsafe Coroutine Task {
+    public unsafe Coroutine<T> Task {
         get {
-            fixed (AsyncCoroutineMethodBuilder* builder = &this) {
-                return new Coroutine(_builder.Task, builder);
+            fixed (AsyncCoroutineMethodBuilder<T>* builder = &this) {
+                return new Coroutine<T>(_builder.Task, builder);
             }
         }
     }
 
-    private PoolingAsyncValueTaskMethodBuilder _builder; // Must not be readonly due to mutable struct
+    private PoolingAsyncValueTaskMethodBuilder<T> _builder; // Must not be readonly due to mutable struct
     internal unsafe Action? _stateMachineInitiator;
     private int _argument;
 
@@ -40,9 +40,9 @@ public struct AsyncCoroutineMethodBuilder
 
     public void SetException(Exception e) => _builder.SetException(e);
 
-    public void SetResult()
+    public void SetResult(T result)
     {
-        _builder.SetResult();
+        _builder.SetResult(result);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

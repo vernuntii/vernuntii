@@ -46,7 +46,7 @@ public static class CoroutineTests
             var task = CO1(1000);
             task.PropagateCoroutineArgument(266);
             task.StartStateMachine();
-            await task;
+            Console.WriteLine(await task);
         });
 
         //// Complete the synchronization context work
@@ -54,7 +54,7 @@ public static class CoroutineTests
         //thread.Join();
     }
 
-    static async Coroutine CO1(int number)
+    static async Coroutine<int> CO1(int number)
     {
         Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
         Console.WriteLine($"{nameof(CO1)} before");
@@ -64,6 +64,7 @@ public static class CoroutineTests
         await Task.Delay(500).ConfigureAwait(false);
         Console.WriteLine($"{nameof(CO1)} after");
         Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+        return 500;
 
         async Coroutine CO2()
         {
