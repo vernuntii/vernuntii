@@ -3,43 +3,65 @@
 namespace Vernuntii.Coroutines;
 
 [AsyncMethodBuilder(typeof(AsyncCoroutineMethodBuilder<>))]
-public unsafe struct Coroutine<T>(in ValueTask<T> task, in AsyncCoroutineMethodBuilder<T>* builder)
+public unsafe struct Coroutine<T>
 {
-    private readonly ValueTask<T> _task = task;
-    private readonly AsyncCoroutineMethodBuilder<T>* _builder = builder;
+    private readonly ValueTask<T> _task;
+    private readonly AsyncCoroutineMethodBuilder<T>* _builder;
+    private readonly CoroutineArgumentReceiverAcceptor? _argumentReceiverAcceptor;
+
+    public Coroutine(in ValueTask<T> task, CoroutineArgumentReceiverAcceptor argumentReceiverAcceptor)
+    {
+        _task = task;
+        _argumentReceiverAcceptor = argumentReceiverAcceptor;
+    }
+
+    internal Coroutine(in ValueTask<T> task, in AsyncCoroutineMethodBuilder<T>* builder)
+    {
+        _task = task;
+        _builder = builder;
+    }
+
+    internal void PropagateCoroutineContext(in CoroutineContext coroutineContext)
+    {
+        _builder->SetArgument(coroutineContext);
+    }
 
     internal void StartStateMachine()
     {
         _builder->Start();
     }
 
-    internal void PropagateCoroutineScope(in CoroutineScope coroutineScope)
+    public readonly CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverAcceptor);
+
+    public readonly ConfiguredAwaitableCoroutine<T> ConfigureAwait(bool continueOnCapturedContext) =>
+        new ConfiguredAwaitableCoroutine<T>(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverAcceptor);
+
+    public struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
     {
-        _builder->SetArgument(coroutineScope);
-    }
-
-    public CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder);
-
-    public ConfiguredAwaitableCoroutine<T> ConfigureAwait(bool continueOnCapturedContext) =>
-        new ConfiguredAwaitableCoroutine<T>(
-            _task.ConfigureAwait(continueOnCapturedContext),
-            _builder);
-
-    public struct CoroutineAwaiter(in ValueTaskAwaiter<T> awaiter, in AsyncCoroutineMethodBuilder<T>* builder) : ICriticalNotifyCompletion, ICoroutineInvocationAwaiter
-    {
-        private readonly ValueTaskAwaiter<T> _awaiter = awaiter;
-        private readonly AsyncCoroutineMethodBuilder<T>* _builder = builder;
-
         public readonly bool IsCompleted => _awaiter.IsCompleted;
+
+        private readonly ValueTaskAwaiter<T> _awaiter;
+        private readonly AsyncCoroutineMethodBuilder<T>* _builder;
+        private readonly CoroutineArgumentReceiverAcceptor? _argumentReceiverAcceptor;
+
+        readonly bool ICoroutineAwaiter.IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
+        readonly CoroutineArgumentReceiverAcceptor? ICoroutineAwaiter.ArgumentReceiverAcceptor => _argumentReceiverAcceptor;
+
+        internal CoroutineAwaiter(in ValueTaskAwaiter<T> awaiter, in AsyncCoroutineMethodBuilder<T>* builder, CoroutineArgumentReceiverAcceptor? argumentReceiverAcceptor)
+        {
+            _awaiter = awaiter;
+            _builder = builder;
+            _argumentReceiverAcceptor = argumentReceiverAcceptor;
+        }
+
+        internal void PropagateCoroutineContext(in CoroutineContext coroutineContext)
+        {
+            _builder->SetArgument(coroutineContext);
+        }
 
         internal void StartStateMachine()
         {
             _builder->Start();
-        }
-
-        internal void PropagateCoroutineScope(in CoroutineScope coroutineScope)
-        {
-            _builder->SetArgument(coroutineScope);
         }
 
         public T GetResult() => _awaiter.GetResult();
@@ -50,42 +72,60 @@ public unsafe struct Coroutine<T>(in ValueTask<T> task, in AsyncCoroutineMethodB
     }
 }
 
-public unsafe struct ConfiguredAwaitableCoroutine<T>(in ConfiguredValueTaskAwaitable<T> task, in AsyncCoroutineMethodBuilder<T>* builder)
+public readonly unsafe struct ConfiguredAwaitableCoroutine<T>
 {
-    private readonly ConfiguredValueTaskAwaitable<T> _task = task;
-    private readonly AsyncCoroutineMethodBuilder<T>* _builder = builder;
+    private readonly ConfiguredValueTaskAwaitable<T> _task;
+    private readonly AsyncCoroutineMethodBuilder<T>* _builder;
+    private readonly CoroutineArgumentReceiverAcceptor? _argumentReceiverAcceptor;
+
+    internal ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable<T> task, in AsyncCoroutineMethodBuilder<T>* builder, CoroutineArgumentReceiverAcceptor? argumentReceiverAcceptor)
+    {
+        _task = task;
+        _builder = builder;
+        _argumentReceiverAcceptor = argumentReceiverAcceptor;
+    }
+
+    internal void PropagateCoroutineContext(in CoroutineContext coroutineContext)
+    {
+        _builder->SetArgument(coroutineContext);
+    }
 
     internal void StartStateMachine()
     {
         _builder->Start();
     }
 
-    internal void PropagateCoroutineScope(in CoroutineScope coroutineScope)
-    {
-        _builder->SetArgument(coroutineScope);
-    }
+    public readonly ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverAcceptor);
 
-    public ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder);
-
-    public struct ConfiguredCoroutineAwaiter(
-        in ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter awaiter,
-        in AsyncCoroutineMethodBuilder<T>* builder) : ICriticalNotifyCompletion, ICoroutineInvocationAwaiter
+    public readonly struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
     {
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-        private readonly ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter _awaiter = awaiter;
-        private readonly AsyncCoroutineMethodBuilder<T>* _builder = builder;
+        private readonly ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter _awaiter;
+        private readonly AsyncCoroutineMethodBuilder<T>* _builder;
+        private readonly CoroutineArgumentReceiverAcceptor? _argumentReceiverAcceptor;
 
-        bool ICoroutineInvocationAwaiter.IsChildCoroutine => true;
+        readonly bool ICoroutineAwaiter.IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
+        readonly CoroutineArgumentReceiverAcceptor? ICoroutineAwaiter.ArgumentReceiverAcceptor => _argumentReceiverAcceptor;
+
+        public ConfiguredCoroutineAwaiter(
+            in ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter awaiter,
+            in AsyncCoroutineMethodBuilder<T>* builder,
+            CoroutineArgumentReceiverAcceptor? argumentReceiverAcceptor)
+        {
+            _awaiter = awaiter;
+            _builder = builder;
+            _argumentReceiverAcceptor = argumentReceiverAcceptor;
+        }
 
         internal void StartStateMachine()
         {
             _builder->Start();
         }
 
-        internal void PropagateCoroutineScope(in CoroutineScope coroutineScope)
+        internal void PropagateCoroutineContext(in CoroutineContext coroutineContext)
         {
-            _builder->SetArgument(coroutineScope);
+            _builder->SetArgument(coroutineContext);
         }
 
         public T GetResult() => _awaiter.GetResult();

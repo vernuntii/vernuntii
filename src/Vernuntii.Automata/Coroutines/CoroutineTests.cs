@@ -47,7 +47,7 @@ public static class CoroutineTests
         Run(async () => {
             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
             var task = CO1(1000);
-            task.PropagateCoroutineScope(new CoroutineScope());
+            task.PropagateCoroutineContext(new CoroutineContext());
             task.StartStateMachine();
             Console.WriteLine(await task);
             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
@@ -88,8 +88,12 @@ public static class CoroutineTests
                 await Task.Delay(waitTime).ConfigureAwait(false);
                 Task.Yield();
                 var t2 = new TaskCompletionSource<int>();
-                var t = await new CoroutineInvocation<int>(new ValueTask<int>(t2.Task), test);
-                void test(in CoroutineInvocationArgumentReceiver argumentReceiver)
+                Task.Run(async () => {
+                    await Task.Delay(100);
+                    t2.SetResult(2);
+                }, CancellationToken.None);
+                var t = await new Coroutine<int>(new ValueTask<int>(t2.Task), test);
+                void test(in CoroutineArgumentReceiver argumentReceiver)
                 {
                     argumentReceiver.ReceiveArgument("hello from coroutine");
                 }

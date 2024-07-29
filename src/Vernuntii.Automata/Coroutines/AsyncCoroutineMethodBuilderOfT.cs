@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -19,29 +20,36 @@ public struct AsyncCoroutineMethodBuilder<T>
 
     private PoolingAsyncValueTaskMethodBuilder<T> _builder; // Must not be readonly due to mutable struct
     internal unsafe Action? _stateMachineInitiator;
-    private CoroutineScope _coroutineScpoe;
+    private CoroutineContext _coroutineContext;
 
+    [DebuggerStepThrough]
     public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
     {
         _stateMachineInitiator = stateMachine.MoveNext;
     }
 
+    internal void SetArgument(in CoroutineContext coroutineContext)
+    {
+        _coroutineContext = coroutineContext;
+    }
+
     internal unsafe void Start()
     {
+        _coroutineContext.OnStartingCoroutine(ref _coroutineContext);
         _stateMachineInitiator?.Invoke();
         _stateMachineInitiator = null;
     }
 
-    public void SetArgument(in CoroutineScope coroutineScope)
+    public void SetException(Exception e)
     {
-        _coroutineScpoe = coroutineScope;
+        _coroutineContext.OnStoppingCoroutine();
+        _builder.SetException(e);
     }
-
-    public void SetException(Exception e) => _builder.SetException(e);
 
     public void SetResult(T result)
     {
+        _coroutineContext.OnStoppingCoroutine();
         _builder.SetResult(result);
     }
 
@@ -58,7 +66,7 @@ public struct AsyncCoroutineMethodBuilder<T>
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
-        AsyncCoroutineMethodBuilderCore.ProcessAwaiterBeforeAwaitingOnCompleted(ref awaiter, _coroutineScpoe);
+        AsyncCoroutineMethodBuilderCore.ProcessAwaiterBeforeAwaitingOnCompleted(ref awaiter, _coroutineContext);
         _builder.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
     }
 
