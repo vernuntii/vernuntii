@@ -1,42 +1,36 @@
 ﻿using System.Runtime.CompilerServices;
+using Collections.Pooled;
 
 namespace Vernuntii.Coroutines;
 
-internal sealed class CoroutineContext : IDisposable
+internal class CoroutineContext
 {
-    int _depth;
+    //private const int _defaultNodesCapacity = 4;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void OnStartingCoroutine(ref CoroutineContext coroutineContext)
+    //private PooledList<CoroutineContextStackNode> _nodes = new(_defaultNodesCapacity);
+    //private int _nodesCapacity;
+    private int _nodesCount;
+
+    internal int NodesCount => _nodesCount;
+
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+    //private void EnsureNodesCapacity()
+    //{
+    //    if (_nodesCount == _nodesCapacity) {
+    //        _nodes.Capacity = _nodesCapacity *= 2;
+    //    }
+    //}
+
+    public void AddNode(in CoroutineStackNode node)
     {
-        Interlocked.Increment(ref _depth);
+        //EnsureNodesCapacity();
+        _nodesCount++;
     }
 
-    internal void HandleCoroutineInvocation([NotNull] CoroutineArgumentReceiverAcceptor argumentReceiverAcceptor)
-    {
-        var argumentReceiver = new CoroutineArgumentReceiver();
-        argumentReceiverAcceptor.Invoke(argumentReceiver);
-    }
+    //public void Test()
+    //{
+    //    CollectionsMarshal.AsSpan(_nodes);
+    //}
 
-    private bool _disposedValue;
-
-    private void Dispose(bool disposing)
-    {
-        if (disposing) {
-
-        }
-    }
-
-    public void OnStoppingCoroutine()
-    {
-        if (Interlocked.Decrement(ref _depth) <= 0) {
-            Dispose(true);
-        }
-    }
-
-    void IDisposable.Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
+    //public struct CoroutineContextStackNode();
 }

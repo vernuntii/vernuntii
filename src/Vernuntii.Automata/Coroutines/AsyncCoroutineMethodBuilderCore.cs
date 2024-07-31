@@ -5,28 +5,28 @@ namespace Vernuntii.Coroutines;
 internal static class AsyncCoroutineMethodBuilderCore
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool IsFailingToHandleCoroutineInvocation<TCoroutineAwaiter>(
+    internal static bool IsFailingToHandleInlineCoroutine<TCoroutineAwaiter>(
         ref TCoroutineAwaiter coroutineAwaiter,
-        in CoroutineContext coroutineContext) where TCoroutineAwaiter : ICoroutineAwaiter
+        ref CoroutineStackNode coroutineNode) where TCoroutineAwaiter : ICoroutineAwaiter
     {
         if (coroutineAwaiter.IsChildCoroutine) {
             return true;
         }
 
         if (coroutineAwaiter.ArgumentReceiverAcceptor is not null) {
-            coroutineContext.HandleCoroutineInvocation(coroutineAwaiter.ArgumentReceiverAcceptor);
+            coroutineNode.HandleInlineCoroutine(coroutineAwaiter.ArgumentReceiverAcceptor);
         }
 
         return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    internal static void ProcessAwaiterBeforeAwaitingOnCompleted<TAwaiter>(ref TAwaiter awaiter, in CoroutineContext coroutineContext)
+    internal static void ProcessAwaiterBeforeAwaitingOnCompleted<TAwaiter>(ref TAwaiter awaiter, ref CoroutineStackNode coroutineNode)
     {
         if (default(TAwaiter) != null && awaiter is ICoroutineAwaiter) {
             var coroutineAwaiter = Unsafe.As<TAwaiter, Coroutine.CoroutineAwaiter>(ref awaiter);
-            if (IsFailingToHandleCoroutineInvocation(ref coroutineAwaiter, coroutineContext)) {
-                coroutineAwaiter.PropagateCoroutineContext(coroutineContext);
+            if (IsFailingToHandleInlineCoroutine(ref coroutineAwaiter, ref coroutineNode)) {
+                coroutineAwaiter.PropagateCoroutineNode(ref coroutineNode);
                 coroutineAwaiter.StartStateMachine();
             }
         }

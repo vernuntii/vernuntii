@@ -47,7 +47,8 @@ public static class CoroutineTests
         Run(async () => {
             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
             var task = CO1(1000);
-            task.PropagateCoroutineContext(new CoroutineContext());
+            var node = new CoroutineStackNode(new CoroutineContext());
+            task.PropagateCoroutineNode(ref node);
             task.StartStateMachine();
             Console.WriteLine(await task);
             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);

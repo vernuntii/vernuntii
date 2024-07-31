@@ -31,9 +31,9 @@ public unsafe struct Coroutine
         _builder = builder;
     }
 
-    internal void PropagateCoroutineContext(in CoroutineContext coroutineContext)
+    internal void PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
     {
-        _builder->SetArgument(coroutineContext);
+        _builder->SetCoroutineNode(ref coroutineNode);
     }
 
     internal void StartStateMachine()
@@ -64,9 +64,9 @@ public unsafe struct Coroutine
             _argumentReceiverAcceptor = argumentReceiverAcceptor;
         }
 
-        internal void PropagateCoroutineContext(in CoroutineContext coroutineContext)
+        internal void PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
         {
-            _builder->SetArgument(coroutineContext);
+            _builder->SetCoroutineNode(ref coroutineNode);
         }
 
         internal void StartStateMachine()
@@ -95,9 +95,9 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
         _argumentReceiverAcceptor = argumentReceiverAcceptor;
     }
 
-    internal void PropagateCoroutineContext(in CoroutineContext coroutineContext)
+    internal void PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
     {
-        _builder->SetArgument(coroutineContext);
+        _builder->SetCoroutineNode(ref coroutineNode);
     }
 
     internal void StartStateMachine()
@@ -128,9 +128,9 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
             _argumentReceiverAcceptor = argumentReceiverAcceptor;
         }
 
-        internal void PropagateCoroutineScpe(in CoroutineContext coroutineContext)
+        internal void PropagateCoroutineScpe(ref CoroutineStackNode coroutineNode)
         {
-            _builder->SetArgument(coroutineContext);
+            _builder->SetCoroutineNode(ref coroutineNode);
         }
 
         internal void StartStateMachine()
