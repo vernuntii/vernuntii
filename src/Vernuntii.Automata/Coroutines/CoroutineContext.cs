@@ -6,9 +6,9 @@ internal class CoroutineContext
 
     internal int NodesCount => _nodesCount;
 
-    public void AddCoroutineNode()
+    public int AddCoroutineNode()
     {
-        Interlocked.Increment(ref _nodesCount);
+        return Interlocked.Increment(ref _nodesCount);
     }
 
     public void RemoveCoroutineNode()

@@ -9,14 +9,14 @@ public unsafe struct Coroutine
     private readonly AsyncCoroutineMethodBuilder* _builder;
     private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
+    public Coroutine(in ValueTask task)
+    {
+        _task = task;
+    }
+
     public Coroutine(in ValueTask task, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
     {
         _task = task;
-        _argumentReceiverDelegate = argumentReceiverDelegate;
-    }
-
-    public Coroutine(CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
-    {
         _argumentReceiverDelegate = argumentReceiverDelegate;
     }
 
@@ -123,7 +123,7 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
             _argumentReceiverDelegate = argumentReceiverDelegate;
         }
 
-        internal void PropagateCoroutineScpe(ref CoroutineStackNode coroutineNode)
+        internal void PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
         {
             _builder->SetCoroutineNode(ref coroutineNode);
         }

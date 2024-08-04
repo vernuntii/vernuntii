@@ -4,7 +4,7 @@ namespace Vernuntii.Coroutines;
 
 internal struct CoroutineStackNode : ICoroutineHandler
 {
-    private int _depth;
+    private int _identifier;
     private CoroutineContext _context;
 
     public CoroutineStackNode(CoroutineContext context)
@@ -14,14 +14,13 @@ internal struct CoroutineStackNode : ICoroutineHandler
 
     internal void InitializeChildCoroutine(ref CoroutineStackNode childNode)
     {
-        childNode._depth = _context.NodesCount;
         childNode._context = _context;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void Start()
     {
-        _context.AddCoroutineNode();
+        _identifier = _context.AddCoroutineNode();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -34,8 +33,8 @@ internal struct CoroutineStackNode : ICoroutineHandler
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     unsafe void ICoroutineHandler.HandleDirectCoroutine([NotNull] CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
     {
-        var ttt2 = new CoroutineArgumentReceiver(ref this);
-        argumentReceiverDelegate(ref ttt2);
+        var argumentReceiver = new CoroutineArgumentReceiver(ref this);
+        argumentReceiverDelegate(ref argumentReceiver);
     }
 
     public void Stop()

@@ -5,49 +5,51 @@ namespace Vernuntii.Coroutines;
 
 partial class Effects
 {
-    internal readonly static ArgumentType ForkArgumentType = new ArgumentType(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("fork"));
+    internal readonly static ArgumentType SpawnArgumentType = new ArgumentType(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("spawn"));
 
-    public async static Coroutine<Coroutine> ForkAsync(Func<Coroutine> provider)
+    public async static Coroutine<Coroutine> SpawnAsync(Func<Coroutine> provider)
     {
-        var completionSource = Coroutine<Coroutine>.CompletionSource.RentFromCache();
+        var completionSource = new CoroutineCompletionSource<Coroutine>();
         return await new Coroutine<Coroutine>(completionSource.CreateValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new ForkArgument(provider, completionSource);
-            argumentReceiver.ReceiveArgument(in argument, in ForkArgumentType);
+            var argument = new SpawnArgument(provider, completionSource);
+            argumentReceiver.ReceiveArgument(ref argument, in SpawnArgumentType);
         }
     }
 
-    public async static Coroutine<Coroutine<T>> ForkAsync<T>(Func<Coroutine<T>> provider)
+    public async static Coroutine<Coroutine<T>> SpawnAsync<T>(Func<Coroutine<T>> provider)
     {
-        var completionSource = Coroutine<Coroutine<T>>.CompletionSource.RentFromCache();
+        var completionSource = new CoroutineCompletionSource<Coroutine<T>>();
         return await new Coroutine<Coroutine<T>>(completionSource.CreateValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new ForkArgument<T>(provider, completionSource);
-            argumentReceiver.ReceiveArgument(in argument, ForkArgumentType);
+            var argument = new SpawnArgument<T>(provider, completionSource);
+            argumentReceiver.ReceiveArgument(ref argument, in SpawnArgumentType);
         }
     }
 
-    internal ref struct ForkCoroutineAwaiterReceiver(ref CoroutineStackNode coroutineNode)
+    internal ref struct SpawnCoroutineAwaiterReceiver(ref CoroutineStackNode coroutineNode)
     {
         private ref CoroutineStackNode _coroutineNode = ref coroutineNode;
 
         public void ReceiveCoroutineAwaiter<T>(ref T awaiter) where T : ICriticalNotifyCompletion
         {
             ref var coroutineAwaiter = ref Unsafe.As<T, Coroutine.CoroutineAwaiter>(ref awaiter);
-            coroutineAwaiter.PropagateCoroutineNode(ref _coroutineNode);
+            var context = new CoroutineContext();
+            var node = new CoroutineStackNode(context);
+            coroutineAwaiter.PropagateCoroutineNode(ref node);
             coroutineAwaiter.StartStateMachine();
         }
     }
 
-    internal struct ForkArgument(Func<Coroutine> provider, Coroutine<Coroutine>.CompletionSource completionSource)
+    internal struct SpawnArgument(Func<Coroutine> provider, CoroutineCompletionSource<Coroutine> completionSource)
     {
         private readonly Func<Coroutine> _provider = provider;
 
-        public void CreateCoroutine(ref ForkCoroutineAwaiterReceiver awaiterReceiver)
+        public void CreateCoroutine(ref SpawnCoroutineAwaiterReceiver awaiterReceiver)
         {
             var coroutine = _provider();
             var awaiter = coroutine.GetAwaiter();
@@ -56,11 +58,11 @@ partial class Effects
         }
     }
 
-    internal struct ForkArgument<T>(Func<Coroutine<T>> provider, Coroutine<Coroutine<T>>.CompletionSource completionSource)
+    internal struct SpawnArgument<T>(Func<Coroutine<T>> provider, CoroutineCompletionSource<Coroutine<T>> completionSource)
     {
         private readonly Func<Coroutine<T>> _provider = provider;
 
-        public void CreateCoroutine(ref ForkCoroutineAwaiterReceiver awaiterReceiver)
+        public void CreateCoroutine(ref SpawnCoroutineAwaiterReceiver awaiterReceiver)
         {
             var coroutine = _provider();
             var awaiter = coroutine.GetAwaiter();

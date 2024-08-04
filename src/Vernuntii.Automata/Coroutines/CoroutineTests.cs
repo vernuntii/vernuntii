@@ -47,7 +47,7 @@ public static class CoroutineTests
     {
         Run(async () => {
             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-            var task = CO1(1000);
+            var task = F2(1000);
             var context = new CoroutineContext();
             var node = new CoroutineStackNode(context);
             task.PropagateCoroutineNode(ref node);
@@ -64,7 +64,7 @@ public static class CoroutineTests
     static async Coroutine<int> F2(int _)
     {
         //await new Func<Coroutine>(async () => {
-        //    var t1 = await ForkAsync(async () => {
+        //    var t1 = await SpawnAsync(async () => {
         //        await Task.Delay(1500);
         //        Console.WriteLine("Works");
         //        await Task.Delay(3000);
@@ -85,8 +85,8 @@ public static class CoroutineTests
 
     static async Coroutine<int> F1(int _)
     {
-        var t1 = await ForkAsync(async () => {
-            var t8 = await ForkAsync(async () => {
+        var t1 = await SpawnAsync(async () => {
+            var t8 = await SpawnAsync(async () => {
                 await Task.Delay(1500);
                 Console.WriteLine("Works");
                 await Task.Delay(3000);
@@ -96,7 +96,7 @@ public static class CoroutineTests
             await t8;
         });
         await t1;
-        var tt = await ForkAsync(new Func<Coroutine>(async () => {
+        var tt = await SpawnAsync(new Func<Coroutine>(async () => {
             await Task.Delay(1500);
             Console.WriteLine("Works");
             await Task.Delay(3000);
@@ -145,7 +145,7 @@ public static class CoroutineTests
                 {
                     //argumentReceiver.ReceiveArgument("hello from coroutine");
                 }
-                await await ForkAsync(new Func<Coroutine>(async () => { Console.WriteLine("Hello from fork"); }));
+                await await SpawnAsync(new Func<Coroutine>(async () => { Console.WriteLine("Hello from spawn"); }));
                 await Task.Delay(waitTime).ConfigureAwait(false);
                 Console.WriteLine($"{nameof(CO3)} after");
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);

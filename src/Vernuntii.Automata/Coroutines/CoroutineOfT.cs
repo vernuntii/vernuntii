@@ -3,11 +3,16 @@
 namespace Vernuntii.Coroutines;
 
 [AsyncMethodBuilder(typeof(AsyncCoroutineMethodBuilder<>))]
-public unsafe struct Coroutine<T>
+public unsafe partial struct Coroutine<T>
 {
     private readonly ValueTask<T> _task;
     private readonly AsyncCoroutineMethodBuilder<T>* _builder;
     private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+
+    public Coroutine(in ValueTask<T> task)
+    {
+        _task = task;
+    }
 
     public Coroutine(in ValueTask<T> task, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
     {
