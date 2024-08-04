@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Coroutines;
 
-internal struct CoroutineStackNode
+internal struct CoroutineStackNode : ICoroutineHandler
 {
     private int _depth;
     private CoroutineContext _context;
@@ -21,34 +21,25 @@ internal struct CoroutineStackNode
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void Start()
     {
-        
+        _context.AddCoroutineNode();
     }
 
-    internal void HandleInlineCoroutine([NotNull] CoroutineArgumentReceiverAcceptor argumentReceiverAcceptor)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void ICoroutineHandler.HandleChildCoroutine(ref Coroutine.CoroutineAwaiter coroutineAwaiter)
     {
-        var argumentReceiver = new CoroutineArgumentReceiver();
-        argumentReceiverAcceptor.Invoke(argumentReceiver);
+        coroutineAwaiter.PropagateCoroutineNode(ref this);
+        coroutineAwaiter.StartStateMachine();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    unsafe void ICoroutineHandler.HandleDirectCoroutine([NotNull] CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    {
+        var ttt2 = new CoroutineArgumentReceiver(ref this);
+        argumentReceiverDelegate(ref ttt2);
     }
 
     public void Stop()
     {
-        //if (Interlocked.Decrement(ref _depth) <= 0) {
-        //    Dispose(true);
-        //}
+        _context.RemoveCoroutineNode();
     }
-
-    //private bool _disposedValue;
-
-    //private void Dispose(bool disposing)
-    //{
-    //    if (disposing) {
-
-    //    }
-    //}
-
-    //void IDisposable.Dispose()
-    //{
-    //    Dispose(true);
-    //    GC.SuppressFinalize(this);
-    //}
 }

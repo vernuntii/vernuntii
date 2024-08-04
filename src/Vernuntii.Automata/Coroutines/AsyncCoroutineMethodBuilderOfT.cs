@@ -18,20 +18,20 @@ public struct AsyncCoroutineMethodBuilder<T>
         }
     }
 
-    private PoolingAsyncValueTaskMethodBuilder<T> _builder; // Must not be readonly due to mutable struct
-    internal unsafe Action? _stateMachineInitiator;
     private CoroutineStackNode _coroutineNode;
+    internal unsafe Action? _stateMachineInitiator;
+    private PoolingAsyncValueTaskMethodBuilder<T> _builder; // Must not be readonly due to mutable struct
+
+    internal void SetCoroutineNode(ref CoroutineStackNode parentNode)
+    {
+        parentNode.InitializeChildCoroutine(ref _coroutineNode);
+    }
 
     [DebuggerStepThrough]
     public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
     {
         _stateMachineInitiator = stateMachine.MoveNext;
-    }
-
-    internal void SetCoroutineNode(ref CoroutineStackNode parentNode)
-    {
-        parentNode.InitializeChildCoroutine(ref _coroutineNode);
     }
 
     internal unsafe void Start()
@@ -45,6 +45,12 @@ public struct AsyncCoroutineMethodBuilder<T>
     {
         _coroutineNode.Stop();
         _builder.SetException(e);
+    }
+
+    public unsafe void SetResult(T result, PoolingAsyncValueTaskMethodBuilder<T>* builder)
+    {
+        _coroutineNode.Stop();
+        builder->SetResult(result);
     }
 
     public void SetResult(T result)

@@ -3,5 +3,5 @@
 public interface ICoroutineAwaiter {
     internal bool IsChildCoroutine { get; }
 
-    CoroutineArgumentReceiverAcceptor? ArgumentReceiverAcceptor { get; }
+    CoroutineArgumentReceiverDelegate? ArgumentReceiverDelegate { get; }
 }

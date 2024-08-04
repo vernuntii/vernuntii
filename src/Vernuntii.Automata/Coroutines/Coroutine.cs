@@ -2,27 +2,22 @@
 
 namespace Vernuntii.Coroutines;
 
-public readonly struct CoroutineArgumentReceiver()
-{
-    public void ReceiveArgument<T>(in T argument)
-    {
-        ;
-    }
-}
-
-public delegate void CoroutineArgumentReceiverAcceptor(in CoroutineArgumentReceiver argumentReceiver);
-
 [AsyncMethodBuilder(typeof(AsyncCoroutineMethodBuilder))]
 public unsafe struct Coroutine
 {
     private readonly ValueTask _task;
     private readonly AsyncCoroutineMethodBuilder* _builder;
-    private readonly CoroutineArgumentReceiverAcceptor? _argumentReceiverAcceptor;
+    private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-    public Coroutine(in ValueTask task, CoroutineArgumentReceiverAcceptor argumentReceiverAcceptor)
+    public Coroutine(in ValueTask task, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
     {
         _task = task;
-        _argumentReceiverAcceptor = argumentReceiverAcceptor;
+        _argumentReceiverDelegate = argumentReceiverDelegate;
+    }
+
+    public Coroutine(CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    {
+        _argumentReceiverDelegate = argumentReceiverDelegate;
     }
 
     internal Coroutine(in ValueTask task, in AsyncCoroutineMethodBuilder* builder)
@@ -41,10 +36,10 @@ public unsafe struct Coroutine
         _builder->Start();
     }
 
-    public CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverAcceptor);
+    public CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
 
     public ConfiguredAwaitableCoroutine ConfigureAwait(bool continueOnCapturedContext) =>
-        new ConfiguredAwaitableCoroutine(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverAcceptor);
+        new ConfiguredAwaitableCoroutine(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
 
     public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
     {
@@ -52,16 +47,16 @@ public unsafe struct Coroutine
 
         private readonly ValueTaskAwaiter _awaiter;
         private readonly AsyncCoroutineMethodBuilder* _builder;
-        private readonly CoroutineArgumentReceiverAcceptor? _argumentReceiverAcceptor;
+        private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
         readonly bool ICoroutineAwaiter.IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
-        readonly CoroutineArgumentReceiverAcceptor? ICoroutineAwaiter.ArgumentReceiverAcceptor => _argumentReceiverAcceptor;
+        readonly CoroutineArgumentReceiverDelegate? ICoroutineAwaiter.ArgumentReceiverDelegate => _argumentReceiverDelegate;
 
-        internal CoroutineAwaiter(in ValueTaskAwaiter awaiter, in AsyncCoroutineMethodBuilder* builder, CoroutineArgumentReceiverAcceptor? argumentReceiverAcceptor)
+        internal CoroutineAwaiter(in ValueTaskAwaiter awaiter, in AsyncCoroutineMethodBuilder* builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
         {
             _awaiter = awaiter;
             _builder = builder;
-            _argumentReceiverAcceptor = argumentReceiverAcceptor;
+            _argumentReceiverDelegate = argumentReceiverDelegate;
         }
 
         internal void PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
@@ -86,13 +81,13 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
 {
     private readonly ConfiguredValueTaskAwaitable _task;
     private readonly AsyncCoroutineMethodBuilder* _builder;
-    private readonly CoroutineArgumentReceiverAcceptor? _argumentReceiverAcceptor;
+    private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-    internal ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable task, in AsyncCoroutineMethodBuilder* builder, CoroutineArgumentReceiverAcceptor? argumentReceiverAcceptor)
+    internal ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable task, in AsyncCoroutineMethodBuilder* builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
     {
         _task = task;
         _builder = builder;
-        _argumentReceiverAcceptor = argumentReceiverAcceptor;
+        _argumentReceiverDelegate = argumentReceiverDelegate;
     }
 
     internal void PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
@@ -105,7 +100,7 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
         _builder->Start();
     }
 
-    public ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverAcceptor);
+    public ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
 
     public readonly struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
     {
@@ -113,19 +108,19 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
 
         private readonly ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter _awaiter;
         private readonly AsyncCoroutineMethodBuilder* _builder;
-        private readonly CoroutineArgumentReceiverAcceptor? _argumentReceiverAcceptor;
+        private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
         readonly bool ICoroutineAwaiter.IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
-        readonly CoroutineArgumentReceiverAcceptor? ICoroutineAwaiter.ArgumentReceiverAcceptor => _argumentReceiverAcceptor;
+        readonly CoroutineArgumentReceiverDelegate? ICoroutineAwaiter.ArgumentReceiverDelegate => _argumentReceiverDelegate;
 
         internal ConfiguredCoroutineAwaiter(
             in ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter awaiter,
             in AsyncCoroutineMethodBuilder* builder,
-            CoroutineArgumentReceiverAcceptor? argumentReceiverAcceptor)
+            CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
         {
             _awaiter = awaiter;
             _builder = builder;
-            _argumentReceiverAcceptor = argumentReceiverAcceptor;
+            _argumentReceiverDelegate = argumentReceiverDelegate;
         }
 
         internal void PropagateCoroutineScpe(ref CoroutineStackNode coroutineNode)

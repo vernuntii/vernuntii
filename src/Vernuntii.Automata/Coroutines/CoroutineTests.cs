@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using static Vernuntii.Coroutines.Effects;
 
 namespace Vernuntii.Coroutines;
 
@@ -47,7 +48,8 @@ public static class CoroutineTests
         Run(async () => {
             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
             var task = CO1(1000);
-            var node = new CoroutineStackNode(new CoroutineContext());
+            var context = new CoroutineContext();
+            var node = new CoroutineStackNode(context);
             task.PropagateCoroutineNode(ref node);
             task.StartStateMachine();
             Console.WriteLine(await task);
@@ -57,6 +59,51 @@ public static class CoroutineTests
         //// Complete the synchronization context work
         //syncContext.Complete();
         //thread.Join();
+    }
+
+    static async Coroutine<int> F2(int _)
+    {
+        //await new Func<Coroutine>(async () => {
+        //    var t1 = await ForkAsync(async () => {
+        //        await Task.Delay(1500);
+        //        Console.WriteLine("Works");
+        //        await Task.Delay(3000);
+        //        Console.WriteLine("FINISHED");
+        //        return 13;
+        //    });
+        //})();
+        //return 2;
+        var t1 = await ForkAsync(async () => {
+            await Task.Delay(1500);
+            Console.WriteLine("Works");
+            await Task.Delay(3000);
+            Console.WriteLine("FINISHED");
+            return 13;
+        });
+        return await t1;
+    }
+
+    static async Coroutine<int> F1(int _)
+    {
+        var t1 = await ForkAsync(async () => {
+            var t8 = await ForkAsync(async () => {
+                await Task.Delay(1500);
+                Console.WriteLine("Works");
+                await Task.Delay(3000);
+                Console.WriteLine("FINISHED");
+            });
+
+            await t8;
+        });
+        await t1;
+        var tt = await ForkAsync(new Func<Coroutine>(async () => {
+            await Task.Delay(1500);
+            Console.WriteLine("Works");
+            await Task.Delay(3000);
+            Console.WriteLine("FINISHED");
+        }));
+        await tt;
+        return 2;
     }
 
     static async Coroutine<int> CO1(int number)
@@ -96,8 +143,9 @@ public static class CoroutineTests
                 var t = await new Coroutine<int>(new ValueTask<int>(t2.Task), test);
                 void test(in CoroutineArgumentReceiver argumentReceiver)
                 {
-                    argumentReceiver.ReceiveArgument("hello from coroutine");
+                    //argumentReceiver.ReceiveArgument("hello from coroutine");
                 }
+                await await ForkAsync(new Func<Coroutine>(async () => { Console.WriteLine("Hello from fork"); }));
                 await Task.Delay(waitTime).ConfigureAwait(false);
                 Console.WriteLine($"{nameof(CO3)} after");
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);

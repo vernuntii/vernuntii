@@ -1,5 +1,6 @@
-﻿namespace Vernuntii.Generators;
+﻿//namespace Vernuntii.Generators;
 
-public interface IAwaiterHandler {
-    bool MoveNext();
-}
+//public interface IGeneratable {
+//    Value
+//    bool MoveNext();
+//}

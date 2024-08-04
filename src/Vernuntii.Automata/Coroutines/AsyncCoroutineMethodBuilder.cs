@@ -18,9 +18,9 @@ public struct AsyncCoroutineMethodBuilder
         }
     }
 
-    private PoolingAsyncValueTaskMethodBuilder _builder; // Must not be readonly due to mutable struct
-    internal unsafe Action? _stateMachineInitiator;
     private CoroutineStackNode _coroutineNode;
+    internal unsafe Action? _stateMachineInitiator;
+    private PoolingAsyncValueTaskMethodBuilder _builder; // Must not be readonly due to mutable struct
 
     internal void SetCoroutineNode(ref CoroutineStackNode parentNode)
     {
@@ -43,6 +43,7 @@ public struct AsyncCoroutineMethodBuilder
 
     public void SetException(Exception e)
     {
+        _coroutineNode.Stop();
         _builder.SetException(e);
     }
 
