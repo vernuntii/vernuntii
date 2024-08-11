@@ -7,6 +7,8 @@ namespace Vernuntii.Coroutines;
 
 partial struct Coroutine<T>
 {
+    // Licensed to the .NET Foundation under one or more agreements.
+    // The .NET Foundation licenses this file to you under the MIT license.
     /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
     internal abstract class AbstractCompletionSource : IValueTaskSource<T>, IValueTaskSource
     {
@@ -50,12 +52,16 @@ partial struct Coroutine<T>
         void IValueTaskSource.GetResult(short token) => throw new NotImplementedException("");
     }
 
+    // Licensed to the .NET Foundation under one or more agreements.
+    // The .NET Foundation licenses this file to you under the MIT license.
     /// <summary>Type used as a singleton to indicate synchronous success for an async method.</summary>
     private sealed class SyncSuccessSentinelStateMachineBox : AbstractCompletionSource
     {
         public SyncSuccessSentinelStateMachineBox() => SetResult(default!);
     }
 
+    // Licensed to the .NET Foundation under one or more agreements.
+    // The .NET Foundation licenses this file to you under the MIT license.
     /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
     internal sealed class CompletionSource : AbstractCompletionSource, IValueTaskSource<T>, IValueTaskSource
     {
@@ -76,13 +82,17 @@ partial struct Coroutine<T>
         {
             // First try to get a box from the per-thread cache.
             CompletionSource? box = t_tlsCache;
-            if (box is not null) {
+            if (box is not null)
+            {
                 t_tlsCache = null;
-            } else {
+            }
+            else
+            {
                 // If we can't, then try to get a box from the per-core cache.
                 ref CompletionSource? slot = ref PerCoreCacheSlot;
                 if (slot is null ||
-                    (box = Interlocked.Exchange<CompletionSource?>(ref slot, null)) is null) {
+                    (box = Interlocked.Exchange<CompletionSource?>(ref slot, null)) is null)
+                {
                     // If we can't, just create a new one.
                     box = new CompletionSource();
                 }
@@ -101,12 +111,16 @@ partial struct Coroutine<T>
             _valueTaskSource.Reset();
 
             // If the per-thread cache is empty, store this into it..
-            if (t_tlsCache is null) {
+            if (t_tlsCache is null)
+            {
                 t_tlsCache = this;
-            } else {
+            }
+            else
+            {
                 // Otherwise, store it into the per-core cache.
                 ref CompletionSource? slot = ref PerCoreCacheSlot;
-                if (slot is null) {
+                if (slot is null)
+                {
                     // Try to avoid the write if we know the slot isn't empty (we may still have a benign race condition and
                     // overwrite what's there if something arrived in the interim).
                     Volatile.Write(ref slot, this);
@@ -115,9 +129,11 @@ partial struct Coroutine<T>
         }
 
         /// <summary>Gets the slot in <see cref="s_perCoreCache"/> for the current core.</summary>
-        private static ref CompletionSource? PerCoreCacheSlot {
+        private static ref CompletionSource? PerCoreCacheSlot
+        {
             [MethodImpl(MethodImplOptions.AggressiveInlining)] // only two callers are RentFrom/ReturnToCache
-            get {
+            get
+            {
                 // Get the current processor ID.  We need to ensure it fits within s_perCoreCache, so we
                 // could % by its length, but we can do so instead by Environment.ProcessorCount, which will be a const
                 // in tier 1, allowing better code gen, and then further use uints for even better code gen.
@@ -181,9 +197,12 @@ partial struct Coroutine<T>
         /// <summary>Get the result of the operation.</summary>
         T IValueTaskSource<T>.GetResult(short token)
         {
-            try {
+            try
+            {
                 return _valueTaskSource.GetResult(token);
-            } finally {
+            }
+            finally
+            {
                 ReturnToCache();
             }
         }
@@ -191,9 +210,12 @@ partial struct Coroutine<T>
         /// <summary>Get the result of the operation.</summary>
         void IValueTaskSource.GetResult(short token)
         {
-            try {
+            try
+            {
                 _valueTaskSource.GetResult(token);
-            } finally {
+            }
+            finally
+            {
                 ReturnToCache();
             }
         }
@@ -203,6 +225,8 @@ partial struct Coroutine<T>
     }
 }
 
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>A class for common padding constants and eventually routines.</summary>
 internal static class PaddingSizeHolder
 {
@@ -214,6 +238,8 @@ internal static class PaddingSizeHolder
 #endif
 }
 
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>Padded reference to an object.</summary>
 [StructLayout(LayoutKind.Explicit, Size = PaddingSizeHolder.CACHE_LINE_SIZE)]
 internal struct PaddedReference
