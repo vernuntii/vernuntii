@@ -4,7 +4,7 @@ using static InlineIL.IL.Emit;
 
 namespace Vernuntii.Coroutines;
 
-internal static class AsyncCoroutineMethodBuilderCore
+internal static class CoroutineMethodBuilderCore
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsFailingToHandleInlineCoroutine<TCoroutineAwaiter, TCoroutineHandler>(

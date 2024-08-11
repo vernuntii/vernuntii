@@ -10,7 +10,7 @@ public class ModuleWeaver : BaseModuleWeaver
 {
     public override void Execute()
     {
-        Debugger.Launch();
+        //Debugger.Launch();
 
         var ns = GetNamespace();
         var type = new TypeDefinition(ns, "Hello", TypeAttributes.Public, TypeSystem.ObjectReference);

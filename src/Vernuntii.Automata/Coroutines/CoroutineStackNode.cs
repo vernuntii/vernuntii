@@ -38,6 +38,12 @@ internal struct CoroutineStackNode : ICoroutineHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void SetResultStateMachine(ICoroutineResultStateMachine resultStateMachine)
+    {
+        _resultStateMachine = resultStateMachine;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void ICoroutineHandler.HandleChildCoroutine(ref Coroutine.CoroutineAwaiter coroutineAwaiter)
     {
         coroutineAwaiter.PropagateCoroutineNode(ref this);
