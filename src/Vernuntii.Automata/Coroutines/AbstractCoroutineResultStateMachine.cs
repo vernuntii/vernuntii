@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -33,12 +32,12 @@ internal abstract class AbstractCoroutineResultStateMachine<T> : ICoroutineResul
         } while (Interlocked.CompareExchange(ref _state, newState, currentState)?.ForkCount != currentState.ForkCount);
 
         awaiter.UnsafeOnCompleted(() => {
-            ExceptionDispatchInfo? capturedError = null;
+            Exception? childError = null;
 
             try {
                 continuation();
             } catch (Exception error) {
-                capturedError = ExceptionDispatchInfo.Capture(error);
+                childError = error;
             }
 
             State? currentState;
@@ -67,18 +66,12 @@ internal abstract class AbstractCoroutineResultStateMachine<T> : ICoroutineResul
             } while (Interlocked.CompareExchange(ref _state, newState, currentState)?.ForkCount != currentState.ForkCount);
 
             if (newState is null) {
-                try {
-                    if (currentState.HasError) {
-                        SetExceptionCore(currentState.Error);
-                    } else {
-                        SetResultCore(currentState.Result);
-                    }
-                } catch {
-                    if (capturedError is not null) {
-                        capturedError.Throw();
-                    } else {
-                        throw;
-                    }
+                if (currentState.HasError) {
+                    SetExceptionCore(currentState.Error);
+                } else if (childError is not null)
+                    SetExceptionCore(childError);
+                else {
+                    SetResultCore(currentState.Result);
                 }
             }
         });
@@ -90,7 +83,7 @@ internal abstract class AbstractCoroutineResultStateMachine<T> : ICoroutineResul
         State? newState;
 
         do {
-            currentState = _state!; // Cannot be null
+            currentState = _state!; // Cannot be null at this state
             newState = currentState.ForkCount == 0 ? null : new State(currentState.ForkCount, hasError: true, error);
         } while (Interlocked.CompareExchange(ref _state, newState, currentState)!.ForkCount != currentState.ForkCount);
 
@@ -105,7 +98,7 @@ internal abstract class AbstractCoroutineResultStateMachine<T> : ICoroutineResul
         State? newState;
 
         do {
-            currentState = _state!; // Cannot be null
+            currentState = _state!; // Cannot be null at this state
             newState = currentState.ForkCount == 0 ? null : new State(currentState.ForkCount, hasResult: true, result);
         } while (Interlocked.CompareExchange(ref _state, newState, currentState)!.ForkCount != currentState.ForkCount);
 

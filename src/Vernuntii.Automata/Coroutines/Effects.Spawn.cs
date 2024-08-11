@@ -7,10 +7,10 @@ partial class Effects
 {
     internal readonly static ArgumentType SpawnArgumentType = new ArgumentType(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("spawn"));
 
-    public static Coroutine<Coroutine> SpawnAsync(Func<Coroutine> provider)
+    public static Coroutine<Coroutine> Spawn(Func<Coroutine> provider)
     {
-        var completionSource = new CoroutineCompletionSource<Coroutine>();
-        return new Coroutine<Coroutine>(completionSource.CreateValueTask(), ArgumentReceiverDelegate);
+        var completionSource = Coroutine<Coroutine>.CompletionSource.RentFromCache();
+        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
@@ -19,10 +19,10 @@ partial class Effects
         }
     }
 
-    public static Coroutine<Coroutine<T>> SpawnAsync<T>(Func<Coroutine<T>> provider)
+    public static Coroutine<Coroutine<T>> Spawn<T>(Func<Coroutine<T>> provider)
     {
-        var completionSource = new CoroutineCompletionSource<Coroutine<T>>();
-        return new Coroutine<Coroutine<T>>(completionSource.CreateValueTask(), ArgumentReceiverDelegate);
+        var completionSource = Coroutine<Coroutine<T>>.CompletionSource.RentFromCache();
+        return new Coroutine<Coroutine<T>>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
@@ -45,7 +45,7 @@ partial class Effects
         }
     }
 
-    internal struct SpawnArgument(Func<Coroutine> provider, CoroutineCompletionSource<Coroutine> completionSource)
+    internal struct SpawnArgument(Func<Coroutine> provider, Coroutine<Coroutine>.CompletionSource completionSource)
     {
         private readonly Func<Coroutine> _provider = provider;
 
@@ -58,7 +58,7 @@ partial class Effects
         }
     }
 
-    internal struct SpawnArgument<T>(Func<Coroutine<T>> provider, CoroutineCompletionSource<Coroutine<T>> completionSource)
+    internal struct SpawnArgument<T>(Func<Coroutine<T>> provider, Coroutine<Coroutine<T>>.CompletionSource completionSource)
     {
         private readonly Func<Coroutine<T>> _provider = provider;
 

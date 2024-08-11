@@ -45,13 +45,6 @@ internal struct CoroutineStackNode : ICoroutineHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    void ICoroutineHandler.HandleChildCoroutine(ref Coroutine<object>.CoroutineAwaiter coroutineAwaiter)
-    {
-        coroutineAwaiter.PropagateCoroutineNode(ref this);
-        coroutineAwaiter.StartStateMachine();
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     unsafe void ICoroutineHandler.HandleDirectCoroutine([NotNull] CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
     {
         var argumentReceiver = new CoroutineArgumentReceiver(ref this);

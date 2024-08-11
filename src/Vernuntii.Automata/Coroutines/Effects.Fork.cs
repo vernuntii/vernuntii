@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.VisualBasic;
 
 namespace Vernuntii.Coroutines;
 
@@ -6,7 +7,7 @@ partial class Effects
 {
     internal readonly static ArgumentType ForkArgumentType = new ArgumentType(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("fork"));
 
-    public static Coroutine<Coroutine> ForkAsync(Func<Coroutine> provider)
+    public static Coroutine<Coroutine> Fork(Func<Coroutine> provider)
     {
         var immediateCompletionSource = Coroutine<Coroutine>.CompletionSource.RentFromCache();
         return new Coroutine<Coroutine>(immediateCompletionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
@@ -18,7 +19,7 @@ partial class Effects
         }
     }
 
-    public static Coroutine<Coroutine<T>> ForkAsync<T>(Func<Coroutine<T>> provider)
+    public static Coroutine<Coroutine<T>> Fork<T>(Func<Coroutine<T>> provider)
     {
         var immediateCompletionSource = Coroutine<Coroutine<T>>.CompletionSource.RentFromCache();
         return new Coroutine<Coroutine<T>>(immediateCompletionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
@@ -46,6 +47,7 @@ partial class Effects
                     intermediateCompletionSource.SetResult(default);
                 } catch (Exception error) {
                     intermediateCompletionSource.SetException(error);
+                    throw; // Fork must bubble up its error
                 }
             });
             coroutineAwaiter.PropagateCoroutineNode(ref coroutineNode);
@@ -70,6 +72,7 @@ partial class Effects
                     intermediateCompletionSource.SetResult(result);
                 } catch (Exception error) {
                     intermediateCompletionSource.SetException(error);
+                    throw; // Fork must bubble up its error
                 }
             });
             coroutineAwaiter.PropagateCoroutineNode(ref coroutineNode);

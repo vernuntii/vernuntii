@@ -46,7 +46,6 @@ public struct AsyncCoroutineMethodBuilder<T>
     {
         var resultStateMachine = Unsafe.As<CoroutineResultStateMachine>(_coroutineNode.ResultStateMachine);
         resultStateMachine.SetException(e);
-        //_builder.SetException(e);
         _coroutineNode.Stop();
     }
 
@@ -54,7 +53,6 @@ public struct AsyncCoroutineMethodBuilder<T>
     {
         var resultStateMachine = Unsafe.As<CoroutineResultStateMachine>(_coroutineNode.ResultStateMachine);
         resultStateMachine.SetResult(result);
-        //_builder.SetResult(result);
         _coroutineNode.Stop();
     }
 
@@ -88,7 +86,7 @@ public struct AsyncCoroutineMethodBuilder<T>
 
         protected override void SetExceptionCore(Exception error)
         {
-            _builder->SetException(error);
+            _builder->_builder.SetException(error);
         }
 
         protected override void SetResultCore(T result)

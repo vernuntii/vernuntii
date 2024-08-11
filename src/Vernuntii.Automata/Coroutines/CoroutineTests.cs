@@ -46,14 +46,18 @@ public static class CoroutineTests
     public static async Task HandleAsnyc()
     {
         Run(async () => {
-            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-            var task = F2(1000);
-            var context = new CoroutineContext();
-            var node = new CoroutineStackNode(context);
-            task.PropagateCoroutineNode(ref node);
-            task.StartStateMachine();
-            Console.WriteLine(await task);
-            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+            try {
+                Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+                var task = F2(1000);
+                var context = new CoroutineContext();
+                var node = new CoroutineStackNode(context);
+                task.PropagateCoroutineNode(ref node);
+                task.StartStateMachine();
+                Console.WriteLine(await task);
+                Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+            } catch (Exception error) {
+                Console.WriteLine(error);
+            }
         });
 
         //// Complete the synchronization context work
@@ -63,7 +67,7 @@ public static class CoroutineTests
 
     static async Coroutine<int> N8(int _)
     {
-        var t1 = ForkAsync(async () => {
+        var t1 = Fork(async () => {
             await Task.Yield();
             await Task.Delay(500);
             Console.WriteLine("Works");
@@ -77,28 +81,35 @@ public static class CoroutineTests
 
     static async Coroutine<int> F2(int _)
     {
-        var t1 = await ForkAsync(async () => {
+        var t1 = await Fork(async () => {
+            await Fork(async () => {
+                await Task.Delay(2000);
+                Console.WriteLine("2000");
+                throw new Exception("Hello from fork");
+            });
+
             await Task.Delay(500);
             Console.WriteLine("Works");
             await Task.Delay(1000);
             Console.WriteLine("FINISHED");
-            return 13;
         });
-        var t2 = await ForkAsync(async () => {
+        var t2 = await Fork(async () => {
             await Task.Delay(1000);
             Console.WriteLine("Works#2");
             await Task.Delay(1000);
             Console.WriteLine("FINISHED#2");
             return 13;
         });
+        await Task.Delay(750);
         Console.WriteLine("IMMEDIATELLY RETURN");
+        await t1;
         return 6;
     }
 
     static async Coroutine<int> F1(int _)
     {
-        var t1 = await SpawnAsync(async () => {
-            var t8 = await SpawnAsync(async () => {
+        var t1 = await Spawn(async () => {
+            var t8 = await Spawn(async () => {
                 await Task.Delay(1500);
                 Console.WriteLine("Works");
                 await Task.Delay(3000);
@@ -108,7 +119,7 @@ public static class CoroutineTests
             await t8;
         });
         await t1;
-        var tt = await SpawnAsync(new Func<Coroutine>(async () => {
+        var tt = await Spawn(new Func<Coroutine>(async () => {
             await Task.Delay(1500);
             Console.WriteLine("Works");
             await Task.Delay(3000);
@@ -157,7 +168,7 @@ public static class CoroutineTests
                 {
                     //argumentReceiver.ReceiveArgument("hello from coroutine");
                 }
-                await await SpawnAsync(new Func<Coroutine>(async () => { Console.WriteLine("Hello from spawn"); }));
+                await await Spawn(new Func<Coroutine>(async () => { Console.WriteLine("Hello from spawn"); }));
                 await Task.Delay(waitTime).ConfigureAwait(false);
                 Console.WriteLine($"{nameof(CO3)} after");
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);

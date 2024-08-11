@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Coroutines;
 
-public interface ICallbackArgument
+internal interface ICallbackArgument
 {
-    internal void Callback(ref CoroutineStackNode coroutineNode);
+    void Callback(ref CoroutineStackNode coroutineNode);
 }
