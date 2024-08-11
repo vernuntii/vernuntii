@@ -67,7 +67,7 @@ public static class CoroutineTests
 
     static async Coroutine<int> N8(int _)
     {
-        var t1 = Fork(async () => {
+        var t1 = LaunchAsync(async () => {
             await Task.Yield();
             await Task.Delay(500);
             Console.WriteLine("Works");
@@ -81,8 +81,8 @@ public static class CoroutineTests
 
     static async Coroutine<int> F2(int _)
     {
-        var t1 = await Fork(async () => {
-            await Fork(async () => {
+        var t1 = await LaunchAsync(async () => {
+            await LaunchAsync(async () => {
                 await Task.Delay(2000);
                 Console.WriteLine("2000");
                 throw new Exception("Hello from fork");
@@ -93,7 +93,7 @@ public static class CoroutineTests
             await Task.Delay(1000);
             Console.WriteLine("FINISHED");
         });
-        var t2 = await Fork(async () => {
+        var t2 = await LaunchAsync(async () => {
             await Task.Delay(1000);
             Console.WriteLine("Works#2");
             await Task.Delay(1000);
@@ -108,8 +108,8 @@ public static class CoroutineTests
 
     static async Coroutine<int> F1(int _)
     {
-        var t1 = await Spawn(async () => {
-            var t8 = await Spawn(async () => {
+        var t1 = await SpawnAsync(async () => {
+            var t8 = await SpawnAsync(async () => {
                 await Task.Delay(1500);
                 Console.WriteLine("Works");
                 await Task.Delay(3000);
@@ -119,7 +119,7 @@ public static class CoroutineTests
             await t8;
         });
         await t1;
-        var tt = await Spawn(new Func<Coroutine>(async () => {
+        var tt = await SpawnAsync(new Func<Coroutine>(async () => {
             await Task.Delay(1500);
             Console.WriteLine("Works");
             await Task.Delay(3000);
@@ -168,7 +168,7 @@ public static class CoroutineTests
                 {
                     //argumentReceiver.ReceiveArgument("hello from coroutine");
                 }
-                await await Spawn(new Func<Coroutine>(async () => { Console.WriteLine("Hello from spawn"); }));
+                await await SpawnAsync(new Func<Coroutine>(async () => { Console.WriteLine("Hello from spawn"); }));
                 await Task.Delay(waitTime).ConfigureAwait(false);
                 Console.WriteLine($"{nameof(CO3)} after");
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);

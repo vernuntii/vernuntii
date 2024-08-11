@@ -34,11 +34,7 @@ public ref struct CoroutineArgumentReceiver
     {
         if (argumentType.Version == 1) {
             if (default(TArgumentType) != null && argumentType is ArgumentType) {
-                var argumentTypeStruct = Unsafe.As<TArgumentType, ArgumentType>(ref Unsafe.AsRef(in argumentType));
-
-                if (argumentTypeStruct.SequenceEqual(in Effects.ForkArgumentType)) {
-                    argument.Callback(ref _coroutineNode);
-                }
+                argument.Callback(ref _coroutineNode);
             }
         }
     }

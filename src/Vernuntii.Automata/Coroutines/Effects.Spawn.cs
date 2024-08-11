@@ -7,7 +7,7 @@ partial class Effects
 {
     internal readonly static ArgumentType SpawnArgumentType = new ArgumentType(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("spawn"));
 
-    public static Coroutine<Coroutine> Spawn(Func<Coroutine> provider)
+    public static Coroutine<Coroutine> SpawnAsync(Func<Coroutine> provider)
     {
         var completionSource = Coroutine<Coroutine>.CompletionSource.RentFromCache();
         return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
@@ -19,7 +19,7 @@ partial class Effects
         }
     }
 
-    public static Coroutine<Coroutine<T>> Spawn<T>(Func<Coroutine<T>> provider)
+    public static Coroutine<Coroutine<T>> SpawnAsync<T>(Func<Coroutine<T>> provider)
     {
         var completionSource = Coroutine<Coroutine<T>>.CompletionSource.RentFromCache();
         return new Coroutine<Coroutine<T>>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
@@ -52,8 +52,8 @@ partial class Effects
         public void CreateCoroutine(ref SpawnCoroutineAwaiterReceiver awaiterReceiver)
         {
             var coroutine = _provider();
-            var awaiter = coroutine.GetAwaiter();
-            awaiterReceiver.ReceiveCoroutineAwaiter(ref awaiter);
+            var coroutineAwaiter = coroutine.GetAwaiter();
+            awaiterReceiver.ReceiveCoroutineAwaiter(ref coroutineAwaiter);
             completionSource.SetResult(coroutine);
         }
     }
@@ -65,8 +65,8 @@ partial class Effects
         public void CreateCoroutine(ref SpawnCoroutineAwaiterReceiver awaiterReceiver)
         {
             var coroutine = _provider();
-            var awaiter = coroutine.GetAwaiter();
-            awaiterReceiver.ReceiveCoroutineAwaiter(ref awaiter);
+            var coroutineAwaiter = coroutine.GetAwaiter();
+            awaiterReceiver.ReceiveCoroutineAwaiter(ref coroutineAwaiter);
             completionSource.SetResult(coroutine);
         }
     }

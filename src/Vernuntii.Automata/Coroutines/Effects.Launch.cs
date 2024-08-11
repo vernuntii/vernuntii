@@ -5,36 +5,34 @@ namespace Vernuntii.Coroutines;
 
 partial class Effects
 {
-    internal readonly static ArgumentType ForkArgumentType = new ArgumentType(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("fork"));
+    internal readonly static ArgumentType LaunchArgumentType = new ArgumentType(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("launch"));
 
-    public static Coroutine<Coroutine> Fork(Func<Coroutine> provider)
+    public static Coroutine<Coroutine> LaunchAsync(Func<Coroutine> provider)
     {
         var immediateCompletionSource = Coroutine<Coroutine>.CompletionSource.RentFromCache();
         return new Coroutine<Coroutine>(immediateCompletionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new ForkArgument(provider, immediateCompletionSource);
-            argumentReceiver.ReceiveCallbackArgument(in argument, in ForkArgumentType);
+            var argument = new LaunchArgument(provider, immediateCompletionSource);
+            argumentReceiver.ReceiveCallbackArgument(in argument, in LaunchArgumentType);
         }
     }
 
-    public static Coroutine<Coroutine<T>> Fork<T>(Func<Coroutine<T>> provider)
+    public static Coroutine<Coroutine<T>> LaunchAsync<T>(Func<Coroutine<T>> provider)
     {
         var immediateCompletionSource = Coroutine<Coroutine<T>>.CompletionSource.RentFromCache();
         return new Coroutine<Coroutine<T>>(immediateCompletionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new ForkArgument<T>(provider, immediateCompletionSource);
-            argumentReceiver.ReceiveCallbackArgument(in argument, ForkArgumentType);
+            var argument = new LaunchArgument<T>(provider, immediateCompletionSource);
+            argumentReceiver.ReceiveCallbackArgument(in argument, LaunchArgumentType);
         }
     }
 
-    internal readonly struct ForkArgument(Func<Coroutine> provider, Coroutine<Coroutine>.CompletionSource immediateCompletionSource) : ICallbackArgument
+    internal readonly struct LaunchArgument(Func<Coroutine> provider, Coroutine<Coroutine>.CompletionSource immediateCompletionSource) : ICallbackArgument
     {
-        private readonly Func<Coroutine> _provider = provider;
-
         void ICallbackArgument.Callback(ref CoroutineStackNode coroutineNode)
         {
             var coroutine = provider();
@@ -47,7 +45,7 @@ partial class Effects
                     intermediateCompletionSource.SetResult(default);
                 } catch (Exception error) {
                     intermediateCompletionSource.SetException(error);
-                    throw; // Fork must bubble up its error
+                    throw; // Must bubble up
                 }
             });
             coroutineAwaiter.PropagateCoroutineNode(ref coroutineNode);
@@ -56,13 +54,11 @@ partial class Effects
         }
     }
 
-    internal readonly struct ForkArgument<T>(Func<Coroutine<T>> provider, Coroutine<Coroutine<T>>.CompletionSource immediateCompletionSource) : ICallbackArgument
+    internal readonly struct LaunchArgument<T>(Func<Coroutine<T>> provider, Coroutine<Coroutine<T>>.CompletionSource immediateCompletionSource) : ICallbackArgument
     {
-        private readonly Func<Coroutine<T>> _provider = provider;
-
         void ICallbackArgument.Callback(ref CoroutineStackNode coroutineNode)
         {
-            var coroutine = _provider();
+            var coroutine = provider();
             var coroutineAwaiter = coroutine.GetAwaiter();
             var intermediateCompletionSource = Coroutine<T>.CompletionSource.RentFromCache();
             coroutine._task = intermediateCompletionSource.CreateGenericValueTask();
@@ -72,7 +68,7 @@ partial class Effects
                     intermediateCompletionSource.SetResult(result);
                 } catch (Exception error) {
                     intermediateCompletionSource.SetException(error);
-                    throw; // Fork must bubble up its error
+                    throw; // Must bubble up
                 }
             });
             coroutineAwaiter.PropagateCoroutineNode(ref coroutineNode);
