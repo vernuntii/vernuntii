@@ -14,7 +14,7 @@ partial struct CoroutineMethodBuilder<T>
     /// <param name="stateMachine">The state machine.</param>
     /// <param name="stateMachineBox">A reference to the field containing the initialized state machine box.</param>
     /// <returns>The "boxed" state machine.</returns>
-    private static ICoroutineStateMachineBox GetStateMachineBox<TStateMachine>(ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineBox? stateMachineBox)
+    internal static ICoroutineStateMachineBox GetStateMachineBox<TStateMachine>(ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineBox? stateMachineBox)
         where TStateMachine : IAsyncStateMachine
     {
         ExecutionContext? currentContext = ExecutionContext.Capture();

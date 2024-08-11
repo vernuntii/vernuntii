@@ -48,12 +48,7 @@ public static class CoroutineTests
         Run(async () => {
             try {
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-                var task = C2(1000);
-                var context = new CoroutineContext();
-                var node = new CoroutineStackNode(context);
-                task.PropagateCoroutineNode(ref node);
-                task.StartStateMachine();
-                Console.WriteLine(await task);
+                Console.WriteLine(await Coroutine.RunAsync(() => C2(1000)).ConfigureAwait(false));
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
                 Console.WriteLine(error);
@@ -68,8 +63,10 @@ public static class CoroutineTests
     static async Coroutine<int> C2(int _)
     {
         return await CallAsync(async () => {
+            await Task.Yield();
+            Console.WriteLine("daisy");
             return 9;
-        });
+        }).ConfigureAwait(false);
     }
 
     static async Coroutine<int> C1(int _)

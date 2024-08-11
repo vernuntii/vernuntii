@@ -32,15 +32,17 @@ public partial struct CoroutineMethodBuilder
     public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
     {
-        _stateMachineInitiator = stateMachine.MoveNext;
+        _ = CoroutineMethodBuilder<VoidCoroutineResult>.GetStateMachineBox(ref stateMachine, ref _stateMachineBox);
+        //_stateMachineInitiator = stateMachine.MoveNext;
     }
 
-    [DebuggerStepThrough]
+    //[DebuggerStepThrough]
     internal unsafe void Start()
     {
         _coroutineNode.Start();
-        _stateMachineInitiator?.Invoke();
-        _stateMachineInitiator = null;
+        Unsafe.As<ICoroutineStateMachineBox>(_stateMachineBox).MoveNext();
+        //_stateMachineInitiator?.Invoke();
+        //_stateMachineInitiator = null;
     }
 
     public void SetException(Exception e)
@@ -70,8 +72,5 @@ public partial struct CoroutineMethodBuilder
         CoroutineMethodBuilder<VoidCoroutineResult>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
     }
 
-    public void SetStateMachine(IAsyncStateMachine stateMachine)
-    {
-        throw new NotImplementedException();
-    }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) => throw new NotImplementedException();
 }

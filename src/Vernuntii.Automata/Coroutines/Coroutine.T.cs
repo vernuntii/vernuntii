@@ -3,7 +3,7 @@
 namespace Vernuntii.Coroutines;
 
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder<>))]
-public unsafe partial struct Coroutine<TResult>
+public unsafe partial struct Coroutine<TResult> : ICoroutine
 {
     internal ValueTask<TResult> _task;
     private readonly CoroutineMethodBuilder<TResult>* _builder;
@@ -26,12 +26,12 @@ public unsafe partial struct Coroutine<TResult>
         _builder = builder;
     }
 
-    internal void PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
+    void ICoroutine.PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
     {
         _builder->SetCoroutineNode(ref coroutineNode);
     }
 
-    internal void StartStateMachine()
+    void ICoroutine.StartStateMachine()
     {
         _builder->Start();
     }

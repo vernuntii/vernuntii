@@ -14,4 +14,8 @@
     <ProjectReference Include="..\..\src\Vernuntii.Automata\Vernuntii.Automata.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Coroutines\" />
+  </ItemGroup>
+
 </Project>
