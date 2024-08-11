@@ -61,26 +61,38 @@ public static class CoroutineTests
         //thread.Join();
     }
 
+    static async Coroutine<int> N8(int _)
+    {
+        var t1 = ForkAsync(async () => {
+            await Task.Yield();
+            await Task.Delay(500);
+            Console.WriteLine("Works");
+            await Task.Delay(1000);
+            Console.WriteLine("FINISHED");
+        });
+        await t1;
+        Console.WriteLine("IMMEDIATELLY RETURN");
+        return 8;
+    }
+
     static async Coroutine<int> F2(int _)
     {
-        //await new Func<Coroutine>(async () => {
-        //    var t1 = await SpawnAsync(async () => {
-        //        await Task.Delay(1500);
-        //        Console.WriteLine("Works");
-        //        await Task.Delay(3000);
-        //        Console.WriteLine("FINISHED");
-        //        return 13;
-        //    });
-        //})();
-        //return 2;
         var t1 = await ForkAsync(async () => {
-            await Task.Delay(1500);
+            await Task.Delay(500);
             Console.WriteLine("Works");
-            await Task.Delay(3000);
+            await Task.Delay(1000);
             Console.WriteLine("FINISHED");
             return 13;
         });
-        return await t1;
+        var t2 = await ForkAsync(async () => {
+            await Task.Delay(1000);
+            Console.WriteLine("Works#2");
+            await Task.Delay(1000);
+            Console.WriteLine("FINISHED#2");
+            return 13;
+        });
+        Console.WriteLine("IMMEDIATELLY RETURN");
+        return 6;
     }
 
     static async Coroutine<int> F1(int _)

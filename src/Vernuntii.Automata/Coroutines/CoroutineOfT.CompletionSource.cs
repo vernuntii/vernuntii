@@ -17,8 +17,11 @@ partial struct Coroutine<T>
         /// <summary>Implementation for IValueTaskSource interfaces.</summary>
         protected ManualResetValueTaskSourceCore<T> _valueTaskSource;
 
-        public ValueTask<T> CreateValueTask() =>
+        public ValueTask<T> CreateGenericValueTask() =>
             new ValueTask<T>(this, Version);
+
+        public ValueTask CreateValueTask() =>
+            new ValueTask(this, Version);
 
         /// <summary>Completes the box with a result.</summary>
         /// <param name="result">The result.</param>

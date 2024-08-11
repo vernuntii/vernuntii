@@ -5,7 +5,7 @@ namespace Vernuntii.Coroutines;
 [AsyncMethodBuilder(typeof(AsyncCoroutineMethodBuilder<>))]
 public unsafe partial struct Coroutine<T>
 {
-    private readonly ValueTask<T> _task;
+    internal ValueTask<T> _task;
     private readonly AsyncCoroutineMethodBuilder<T>* _builder;
     private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
@@ -50,6 +50,7 @@ public unsafe partial struct Coroutine<T>
         private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
         readonly bool ICoroutineAwaiter.IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
+        readonly bool ICoroutineAwaiter.IsGenericCoroutine => _awaiter is ValueTaskAwaiter<T>;
         readonly CoroutineArgumentReceiverDelegate? ICoroutineAwaiter.ArgumentReceiverDelegate => _argumentReceiverDelegate;
 
         internal CoroutineAwaiter(in ValueTaskAwaiter<T> awaiter, in AsyncCoroutineMethodBuilder<T>* builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
@@ -111,6 +112,7 @@ public readonly unsafe struct ConfiguredAwaitableCoroutine<T>
         private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
         readonly bool ICoroutineAwaiter.IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
+        readonly bool ICoroutineAwaiter.IsGenericCoroutine => _awaiter is ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter;
         readonly CoroutineArgumentReceiverDelegate? ICoroutineAwaiter.ArgumentReceiverDelegate => _argumentReceiverDelegate;
 
         public ConfiguredCoroutineAwaiter(

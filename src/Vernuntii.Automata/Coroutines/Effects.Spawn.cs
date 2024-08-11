@@ -7,27 +7,27 @@ partial class Effects
 {
     internal readonly static ArgumentType SpawnArgumentType = new ArgumentType(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("spawn"));
 
-    public async static Coroutine<Coroutine> SpawnAsync(Func<Coroutine> provider)
+    public static Coroutine<Coroutine> SpawnAsync(Func<Coroutine> provider)
     {
         var completionSource = new CoroutineCompletionSource<Coroutine>();
-        return await new Coroutine<Coroutine>(completionSource.CreateValueTask(), ArgumentReceiverDelegate);
+        return new Coroutine<Coroutine>(completionSource.CreateValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new SpawnArgument(provider, completionSource);
-            argumentReceiver.ReceiveArgument(ref argument, in SpawnArgumentType);
+            argumentReceiver.ReceiveArgument(in argument, in SpawnArgumentType);
         }
     }
 
-    public async static Coroutine<Coroutine<T>> SpawnAsync<T>(Func<Coroutine<T>> provider)
+    public static Coroutine<Coroutine<T>> SpawnAsync<T>(Func<Coroutine<T>> provider)
     {
         var completionSource = new CoroutineCompletionSource<Coroutine<T>>();
-        return await new Coroutine<Coroutine<T>>(completionSource.CreateValueTask(), ArgumentReceiverDelegate);
+        return new Coroutine<Coroutine<T>>(completionSource.CreateValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new SpawnArgument<T>(provider, completionSource);
-            argumentReceiver.ReceiveArgument(ref argument, in SpawnArgumentType);
+            argumentReceiver.ReceiveArgument(in argument, in SpawnArgumentType);
         }
     }
 

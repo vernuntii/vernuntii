@@ -13,6 +13,7 @@ public struct AsyncCoroutineMethodBuilder
     public unsafe Coroutine Task {
         get {
             fixed (AsyncCoroutineMethodBuilder* builder = &this) {
+                _coroutineNode.SetResultStateMachine(new CoroutineResultStateMachine(builder));
                 return new Coroutine(_builder.Task, builder);
             }
         }
@@ -43,14 +44,16 @@ public struct AsyncCoroutineMethodBuilder
 
     public void SetException(Exception e)
     {
+        var resultStateMachine = Unsafe.As<AsyncCoroutineMethodBuilder<object?>.CoroutineResultStateMachine>(_coroutineNode.ResultStateMachine);
+        resultStateMachine.SetException(e);
         _coroutineNode.Stop();
-        _builder.SetException(e);
     }
 
     public void SetResult()
     {
+        var resultStateMachine = Unsafe.As<AsyncCoroutineMethodBuilder<object?>.CoroutineResultStateMachine>(_coroutineNode.ResultStateMachine);
+        resultStateMachine.SetResult(default);
         _coroutineNode.Stop();
-        _builder.SetResult();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -73,5 +76,22 @@ public struct AsyncCoroutineMethodBuilder
     public void SetStateMachine(IAsyncStateMachine stateMachine)
     {
         _builder.SetStateMachine(stateMachine);
+    }
+
+    internal unsafe class CoroutineResultStateMachine : AbstractCoroutineResultStateMachine<object?>
+    {
+        private AsyncCoroutineMethodBuilder* _builder;
+
+        public CoroutineResultStateMachine(AsyncCoroutineMethodBuilder* builder) => _builder = builder;
+
+        protected override void SetExceptionCore(Exception error)
+        {
+            _builder->_builder.SetException(error);
+        }
+
+        protected override void SetResultCore(object? result)
+        {
+            _builder->_builder.SetResult();
+        }
     }
 }
