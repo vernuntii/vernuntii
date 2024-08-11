@@ -1,31 +1,127 @@
-﻿using System.Diagnostics;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
 
 namespace Vernuntii.Coroutines;
 
-partial struct CoroutineMethodBuilder<T> {
+partial struct CoroutineMethodBuilder<T>
+{
     /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
-    internal abstract class CoroutineStateMachineBox : IValueTaskSource<T>, IValueTaskSource
+    internal abstract class CoroutineStateMachineBox : IValueTaskSource<T>, IValueTaskSource, ICoroutineResultStateMachine
     {
         /// <summary>A delegate to the MoveNext method.</summary>
         protected Action? _moveNextAction;
 
         /// <summary>Captured ExecutionContext with which to invoke MoveNext.</summary>
-        public ExecutionContext? Context;
+        internal ExecutionContext? Context;
 
         /// <summary>Implementation for IValueTaskSource interfaces.</summary>
         protected ManualResetValueTaskSourceCore<T> _valueTaskSource;
 
+        internal CoroutineStateMachineBoxState? State = CoroutineStateMachineBoxState.Default;
+
+        void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation)
+        {
+            CoroutineStateMachineBoxState? currentState;
+            CoroutineStateMachineBoxState newState;
+
+            do {
+                currentState = State;
+
+                if (currentState is null || currentState.HasResult) {
+                    throw new InvalidOperationException("Result state machine has already finished");
+                }
+
+                newState = new CoroutineStateMachineBoxState(currentState.ForkCount + 1);
+            } while (Interlocked.CompareExchange(ref State, newState, currentState)?.ForkCount != currentState.ForkCount);
+
+            awaiter.UnsafeOnCompleted(() => {
+                Exception? childError = null;
+
+                try {
+                    continuation();
+                } catch (Exception error) {
+                    childError = error;
+                }
+
+                CoroutineStateMachineBoxState? currentState;
+                CoroutineStateMachineBoxState? newState;
+
+                do {
+                    currentState = State;
+
+                    if (currentState is null) {
+                        return;
+                    }
+
+                    if (currentState.HasResult) {
+                        if (currentState.ForkCount == 1) {
+                            newState = null;
+                        } else {
+                            newState = new CoroutineStateMachineBoxState(currentState.ForkCount - 1, currentState.HasResult, currentState.Result);
+                        }
+                    } else {
+                        if (currentState.ForkCount == 1) {
+                            newState = CoroutineStateMachineBoxState.Default;
+                        } else {
+                            newState = new CoroutineStateMachineBoxState(currentState.ForkCount - 1);
+                        }
+                    }
+                } while (Interlocked.CompareExchange(ref State, newState, currentState)?.ForkCount != currentState.ForkCount);
+
+                if (newState is null) {
+                    if (currentState.HasError) {
+                        SetExceptionCore(currentState.Error);
+                    } else if (childError is not null)
+                        SetExceptionCore(childError);
+                    else {
+                        SetResultCore(currentState.Result);
+                    }
+                }
+            });
+        }
+
+        protected void SetExceptionCore(Exception error) =>
+            _valueTaskSource.SetException(error);
+
+        protected void SetResultCore(T result) =>
+            _valueTaskSource.SetResult(result);
+
         /// <summary>Completes the box with a result.</summary>
         /// <param name="result">The result.</param>
-        public void SetResult(T result) =>
-            _valueTaskSource.SetResult(result);
+        public void SetResult(T result)
+        {
+            CoroutineStateMachineBoxState currentState;
+            CoroutineStateMachineBoxState? newState;
+
+            do {
+                currentState = State!; // Cannot be null at this state
+                newState = currentState.ForkCount == 0 ? null : new CoroutineStateMachineBoxState(currentState.ForkCount, hasResult: true, result);
+            } while (Interlocked.CompareExchange(ref State, newState, currentState)!.ForkCount != currentState.ForkCount);
+
+            if (newState is null) {
+                SetResultCore(result);
+            }
+        }
 
         /// <summary>Completes the box with an error.</summary>
         /// <param name="error">The exception.</param>
-        public void SetException(Exception error) =>
-            _valueTaskSource.SetException(error);
+        public void SetException(Exception error)
+        {
+            CoroutineStateMachineBoxState currentState;
+            CoroutineStateMachineBoxState? newState;
+
+            do {
+                currentState = State!; // Cannot be null at this state
+                newState = currentState.ForkCount == 0 ? null : new CoroutineStateMachineBoxState(currentState.ForkCount, hasError: true, error);
+            } while (Interlocked.CompareExchange(ref State, newState, currentState)!.ForkCount != currentState.ForkCount);
+
+            if (newState is null) {
+                SetExceptionCore(error);
+            }
+        }
 
         /// <summary>Gets the status of the box.</summary>
         public ValueTaskSourceStatus GetStatus(short token) => _valueTaskSource.GetStatus(token);
@@ -44,10 +140,54 @@ partial struct CoroutineMethodBuilder<T> {
         void IValueTaskSource.GetResult(short token) => throw new NotImplementedException("");
     }
 
-    /// <summary>Type used as a singleton to indicate synchronous success for an async method.</summary>
-    private sealed class SyncSuccessSentinelStateMachineBox : CoroutineStateMachineBox
+    internal class CoroutineStateMachineBoxState : IEquatable<CoroutineStateMachineBoxState>
     {
-        public SyncSuccessSentinelStateMachineBox() => SetResult(default!);
+        internal readonly static CoroutineStateMachineBoxState Default = new(forkCount: 0, hasResult: false, result: default!);
+
+        public CoroutineStateMachineBoxState(int forkCount)
+        {
+            ForkCount = forkCount;
+            Result = default!;
+        }
+
+        public CoroutineStateMachineBoxState(int forkCount, bool hasResult, T result)
+        {
+            ForkCount = forkCount;
+            HasResult = hasResult;
+            Result = result;
+        }
+
+        public CoroutineStateMachineBoxState(int forkCount, bool hasError, Exception error)
+        {
+            ForkCount = forkCount;
+            Result = default!;
+            HasError = hasError;
+            Error = error;
+        }
+
+        public int ForkCount { get; init; }
+        [MemberNotNullWhen(true, nameof(Result))]
+        public bool HasResult { get; init; }
+        [MemberNotNullWhen(true, nameof(Error))]
+        public bool HasError { get; init; }
+        public T Result { get; init; }
+        public Exception? Error { get; init; }
+
+        public bool Equals(CoroutineStateMachineBoxState? other)
+        {
+            if (other is null) {
+                return false;
+            }
+
+            return ForkCount == other.ForkCount &&
+                HasResult == other.HasResult;
+        }
+    }
+
+    /// <summary>Type used as a singleton to indicate synchronous success for an async method.</summary>
+    private sealed class SyncSuccessSentinelCoroutineStateMachineBox : CoroutineStateMachineBox
+    {
+        public SyncSuccessSentinelCoroutineStateMachineBox() => SetResultCore(default!);
     }
 
     /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
@@ -147,6 +287,7 @@ partial struct CoroutineMethodBuilder<T> {
         {
             StateMachine = default;
             Context = default;
+            State = CoroutineStateMachineBoxState.Default;
         }
 
         /// <summary>

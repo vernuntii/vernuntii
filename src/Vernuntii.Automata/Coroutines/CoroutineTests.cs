@@ -48,7 +48,7 @@ public static class CoroutineTests
         Run(async () => {
             try {
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-                var task = F2(1000);
+                var task = C2(1000);
                 var context = new CoroutineContext();
                 var node = new CoroutineStackNode(context);
                 task.PropagateCoroutineNode(ref node);
@@ -63,6 +63,23 @@ public static class CoroutineTests
         //// Complete the synchronization context work
         //syncContext.Complete();
         //thread.Join();
+    }
+
+    static async Coroutine<int> C2(int _)
+    {
+        return await CallAsync(async () => {
+            return 9;
+        });
+    }
+
+    static async Coroutine<int> C1(int _)
+    {
+        return await CallAsync(async () => {
+            Console.WriteLine("BEFORE CALL");
+            await Task.Delay(1000);
+            Console.WriteLine("AFTER CALL");
+            return 9;
+        });
     }
 
     static async Coroutine<int> N8(int _)
@@ -83,7 +100,14 @@ public static class CoroutineTests
     {
         var t1 = await LaunchAsync(async () => {
             await LaunchAsync(async () => {
-                await Task.Delay(2000);
+                await Task.Delay(1000);
+
+                await CallAsync(async () => {
+                    Console.WriteLine("BEFORE CALL");
+                    await Task.Delay(1000);
+                    Console.WriteLine("AFTER CALL");
+                });
+
                 Console.WriteLine("2000");
                 throw new Exception("Hello from fork");
             });

@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Microsoft.VisualBasic;
 
 namespace Vernuntii.Coroutines;
 
@@ -39,7 +38,7 @@ partial class Effects
             var coroutineAwaiter = coroutine.GetAwaiter();
             var intermediateCompletionSource = Coroutine<object?>.CompletionSource.RentFromCache();
             coroutine._task = intermediateCompletionSource.CreateValueTask();
-            coroutineNode.ResultStateMachine.AwaitUnsafeOnCompleted(ref coroutineAwaiter, () => {
+            coroutineNode.ResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith(ref coroutineAwaiter, () => {
                 try {
                     coroutineAwaiter.GetResult();
                     intermediateCompletionSource.SetResult(default);
@@ -62,7 +61,7 @@ partial class Effects
             var coroutineAwaiter = coroutine.GetAwaiter();
             var intermediateCompletionSource = Coroutine<T>.CompletionSource.RentFromCache();
             coroutine._task = intermediateCompletionSource.CreateGenericValueTask();
-            coroutineNode.ResultStateMachine.AwaitUnsafeOnCompleted(ref coroutineAwaiter, () => {
+            coroutineNode.ResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith(ref coroutineAwaiter, () => {
                 try {
                     var result = coroutineAwaiter.GetResult();
                     intermediateCompletionSource.SetResult(result);

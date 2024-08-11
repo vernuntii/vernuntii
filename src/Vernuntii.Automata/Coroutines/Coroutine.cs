@@ -41,7 +41,7 @@ public unsafe struct Coroutine
     public ConfiguredAwaitableCoroutine ConfigureAwait(bool continueOnCapturedContext) =>
         new ConfiguredAwaitableCoroutine(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
 
-    public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
+    public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter, ICoroutineStateMachineBoxAwareAwaiter
     {
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
@@ -74,6 +74,8 @@ public unsafe struct Coroutine
         public void OnCompleted(Action continuation) => _awaiter.OnCompleted(continuation);
 
         public void UnsafeOnCompleted(Action continuation) => _awaiter.UnsafeOnCompleted(continuation);
+
+        void ICoroutineStateMachineBoxAwareAwaiter.AwaitUnsafeOnCompleted(ICoroutineStateMachineBox box) => _awaiter.UnsafeOnCompleted(box.MoveNextAction);
     }
 }
 
@@ -102,7 +104,7 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
 
     public ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
 
-    public readonly struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
+    public readonly struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter, ICoroutineStateMachineBoxAwareAwaiter
     {
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
@@ -139,6 +141,6 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
 
         public void UnsafeOnCompleted(Action continuation) => _awaiter.UnsafeOnCompleted(continuation);
 
-        //void AwaitUnsafeOnCompleted(IAsyncStateMachineBox box);
+        void ICoroutineStateMachineBoxAwareAwaiter.AwaitUnsafeOnCompleted(ICoroutineStateMachineBox box) => _awaiter.UnsafeOnCompleted(box.MoveNextAction);
     }
 }

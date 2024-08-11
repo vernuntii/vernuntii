@@ -14,7 +14,7 @@ partial class Effects
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new CallArgument(provider, completionSource);
-            argumentReceiver.ReceiveArgument(in argument, in CallArgumentType);
+            argumentReceiver.ReceiveCallbackArgument(in argument, in CallArgumentType);
         }
     }
 
@@ -26,7 +26,7 @@ partial class Effects
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new CallArgument<T>(provider, completionSource);
-            argumentReceiver.ReceiveArgument(in argument, in CallArgumentType);
+            argumentReceiver.ReceiveCallbackArgument(in argument, in CallArgumentType);
         }
     }
 

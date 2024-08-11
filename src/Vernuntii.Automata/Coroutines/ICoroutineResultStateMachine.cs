@@ -4,5 +4,5 @@ namespace Vernuntii.Coroutines;
 
 internal interface ICoroutineResultStateMachine
 {
-    void AwaitUnsafeOnCompleted<TAwaiter>(ref TAwaiter awaiter, Action continuation) where TAwaiter : ICriticalNotifyCompletion;
+    void AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation) where TAwaiter : ICriticalNotifyCompletion;
 }
