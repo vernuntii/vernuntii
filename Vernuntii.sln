@@ -87,6 +87,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Automata.Test", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Automata.Generator", "src\Vernuntii.Automata.Generator\Vernuntii.Automata.Generator.csproj", "{CC9488DB-F3B2-4610-8922-DE359D83CBBB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Automata.Fody", "src\Vernuntii.Automata.Fody\Vernuntii.Automata.Fody.csproj", "{3ECCF372-930C-4A1D-909A-0F80EA17E2A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -213,6 +215,10 @@ Global
 		{CC9488DB-F3B2-4610-8922-DE359D83CBBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC9488DB-F3B2-4610-8922-DE359D83CBBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC9488DB-F3B2-4610-8922-DE359D83CBBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3ECCF372-930C-4A1D-909A-0F80EA17E2A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ECCF372-930C-4A1D-909A-0F80EA17E2A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ECCF372-930C-4A1D-909A-0F80EA17E2A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ECCF372-930C-4A1D-909A-0F80EA17E2A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,7 +9,7 @@ namespace Vernuntii.Coroutines;
 // 25.-32. byte (8 bytes) -> argument
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct ArgumentType : IArgumentType
-{
+{ 
     internal const byte CurrentVersion = 1;
 
     public readonly byte Version { get; } = CurrentVersion;
