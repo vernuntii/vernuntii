@@ -49,7 +49,7 @@ public static class CoroutineTests
         Run(async () => {
             try {
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-                Console.WriteLine(await Coroutine.RunAsync(() => C1(1000)).ConfigureAwait(false));
+                Console.WriteLine(await Coroutine.RunAsync(() => ContextNullInvestigation(1000)).ConfigureAwait(true));
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
                 Console.WriteLine(error);
@@ -59,6 +59,35 @@ public static class CoroutineTests
         //// Complete the synchronization context work
         //syncContext.Complete();
         //thread.Join();
+    }
+
+    static async Coroutine<int> ContextNullInvestigation(int _) {
+        var t1 = await SpawnAsync(async () => {
+            var t8 = await SpawnAsync(async () => {
+                await Task.Delay(1500).ConfigureAwait(false);
+                Console.WriteLine("Works");
+                await Task.Delay(3000).ConfigureAwait(false);
+                Console.WriteLine("FINISHED SpawnAsync[#2]");
+            }).ConfigureAwait(false);
+
+            await t8.ConfigureAwait(false);
+            Console.WriteLine("FINISHED SpawnAsync[#1]");
+        }).ConfigureAwait(false);
+        Console.WriteLine("FINISHED [ContextNullInvestigation]");
+        await t1.ConfigureAwait(false);
+        return 18;
+    }
+
+    static async Coroutine<int> T1(int _)
+    {
+        await Task.Factory.StartNew(async () => { 
+            await Task.Delay(9000); 
+        }, TaskCreationOptions.LongRunning);
+        //return await new Func<Coroutine<int>>(async () => {
+        //    await Task.Factory.StartNew(() => { }, TaskCreationOptions.LongRunning);
+        //    return 8;
+        //})();
+        return 9;
     }
 
     static async Coroutine<int> C2(int _)

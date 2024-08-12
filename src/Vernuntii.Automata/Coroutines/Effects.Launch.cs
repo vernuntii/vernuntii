@@ -48,8 +48,8 @@ partial class Effects
                     throw; // Must bubble up
                 }
             });
-            coroutineAwaiter.PropagateCoroutineNode(ref coroutineNode);
-            coroutineAwaiter.StartStateMachine();
+            coroutine.StartChildCoroutine(ref coroutineNode);
+            coroutine.MarkCoroutineAsHandled();
             immediateCompletionSource.SetResult(coroutine);
         }
     }
@@ -71,8 +71,8 @@ partial class Effects
                     throw; // Must bubble up
                 }
             });
-            coroutineAwaiter.PropagateCoroutineNode(ref coroutineNode);
-            coroutineAwaiter.StartStateMachine();
+            coroutine.StartChildCoroutine(ref coroutineNode);
+            coroutine.MarkCoroutineAsHandled();
             immediateCompletionSource.SetResult(coroutine);
         }
     }

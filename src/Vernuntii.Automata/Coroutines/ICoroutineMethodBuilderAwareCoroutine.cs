@@ -1,8 +1,10 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal interface ICoroutine
+internal interface ICoroutineMethodBuilderAwareCoroutine
 {
     void PropagateCoroutineNode(ref CoroutineStackNode coroutineNode);
 
     void StartStateMachine();
+
+    void MarkCoroutineAsHandled();
 }

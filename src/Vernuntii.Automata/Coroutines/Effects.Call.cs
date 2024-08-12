@@ -47,8 +47,7 @@ partial class Effects
                     completionSource.SetException(error);
                 }
             });
-            coroutineAwaiter.PropagateCoroutineNode(ref coroutineNode);
-            coroutineAwaiter.StartStateMachine();
+            coroutine.StartChildCoroutine(ref coroutineNode);
         }
     }
 
@@ -69,8 +68,7 @@ partial class Effects
                     completionSource.SetException(error);
                 }
             });
-            coroutineAwaiter.PropagateCoroutineNode(ref coroutineNode);
-            coroutineAwaiter.StartStateMachine();
+            coroutine.StartChildCoroutine(ref coroutineNode);
         }
     }
 }

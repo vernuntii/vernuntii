@@ -1,14 +1,13 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder))]
-public unsafe partial struct Coroutine : ICoroutine
+public unsafe partial struct Coroutine : ICoroutineMethodBuilderAwareCoroutine
 {
     internal ValueTask _task;
-    private readonly CoroutineMethodBuilder* _builder;
-    private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+    private CoroutineMethodBuilder* _builder;
+    private CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
     public Coroutine(in ValueTask task)
     {
@@ -27,14 +26,20 @@ public unsafe partial struct Coroutine : ICoroutine
         _builder = builder;
     }
 
-    void ICoroutine.PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
+    void ICoroutineMethodBuilderAwareCoroutine.PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
     {
         _builder->SetCoroutineNode(ref coroutineNode);
     }
 
-    void ICoroutine.StartStateMachine()
+    void ICoroutineMethodBuilderAwareCoroutine.StartStateMachine()
     {
         _builder->Start();
+    }
+
+    unsafe void ICoroutineMethodBuilderAwareCoroutine.MarkCoroutineAsHandled()
+    {
+        _builder = null;
+        _argumentReceiverDelegate = null;
     }
 
     public CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);

@@ -8,6 +8,7 @@ partial class Effects
 
     public static Coroutine<Coroutine> SpawnAsync(Func<Coroutine> provider)
     {
+        var t =  provider();
         var completionSource = Coroutine<Coroutine>.CompletionSource.RentFromCache();
         return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
@@ -32,14 +33,11 @@ partial class Effects
 
     internal readonly struct SpawnArgument(Func<Coroutine> provider, Coroutine<Coroutine>.CompletionSource completionSource) : ICallbackArgument
     {
-        void ICallbackArgument.Callback(ref CoroutineStackNode _)
+        unsafe void ICallbackArgument.Callback(ref CoroutineStackNode _)
         {
             var coroutine = provider();
-            var coroutineAwaiter = coroutine.GetAwaiter();
-            var context = new CoroutineContext();
-            var node = new CoroutineStackNode(context);
-            coroutineAwaiter.PropagateCoroutineNode(ref node);
-            coroutineAwaiter.StartStateMachine();
+            coroutine.StartOrphanCoroutine();
+            coroutine.MarkCoroutineAsHandled();
             completionSource.SetResult(coroutine);
         }
     }
@@ -49,11 +47,8 @@ partial class Effects
         void ICallbackArgument.Callback(ref CoroutineStackNode _)
         {
             var coroutine = provider();
-            var coroutineAwaiter = coroutine.GetAwaiter();
-            var context = new CoroutineContext();
-            var node = new CoroutineStackNode(context);
-            coroutineAwaiter.PropagateCoroutineNode(ref node);
-            coroutineAwaiter.StartStateMachine();
+            coroutine.StartOrphanCoroutine();
+            coroutine.MarkCoroutineAsHandled();
             completionSource.SetResult(coroutine);
         }
     }

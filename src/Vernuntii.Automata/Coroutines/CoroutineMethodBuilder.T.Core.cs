@@ -121,7 +121,7 @@ partial struct CoroutineMethodBuilder<T>
             where TAwaiter : ICriticalNotifyCompletion
             where TStateMachine : IAsyncStateMachine
     {
-        ICoroutineStateMachineBox box = GetStateMachineBox(ref stateMachine, ref stateMachineBox);
-        CoroutineMethodBuilder<VoidCoroutineResult>.AwaitUnsafeOnCompleted(ref awaiter, box);
+        var box = GetStateMachineBox(ref stateMachine, ref stateMachineBox);
+        AwaitUnsafeOnCompleted(ref awaiter, box);
     }
 }

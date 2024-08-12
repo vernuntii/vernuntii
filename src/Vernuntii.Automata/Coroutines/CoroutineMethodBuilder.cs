@@ -13,6 +13,7 @@ public struct CoroutineMethodBuilder
     public unsafe Coroutine Task {
         get {
             fixed (CoroutineMethodBuilder* builder = &this) {
+                //Console.WriteLine("Task [THREAD: " + Thread.CurrentThread.ManagedThreadId + "]");
                 var stateMachineBox = _stateMachineBox ??= CoroutineMethodBuilder<VoidCoroutineResult>.CreateWeaklyTyedStateMachineBox();
                 _coroutineNode.SetResultStateMachine(stateMachineBox);
                 return new Coroutine(new ValueTask(stateMachineBox, stateMachineBox.Version), builder);
@@ -37,6 +38,7 @@ public struct CoroutineMethodBuilder
 
     internal unsafe void Start()
     {
+        Console.WriteLine("Start [THREAD: " + Thread.CurrentThread.ManagedThreadId + "]");
         _coroutineNode.Start();
         Unsafe.As<ICoroutineStateMachineBox>(_stateMachineBox).MoveNext();
     }
@@ -64,8 +66,10 @@ public struct CoroutineMethodBuilder
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
+        Console.WriteLine("AwaitUnsafeOnCompleted [THREAD: " + Thread.CurrentThread.ManagedThreadId + "] [PRE]");
         CoroutineMethodBuilderCore.ProcessAwaiterBeforeAwaitingOnCompleted(ref awaiter, ref _coroutineNode);
         CoroutineMethodBuilder<VoidCoroutineResult>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
+        Console.WriteLine("AwaitUnsafeOnCompleted [THREAD: " + Thread.CurrentThread.ManagedThreadId + "] [POST]");
     }
 
     public void SetStateMachine(IAsyncStateMachine stateMachine) => throw new NotImplementedException();

@@ -39,20 +39,11 @@ partial struct Coroutine
     public static Coroutine<TResult> FromException<TResult>(Exception exception) =>
         new Coroutine<TResult>(new ValueTask<TResult>(Task.FromException<TResult>(exception)));
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void StartCoroutine<TCoroutine>(ref TCoroutine coroutine) where TCoroutine : ICoroutine
-    {
-        var context = new CoroutineContext();
-        var node = new CoroutineStackNode(context);
-        coroutine.PropagateCoroutineNode(ref node);
-        coroutine.StartStateMachine();
-    }
-
     public static async ValueTask RunAsync(Func<Coroutine> provider)
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
-        StartCoroutine(ref coroutine);
+        coroutine.StartOrphanCoroutine();
         await coroutine;
     }
 
@@ -60,7 +51,7 @@ partial struct Coroutine
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
-        StartCoroutine(ref coroutine);
+        coroutine.StartOrphanCoroutine();
         return await coroutine;
     }
 }
