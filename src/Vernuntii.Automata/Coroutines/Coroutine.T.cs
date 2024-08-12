@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -36,6 +37,7 @@ public unsafe partial struct Coroutine<TResult> : ICoroutine
         _builder->Start();
     }
 
+    //[DebuggerStepThrough]
     public readonly CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
 
     public readonly ConfiguredAwaitableCoroutine<TResult> ConfigureAwait(bool continueOnCapturedContext) =>

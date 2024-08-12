@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -48,7 +49,7 @@ public unsafe partial struct Coroutine : ICoroutine
         private readonly ValueTaskAwaiter _awaiter;
         private readonly CoroutineMethodBuilder* _builder;
         private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
-
+        
         readonly bool ICoroutineAwaiter.IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
         readonly CoroutineArgumentReceiverDelegate? ICoroutineAwaiter.ArgumentReceiverDelegate => _argumentReceiverDelegate;
 

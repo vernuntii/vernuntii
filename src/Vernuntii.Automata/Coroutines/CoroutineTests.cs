@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using static Vernuntii.Coroutines.Effects;
 
 namespace Vernuntii.Coroutines;
@@ -48,7 +49,7 @@ public static class CoroutineTests
         Run(async () => {
             try {
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-                Console.WriteLine(await Coroutine.RunAsync(() => C2(1000)).ConfigureAwait(false));
+                Console.WriteLine(await Coroutine.RunAsync(() => C1(1000)).ConfigureAwait(false));
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
                 Console.WriteLine(error);

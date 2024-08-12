@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.Coroutines;
+﻿using System.Diagnostics;
+
+namespace Vernuntii.Coroutines;
 
 internal class CoroutineContext
 {

@@ -5,7 +5,7 @@ namespace Vernuntii.Coroutines;
 partial class Effects
 {
     internal readonly static ArgumentType CallArgumentType = new ArgumentType(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("call"));
-    
+
     public static Coroutine CallAsync(Func<Coroutine> provider)
     {
         var completionSource = Coroutine<object?>.CompletionSource.RentFromCache();
@@ -34,7 +34,8 @@ partial class Effects
     {
         private readonly Coroutine<object?>.CompletionSource _completionSource = completionSource;
 
-        void ICallbackArgument.Callback(ref CoroutineStackNode coroutineNode) {
+        void ICallbackArgument.Callback(ref CoroutineStackNode coroutineNode)
+        {
             var coroutine = provider();
             var coroutineAwaiter = coroutine.GetAwaiter();
             var completionSource = _completionSource;
@@ -55,7 +56,8 @@ partial class Effects
     {
         private readonly Coroutine<T>.CompletionSource _completionSource = completionSource;
 
-        void ICallbackArgument.Callback(ref CoroutineStackNode coroutineNode) {
+        void ICallbackArgument.Callback(ref CoroutineStackNode coroutineNode)
+        {
             var coroutine = provider();
             var coroutineAwaiter = coroutine.GetAwaiter();
             var completionSource = _completionSource;

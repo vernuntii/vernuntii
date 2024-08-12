@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -47,19 +48,19 @@ partial struct Coroutine
         coroutine.StartStateMachine();
     }
 
-    public static async ValueTask<T> RunAsync<T>(Func<Coroutine<T>> provider)
-    {
-        ArgumentNullException.ThrowIfNull(nameof(provider));
-        var coroutine = provider();
-        StartCoroutine(ref coroutine);
-        return await coroutine;
-    }
-
     public static async ValueTask RunAsync(Func<Coroutine> provider)
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
         StartCoroutine(ref coroutine);
         await coroutine;
+    }
+
+    public static async ValueTask<T> RunAsync<T>(Func<Coroutine<T>> provider)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(provider));
+        var coroutine = provider();
+        StartCoroutine(ref coroutine);
+        return await coroutine;
     }
 }

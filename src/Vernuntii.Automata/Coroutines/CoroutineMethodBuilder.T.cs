@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
-//[StructLayout(LayoutKind.Auto)]
 public partial struct CoroutineMethodBuilder<T>
 {
     public static CoroutineMethodBuilder<T> Create()
@@ -30,20 +29,16 @@ public partial struct CoroutineMethodBuilder<T>
         parentNode.InitializeChildCoroutine(ref _coroutineNode);
     }
 
-    [DebuggerStepThrough]
     public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
     {
         _ = GetStateMachineBox(ref stateMachine, ref _stateMachineBox);
-        //_stateMachineInitiator = stateMachine.MoveNext;
     }
 
     internal unsafe void Start()
     {
         _coroutineNode.Start();
         Unsafe.As<ICoroutineStateMachineBox>(_stateMachineBox).MoveNext();
-        //_stateMachineInitiator?.Invoke();
-        //_stateMachineInitiator = null;
     }
 
     public void SetException(Exception e)

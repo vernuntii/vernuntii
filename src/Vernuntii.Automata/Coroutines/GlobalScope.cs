@@ -4,6 +4,8 @@ namespace Vernuntii.Coroutines;
 
 internal class GlobalScope
 {
+    // Licensed to the .NET Foundation under one or more agreements.
+    // The .NET Foundation licenses this file to you under the MIT license.
     /// <summary>Throws the exception on the ThreadPool.</summary>
     /// <param name="exception">The exception to propagate.</param>
     /// <param name="targetContext">The target context on which to propagate the exception.  Null to use the ThreadPool.</param>
@@ -27,7 +29,7 @@ internal class GlobalScope
         }
 
 #if NATIVEAOT
-            RuntimeExceptionHelpers.ReportUnhandledException(edi.SourceException);
+        RuntimeExceptionHelpers.ReportUnhandledException(edi.SourceException);
 #else
         // Propagate the exception(s) on the ThreadPool
         ThreadPool.QueueUserWorkItem(static state => ((ExceptionDispatchInfo)state!).Throw(), edi);

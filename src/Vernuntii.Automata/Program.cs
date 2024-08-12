@@ -4,39 +4,50 @@ using Vernuntii.Reactive.Coroutines.PingPong;
 using Vernuntii.Reactive.Coroutines.AsyncEffects;
 using Vernuntii.Coroutines;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
-///// <summary>
-///// An interface implemented by all <see cref="AsyncTaskMethodBuilder{TResult}.AsyncStateMachineBox{TStateMachine}"/> instances, regardless of generics.
-///// </summary>
-//internal class IAsyncStateMachineBox
+//public class TestClass
 //{
-//    //dynamic _box;
+//    // Method marked with DebuggerStepThrough
+//    [DebuggerStepThrough]
+//    public void StepThroughMethod()
+//    {
+//        // This will be stepped over
+//        FirstSubMethod();
 
-//    //public AsyncStateMachineBox(dynamic box) => _box = box;
+//        // This will also be stepped over, despite any nested calls
+//        SecondSubMethod();
+//    }
 
-//    /// <summary>Move the state machine forward.</summary>
-//    void MoveNext() => _box.MoveNext();
+//    // Sub-method that you want to step into
+//    [DebuggerNonUserCode] // This attribute reverts the DebuggerStepThrough effect
+//    public void FirstSubMethod()
+//    {
+//        // When stepping through, the debugger will step into this method
+//        Console.WriteLine("Inside FirstSubMethod. Debugger will step into this method.");
+//    }
 
-//    /// <summary>
-//    /// Gets an action for moving forward the contained state machine.
-//    /// This will lazily-allocate the delegate as needed.
-//    /// </summary>
-//    Action MoveNextAction => _box.MoveNextAction;
+//    public void SecondSubMethod()
+//    {
+//        // Default debugging behavior
+//        // When stepping through, the debugger will step into this method
+//        Console.WriteLine("Inside SecondSubMethod. Debugger will step into this method.");
+//    }
+//}
 
-//    /// <summary>Gets the state machine as a boxed object.  This should only be used for debugging purposes.</summary>
-//    IAsyncStateMachine GetStateMachineObject() => _box.GetStateMachineObject();
-
-//    /// <summary>Clears the state of the box.</summary>
-//    void ClearStateUponCompletion() => _box.ClearStateUponCompletion();
+//class Program
+//{
+//    static void Main()
+//    {
+//        var test = new TestClass();
+//        test.StepThroughMethod();
+//    }
 //}
 
 internal class Program
 {
     private static async Task Main(string[] args)
     {
-
-
-
         await CoroutineTests.HandleAsnyc();
         Environment.Exit(0);
 

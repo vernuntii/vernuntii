@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Text;
 
 namespace Vernuntii.Coroutines;
 
@@ -15,7 +14,7 @@ partial class Effects
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new SpawnArgument(provider, completionSource);
-            argumentReceiver.ReceiveArgument(in argument, in SpawnArgumentType);
+            argumentReceiver.ReceiveCallbackArgument(in argument, in SpawnArgumentType);
         }
     }
 
@@ -27,46 +26,34 @@ partial class Effects
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new SpawnArgument<T>(provider, completionSource);
-            argumentReceiver.ReceiveArgument(in argument, in SpawnArgumentType);
+            argumentReceiver.ReceiveCallbackArgument(in argument, in SpawnArgumentType);
         }
     }
 
-    internal ref struct SpawnCoroutineAwaiterReceiver(ref CoroutineStackNode coroutineNode)
+    internal readonly struct SpawnArgument(Func<Coroutine> provider, Coroutine<Coroutine>.CompletionSource completionSource) : ICallbackArgument
     {
-        private ref CoroutineStackNode _coroutineNode = ref coroutineNode;
-
-        public void ReceiveCoroutineAwaiter<T>(ref T awaiter) where T : ICriticalNotifyCompletion
+        void ICallbackArgument.Callback(ref CoroutineStackNode _)
         {
-            ref var coroutineAwaiter = ref Unsafe.As<T, Coroutine.CoroutineAwaiter>(ref awaiter);
+            var coroutine = provider();
+            var coroutineAwaiter = coroutine.GetAwaiter();
             var context = new CoroutineContext();
             var node = new CoroutineStackNode(context);
             coroutineAwaiter.PropagateCoroutineNode(ref node);
             coroutineAwaiter.StartStateMachine();
-        }
-    }
-
-    internal struct SpawnArgument(Func<Coroutine> provider, Coroutine<Coroutine>.CompletionSource completionSource)
-    {
-        private readonly Func<Coroutine> _provider = provider;
-
-        public void CreateCoroutine(ref SpawnCoroutineAwaiterReceiver awaiterReceiver)
-        {
-            var coroutine = _provider();
-            var coroutineAwaiter = coroutine.GetAwaiter();
-            awaiterReceiver.ReceiveCoroutineAwaiter(ref coroutineAwaiter);
             completionSource.SetResult(coroutine);
         }
     }
 
-    internal struct SpawnArgument<T>(Func<Coroutine<T>> provider, Coroutine<Coroutine<T>>.CompletionSource completionSource)
+    internal readonly struct SpawnArgument<T>(Func<Coroutine<T>> provider, Coroutine<Coroutine<T>>.CompletionSource completionSource) : ICallbackArgument
     {
-        private readonly Func<Coroutine<T>> _provider = provider;
-
-        public void CreateCoroutine(ref SpawnCoroutineAwaiterReceiver awaiterReceiver)
+        void ICallbackArgument.Callback(ref CoroutineStackNode _)
         {
-            var coroutine = _provider();
+            var coroutine = provider();
             var coroutineAwaiter = coroutine.GetAwaiter();
-            awaiterReceiver.ReceiveCoroutineAwaiter(ref coroutineAwaiter);
+            var context = new CoroutineContext();
+            var node = new CoroutineStackNode(context);
+            coroutineAwaiter.PropagateCoroutineNode(ref node);
+            coroutineAwaiter.StartStateMachine();
             completionSource.SetResult(coroutine);
         }
     }
