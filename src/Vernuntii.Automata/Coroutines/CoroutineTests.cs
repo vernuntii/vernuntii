@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
 using static Vernuntii.Coroutines.Effects;
 
 namespace Vernuntii.Coroutines;
@@ -62,9 +61,11 @@ public static class CoroutineTests
     }
 
     static async Coroutine<int> ContextNullInvestigation(int _) {
-        var t1 = await SpawnAsync(async () => {
-            var t8 = await SpawnAsync(async () => {
-                await Task.Delay(1500).ConfigureAwait(false);
+        var test = 2;
+        var t1 = await Spawn(async () => {
+            var t8 = await Spawn(async () => {
+                await Call(async () => { });
+                Task Test() => Task.CompletedTask;
                 Console.WriteLine("Works");
                 await Task.Delay(3000).ConfigureAwait(false);
                 Console.WriteLine("FINISHED SpawnAsync[#2]");
@@ -92,7 +93,7 @@ public static class CoroutineTests
 
     static async Coroutine<int> C2(int _)
     {
-        return await CallAsync(async () => {
+        return await Call(async () => {
             await Task.Yield();
             Console.WriteLine("daisy");
             return 9;
@@ -101,7 +102,7 @@ public static class CoroutineTests
 
     static async Coroutine<int> C1(int _)
     {
-        return await CallAsync(async () => {
+        return await Call(async () => {
             Console.WriteLine("BEFORE CALL");
             await Task.Delay(1000);
             Console.WriteLine("AFTER CALL");
@@ -111,7 +112,7 @@ public static class CoroutineTests
 
     static async Coroutine<int> N8(int _)
     {
-        var t1 = LaunchAsync(async () => {
+        var t1 = Launch(async () => {
             await Task.Yield();
             await Task.Delay(500);
             Console.WriteLine("Works");
@@ -125,11 +126,11 @@ public static class CoroutineTests
 
     static async Coroutine<int> F2(int _)
     {
-        var t1 = await LaunchAsync(async () => {
-            await LaunchAsync(async () => {
+        var t1 = await Launch(async () => {
+            await Launch(async () => {
                 await Task.Delay(1000);
 
-                await CallAsync(async () => {
+                await Call(async () => {
                     Console.WriteLine("BEFORE CALL");
                     await Task.Delay(1000);
                     Console.WriteLine("AFTER CALL");
@@ -144,7 +145,7 @@ public static class CoroutineTests
             await Task.Delay(1000);
             Console.WriteLine("FINISHED");
         });
-        var t2 = await LaunchAsync(async () => {
+        var t2 = await Launch(async () => {
             await Task.Delay(1000);
             Console.WriteLine("Works#2");
             await Task.Delay(1000);
@@ -159,8 +160,8 @@ public static class CoroutineTests
 
     static async Coroutine<int> F1(int _)
     {
-        var t1 = await SpawnAsync(async () => {
-            var t8 = await SpawnAsync(async () => {
+        var t1 = await Spawn(async () => {
+            var t8 = await Spawn(async () => {
                 await Task.Delay(1500);
                 Console.WriteLine("Works");
                 await Task.Delay(3000);
@@ -170,7 +171,7 @@ public static class CoroutineTests
             await t8;
         });
         await t1;
-        var tt = await SpawnAsync(new Func<Coroutine>(async () => {
+        var tt = await Spawn(new Func<Coroutine>(async () => {
             await Task.Delay(1500);
             Console.WriteLine("Works");
             await Task.Delay(3000);
@@ -219,7 +220,7 @@ public static class CoroutineTests
                 {
                     //argumentReceiver.ReceiveArgument("hello from coroutine");
                 }
-                await await SpawnAsync(new Func<Coroutine>(async () => { Console.WriteLine("Hello from spawn"); }));
+                await await Spawn(new Func<Coroutine>(async () => { Console.WriteLine("Hello from spawn"); }));
                 await Task.Delay(waitTime).ConfigureAwait(false);
                 Console.WriteLine($"{nameof(CO3)} after");
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);

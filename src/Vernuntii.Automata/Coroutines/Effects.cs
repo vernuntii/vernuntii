@@ -1,7 +1,8 @@
-﻿using System.Diagnostics;
-
-namespace Vernuntii.Coroutines;
+﻿namespace Vernuntii.Coroutines;
 
 public static partial class Effects
 {
+    public partial class Arguments
+    {
+    }
 }

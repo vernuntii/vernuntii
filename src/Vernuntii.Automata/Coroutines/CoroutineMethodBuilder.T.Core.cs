@@ -88,30 +88,13 @@ partial struct CoroutineMethodBuilder<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)] // workaround boxing allocations in Tier0: https://github.com/dotnet/runtime/issues/9120
-    internal static void AwaitUnsafeOnCompleted<TAwaiter>(
-            ref TAwaiter awaiter, ICoroutineStateMachineBox stateMachineBox)
-            where TAwaiter : ICriticalNotifyCompletion
+    internal static void AwaitUnsafeOnCompleted<TAwaiter>(ref TAwaiter awaiter, ICoroutineStateMachineBox stateMachineBox)
+        where TAwaiter : ICriticalNotifyCompletion
     {
-        if ((null != default(TAwaiter)) && (awaiter is ICoroutineStateMachineBoxAwareAwaiter)) {
-            try {
-                ((ICoroutineStateMachineBoxAwareAwaiter)awaiter).AwaitUnsafeOnCompleted(stateMachineBox);
-            } catch (Exception e) {
-                // Whereas with Task the code that hooks up and invokes the continuation is all local to corelib,
-                // with ValueTaskAwaiter we may be calling out to an arbitrary implementation of IValueTaskSource
-                // wrapped in the ValueTask, and as such we protect against errant exceptions that may emerge.
-                // We don't want such exceptions propagating back into the async method, which can't handle
-                // exceptions well at that location in the state machine, especially if the exception may occur
-                // after the ValueTaskAwaiter already successfully hooked up the callback, in which case it's possible
-                // two different flows of execution could end up happening in the same async method call.
-                GlobalScope.ThrowAsync(e, targetContext: null);
-            }
-        } else {
-            // The awaiter isn't specially known. Fall back to doing a normal await.
-            try {
-                awaiter.UnsafeOnCompleted(stateMachineBox.MoveNextAction);
-            } catch (Exception e) {
-                GlobalScope.ThrowAsync(e, targetContext: null);
-            }
+        try {
+            awaiter.UnsafeOnCompleted(stateMachineBox.MoveNextAction);
+        } catch (Exception e) {
+            GlobalScope.ThrowAsync(e, targetContext: null);
         }
     }
 

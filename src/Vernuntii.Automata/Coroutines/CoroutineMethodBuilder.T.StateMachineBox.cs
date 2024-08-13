@@ -363,12 +363,3 @@ internal interface ICoroutineStateMachineBox
     /// <summary>Clears the state of the box.</summary>
     void ClearStateUponCompletion();
 }
-
-
-/// <summary>Internal interface used to enable optimizations from <see cref="AsyncTaskMethodBuilder"/>.</summary>>
-internal interface ICoroutineStateMachineBoxAwareAwaiter
-{
-    /// <summary>Invoked to set <see cref="ITaskCompletionAction.Invoke"/> of the <paramref name="box"/> as the awaiter's continuation.</summary>
-    /// <param name="box">The box object.</param>
-    void AwaitUnsafeOnCompleted(ICoroutineStateMachineBox box);
-}
