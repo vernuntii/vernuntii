@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-
-namespace Vernuntii.Coroutines;
+﻿namespace Vernuntii.Coroutines;
 
 partial struct Coroutine
 {
@@ -43,7 +40,9 @@ partial struct Coroutine
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
-        coroutine.StartOrphanCoroutine();
+        var coroutineContext = new CoroutineContext();
+        var coroutineNode = new CoroutineStackNode(coroutineContext);
+        CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
         await coroutine;
     }
 
@@ -51,7 +50,9 @@ partial struct Coroutine
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
-        coroutine.StartOrphanCoroutine();
+        var coroutineContext = new CoroutineContext();
+        var coroutineNode = new CoroutineStackNode(coroutineContext);
+        CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
         return await coroutine;
     }
 }

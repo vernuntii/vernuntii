@@ -22,7 +22,6 @@ public partial struct CoroutineMethodBuilder<T>
     }
 
     private CoroutineStackNode _coroutineNode;
-    private Action? _stateMachineInitiator;
     private CoroutineStateMachineBox _stateMachineBox;
 
     internal void SetCoroutineNode(ref CoroutineStackNode parentNode)
@@ -67,7 +66,7 @@ public partial struct CoroutineMethodBuilder<T>
         where TStateMachine : IAsyncStateMachine
     {
         Console.WriteLine("AwaitUnsafeOnCompleted [THREAD: " + Thread.CurrentThread.ManagedThreadId + "] [PRE]");
-        CoroutineMethodBuilderCore.ProcessAwaiterBeforeAwaitingOnCompleted(ref awaiter, ref _coroutineNode);
+        CoroutineMethodBuilderCore.AttemptHandlingCoroutineAwaiter(ref awaiter, ref _coroutineNode);
         AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
         Console.WriteLine("AwaitUnsafeOnCompleted [THREAD: " + Thread.CurrentThread.ManagedThreadId + "] [POST]");
     }

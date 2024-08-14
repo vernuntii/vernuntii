@@ -6,7 +6,7 @@ partial class Effects
 {
     public static Coroutine<Coroutine> Spawn(Func<Coroutine> provider)
     {
-        var t =  provider();
+        var t = provider();
         var completionSource = Coroutine<Coroutine>.CompletionSource.RentFromCache();
         return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
@@ -38,7 +38,9 @@ partial class Effects
             unsafe void ICallbackArgument.Callback(ref CoroutineStackNode _)
             {
                 var coroutine = provider();
-                coroutine.StartOrphanCoroutine();
+                var coroutineContext = new CoroutineContext();
+                var coroutineNode = new CoroutineStackNode(coroutineContext);
+                CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
                 coroutine.MarkCoroutineAsHandled();
                 completionSource.SetResult(coroutine);
             }
@@ -49,7 +51,9 @@ partial class Effects
             void ICallbackArgument.Callback(ref CoroutineStackNode _)
             {
                 var coroutine = provider();
-                coroutine.StartOrphanCoroutine();
+                var coroutineContext = new CoroutineContext();
+                var coroutineNode = new CoroutineStackNode(coroutineContext);
+                CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
                 coroutine.MarkCoroutineAsHandled();
                 completionSource.SetResult(coroutine);
             }

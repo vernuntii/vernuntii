@@ -1,72 +1,32 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using InlineIL;
-using static InlineIL.IL.Emit;
+﻿using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
 internal static class CoroutineMethodBuilderCore
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool IsFailingToHandleInlineCoroutine<TCoroutineAwaiter, TCoroutineHandler>(
-        ref TCoroutineAwaiter coroutineAwaiter,
+    internal static void HandleCoroutine<TCoroutine, TCoroutineHandler>(
+        ref TCoroutine coroutine,
         ref TCoroutineHandler coroutineHandler)
-        where TCoroutineAwaiter : ICoroutineAwaiter
+        where TCoroutine : IChildCoroutine, ISiblingCoroutine
         where TCoroutineHandler : ICoroutineHandler
     {
-        if (coroutineAwaiter.IsChildCoroutine) {
-            return true;
+        if (coroutine.IsChildCoroutine) {
+            coroutineHandler.HandleChildCoroutine(ref coroutine);
+        } else if (coroutine.IsSiblingCoroutine) {
+            coroutineHandler.HandleSiblingCoroutine(ref coroutine);
         }
-
-        if (coroutineAwaiter.ArgumentReceiverDelegate is not null) {
-            coroutineHandler.HandleDirectCoroutine(coroutineAwaiter.ArgumentReceiverDelegate);
-        }
-
-        return false;
     }
 
-    //[MethodImpl(MethodImplOptions.NoInlining)]
-    //internal static bool IsGenericCoroutineAwaiterCore<TCoroutineAwaiter>(
-    //    ref TCoroutineAwaiter coroutineAwaiter)
-    //    where TCoroutineAwaiter : struct, ICoroutineAwaiter
-    //{
-    //    return coroutineAwaiter.IsGenericCoroutine;
-    //}
-
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-    //internal static bool IsGenericCoroutineAwaiter<TCoroutineAwaiter>(
-    //    ref TCoroutineAwaiter coroutineAwaiter
-    //    )
-    //{
-    //    IL.PushInRef(coroutineAwaiter);
-    //    Call(new MethodRef(
-    //            typeof(AsyncCoroutineMethodBuilderCore),
-    //            nameof(IsGenericCoroutineAwaiterCore),
-    //            genericParameterCount: 1,
-    //            TypeRef.MethodGenericParameters[0].MakeByRefType())
-    //        .MakeGenericMethod(typeof(Coroutine<object>.CoroutineAwaiter))
-    //    );
-    //    return IL.Return<bool>();
-    //}
-
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    internal static void ProcessAwaiterBeforeAwaitingOnCompleted<TAwaiter, TCoroutineHandler>(
+    internal static void AttemptHandlingCoroutineAwaiter<TAwaiter, TCoroutineHandler>(
     ref TAwaiter awaiter,
     ref TCoroutineHandler coroutineHandler)
     where TCoroutineHandler : ICoroutineHandler
     {
-        if (default(TAwaiter) != null && awaiter is ICoroutineAwaiter) {
-            //if (IsGenericCoroutineAwaiter(ref awaiter)) {
-                ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, Coroutine.CoroutineAwaiter>(ref awaiter);
-                if (IsFailingToHandleInlineCoroutine(ref coroutineAwaiter, ref coroutineHandler)) {
-                    coroutineHandler.HandleChildCoroutine(ref coroutineAwaiter);
-            }
-            //} else {
-            //    ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, Coroutine.CoroutineAwaiter>(ref awaiter);
-            //    if (IsFailingToHandleInlineCoroutine(ref coroutineAwaiter, ref coroutineHandler)) {
-            //        coroutineHandler.HandleChildCoroutine(ref coroutineAwaiter);
-            //    }
-            //}
+        if (null != default(TAwaiter) && awaiter is ICoroutineAwaiter) {
+            ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, Coroutine.CoroutineAwaiter>(ref awaiter);
+            HandleCoroutine(ref coroutineAwaiter, ref coroutineHandler);
         }
     }
 }

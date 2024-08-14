@@ -2,6 +2,6 @@
 
 internal interface ICoroutineHandler
 {
-    void HandleChildCoroutine(ref Coroutine.CoroutineAwaiter coroutineAwaiter);
-    void HandleDirectCoroutine([NotNull] CoroutineArgumentReceiverDelegate argumentReceiverDelegate);
+    void HandleChildCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutine) where TCoroutineAwaiter : IChildCoroutine;
+    void HandleSiblingCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutine) where TCoroutineAwaiter : ISiblingCoroutine;
 }

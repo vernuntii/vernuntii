@@ -12,6 +12,7 @@ internal struct CoroutineStackNode : ICoroutineHandler
     internal ICoroutineResultStateMachine ResultStateMachine {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get {
+            Debug.Assert(_resultStateMachine != null);
             return _resultStateMachine ?? throw new InvalidOperationException("Coroutine node has not been initialized yet");
         }
     }
@@ -19,11 +20,15 @@ internal struct CoroutineStackNode : ICoroutineHandler
     public CoroutineStackNode(CoroutineContext context)
     {
         _context = context;
+        _resultStateMachine = CoroutineMethodBuilder<VoidCoroutineResult>.CoroutineStateMachineBox.m_syncSuccessSentinel;
     }
 
     internal void InitializeChildCoroutine(ref CoroutineStackNode childNode)
     {
         childNode._context = _context;
+        //if (childNode._resultStateMachine is null) {
+        //    childNode._resultStateMachine = ;
+        //}
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -38,18 +43,16 @@ internal struct CoroutineStackNode : ICoroutineHandler
         _resultStateMachine = resultStateMachine;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    void ICoroutineHandler.HandleChildCoroutine(ref Coroutine.CoroutineAwaiter coroutineAwaiter)
+    void ICoroutineHandler.HandleChildCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter)
     {
         coroutineAwaiter.PropagateCoroutineNode(ref this);
         coroutineAwaiter.StartStateMachine();
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    unsafe void ICoroutineHandler.HandleDirectCoroutine([NotNull] CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    void ICoroutineHandler.HandleSiblingCoroutine<TCoroutine>(ref TCoroutine coroutine)
     {
         var argumentReceiver = new CoroutineArgumentReceiver(ref this);
-        argumentReceiverDelegate(ref argumentReceiver);
+        coroutine.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
     }
 
     public void Stop()

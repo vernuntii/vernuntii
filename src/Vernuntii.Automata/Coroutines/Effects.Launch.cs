@@ -41,6 +41,7 @@ partial class Effects
                 var coroutineAwaiter = coroutine.GetAwaiter();
                 var intermediateCompletionSource = Coroutine<object?>.CompletionSource.RentFromCache();
                 coroutine._task = intermediateCompletionSource.CreateValueTask();
+                CoroutineMethodBuilderCore.HandleCoroutine(ref coroutineAwaiter, ref coroutineNode);
                 coroutineNode.ResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith(ref coroutineAwaiter, () => {
                     try {
                         coroutineAwaiter.GetResult();
@@ -50,7 +51,6 @@ partial class Effects
                         throw; // Must bubble up
                     }
                 });
-                coroutine.StartChildCoroutine(ref coroutineNode);
                 coroutine.MarkCoroutineAsHandled();
                 immediateCompletionSource.SetResult(coroutine);
             }
@@ -64,6 +64,7 @@ partial class Effects
                 var coroutineAwaiter = coroutine.GetAwaiter();
                 var intermediateCompletionSource = Coroutine<T>.CompletionSource.RentFromCache();
                 coroutine._task = intermediateCompletionSource.CreateGenericValueTask();
+                CoroutineMethodBuilderCore.HandleCoroutine(ref coroutineAwaiter, ref coroutineNode);
                 coroutineNode.ResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith(ref coroutineAwaiter, () => {
                     try {
                         var result = coroutineAwaiter.GetResult();
@@ -73,7 +74,6 @@ partial class Effects
                         throw; // Must bubble up
                     }
                 });
-                coroutine.StartChildCoroutine(ref coroutineNode);
                 coroutine.MarkCoroutineAsHandled();
                 immediateCompletionSource.SetResult(coroutine);
             }

@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Text;
 
 namespace Vernuntii.Coroutines;
 
@@ -50,6 +48,16 @@ partial class Effects
         }
     }
 
+    public static Coroutine<T> CallTask<T>(Func<Task<T>> provider)
+    {
+        return Call(async () => await provider().ConfigureAwait(false));
+    }
+
+    public static Coroutine<T> CallValueTask<T>(Func<ValueTask<T>> provider)
+    {
+        return Call(async () => await provider().ConfigureAwait(false));
+    }
+
     partial class Arguments
     {
         internal readonly static ArgumentType CallArgumentType = new ArgumentType(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("call"));
@@ -63,6 +71,7 @@ partial class Effects
                 var coroutine = provider();
                 var coroutineAwaiter = coroutine.GetAwaiter();
                 var completionSource = _completionSource;
+                CoroutineMethodBuilderCore.HandleCoroutine(ref coroutineAwaiter, ref coroutineNode);
                 coroutineAwaiter.UnsafeOnCompleted(() => {
                     try {
                         coroutineAwaiter.GetResult();
@@ -71,7 +80,6 @@ partial class Effects
                         completionSource.SetException(error);
                     }
                 });
-                coroutine.StartChildCoroutine(ref coroutineNode);
             }
         }
 
@@ -84,6 +92,7 @@ partial class Effects
                 var coroutine = provider();
                 var coroutineAwaiter = coroutine.GetAwaiter();
                 var completionSource = _completionSource;
+                CoroutineMethodBuilderCore.HandleCoroutine(ref coroutineAwaiter, ref coroutineNode);
                 coroutineAwaiter.UnsafeOnCompleted(() => {
                     try {
                         var result = coroutineAwaiter.GetResult();
@@ -92,7 +101,6 @@ partial class Effects
                         completionSource.SetException(error);
                     }
                 });
-                coroutine.StartChildCoroutine(ref coroutineNode);
             }
         }
     }

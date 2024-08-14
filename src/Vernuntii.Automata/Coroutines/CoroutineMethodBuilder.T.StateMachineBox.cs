@@ -11,6 +11,8 @@ partial struct CoroutineMethodBuilder<T>
     /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
     internal abstract class CoroutineStateMachineBox : IValueTaskSource<T>, IValueTaskSource, ICoroutineResultStateMachine
     {
+        internal readonly static CoroutineStateMachineBox m_syncSuccessSentinel = new SyncSuccessSentinelCoroutineStateMachineBox();
+
         /// <summary>A delegate to the MoveNext method.</summary>
         protected Action? _moveNextAction;
 
@@ -22,66 +24,8 @@ partial struct CoroutineMethodBuilder<T>
 
         internal CoroutineStateMachineBoxState? State = CoroutineStateMachineBoxState.Default;
 
-        void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation)
-        {
-            CoroutineStateMachineBoxState? currentState;
-            CoroutineStateMachineBoxState newState;
-
-            do {
-                currentState = State;
-
-                if (currentState is null || currentState.HasResult) {
-                    throw new InvalidOperationException("Result state machine has already finished");
-                }
-
-                newState = new CoroutineStateMachineBoxState(currentState.ForkCount + 1);
-            } while (Interlocked.CompareExchange(ref State, newState, currentState)?.ForkCount != currentState.ForkCount);
-
-            awaiter.UnsafeOnCompleted(() => {
-                Exception? childError = null;
-
-                try {
-                    continuation();
-                } catch (Exception error) {
-                    childError = error;
-                }
-
-                CoroutineStateMachineBoxState? currentState;
-                CoroutineStateMachineBoxState? newState;
-
-                do {
-                    currentState = State;
-
-                    if (currentState is null) {
-                        return;
-                    }
-
-                    if (currentState.HasResult) {
-                        if (currentState.ForkCount == 1) {
-                            newState = null;
-                        } else {
-                            newState = new CoroutineStateMachineBoxState(currentState.ForkCount - 1, currentState.HasResult, currentState.Result);
-                        }
-                    } else {
-                        if (currentState.ForkCount == 1) {
-                            newState = CoroutineStateMachineBoxState.Default;
-                        } else {
-                            newState = new CoroutineStateMachineBoxState(currentState.ForkCount - 1);
-                        }
-                    }
-                } while (Interlocked.CompareExchange(ref State, newState, currentState)?.ForkCount != currentState.ForkCount);
-
-                if (newState is null) {
-                    if (currentState.HasError) {
-                        SetExceptionCore(currentState.Error);
-                    } else if (childError is not null)
-                        SetExceptionCore(childError);
-                    else {
-                        SetResultCore(currentState.Result);
-                    }
-                }
-            });
-        }
+        void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
+            throw new NotImplementedException("");
 
         protected void SetExceptionCore(Exception error) =>
             _valueTaskSource.SetException(error);
@@ -192,14 +136,17 @@ partial struct CoroutineMethodBuilder<T>
     }
 
     /// <summary>Type used as a singleton to indicate synchronous success for an async method.</summary>
-    private sealed class SyncSuccessSentinelCoroutineStateMachineBox : CoroutineStateMachineBox
+    private sealed class SyncSuccessSentinelCoroutineStateMachineBox : CoroutineStateMachineBox, ICoroutineResultStateMachine
     {
         public SyncSuccessSentinelCoroutineStateMachineBox() => SetResultCore(default!);
+
+        void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
+            awaiter.UnsafeOnCompleted(continuation);
     }
 
     /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
     private sealed class CoroutineStateMachineBox<TStateMachine> :
-        CoroutineStateMachineBox, IValueTaskSource<T>, IValueTaskSource, ICoroutineStateMachineBox, IThreadPoolWorkItem
+        CoroutineStateMachineBox, IValueTaskSource<T>, IValueTaskSource, ICoroutineStateMachineBox, IThreadPoolWorkItem, ICoroutineResultStateMachine
         where TStateMachine : IAsyncStateMachine
     {
         /// <summary>Delegate used to invoke on an ExecutionContext when passed an instance of this box type.</summary>
@@ -261,6 +208,67 @@ partial struct CoroutineMethodBuilder<T>
                     Volatile.Write(ref slot, this);
                 }
             }
+        }
+
+        void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation)
+        {
+            CoroutineStateMachineBoxState? currentState;
+            CoroutineStateMachineBoxState newState;
+
+            do {
+                currentState = State;
+
+                if (currentState is null || currentState.HasResult) {
+                    throw new InvalidOperationException("Result state machine has already finished");
+                }
+
+                newState = new CoroutineStateMachineBoxState(currentState.ForkCount + 1);
+            } while (Interlocked.CompareExchange(ref State, newState, currentState)?.ForkCount != currentState.ForkCount);
+
+            awaiter.UnsafeOnCompleted(() => {
+                Exception? childError = null;
+
+                try {
+                    continuation();
+                } catch (Exception error) {
+                    childError = error;
+                }
+
+                CoroutineStateMachineBoxState? currentState;
+                CoroutineStateMachineBoxState? newState;
+
+                do {
+                    currentState = State;
+
+                    if (currentState is null) {
+                        return;
+                    }
+
+                    if (currentState.HasResult) {
+                        if (currentState.ForkCount == 1) {
+                            newState = null;
+                        } else {
+                            newState = new CoroutineStateMachineBoxState(currentState.ForkCount - 1, currentState.HasResult, currentState.Result);
+                        }
+                    } else {
+                        if (currentState.ForkCount == 1) {
+                            newState = CoroutineStateMachineBoxState.Default;
+                        } else {
+                            newState = new CoroutineStateMachineBoxState(currentState.ForkCount - 1);
+                        }
+                    }
+                } while (Interlocked.CompareExchange(ref State, newState, currentState)?.ForkCount != currentState.ForkCount);
+
+                if (newState is null) {
+                    if (currentState.HasError) {
+                        SetExceptionCore(currentState.Error);
+                    } else if (childError is not null)
+                        SetExceptionCore(childError);
+                    else {
+                        SetResultCore(currentState.Result);
+                    }
+                }
+            });
         }
 
         /// <summary>Gets the slot in <see cref="s_perCoreCache"/> for the current core.</summary>

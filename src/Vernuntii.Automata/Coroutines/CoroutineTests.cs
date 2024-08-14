@@ -48,7 +48,7 @@ public static class CoroutineTests
         Run(async () => {
             try {
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-                Console.WriteLine(await Coroutine.RunAsync(() => ContextNullInvestigation(1000)).ConfigureAwait(true));
+                Console.WriteLine(await Coroutine.RunAsync(() => CallWithSpawnInvestigation(1000)).ConfigureAwait(true));
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
                 Console.WriteLine(error);
@@ -60,13 +60,34 @@ public static class CoroutineTests
         //thread.Join();
     }
 
-    static async Coroutine<int> ContextNullInvestigation(int _) {
+    static async Coroutine<int> CallWithSpawnInvestigation(int _)
+    {
+        var t2 = await Call(() => Spawn(/* This "Launch" won't be executed inside a state machine, so "Spawn" 
+                                         * must somehow build a functional CoroutineResultStateMachine itself,
+                                         * but only if no parent node ("recusively") has no CoroutineResultStateMachine. */() => Launch(async () => {
+            await Task.Delay(4000);
+            Console.WriteLine("Latest Notification");
+        })));
+        var t4 = await t2;
+        //await t4;
+        return 4;
+    }
+
+    static async Coroutine<int> ContextNullInvestigation(int _)
+    {
         var test = 2;
         var t1 = await Spawn(async () => {
+            Console.WriteLine("Spawn #1 [PRE]");
+            await Call(() => new Coroutine());
+            var t2 = await Call(() => Spawn(async () => {
+                Task.Delay(4000);
+                Console.WriteLine("Latest Notification");
+            }));
+            await t2;
             var t8 = await Spawn(async () => {
                 await Call(async () => { });
                 Task Test() => Task.CompletedTask;
-                Console.WriteLine("Works");
+                Console.WriteLine("Spawn #2 [PRE]");
                 await Task.Delay(3000).ConfigureAwait(false);
                 Console.WriteLine("FINISHED SpawnAsync[#2]");
             }).ConfigureAwait(false);
@@ -81,8 +102,8 @@ public static class CoroutineTests
 
     static async Coroutine<int> T1(int _)
     {
-        await Task.Factory.StartNew(async () => { 
-            await Task.Delay(9000); 
+        await Task.Factory.StartNew(async () => {
+            await Task.Delay(9000);
         }, TaskCreationOptions.LongRunning);
         //return await new Func<Coroutine<int>>(async () => {
         //    await Task.Factory.StartNew(() => { }, TaskCreationOptions.LongRunning);
@@ -139,7 +160,7 @@ public static class CoroutineTests
                 Console.WriteLine("2000");
                 throw new Exception("Hello from fork");
             });
-             
+
             await Task.Delay(500);
             Console.WriteLine("Works");
             await Task.Delay(1000);
