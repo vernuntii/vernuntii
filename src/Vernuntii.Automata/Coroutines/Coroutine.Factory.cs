@@ -36,23 +36,26 @@ partial struct Coroutine
     public static Coroutine<TResult> FromException<TResult>(Exception exception) =>
         new Coroutine<TResult>(new ValueTask<TResult>(Task.FromException<TResult>(exception)));
 
-    public static async ValueTask RunAsync(Func<Coroutine> provider)
+    public static Coroutine Start(Func<Coroutine> provider)
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
         var coroutineContext = new CoroutineContext();
         var coroutineNode = new CoroutineStackNode(coroutineContext);
+        //var coroutineAsResult = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref coroutineNode);
+        var coroutineAsResult = coroutine;
         CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
-        await coroutine;
+        return coroutineAsResult;
     }
 
-    public static async ValueTask<T> RunAsync<T>(Func<Coroutine<T>> provider)
+    public static Coroutine<T> Start<T>(Func<Coroutine<T>> provider)
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
         var coroutineContext = new CoroutineContext();
         var coroutineNode = new CoroutineStackNode(coroutineContext);
+        var coroutineAsResult = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref coroutineNode);
         CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
-        return await coroutine;
+        return coroutineAsResult;
     }
 }

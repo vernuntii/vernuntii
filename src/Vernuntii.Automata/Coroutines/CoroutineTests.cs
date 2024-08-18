@@ -47,9 +47,9 @@ public static class CoroutineTests
     {
         Run(async () => {
             try {
-                Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-                Console.WriteLine(await Coroutine.RunAsync(() => CallWithSpawnInvestigation(1000)).ConfigureAwait(true));
-                Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+                Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
+                Console.WriteLine(await Coroutine.Start(() => CallWithSpawnInvestigation(1000)).ConfigureAwait(true));
+                Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
                 Console.WriteLine(error);
             }
@@ -60,15 +60,24 @@ public static class CoroutineTests
         //thread.Join();
     }
 
-    static async Coroutine<int> CallWithSpawnInvestigation(int _)
+    static async Coroutine<int> CallWithLaunchInvestigation(int _)
     {
-        var t2 = await Call(() => Spawn(/* This "Launch" won't be executed inside a state machine, so "Spawn" 
-                                         * must somehow build a functional CoroutineResultStateMachine itself,
-                                         * but only if no parent node ("recusively") has no CoroutineResultStateMachine. */() => Launch(async () => {
+        var t2 = await Call(() => Launch(() => Launch(async () => {
             await Task.Delay(4000);
             Console.WriteLine("Latest Notification");
         })));
-        var t4 = await t2;
+        //var t4 = await t2;
+        //await t4;
+        return 4;
+    }
+
+    static async Coroutine<int> CallWithSpawnInvestigation(int _)
+    {
+        var t2 = await Call(() => Spawn(() => Launch(async () => {
+            await Task.Delay(4000);
+            Console.WriteLine("Latest Notification");
+        })));
+        //var t4 = await t2;
         //await t4;
         return 4;
     }

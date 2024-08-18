@@ -145,7 +145,7 @@ partial struct CoroutineMethodBuilder<T>
     }
 
     /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
-    private sealed class CoroutineStateMachineBox<TStateMachine> :
+    internal sealed class CoroutineStateMachineBox<TStateMachine> :
         CoroutineStateMachineBox, IValueTaskSource<T>, IValueTaskSource, ICoroutineStateMachineBox, IThreadPoolWorkItem, ICoroutineResultStateMachine
         where TStateMachine : IAsyncStateMachine
     {
@@ -316,9 +316,6 @@ partial struct CoroutineMethodBuilder<T>
             Unsafe.As<CoroutineStateMachineBox<TStateMachine>>(s).StateMachine!.MoveNext();
         }
 
-        /// <summary>Invoked to run MoveNext when this instance is executed from the thread pool.</summary>
-        void IThreadPoolWorkItem.Execute() => MoveNext();
-
         /// <summary>Calls MoveNext on <see cref="StateMachine"/></summary>
         public void MoveNext()
         {
@@ -331,6 +328,9 @@ partial struct CoroutineMethodBuilder<T>
                 ExecutionContext.Run(context, s_callback, this);
             }
         }
+
+        /// <summary>Invoked to run MoveNext when this instance is executed from the thread pool.</summary>
+        void IThreadPoolWorkItem.Execute() => MoveNext();
 
         /// <summary>Get the result of the operation.</summary>
         T IValueTaskSource<T>.GetResult(short token)

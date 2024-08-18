@@ -6,7 +6,6 @@ partial class Effects
 {
     public static Coroutine<Coroutine> Spawn(Func<Coroutine> provider)
     {
-        var t = provider();
         var completionSource = Coroutine<Coroutine>.CompletionSource.RentFromCache();
         return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
@@ -38,11 +37,21 @@ partial class Effects
             unsafe void ICallbackArgument.Callback(ref CoroutineStackNode _)
             {
                 var coroutine = provider();
-                var coroutineContext = new CoroutineContext();
+                Coroutine coroutineAsResult;
+
+                var coroutineContext = new CoroutineContext(); // TODO: Inherit
                 var coroutineNode = new CoroutineStackNode(coroutineContext);
+
+                if (!coroutine.IsChildCoroutine) {
+                    coroutineAsResult = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref coroutineNode);
+                } else {
+                    coroutineAsResult = coroutine;
+                }
+
                 CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
                 coroutine.MarkCoroutineAsHandled();
-                completionSource.SetResult(coroutine);
+
+                completionSource.SetResult(coroutineAsResult);
             }
         }
 
@@ -51,11 +60,21 @@ partial class Effects
             void ICallbackArgument.Callback(ref CoroutineStackNode _)
             {
                 var coroutine = provider();
-                var coroutineContext = new CoroutineContext();
+                Coroutine<T> coroutineAsResult;
+
+                var coroutineContext = new CoroutineContext(); // TODO: Inherit
                 var coroutineNode = new CoroutineStackNode(coroutineContext);
+
+                if (!coroutine.IsChildCoroutine) {
+                    coroutineAsResult = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref coroutineNode);
+                } else {
+                    coroutineAsResult = coroutine;
+                }
+
                 CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
                 coroutine.MarkCoroutineAsHandled();
-                completionSource.SetResult(coroutine);
+
+                completionSource.SetResult(coroutineAsResult);
             }
         }
     }

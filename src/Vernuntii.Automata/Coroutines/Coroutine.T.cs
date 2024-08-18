@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace Vernuntii.Coroutines;
 
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder<>))]
-public unsafe partial struct Coroutine<TResult> : IRootCoroutine
+public unsafe partial struct Coroutine<TResult> : IEntryCoroutine
 {
     internal readonly bool IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
 
@@ -48,7 +48,7 @@ public unsafe partial struct Coroutine<TResult> : IRootCoroutine
         _argumentReceiverDelegate(ref argumentReceiver);
     }
 
-    unsafe void IRootCoroutine.MarkCoroutineAsHandled()
+    unsafe void IEntryCoroutine.MarkCoroutineAsHandled()
     {
         _builder = null;
         _argumentReceiverDelegate = null;

@@ -4,13 +4,13 @@ using System.Runtime.CompilerServices;
 namespace Vernuntii.Coroutines;
 
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder))]
-public unsafe partial struct Coroutine : IRootCoroutine
+public unsafe partial struct Coroutine : IEntryCoroutine, IEquatable<Coroutine>
 {
     internal readonly bool IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
 
     internal ValueTask _task;
-    private CoroutineMethodBuilder* _builder;
-    private CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+    internal CoroutineMethodBuilder* _builder;
+    internal CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
     readonly bool IChildCoroutine.IsChildCoroutine => IsChildCoroutine;
     readonly bool ISiblingCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
@@ -48,7 +48,7 @@ public unsafe partial struct Coroutine : IRootCoroutine
         _argumentReceiverDelegate(ref argumentReceiver);
     }
 
-    unsafe void IRootCoroutine.MarkCoroutineAsHandled()
+    unsafe void IEntryCoroutine.MarkCoroutineAsHandled()
     {
         _builder = null;
         _argumentReceiverDelegate = null;
@@ -58,6 +58,8 @@ public unsafe partial struct Coroutine : IRootCoroutine
 
     public ConfiguredAwaitableCoroutine ConfigureAwait(bool continueOnCapturedContext) =>
         new ConfiguredAwaitableCoroutine(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
+
+    bool IEquatable<Coroutine>.Equals(Coroutine other) => CoroutineEqualityComparer.Equal(in this, in other);
 
     public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
     {
@@ -130,9 +132,9 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
     {
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-        private readonly ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter _awaiter;
-        private readonly CoroutineMethodBuilder* _builder;
-        private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+        internal readonly ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter _awaiter;
+        internal readonly CoroutineMethodBuilder* _builder;
+        internal readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
         readonly bool IChildCoroutine.IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
         readonly bool ISiblingCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;

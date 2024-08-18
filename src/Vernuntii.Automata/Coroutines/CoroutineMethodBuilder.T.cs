@@ -13,7 +13,6 @@ public partial struct CoroutineMethodBuilder<T>
     public unsafe Coroutine<T> Task {
         get {
             fixed (CoroutineMethodBuilder<T>* builder = &this) {
-                //Console.WriteLine("Task [THREAD: " + Thread.CurrentThread.ManagedThreadId + "]");
                 var stateMachineBox = _stateMachineBox ??= CreateWeaklyTyedStateMachineBox();
                 _coroutineNode.SetResultStateMachine(stateMachineBox);
                 return new Coroutine<T>(new ValueTask<T>(stateMachineBox, stateMachineBox.Version), builder);
@@ -32,7 +31,6 @@ public partial struct CoroutineMethodBuilder<T>
     public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
     {
-        Console.WriteLine("Start [THREAD: " + Thread.CurrentThread.ManagedThreadId + "]");
         _ = GetStateMachineBox(ref stateMachine, ref _stateMachineBox);
     }
 
@@ -57,7 +55,7 @@ public partial struct CoroutineMethodBuilder<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : INotifyCompletion
-        where TStateMachine : IAsyncStateMachine => 
+        where TStateMachine : IAsyncStateMachine =>
         AwaitOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -65,10 +63,8 @@ public partial struct CoroutineMethodBuilder<T>
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
-        Console.WriteLine("AwaitUnsafeOnCompleted [THREAD: " + Thread.CurrentThread.ManagedThreadId + "] [PRE]");
         CoroutineMethodBuilderCore.AttemptHandlingCoroutineAwaiter(ref awaiter, ref _coroutineNode);
         AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
-        Console.WriteLine("AwaitUnsafeOnCompleted [THREAD: " + Thread.CurrentThread.ManagedThreadId + "] [POST]");
     }
 
     public void SetStateMachine(IAsyncStateMachine stateMachine) => throw new NotImplementedException();

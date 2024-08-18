@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -13,7 +12,6 @@ public struct CoroutineMethodBuilder
     public unsafe Coroutine Task {
         get {
             fixed (CoroutineMethodBuilder* builder = &this) {
-                //Console.WriteLine("Task [THREAD: " + Thread.CurrentThread.ManagedThreadId + "]");
                 var stateMachineBox = _stateMachineBox ??= CoroutineMethodBuilder<VoidCoroutineResult>.CreateWeaklyTyedStateMachineBox();
                 _coroutineNode.SetResultStateMachine(stateMachineBox);
                 return new Coroutine(new ValueTask(stateMachineBox, stateMachineBox.Version), builder);
@@ -29,6 +27,7 @@ public struct CoroutineMethodBuilder
         parentNode.InitializeChildCoroutine(ref _coroutineNode);
     }
 
+    // Gets called prior access of Task in non-debugging cases.
     public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
     {
@@ -37,7 +36,6 @@ public struct CoroutineMethodBuilder
 
     internal unsafe void Start()
     {
-        Console.WriteLine("Start [THREAD: " + Thread.CurrentThread.ManagedThreadId + "]");
         _coroutineNode.Start();
         Unsafe.As<ICoroutineStateMachineBox>(_stateMachineBox).MoveNext();
     }
@@ -65,10 +63,8 @@ public struct CoroutineMethodBuilder
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
-        Console.WriteLine("AwaitUnsafeOnCompleted [THREAD: " + Thread.CurrentThread.ManagedThreadId + "] [PRE]");
         CoroutineMethodBuilderCore.AttemptHandlingCoroutineAwaiter(ref awaiter, ref _coroutineNode);
         CoroutineMethodBuilder<VoidCoroutineResult>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
-        Console.WriteLine("AwaitUnsafeOnCompleted [THREAD: " + Thread.CurrentThread.ManagedThreadId + "] [POST]");
     }
 
     public void SetStateMachine(IAsyncStateMachine stateMachine) => throw new NotImplementedException();

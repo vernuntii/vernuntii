@@ -87,7 +87,7 @@ partial struct CoroutineMethodBuilder<T>
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)] // workaround boxing allocations in Tier0: https://github.com/dotnet/runtime/issues/9120
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void AwaitUnsafeOnCompleted<TAwaiter>(ref TAwaiter awaiter, ICoroutineStateMachineBox stateMachineBox)
         where TAwaiter : ICriticalNotifyCompletion
     {

@@ -11,11 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Vernuntii.Automata\Vernuntii.Automata.csproj" />
+    <PackageReference Include="Xunit.StaFact" Version="1.1.11" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Coroutines\" />
+    <ProjectReference Include="..\..\src\Vernuntii.Automata\Vernuntii.Automata.csproj" />
   </ItemGroup>
 
 </Project>
