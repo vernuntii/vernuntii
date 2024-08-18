@@ -10,9 +10,9 @@
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <ProjectReference Include="..\Vernuntii.Automata.Generator\Vernuntii.Automata.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
+  </ItemGroup>-->
 
   <ItemGroup>
     <PackageReference Include="Collections.Pooled" Version="1.0.82" />
@@ -25,8 +25,8 @@
     <Folder Include="Reactive\Coroutines\Middlewares\Emissions\" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <WeaverFiles Include="$(SolutionDir)src\Vernuntii.Automata.Fody\bin\$(Configuration)\netstandard2.0\Vernuntii.Automata.Fody.dll" />
-  </ItemGroup>
+  </ItemGroup>-->
 
 </Project>

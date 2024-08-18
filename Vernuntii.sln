@@ -89,6 +89,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Automata.Generato
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Automata.Fody", "src\Vernuntii.Automata.Fody\Vernuntii.Automata.Fody.csproj", "{3ECCF372-930C-4A1D-909A-0F80EA17E2A9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Coroutines.Benchmark", "perf\Vernuntii.Coroutines.Benchmark\Vernuntii.Coroutines.Benchmark.csproj", "{F99FD219-E9C7-435D-A20F-257AFD7C5EC1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -219,6 +221,10 @@ Global
 		{3ECCF372-930C-4A1D-909A-0F80EA17E2A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3ECCF372-930C-4A1D-909A-0F80EA17E2A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3ECCF372-930C-4A1D-909A-0F80EA17E2A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F99FD219-E9C7-435D-A20F-257AFD7C5EC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F99FD219-E9C7-435D-A20F-257AFD7C5EC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F99FD219-E9C7-435D-A20F-257AFD7C5EC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F99FD219-E9C7-435D-A20F-257AFD7C5EC1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -235,6 +241,7 @@ Global
 		{14CCA400-AA6F-4757-AD52-08A2D7BB6E9E} = {865700FC-6FE5-4445-B584-C2AA3900D0E4}
 		{F1A62989-9F62-433F-A944-F5DDA57AAA07} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
 		{D7CBD765-1E24-465E-A8A0-E645DA6FB2E1} = {993E4087-E0EC-4713-9576-DD3ECA7062EA}
+		{F99FD219-E9C7-435D-A20F-257AFD7C5EC1} = {0190F4E6-FE0E-4A0E-8BCC-923B2A846488}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2888C95-8ED3-44F8-BD54-15A071471147}

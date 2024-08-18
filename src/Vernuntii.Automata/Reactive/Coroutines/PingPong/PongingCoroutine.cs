@@ -19,10 +19,10 @@ internal partial class PongingCoroutine
         while (true) {
             var pinged = await Take(pingedTrace);
 
-            var test = await All<Goofy>(new {
-                first = Task.FromResult(""),
-                second = Take(pingedTrace)
-            });
+            //var test = await All<Goofy>(new {
+            //    first = Task.FromResult(""),
+            //    second = Take(pingedTrace)
+            //});
 
             //var blubb = await All<Goofy>(new {
             //    first = Task.FromResult(""),
