@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal interface IEntryCoroutine : IChildCoroutine, ISiblingCoroutine
+internal interface IEntryCoroutine : ICoroutine
 {
     void MarkCoroutineAsHandled();
 }

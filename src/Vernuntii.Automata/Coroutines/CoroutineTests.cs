@@ -48,7 +48,9 @@ public static class CoroutineTests
         Run(async () => {
             try {
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
-                Console.WriteLine(await Coroutine.Start(() => CallWithSpawnInvestigation(1000)).ConfigureAwait(true));
+                //Console.WriteLine(await Coroutine.Start(() => CallWithSpawnInvestigation2(1000)).ConfigureAwait(true));
+                //Console.WriteLine();
+                await Coroutine.Start(() => CallWithSpawnInvestigation2(1000)).ConfigureAwait(true);
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
                 Console.WriteLine(error);
@@ -58,6 +60,15 @@ public static class CoroutineTests
         //// Complete the synchronization context work
         //syncContext.Complete();
         //thread.Join();
+    }
+
+    static async Coroutine CallWithSpawnInvestigation2(int _) {
+        var t2 = await Spawn(async () => {
+            Task.Delay(4000);
+            Console.WriteLine("Latest Notification");
+        });
+        await t2;
+        //return 4;
     }
 
     static async Coroutine<int> CallWithLaunchInvestigation(int _)
@@ -87,25 +98,26 @@ public static class CoroutineTests
         var test = 2;
         var t1 = await Spawn(async () => {
             Console.WriteLine("Spawn #1 [PRE]");
-            await Call(() => new Coroutine());
+            //await Call(() => new Coroutine());
             var t2 = await Call(() => Spawn(async () => {
                 Task.Delay(4000);
                 Console.WriteLine("Latest Notification");
             }));
             await t2;
-            var t8 = await Spawn(async () => {
-                await Call(async () => { });
-                Task Test() => Task.CompletedTask;
-                Console.WriteLine("Spawn #2 [PRE]");
-                await Task.Delay(3000).ConfigureAwait(false);
-                Console.WriteLine("FINISHED SpawnAsync[#2]");
-            }).ConfigureAwait(false);
+            //var t8 = await Spawn(async () => {
+            //    await Call(async () => { });
+            //    Task Test() => Task.CompletedTask;
+            //    Console.WriteLine("Spawn #2 [PRE]");
+            //    await Task.Delay(3000).ConfigureAwait(false);
+            //    Console.WriteLine("FINISHED SpawnAsync[#2]");
+            //}).ConfigureAwait(false);
 
-            await t8.ConfigureAwait(false);
-            Console.WriteLine("FINISHED SpawnAsync[#1]");
+            //await t8.ConfigureAwait(false);
+            //Console.WriteLine("FINISHED SpawnAsync[#1]");
         }).ConfigureAwait(false);
-        Console.WriteLine("FINISHED [ContextNullInvestigation]");
+        Console.WriteLine("FINISHED [ContextNullInvestigation] [PRE]");
         await t1.ConfigureAwait(false);
+        Console.WriteLine("FINISHED [ContextNullInvestigation] [POST]");
         return 18;
     }
 

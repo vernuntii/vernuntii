@@ -2,16 +2,6 @@
 
 namespace Vernuntii.Coroutines;
 
-public ref struct ByRef<T>
-{
-    public ref T Value;
-
-    public ByRef(ref T value)
-    {
-        Value = ref value;
-    }
-}
-
 partial class Effects
 {
     public static Coroutine Call(Func<Coroutine> provider)
@@ -28,12 +18,12 @@ partial class Effects
 
     public static Coroutine CallTask(Func<Task> provider)
     {
-        return Call(async () => await provider().ConfigureAwait(false));
+        return Call(() => new Coroutine(new ValueTask(provider())));
     }
 
     public static Coroutine CallValueTask(Func<ValueTask> provider)
     {
-        return Call(async () => await provider().ConfigureAwait(false));
+        return Call(() => new Coroutine(provider()));
     }
 
     public static Coroutine<T> Call<T>(Func<Coroutine<T>> provider)
@@ -50,12 +40,12 @@ partial class Effects
 
     public static Coroutine<T> CallTask<T>(Func<Task<T>> provider)
     {
-        return Call(async () => await provider().ConfigureAwait(false));
+        return Call(() => new Coroutine<T>(new ValueTask<T>(provider())));
     }
 
     public static Coroutine<T> CallValueTask<T>(Func<ValueTask<T>> provider)
     {
-        return Call(async () => await provider().ConfigureAwait(false));
+        return Call(() => new Coroutine<T>(provider()));
     }
 
     partial class Arguments

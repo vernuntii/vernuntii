@@ -2,27 +2,26 @@
 
 partial class EffectsTests
 {
-    /* FYI: Given `Coroutine.Start(() => Call(..))`, then the Calls's coroutine of Start's provider waits for coroutine of Call's provider. */
-    public class LaunchTests
+    public class SpawnTests
     {
         [Fact]
-        public async Task AsyncLaunch_FlowsCorretly()
+        public async Task AsyncSpawn_FlowsCorretly()
         {
             const int expectedResult = 1;
-            var awaitableResult = await Coroutine.Start(() => Launch(async () => expectedResult)).ConfigureAwait(false);
+            var awaitableResult = await Coroutine.Start(() => Spawn(async () => expectedResult)).ConfigureAwait(false);
             var result = await awaitableResult;
             Assert.Equal(expectedResult, result);
         }
 
         [UIFact]
-        public async Task AsyncCallAwaitingAsyncLaunch_FlowsCorrectly()
+        public async Task AsyncCallAwaitingAsyncSpawn_FlowsCorrectly()
         {
-            int[] expectedRecords = [1, 2];
+            int[] expectedRecords = [1];
             var records = new List<int>();
 
             await Coroutine.Start(() => Call(async () => {
-                await Launch(async () => {
-                    await Task.Yield();
+                await Spawn(async () => {
+                    await Task.Delay(CancellationTimeInMs).ConfigureAwait(false);
                     records.Add(2);
                 }).ConfigureAwait(false);
 
@@ -33,18 +32,19 @@ partial class EffectsTests
         }
 
         [Fact]
-        public async Task AwaitingMultipleAsyncLaunch_FlowCorretly()
+        public async Task AwaitingMultipleAsyncSpawn_FlowCorretly()
         {
-            int[] expectedRecords = [1, 2];
+            int[] expectedRecords = [1];
             var records = new List<int>();
 
             await Coroutine.Start(() => Call(() => {
-                var launch = Launch(async () => {
+                var spawn = Spawn(async () => {
+                    await Task.Delay(CancellationTimeInMs).ConfigureAwait(false);
                     records.Add(2);
                 });
 
                 records.Add(1);
-                return launch;
+                return spawn;
             })).ConfigureAwait(false);
 
             Assert.Equal(expectedRecords, records);

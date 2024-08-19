@@ -6,14 +6,14 @@ namespace Vernuntii.Coroutines;
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder))]
 public unsafe partial struct Coroutine : IEntryCoroutine, IEquatable<Coroutine>
 {
-    internal readonly bool IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
+    internal readonly bool IsChildCoroutine => _builder is not null;
 
     internal ValueTask _task;
-    internal CoroutineMethodBuilder* _builder;
+    internal ICoroutineMethodBuilderBox? _builder;
     internal CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-    readonly bool IChildCoroutine.IsChildCoroutine => IsChildCoroutine;
-    readonly bool ISiblingCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
+    readonly bool ICoroutine.IsChildCoroutine => IsChildCoroutine;
+    readonly bool ICoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
 
     public Coroutine(in ValueTask task)
     {
@@ -26,20 +26,22 @@ public unsafe partial struct Coroutine : IEntryCoroutine, IEquatable<Coroutine>
         _argumentReceiverDelegate = argumentReceiverDelegate;
     }
 
-    internal Coroutine(in ValueTask task, CoroutineMethodBuilder* builder)
+    internal Coroutine(in ValueTask task, ICoroutineMethodBuilderBox builder)
     {
         _task = task;
         _builder = builder;
     }
 
-    void IChildCoroutine.PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
+    void IChildCoroutine.InheritCoroutineNode(ref CoroutineStackNode coroutineNode)
     {
-        _builder->SetCoroutineNode(ref coroutineNode);
+        Debug.Assert(_builder != null);
+        _builder.InheritCoroutineNode(ref coroutineNode);
     }
 
-    void IChildCoroutine.StartStateMachine()
+    void IChildCoroutine.StartCoroutine()
     {
-        _builder->Start();
+        Debug.Assert(_builder != null);
+        _builder.StartCoroutine();
     }
 
     void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
@@ -66,27 +68,29 @@ public unsafe partial struct Coroutine : IEntryCoroutine, IEquatable<Coroutine>
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
         private readonly ValueTaskAwaiter _awaiter;
-        private readonly CoroutineMethodBuilder* _builder;
+        private readonly ICoroutineMethodBuilderBox? _builder;
         private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-        readonly bool IChildCoroutine.IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
-        readonly bool ISiblingCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
+        readonly bool ICoroutine.IsChildCoroutine => _builder is not null;
+        readonly bool ICoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
 
-        internal CoroutineAwaiter(in ValueTaskAwaiter awaiter, CoroutineMethodBuilder* builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
+        internal CoroutineAwaiter(in ValueTaskAwaiter awaiter, ICoroutineMethodBuilderBox? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
         {
             _awaiter = awaiter;
             _builder = builder;
             _argumentReceiverDelegate = argumentReceiverDelegate;
         }
 
-        void IChildCoroutine.PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
+        void IChildCoroutine.InheritCoroutineNode(ref CoroutineStackNode coroutineNode)
         {
-            _builder->SetCoroutineNode(ref coroutineNode);
+            Debug.Assert(_builder != null);
+            _builder.InheritCoroutineNode(ref coroutineNode);
         }
 
-        void IChildCoroutine.StartStateMachine()
+        void IChildCoroutine.StartCoroutine()
         {
-            _builder->Start();
+            Debug.Assert(_builder != null);
+            _builder.StartCoroutine();
         }
 
         void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
@@ -106,24 +110,14 @@ public unsafe partial struct Coroutine : IEntryCoroutine, IEquatable<Coroutine>
 public unsafe readonly struct ConfiguredAwaitableCoroutine
 {
     private readonly ConfiguredValueTaskAwaitable _task;
-    private readonly CoroutineMethodBuilder* _builder;
+    private readonly ICoroutineMethodBuilderBox? _builder;
     private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-    internal ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable task, CoroutineMethodBuilder* builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
+    internal ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable task, ICoroutineMethodBuilderBox? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
     {
         _task = task;
         _builder = builder;
         _argumentReceiverDelegate = argumentReceiverDelegate;
-    }
-
-    internal void PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
-    {
-        _builder->SetCoroutineNode(ref coroutineNode);
-    }
-
-    internal void StartStateMachine()
-    {
-        _builder->Start();
     }
 
     public ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
@@ -133,15 +127,15 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
         internal readonly ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter _awaiter;
-        internal readonly CoroutineMethodBuilder* _builder;
+        internal readonly ICoroutineMethodBuilderBox? _builder;
         internal readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-        readonly bool IChildCoroutine.IsChildCoroutine => (IntPtr)_builder != IntPtr.Zero;
-        readonly bool ISiblingCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
+        readonly bool ICoroutine.IsChildCoroutine => _builder is not null;
+        readonly bool ICoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
 
         internal ConfiguredCoroutineAwaiter(
             in ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter awaiter,
-            CoroutineMethodBuilder* builder,
+            ICoroutineMethodBuilderBox? builder,
             CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
         {
             _awaiter = awaiter;
@@ -149,14 +143,16 @@ public unsafe readonly struct ConfiguredAwaitableCoroutine
             _argumentReceiverDelegate = argumentReceiverDelegate;
         }
 
-        void IChildCoroutine.PropagateCoroutineNode(ref CoroutineStackNode coroutineNode)
+        void IChildCoroutine.InheritCoroutineNode(ref CoroutineStackNode coroutineNode)
         {
-            _builder->SetCoroutineNode(ref coroutineNode);
+            Debug.Assert(_builder != null);
+            _builder.InheritCoroutineNode(ref coroutineNode);
         }
 
-        void IChildCoroutine.StartStateMachine()
+        void IChildCoroutine.StartCoroutine()
         {
-            _builder->Start();
+            Debug.Assert(_builder != null);
+            _builder.StartCoroutine();
         }
 
         void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)

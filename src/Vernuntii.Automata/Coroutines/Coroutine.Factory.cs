@@ -42,10 +42,8 @@ partial struct Coroutine
         var coroutine = provider();
         var coroutineContext = new CoroutineContext();
         var coroutineNode = new CoroutineStackNode(coroutineContext);
-        //var coroutineAsResult = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref coroutineNode);
-        var coroutineAsResult = coroutine;
         CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
-        return coroutineAsResult;
+        return coroutine;
     }
 
     public static Coroutine<T> Start<T>(Func<Coroutine<T>> provider)
@@ -54,8 +52,7 @@ partial struct Coroutine
         var coroutine = provider();
         var coroutineContext = new CoroutineContext();
         var coroutineNode = new CoroutineStackNode(coroutineContext);
-        var coroutineAsResult = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref coroutineNode);
         CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
-        return coroutineAsResult;
+        return coroutine;
     }
 }

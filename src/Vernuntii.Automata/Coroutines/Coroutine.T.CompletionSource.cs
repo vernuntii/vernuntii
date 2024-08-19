@@ -35,7 +35,7 @@ partial struct Coroutine<TResult>
         public void SetException(Exception error) =>
             _valueTaskSource.SetException(error);
 
-        /// <summary>Gets the status of the box.</summary>
+        ///// <summary>Gets the status of the box.</summary>
         //public ValueTaskSourceStatus GetStatus(short token) => _valueTaskSource.GetStatus(token);
 
         /// <summary>Gets the status of the box.</summary>
@@ -78,18 +78,15 @@ partial struct Coroutine<TResult>
         internal static CompletionSource RentFromCache()
         {
             // First try to get a box from the per-thread cache.
-            CompletionSource? box = t_tlsCache;
-            if (box is not null)
-            {
+            var box = t_tlsCache;
+
+            if (box is not null) {
                 t_tlsCache = null;
-            }
-            else
-            {
+            } else {
                 // If we can't, then try to get a box from the per-core cache.
-                ref CompletionSource? slot = ref PerCoreCacheSlot;
-                if (slot is null ||
-                    (box = Interlocked.Exchange<CompletionSource?>(ref slot, null)) is null)
-                {
+                ref var slot = ref PerCoreCacheSlot;
+
+                if (slot is null || (box = Interlocked.Exchange(ref slot, null)) is null) {
                     // If we can't, just create a new one.
                     box = new CompletionSource();
                 }
@@ -108,16 +105,12 @@ partial struct Coroutine<TResult>
             _valueTaskSource.Reset();
 
             // If the per-thread cache is empty, store this into it..
-            if (t_tlsCache is null)
-            {
+            if (t_tlsCache is null) {
                 t_tlsCache = this;
-            }
-            else
-            {
+            } else {
                 // Otherwise, store it into the per-core cache.
                 ref CompletionSource? slot = ref PerCoreCacheSlot;
-                if (slot is null)
-                {
+                if (slot is null) {
                     // Try to avoid the write if we know the slot isn't empty (we may still have a benign race condition and
                     // overwrite what's there if something arrived in the interim).
                     Volatile.Write(ref slot, this);
@@ -126,11 +119,9 @@ partial struct Coroutine<TResult>
         }
 
         /// <summary>Gets the slot in <see cref="s_perCoreCache"/> for the current core.</summary>
-        private static ref CompletionSource? PerCoreCacheSlot
-        {
+        private static ref CompletionSource? PerCoreCacheSlot {
             [MethodImpl(MethodImplOptions.AggressiveInlining)] // only two callers are RentFrom/ReturnToCache
-            get
-            {
+            get {
                 // Get the current processor ID.  We need to ensure it fits within s_perCoreCache, so we
                 // could % by its length, but we can do so instead by Environment.ProcessorCount, which will be a const
                 // in tier 1, allowing better code gen, and then further use uints for even better code gen.
@@ -173,12 +164,9 @@ partial struct Coroutine<TResult>
         /// <summary>Get the result of the operation.</summary>
         TResult IValueTaskSource<TResult>.GetResult(short token)
         {
-            try
-            {
+            try {
                 return _valueTaskSource.GetResult(token);
-            }
-            finally
-            {
+            } finally {
                 ReturnToCache();
             }
         }
@@ -186,12 +174,9 @@ partial struct Coroutine<TResult>
         /// <summary>Get the result of the operation.</summary>
         void IValueTaskSource.GetResult(short token)
         {
-            try
-            {
+            try {
                 _valueTaskSource.GetResult(token);
-            }
-            finally
-            {
+            } finally {
                 ReturnToCache();
             }
         }

@@ -8,7 +8,7 @@ internal static class CoroutineMethodBuilderCore
     internal static void HandleCoroutine<TCoroutine, TCoroutineHandler>(
         ref TCoroutine coroutine,
         ref TCoroutineHandler coroutineHandler)
-        where TCoroutine : IChildCoroutine, ISiblingCoroutine
+        where TCoroutine : ICoroutine
         where TCoroutineHandler : ICoroutineHandler
     {
         if (coroutine.IsChildCoroutine) {

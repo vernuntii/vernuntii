@@ -11,21 +11,12 @@ public struct CoroutineMethodBuilder
 
     public unsafe Coroutine Task {
         get {
-            fixed (CoroutineMethodBuilder* builder = &this) {
-                var stateMachineBox = _stateMachineBox ??= CoroutineMethodBuilder<VoidCoroutineResult>.CreateWeaklyTyedStateMachineBox();
-                _coroutineNode.SetResultStateMachine(stateMachineBox);
-                return new Coroutine(new ValueTask(stateMachineBox, stateMachineBox.Version), builder);
-            }
+            var stateMachineBox = _stateMachineBox ??= CoroutineMethodBuilder<VoidCoroutineResult>.CreateWeaklyTyedStateMachineBox();
+            return new Coroutine(new ValueTask(stateMachineBox, stateMachineBox.Version), stateMachineBox);
         }
     }
 
-    private CoroutineStackNode _coroutineNode;
     private CoroutineMethodBuilder<VoidCoroutineResult>.CoroutineStateMachineBox _stateMachineBox;
-
-    internal void SetCoroutineNode(ref CoroutineStackNode parentNode)
-    {
-        parentNode.InitializeChildCoroutine(ref _coroutineNode);
-    }
 
     // Gets called prior access of Task in non-debugging cases.
     public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
@@ -34,28 +25,20 @@ public struct CoroutineMethodBuilder
         _ = CoroutineMethodBuilder<VoidCoroutineResult>.GetStateMachineBox(ref stateMachine, ref _stateMachineBox);
     }
 
-    internal unsafe void Start()
-    {
-        _coroutineNode.Start();
-        Unsafe.As<ICoroutineStateMachineBox>(_stateMachineBox).MoveNext();
-    }
-
     public void SetException(Exception e)
     {
         _stateMachineBox.SetException(e);
-        _coroutineNode.Stop();
     }
 
     public void SetResult()
     {
         _stateMachineBox.SetResult(default);
-        _coroutineNode.Stop();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : INotifyCompletion
-        where TStateMachine : IAsyncStateMachine => 
+        where TStateMachine : IAsyncStateMachine =>
         CoroutineMethodBuilder<VoidCoroutineResult>.AwaitOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -63,7 +46,7 @@ public struct CoroutineMethodBuilder
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
-        CoroutineMethodBuilderCore.AttemptHandlingCoroutineAwaiter(ref awaiter, ref _coroutineNode);
+        CoroutineMethodBuilderCore.AttemptHandlingCoroutineAwaiter(ref awaiter, ref _stateMachineBox.CoroutineNode);
         CoroutineMethodBuilder<VoidCoroutineResult>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
     }
 

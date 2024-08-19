@@ -6,7 +6,7 @@ namespace Vernuntii.Coroutines;
 internal struct CoroutineStackNode : ICoroutineHandler
 {
     private int _identifier;
-    private CoroutineContext _context;
+    internal CoroutineContext Context;
     private ICoroutineResultStateMachine? _resultStateMachine;
 
     internal ICoroutineResultStateMachine ResultStateMachine {
@@ -19,13 +19,13 @@ internal struct CoroutineStackNode : ICoroutineHandler
 
     public CoroutineStackNode(CoroutineContext context)
     {
-        _context = context;
+        Context = context;
         _resultStateMachine = CoroutineMethodBuilder<VoidCoroutineResult>.CoroutineStateMachineBox.m_syncSuccessSentinel;
     }
 
     internal void InitializeChildCoroutine(ref CoroutineStackNode childNode)
     {
-        childNode._context = _context;
+        childNode.Context = Context;
         //if (childNode._resultStateMachine is null) {
         //    childNode._resultStateMachine = ;
         //}
@@ -34,7 +34,7 @@ internal struct CoroutineStackNode : ICoroutineHandler
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void Start()
     {
-        _identifier = _context.AddCoroutineNode();
+        _identifier = Context.AddCoroutineNode();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -45,8 +45,8 @@ internal struct CoroutineStackNode : ICoroutineHandler
 
     void ICoroutineHandler.HandleChildCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter)
     {
-        coroutineAwaiter.PropagateCoroutineNode(ref this);
-        coroutineAwaiter.StartStateMachine();
+        coroutineAwaiter.InheritCoroutineNode(ref this);
+        coroutineAwaiter.StartCoroutine();
     }
 
     void ICoroutineHandler.HandleSiblingCoroutine<TCoroutine>(ref TCoroutine coroutine)
@@ -57,8 +57,8 @@ internal struct CoroutineStackNode : ICoroutineHandler
 
     public void Stop()
     {
-        _context.RemoveCoroutineNode();
-        _context = null!;
+        Context.RemoveCoroutineNode();
+        Context = null!;
         _resultStateMachine = null;
     }
 }

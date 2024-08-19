@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -12,21 +11,12 @@ public partial struct CoroutineMethodBuilder<T>
 
     public unsafe Coroutine<T> Task {
         get {
-            fixed (CoroutineMethodBuilder<T>* builder = &this) {
-                var stateMachineBox = _stateMachineBox ??= CreateWeaklyTyedStateMachineBox();
-                _coroutineNode.SetResultStateMachine(stateMachineBox);
-                return new Coroutine<T>(new ValueTask<T>(stateMachineBox, stateMachineBox.Version), builder);
-            }
+            var stateMachineBox = _stateMachineBox ??= CreateWeaklyTyedStateMachineBox();
+            return new Coroutine<T>(new ValueTask<T>(stateMachineBox, stateMachineBox.Version), stateMachineBox);
         }
     }
 
-    private CoroutineStackNode _coroutineNode;
     private CoroutineStateMachineBox _stateMachineBox;
-
-    internal void SetCoroutineNode(ref CoroutineStackNode parentNode)
-    {
-        parentNode.InitializeChildCoroutine(ref _coroutineNode);
-    }
 
     public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
@@ -34,22 +24,14 @@ public partial struct CoroutineMethodBuilder<T>
         _ = GetStateMachineBox(ref stateMachine, ref _stateMachineBox);
     }
 
-    internal unsafe void Start()
-    {
-        _coroutineNode.Start();
-        Unsafe.As<ICoroutineStateMachineBox>(_stateMachineBox).MoveNext();
-    }
-
     public void SetException(Exception e)
     {
         _stateMachineBox.SetException(e);
-        _coroutineNode.Stop();
     }
 
     public void SetResult(T result)
     {
         _stateMachineBox.SetResult(result);
-        _coroutineNode.Stop();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -63,7 +45,7 @@ public partial struct CoroutineMethodBuilder<T>
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
-        CoroutineMethodBuilderCore.AttemptHandlingCoroutineAwaiter(ref awaiter, ref _coroutineNode);
+        CoroutineMethodBuilderCore.AttemptHandlingCoroutineAwaiter(ref awaiter, ref _stateMachineBox.CoroutineNode);
         AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
     }
 

@@ -9,7 +9,7 @@ namespace Vernuntii.Coroutines;
 partial struct CoroutineMethodBuilder<T>
 {
     /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
-    internal abstract class CoroutineStateMachineBox : IValueTaskSource<T>, IValueTaskSource, ICoroutineResultStateMachine
+    internal abstract class CoroutineStateMachineBox : IValueTaskSource<T>, IValueTaskSource, ICoroutineResultStateMachine, ICoroutineMethodBuilderBox
     {
         internal readonly static CoroutineStateMachineBox m_syncSuccessSentinel = new SyncSuccessSentinelCoroutineStateMachineBox();
 
@@ -19,10 +19,24 @@ partial struct CoroutineMethodBuilder<T>
         /// <summary>Captured ExecutionContext with which to invoke MoveNext.</summary>
         internal ExecutionContext? Context;
 
+        internal CoroutineStackNode CoroutineNode;
+
         /// <summary>Implementation for IValueTaskSource interfaces.</summary>
         protected ManualResetValueTaskSourceCore<T> _valueTaskSource;
 
-        internal CoroutineStateMachineBoxState? State = CoroutineStateMachineBoxState.Default;
+        internal CoroutineStateMachineBoxState? State;
+
+        void ICoroutineMethodBuilderBox.InheritCoroutineNode(ref CoroutineStackNode parentNode)
+        {
+            parentNode.InitializeChildCoroutine(ref CoroutineNode);
+        }
+
+        void ICoroutineMethodBuilderBox.StartCoroutine()
+        {
+            ref var coroutineNode = ref CoroutineNode;
+            coroutineNode.Start();
+            Unsafe.As<ICoroutineStateMachineBox>(this).MoveNext();
+        }
 
         void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
             throw new NotImplementedException("");
@@ -160,32 +174,36 @@ partial struct CoroutineMethodBuilder<T>
         [ThreadStatic]
         private static CoroutineStateMachineBox<TStateMachine>? t_tlsCache;
 
-        /// <summary>The state machine itself.</summary>
-        public TStateMachine? StateMachine;
-
-        /// <summary>A delegate to the <see cref="MoveNext()"/> method.</summary>
-        public Action MoveNextAction => _moveNextAction ??= new Action(MoveNext);
-
         /// <summary>Gets a box object to use for an operation.  This may be a reused, pooled object, or it may be new.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // only one caller
         internal static CoroutineStateMachineBox<TStateMachine> RentFromCache()
         {
             // First try to get a box from the per-thread cache.
-            CoroutineStateMachineBox<TStateMachine>? box = t_tlsCache;
+            var box = t_tlsCache;
+
             if (box is not null) {
                 t_tlsCache = null;
             } else {
                 // If we can't, then try to get a box from the per-core cache.
-                ref CoroutineStateMachineBox<TStateMachine>? slot = ref PerCoreCacheSlot;
-                if (slot is null ||
-                    (box = Interlocked.Exchange(ref slot, null)) is null) {
+                ref var slot = ref PerCoreCacheSlot;
+
+                if (slot is null || (box = Interlocked.Exchange(ref slot, null)) is null) {
                     // If we can't, just create a new one.
                     box = new CoroutineStateMachineBox<TStateMachine>();
                 }
             }
 
+            ref var coroutineNode = ref box.CoroutineNode;
+            coroutineNode.SetResultStateMachine(box);
+            box.State = CoroutineStateMachineBoxState.Default;
             return box;
         }
+
+        /// <summary>The state machine itself.</summary>
+        public TStateMachine? StateMachine;
+
+        /// <summary>A delegate to the <see cref="MoveNext()"/> method.</summary>
+        public Action MoveNextAction => _moveNextAction ??= new Action(MoveNext);
 
         /// <summary>Returns this instance to the cache.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // only two callers
@@ -194,6 +212,7 @@ partial struct CoroutineMethodBuilder<T>
             // Clear out the state machine and associated context to avoid keeping arbitrary state referenced by
             // lifted locals, and reset the instance for another await.
             ClearStateUponCompletion();
+            CoroutineNode.Stop();
             _valueTaskSource.Reset();
 
             // If the per-thread cache is empty, store this into it..
@@ -201,7 +220,8 @@ partial struct CoroutineMethodBuilder<T>
                 t_tlsCache = this;
             } else {
                 // Otherwise, store it into the per-core cache.
-                ref CoroutineStateMachineBox<TStateMachine>? slot = ref PerCoreCacheSlot;
+                ref var slot = ref PerCoreCacheSlot;
+
                 if (slot is null) {
                     // Try to avoid the write if we know the slot isn't empty (we may still have a benign race condition and
                     // overwrite what's there if something arrived in the interim).
@@ -302,7 +322,6 @@ partial struct CoroutineMethodBuilder<T>
         {
             StateMachine = default;
             Context = default;
-            State = CoroutineStateMachineBoxState.Default;
         }
 
         /// <summary>
