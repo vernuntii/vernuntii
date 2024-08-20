@@ -1,4 +1,4 @@
-using BenchmarkDotNet.Configs;
+﻿using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 
 namespace Vernuntii.Coroutines.Benchmark
@@ -8,10 +8,7 @@ namespace Vernuntii.Coroutines.Benchmark
         public static void Main(string[] args)
         {
             var config = DefaultConfig.Instance;
-            var summary = BenchmarkRunner.Run<Benchmarks>(config, args);
-
-            // Use this to select benchmarks from the console:
-            // var summaries = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, config);
+            var summaries = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, config);
         }
     }
 }
