@@ -9,7 +9,7 @@ public partial struct CoroutineMethodBuilder<T>
         return new CoroutineMethodBuilder<T>();
     }
 
-    public unsafe Coroutine<T> Task {
+    public Coroutine<T> Task {
         get {
             var stateMachineBox = _stateMachineBox ??= CreateWeaklyTyedStateMachineBox();
             return new Coroutine<T>(new ValueTask<T>(stateMachineBox, stateMachineBox.Version), stateMachineBox);
@@ -18,7 +18,7 @@ public partial struct CoroutineMethodBuilder<T>
 
     private CoroutineStateMachineBox _stateMachineBox;
 
-    public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
+    public void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
     {
         _ = GetStateMachineBox(ref stateMachine, ref _stateMachineBox);

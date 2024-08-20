@@ -34,7 +34,7 @@ partial class Effects
 
         internal readonly struct SpawnArgument(Func<Coroutine> provider, Coroutine<Coroutine>.CompletionSource completionSource) : ICallbackArgument
         {
-            unsafe void ICallbackArgument.Callback(ref CoroutineStackNode coroutineNode)
+            void ICallbackArgument.Callback(ref CoroutineStackNode coroutineNode)
             {
                 var coroutine = provider();
                 Coroutine coroutineAsComplementary;

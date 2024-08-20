@@ -6,7 +6,7 @@ public ref struct CoroutineArgumentReceiver
 {
     private ref CoroutineStackNode _coroutineNode;
 
-    internal unsafe CoroutineArgumentReceiver(ref CoroutineStackNode coroutineNode)
+    internal CoroutineArgumentReceiver(ref CoroutineStackNode coroutineNode)
     {
         _coroutineNode = ref coroutineNode;
     }

@@ -9,7 +9,7 @@ public struct CoroutineMethodBuilder
         return new CoroutineMethodBuilder();
     }
 
-    public unsafe Coroutine Task {
+    public Coroutine Task {
         get {
             var stateMachineBox = _stateMachineBox ??= CoroutineMethodBuilder<VoidCoroutineResult>.CreateWeaklyTyedStateMachineBox();
             return new Coroutine(new ValueTask(stateMachineBox, stateMachineBox.Version), stateMachineBox);
@@ -19,7 +19,7 @@ public struct CoroutineMethodBuilder
     private CoroutineMethodBuilder<VoidCoroutineResult>.CoroutineStateMachineBox _stateMachineBox;
 
     // Gets called prior access of Task in non-debugging cases.
-    public unsafe void Start<TStateMachine>(ref TStateMachine stateMachine)
+    public void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
     {
         _ = CoroutineMethodBuilder<VoidCoroutineResult>.GetStateMachineBox(ref stateMachine, ref _stateMachineBox);
