@@ -81,15 +81,15 @@ partial struct CoroutineMethodBuilder<T>
             }
         }
 
-        ///// <summary>Gets the status of the box.</summary>
-        //public ValueTaskSourceStatus GetStatus(short token) => _valueTaskSource.GetStatus(token);
-
         /// <summary>Gets the status of the box.</summary>
-        public ValueTaskSourceStatus GetStatus(short token)
-        {
-            //return _valueTaskSource.GetStatus(token);
-            return ValueTaskSourceStatus.Pending;
-        }
+        public ValueTaskSourceStatus GetStatus(short token) => _valueTaskSource.GetStatus(token);
+
+        ///// <summary>Gets the status of the box.</summary>
+        //public ValueTaskSourceStatus GetStatus(short token)
+        //{
+        //    //return _valueTaskSource.GetStatus(token);
+        //    return ValueTaskSourceStatus.Pending;
+        //}
 
         /// <summary>Schedules the continuation action for this box.</summary>
         public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) =>

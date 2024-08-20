@@ -18,7 +18,6 @@ public struct CoroutineMethodBuilder
 
     private CoroutineMethodBuilder<VoidCoroutineResult>.CoroutineStateMachineBox _stateMachineBox;
 
-    // Gets called prior access of Task in non-debugging cases.
     public void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
     {
