@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks.Sources;
 
 namespace Vernuntii.Coroutines;
 
@@ -18,6 +19,16 @@ public partial struct Coroutine : IEntryCoroutine, IEquatable<Coroutine>
     public Coroutine(in ValueTask task)
     {
         _task = task;
+    }
+
+    public Coroutine(IValueTaskSource source, short token)
+    {
+        _task = new ValueTask(source, token);
+    }
+
+    public Coroutine(in Task task)
+    {
+        _task = new ValueTask(task);
     }
 
     public Coroutine(in ValueTask task, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
@@ -61,7 +72,19 @@ public partial struct Coroutine : IEntryCoroutine, IEquatable<Coroutine>
     public ConfiguredAwaitableCoroutine ConfigureAwait(bool continueOnCapturedContext) =>
         new ConfiguredAwaitableCoroutine(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
 
-    bool IEquatable<Coroutine>.Equals(Coroutine other) => CoroutineEqualityComparer.Equal(in this, in other);
+    public readonly bool Equals(Coroutine other) => CoroutineEqualityComparer.Equals(in this, in other);
+
+    /// <summary>Returns a value indicating whether this value is equal to a specified <see cref="object"/>.</summary>
+    public override bool Equals([NotNullWhen(true)] object? obj) =>
+        obj is Coroutine && Equals((Coroutine)obj);
+
+    /// <summary>Returns a value indicating whether two <see cref="ValueTask"/> values are equal.</summary>
+    public static bool operator ==(Coroutine left, Coroutine right) =>
+        left.Equals(right);
+
+    /// <summary>Returns a value indicating whether two <see cref="ValueTask"/> values are not equal.</summary>
+    public static bool operator !=(Coroutine left, Coroutine right) =>
+        !left.Equals(right);
 
     public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
     {

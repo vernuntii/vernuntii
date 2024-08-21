@@ -1,6 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks.Sources;
@@ -9,6 +7,8 @@ namespace Vernuntii.Coroutines;
 
 partial struct Coroutine<TResult>
 {
+    // Licensed to the .NET Foundation under one or more agreements.
+    // The .NET Foundation licenses this file to you under the MIT license.
     /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
     internal abstract class AbstractCompletionSource : IValueTaskSource<TResult>, IValueTaskSource
     {
@@ -183,6 +183,8 @@ partial struct Coroutine<TResult>
     }
 }
 
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>A class for common padding constants and eventually routines.</summary>
 internal static class PaddingSizeHolder
 {
@@ -194,6 +196,8 @@ internal static class PaddingSizeHolder
 #endif
 }
 
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>Padded reference to an object.</summary>
 [StructLayout(LayoutKind.Explicit, Size = PaddingSizeHolder.CACHE_LINE_SIZE)]
 internal struct PaddedReference

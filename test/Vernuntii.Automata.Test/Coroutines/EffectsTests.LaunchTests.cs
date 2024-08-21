@@ -33,7 +33,7 @@ partial class EffectsTests
         }
 
         [Fact]
-        public async Task AwaitingMultipleAsyncLaunch_FlowCorretly()
+        public async Task AsyncCallReturningAsyncLaunch_FlowsCorretly()
         {
             int[] expectedRecords = [1, 2];
             var records = new List<int>();

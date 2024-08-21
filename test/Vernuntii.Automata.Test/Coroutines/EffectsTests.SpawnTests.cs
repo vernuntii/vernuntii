@@ -32,7 +32,7 @@ partial class EffectsTests
         }
 
         [Fact]
-        public async Task AwaitingMultipleAsyncSpawn_FlowCorretly()
+        public async Task AsyncCallReturningAsyncSpawn_FlowsCorretly()
         {
             int[] expectedRecords = [1];
             var records = new List<int>();

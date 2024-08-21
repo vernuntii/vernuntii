@@ -1,6 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
 
@@ -8,6 +6,8 @@ namespace Vernuntii.Coroutines;
 
 partial struct CoroutineMethodBuilder<T>
 {
+    // Licensed to the .NET Foundation under one or more agreements.
+    // The .NET Foundation licenses this file to you under the MIT license.
     /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
     internal abstract class CoroutineStateMachineBox : IValueTaskSource<T>, IValueTaskSource, ICoroutineResultStateMachine, ICoroutineMethodBuilderBox
     {
@@ -24,7 +24,7 @@ partial struct CoroutineMethodBuilder<T>
         /// <summary>Implementation for IValueTaskSource interfaces.</summary>
         protected ManualResetValueTaskSourceCore<T> _valueTaskSource;
 
-        internal CoroutineStateMachineBoxState? State;
+        internal CoroutineStateMachineBoxResult? State;
 
         void ICoroutineMethodBuilderBox.InheritCoroutineNode(ref CoroutineStackNode parentNode)
         {
@@ -51,12 +51,12 @@ partial struct CoroutineMethodBuilder<T>
         /// <param name="result">The result.</param>
         public void SetResult(T result)
         {
-            CoroutineStateMachineBoxState currentState;
-            CoroutineStateMachineBoxState? newState;
+            CoroutineStateMachineBoxResult currentState;
+            CoroutineStateMachineBoxResult? newState;
 
             do {
                 currentState = State!; // Cannot be null at this state
-                newState = currentState.ForkCount == 0 ? null : new CoroutineStateMachineBoxState(currentState.ForkCount, hasResult: true, result);
+                newState = currentState.ForkCount == 0 ? null : new CoroutineStateMachineBoxResult(currentState.ForkCount, result);
             } while (Interlocked.CompareExchange(ref State, newState, currentState)!.ForkCount != currentState.ForkCount);
 
             if (newState is null) {
@@ -68,12 +68,12 @@ partial struct CoroutineMethodBuilder<T>
         /// <param name="error">The exception.</param>
         public void SetException(Exception error)
         {
-            CoroutineStateMachineBoxState currentState;
-            CoroutineStateMachineBoxState? newState;
+            CoroutineStateMachineBoxResult currentState;
+            CoroutineStateMachineBoxResult? newState;
 
             do {
                 currentState = State!; // Cannot be null at this state
-                newState = currentState.ForkCount == 0 ? null : new CoroutineStateMachineBoxState(currentState.ForkCount, hasError: true, error);
+                newState = currentState.ForkCount == 0 ? null : new CoroutineStateMachineBoxResult(currentState.ForkCount, error);
             } while (Interlocked.CompareExchange(ref State, newState, currentState)!.ForkCount != currentState.ForkCount);
 
             if (newState is null) {
@@ -103,50 +103,6 @@ partial struct CoroutineMethodBuilder<T>
 
         /// <summary>Implemented by derived type.</summary>
         void IValueTaskSource.GetResult(short token) => throw new NotImplementedException("");
-    }
-
-    internal class CoroutineStateMachineBoxState : IEquatable<CoroutineStateMachineBoxState>
-    {
-        internal readonly static CoroutineStateMachineBoxState Default = new(forkCount: 0, hasResult: false, result: default!);
-
-        public CoroutineStateMachineBoxState(int forkCount)
-        {
-            ForkCount = forkCount;
-            Result = default!;
-        }
-
-        public CoroutineStateMachineBoxState(int forkCount, bool hasResult, T result)
-        {
-            ForkCount = forkCount;
-            HasResult = hasResult;
-            Result = result;
-        }
-
-        public CoroutineStateMachineBoxState(int forkCount, bool hasError, Exception error)
-        {
-            ForkCount = forkCount;
-            Result = default!;
-            HasError = hasError;
-            Error = error;
-        }
-
-        public int ForkCount { get; init; }
-        [MemberNotNullWhen(true, nameof(Result))]
-        public bool HasResult { get; init; }
-        [MemberNotNullWhen(true, nameof(Error))]
-        public bool HasError { get; init; }
-        public T Result { get; init; }
-        public Exception? Error { get; init; }
-
-        public bool Equals(CoroutineStateMachineBoxState? other)
-        {
-            if (other is null) {
-                return false;
-            }
-
-            return ForkCount == other.ForkCount &&
-                HasResult == other.HasResult;
-        }
     }
 
     /// <summary>Type used as a singleton to indicate synchronous success for an async method.</summary>
@@ -193,9 +149,7 @@ partial struct CoroutineMethodBuilder<T>
                 }
             }
 
-            ref var coroutineNode = ref box.CoroutineNode;
-            coroutineNode.SetResultStateMachine(box);
-            box.State = CoroutineStateMachineBoxState.Default;
+            box.Initialize();
             return box;
         }
 
@@ -204,6 +158,12 @@ partial struct CoroutineMethodBuilder<T>
 
         /// <summary>A delegate to the <see cref="MoveNext()"/> method.</summary>
         public Action MoveNextAction => _moveNextAction ??= new Action(MoveNext);
+
+        private void Initialize()
+        {
+            CoroutineNode.SetResultStateMachine(this);
+            State = new CoroutineStateMachineBoxResult(Version);
+        }
 
         /// <summary>Returns this instance to the cache.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // only two callers
@@ -232,17 +192,17 @@ partial struct CoroutineMethodBuilder<T>
 
         void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation)
         {
-            CoroutineStateMachineBoxState? currentState;
-            CoroutineStateMachineBoxState newState;
+            CoroutineStateMachineBoxResult? currentState;
+            CoroutineStateMachineBoxResult newState;
 
             do {
                 currentState = State;
 
-                if (currentState is null || currentState.HasResult) {
+                if (currentState is null || currentState.State != CoroutineStateMachineBoxResult.ResultState.NotYetComputed) {
                     throw new InvalidOperationException("Result state machine has already finished");
                 }
 
-                newState = new CoroutineStateMachineBoxState(currentState.ForkCount + 1);
+                newState = new CoroutineStateMachineBoxResult(currentState.ForkCount + 1);
             } while (Interlocked.CompareExchange(ref State, newState, currentState)?.ForkCount != currentState.ForkCount);
 
             awaiter.UnsafeOnCompleted(() => {
@@ -254,8 +214,8 @@ partial struct CoroutineMethodBuilder<T>
                     childError = error;
                 }
 
-                CoroutineStateMachineBoxState? currentState;
-                CoroutineStateMachineBoxState? newState;
+                CoroutineStateMachineBoxResult? currentState;
+                CoroutineStateMachineBoxResult? newState;
 
                 do {
                     currentState = State;
@@ -264,28 +224,20 @@ partial struct CoroutineMethodBuilder<T>
                         return;
                     }
 
-                    if (currentState.HasResult) {
-                        if (currentState.ForkCount == 1) {
-                            newState = null;
-                        } else {
-                            newState = new CoroutineStateMachineBoxState(currentState.ForkCount - 1, currentState.HasResult, currentState.Result);
-                        }
+                    if (currentState.ForkCount == 1 && currentState.State != CoroutineStateMachineBoxResult.ResultState.NotYetComputed) {
+                        newState = null;
                     } else {
-                        if (currentState.ForkCount == 1) {
-                            newState = CoroutineStateMachineBoxState.Default;
-                        } else {
-                            newState = new CoroutineStateMachineBoxState(currentState.ForkCount - 1);
-                        }
+                        newState = new CoroutineStateMachineBoxResult(currentState, currentState.ForkCount - 1);
                     }
                 } while (Interlocked.CompareExchange(ref State, newState, currentState)?.ForkCount != currentState.ForkCount);
 
                 if (newState is null) {
-                    if (currentState.HasError) {
-                        SetExceptionCore(currentState.Error);
-                    } else if (childError is not null)
-                        SetExceptionCore(childError);
-                    else {
+                    if (currentState.HasResult) {
                         SetResultCore(currentState.Result);
+                    } else if (currentState.HasError) {
+                        SetExceptionCore(currentState.Error);
+                    } else if (childError is not null) {
+                        SetExceptionCore(childError);
                     }
                 }
             });
@@ -371,10 +323,90 @@ partial struct CoroutineMethodBuilder<T>
             }
         }
     }
+
+    internal class CoroutineStateMachineBoxResult : IEquatable<CoroutineStateMachineBoxResult>
+    {
+        public static readonly CoroutineStateMachineBoxResult Default = new();
+
+        private CoroutineStateMachineBoxResult()
+        {
+            Result = default!;
+        }
+
+        public CoroutineStateMachineBoxResult(int forkCount)
+        {
+            Result = default!;
+            ForkCount = forkCount;
+        }
+
+        public CoroutineStateMachineBoxResult(int forkCount, T result)
+        {
+            ForkCount = forkCount;
+            State = ResultState.HasResult;
+            Result = result;
+        }
+
+        public CoroutineStateMachineBoxResult(int forkCount, Exception error)
+        {
+            ForkCount = forkCount;
+            State = ResultState.HasError;
+            Result = default!;
+            Error = error;
+        }
+
+        public CoroutineStateMachineBoxResult(CoroutineStateMachineBoxResult original, int forkCount)
+        {
+            ForkCount = forkCount;
+            State = original.State;
+            Result = original.Result;
+            Error = original.Error;
+        }
+
+        public int ForkCount { get; init; }
+
+        [MemberNotNullWhen(true, nameof(Result))]
+        public bool HasResult {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get {
+                return State.HasFlag(ResultState.HasResult);
+            }
+        }
+
+        [MemberNotNullWhen(true, nameof(Error))]
+        public bool HasError {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get {
+                return State.HasFlag(ResultState.HasError);
+            }
+        }
+
+        public ResultState State { get; init; }
+        public T Result { get; init; }
+        public Exception? Error { get; init; }
+
+        public bool Equals(CoroutineStateMachineBoxResult? other)
+        {
+            if (other is null) {
+                return false;
+            }
+
+            return ForkCount == other.ForkCount &&
+                State == other.State;
+        }
+
+        internal enum ResultState : byte
+        {
+            NotYetComputed = 0,
+            HasResult = 1,
+            HasError = 2
+        }
+    }
 }
 
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>
-/// An interface implemented by all <see cref="AsyncTaskMethodBuilder{TResult}.AsyncStateMachineBox{TStateMachine}"/> instances, regardless of generics.
+/// An interface implemented by all <see cref="CoroutineMethodBuilder{T}.CoroutineStateMachineBox{TStateMachine}"/> instances, regardless of generics.
 /// </summary>
 internal interface ICoroutineStateMachineBox
 {

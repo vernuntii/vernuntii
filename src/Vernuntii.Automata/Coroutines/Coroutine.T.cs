@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks.Sources;
 
 namespace Vernuntii.Coroutines;
 
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder<>))]
-public partial struct Coroutine<TResult> : IEntryCoroutine
+public partial struct Coroutine<TResult> : IEntryCoroutine, IEquatable<Coroutine<TResult>>
 {
     internal readonly bool IsChildCoroutine => _builder is not null;
 
@@ -18,6 +19,21 @@ public partial struct Coroutine<TResult> : IEntryCoroutine
     public Coroutine(in ValueTask<TResult> task)
     {
         _task = task;
+    }
+
+    public Coroutine(IValueTaskSource<TResult> source, short token)
+    {
+        _task = new ValueTask<TResult>(source, token);
+    }
+
+    public Coroutine(Task<TResult> task)
+    {
+        _task = new ValueTask<TResult>(task);
+    }
+
+    public Coroutine(TResult result)
+    {
+        _task = new ValueTask<TResult>(result);
     }
 
     public Coroutine(in ValueTask<TResult> task, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
@@ -60,6 +76,20 @@ public partial struct Coroutine<TResult> : IEntryCoroutine
 
     public readonly ConfiguredAwaitableCoroutine<TResult> ConfigureAwait(bool continueOnCapturedContext) =>
         new ConfiguredAwaitableCoroutine<TResult>(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
+
+    public readonly bool Equals(Coroutine<TResult> other) => CoroutineEqualityComparer.Equals(in this, in other);
+
+    /// <summary>Returns a value indicating whether this value is equal to a specified <see cref="object"/>.</summary>
+    public override bool Equals([NotNullWhen(true)] object? obj) =>
+        obj is Coroutine<TResult> && Equals((Coroutine<TResult>)obj);
+
+    /// <summary>Returns a value indicating whether two <see cref="ValueTask"/> values are equal.</summary>
+    public static bool operator ==(Coroutine<TResult> left, Coroutine<TResult> right) =>
+        left.Equals(right);
+
+    /// <summary>Returns a value indicating whether two <see cref="ValueTask"/> values are not equal.</summary>
+    public static bool operator !=(Coroutine<TResult> left, Coroutine<TResult> right) =>
+        !left.Equals(right);
 
     public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
     {
