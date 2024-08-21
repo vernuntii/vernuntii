@@ -14,7 +14,7 @@ public record EventBroker : IEventBroker
     private EventChain<T> CreateEventChain<T>(EventChainFragment<T> fragment) =>
         new EventChain<T>(this, fragment);
 
-    EventChain<T> IEventChainability.Chain<T>(EventChainFragment<T> fragment) =>
+    EventChain<T> IReadOnlyEventBroker.Chain<T>(EventChainFragment<T> fragment) =>
         CreateEventChain(fragment);
 
     internal IDisposable AddObserver(EventId eventId, ITypeInversedChainableEventObserver eventObserver)

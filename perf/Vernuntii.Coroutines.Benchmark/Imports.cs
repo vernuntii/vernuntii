@@ -1,1 +1,1 @@
-﻿global using static Vernuntii.Coroutines.Effects;
+﻿global using static Vernuntii.Coroutines.Effect;

@@ -1,5 +1,5 @@
 ﻿namespace Vernuntii.Reactive.Broker;
 
-public interface IEventBroker : IEventChainability, IDistinguishableEventEmitter
+public interface IEventBroker : IReadOnlyEventBroker, IDistinguishableEventEmitter
 {
 }

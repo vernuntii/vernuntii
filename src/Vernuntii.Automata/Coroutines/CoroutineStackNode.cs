@@ -26,9 +26,6 @@ internal struct CoroutineStackNode : ICoroutineHandler
     internal void InitializeChildCoroutine(ref CoroutineStackNode childNode)
     {
         childNode.Context = Context;
-        //if (childNode._resultStateMachine is null) {
-        //    childNode._resultStateMachine = ;
-        //}
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

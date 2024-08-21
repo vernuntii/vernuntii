@@ -5,7 +5,7 @@ namespace Vernuntii.Coroutines;
 internal static class CoroutineEqualityComparer
 {
     internal static bool Equals<TCoroutine>(in TCoroutine x, in TCoroutine y)
-        where TCoroutine : IEntryCoroutine
+        where TCoroutine : IAwaiterAwareCoroutine
     {
         ref var typedX = ref Unsafe.As<TCoroutine, Coroutine>(ref Unsafe.AsRef(x));
         ref var typedY = ref Unsafe.As<TCoroutine, Coroutine>(ref Unsafe.AsRef(y));

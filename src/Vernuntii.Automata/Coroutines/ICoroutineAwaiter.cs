@@ -1,5 +1,5 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal interface ICoroutineAwaiter : ICoroutine
+internal interface ICoroutineAwaiter : IRelativeCoroutine
 {
 }

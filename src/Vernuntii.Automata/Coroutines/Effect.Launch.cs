@@ -1,9 +1,8 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 
 namespace Vernuntii.Coroutines;
 
-partial class Effects
+partial class Effect
 {
     public static Coroutine<Coroutine> Launch(Func<Coroutine> provider)
     {

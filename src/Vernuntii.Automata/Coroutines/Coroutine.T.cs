@@ -5,7 +5,7 @@ using System.Threading.Tasks.Sources;
 namespace Vernuntii.Coroutines;
 
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder<>))]
-public partial struct Coroutine<TResult> : IEntryCoroutine, IEquatable<Coroutine<TResult>>
+public partial struct Coroutine<TResult> : IAwaiterAwareCoroutine, IEquatable<Coroutine<TResult>>
 {
     internal readonly bool IsChildCoroutine => _builder is not null;
 
@@ -13,8 +13,8 @@ public partial struct Coroutine<TResult> : IEntryCoroutine, IEquatable<Coroutine
     private ICoroutineMethodBuilderBox? _builder;
     private CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-    readonly bool ICoroutine.IsChildCoroutine => IsChildCoroutine;
-    readonly bool ICoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
+    readonly bool IRelativeCoroutine.IsChildCoroutine => IsChildCoroutine;
+    readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
 
     public Coroutine(in ValueTask<TResult> task)
     {
@@ -42,6 +42,24 @@ public partial struct Coroutine<TResult> : IEntryCoroutine, IEquatable<Coroutine
         _argumentReceiverDelegate = argumentReceiverDelegate;
     }
 
+    public Coroutine(IValueTaskSource<TResult> source, short token, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    {
+        _task = new ValueTask<TResult>(source, token);
+        _argumentReceiverDelegate = argumentReceiverDelegate;
+    }
+
+    public Coroutine(Task<TResult> task, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    {
+        _task = new ValueTask<TResult>(task);
+        _argumentReceiverDelegate = argumentReceiverDelegate;
+    }
+
+    public Coroutine(TResult result, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    {
+        _task = new ValueTask<TResult>(result);
+        _argumentReceiverDelegate = argumentReceiverDelegate;
+    }
+
     internal Coroutine(in ValueTask<TResult> task, ICoroutineMethodBuilderBox builder)
     {
         _task = task;
@@ -66,7 +84,7 @@ public partial struct Coroutine<TResult> : IEntryCoroutine, IEquatable<Coroutine
         _argumentReceiverDelegate(ref argumentReceiver);
     }
 
-    void IEntryCoroutine.MarkCoroutineAsHandled()
+    void IAwaiterAwareCoroutine.MarkCoroutineAsHandled()
     {
         _builder = null;
         _argumentReceiverDelegate = null;
@@ -99,8 +117,8 @@ public partial struct Coroutine<TResult> : IEntryCoroutine, IEquatable<Coroutine
         private readonly ICoroutineMethodBuilderBox? _builder;
         private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-        readonly bool ICoroutine.IsChildCoroutine => _builder is not null;
-        readonly bool ICoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
+        readonly bool IRelativeCoroutine.IsChildCoroutine => _builder is not null;
+        readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
 
         internal CoroutineAwaiter(in ValueTaskAwaiter<TResult> awaiter, ICoroutineMethodBuilderBox? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
         {
@@ -158,8 +176,8 @@ public readonly struct ConfiguredAwaitableCoroutine<T>
         private readonly ICoroutineMethodBuilderBox? _builder;
         private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-        readonly bool ICoroutine.IsChildCoroutine => _builder is not null;
-        readonly bool ICoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
+        readonly bool IRelativeCoroutine.IsChildCoroutine => _builder is not null;
+        readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
 
         internal ConfiguredCoroutineAwaiter(
             in ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter awaiter,

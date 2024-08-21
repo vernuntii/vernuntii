@@ -1,7 +1,7 @@
 ﻿namespace Vernuntii.Reactive.Broker;
 
 /// <summary>
-/// Extension methods for <see cref="IEventChainability"/>.
+/// Extension methods for <see cref="IReadOnlyEventBroker"/>.
 /// </summary>
 public static class EventChainabilityExtensions
 {
@@ -14,27 +14,27 @@ public static class EventChainabilityExtensions
     /// <returns>
     /// A new instance with the capability to bequeath <paramref name="unsubscriptionRegistrar"/> to created event chains.
     /// </returns>
-    public static IEventChainability UseUnsubscriptionRegistrar(this IEventChainability chainFactory, IDisposableRegistrar? unsubscriptionRegistrar) =>
+    public static IReadOnlyEventBroker UseUnsubscriptionRegistrar(this IReadOnlyEventBroker chainFactory, IDisposableRegistrar? unsubscriptionRegistrar) =>
         new AutoUnsubscribableEventChainFactory(chainFactory) { UnsubscriptionRegistrar = unsubscriptionRegistrar };
 
-    internal static EventChain<T> Chain<T>(this IEventChainability chainFactory, IObservableEvent<T> observableEvent, IBacklogBackedEventObserver<T> eventObserver, EventId eventId) =>
+    internal static EventChain<T> Chain<T>(this IReadOnlyEventBroker chainFactory, IObservableEvent<T> observableEvent, IBacklogBackedEventObserver<T> eventObserver, EventId eventId) =>
         chainFactory.Chain(EventChainFragment.Create(observableEvent, eventObserver, eventId));
 
-    internal static EventChain<T> Chain<T>(this IEventChainability chainFactory, IObservableEvent<T> observableEvent) =>
+    internal static EventChain<T> Chain<T>(this IReadOnlyEventBroker chainFactory, IObservableEvent<T> observableEvent) =>
         chainFactory.Chain(EventChainFragment.Create(observableEvent));
 
-    public static EventChain<T> Every<T>(this IEventChainability chainFactory, IEventDiscriminator<T> discriminator) =>
+    public static EventChain<T> Every<T>(this IReadOnlyEventBroker chainFactory, IEventDiscriminator<T> discriminator) =>
         EventChainabilities.Every(chainFactory, discriminator);
 
-    public static EventChain<T> Latest<T>(this IEventChainability chainFactory, IEventDiscriminator<T> discriminator) =>
+    public static EventChain<T> Latest<T>(this IReadOnlyEventBroker chainFactory, IEventDiscriminator<T> discriminator) =>
         EventChainabilities.Latest(chainFactory, discriminator);
 
-    public static EventChain<T> Earliest<T>(this IEventChainability chainFactory, IEventDiscriminator<T> discriminator) =>
+    public static EventChain<T> Earliest<T>(this IReadOnlyEventBroker chainFactory, IEventDiscriminator<T> discriminator) =>
         EventChainabilities.Earliest(chainFactory, discriminator);
 
-    public static EventChain<T> One<T>(this IEventChainability chainFactory, IEventDiscriminator<T> discriminator) =>
+    public static EventChain<T> One<T>(this IReadOnlyEventBroker chainFactory, IEventDiscriminator<T> discriminator) =>
         EventChainabilities.One(chainFactory, discriminator);
 
-    public static EventChain<(TWhenever, TResubscribe)> WheneverThenResubscribe<TWhenever, TResubscribe>(this IEventChainability chainFactory, EventChainTemplate<TWhenever> whenever, EventChainTemplate<TResubscribe> resubscribe) =>
+    public static EventChain<(TWhenever, TResubscribe)> WheneverThenResubscribe<TWhenever, TResubscribe>(this IReadOnlyEventBroker chainFactory, EventChainTemplate<TWhenever> whenever, EventChainTemplate<TResubscribe> resubscribe) =>
         chainFactory.Chain(new WheneverThenResubscribeEvent<TWhenever, TResubscribe>(whenever.GetOrCreateChain(chainFactory), resubscribe.GetOrCreateChain(chainFactory)));
 }

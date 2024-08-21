@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using static Vernuntii.Coroutines.Effects;
+using static Vernuntii.Coroutines.Effect;
 
 namespace Vernuntii.Coroutines;
 

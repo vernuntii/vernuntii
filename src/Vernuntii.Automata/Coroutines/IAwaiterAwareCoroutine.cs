@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal interface IEntryCoroutine : ICoroutine
+internal interface IAwaiterAwareCoroutine : IRelativeCoroutine
 {
     void MarkCoroutineAsHandled();
 }

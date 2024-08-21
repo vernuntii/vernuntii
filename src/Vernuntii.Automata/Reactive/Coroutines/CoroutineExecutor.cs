@@ -56,6 +56,8 @@ internal class CoroutineExecutor : ICoroutineExecutor
                 if (Interlocked.CompareExchange(ref CoroutineMethodBuilder.s_locker, 1, 0) == 0) {
                     CoroutineMethodBuilder.s_site = site = new();
                     _ = coroutineFactory();
+
+                    
                     break;
                 }
             }

@@ -7,7 +7,7 @@
 /// by creating a new instance of it with the <see langword="with"/>-keyword.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public sealed record EventChain<T> : IEventChainability, IObservableEvent<T>
+public sealed record EventChain<T> : IReadOnlyEventBroker, IObservableEvent<T>
 {
     /// <summary>
     /// The event that build on this event chain inherits this registrar.
@@ -28,7 +28,7 @@ public sealed record EventChain<T> : IEventChainability, IObservableEvent<T>
         UnsubscriptionRegistrar = UnsubscriptionRegistrar
     };
 
-    EventChain<TNext> IEventChainability.Chain<TNext>(EventChainFragment<TNext> fragment) =>
+    EventChain<TNext> IReadOnlyEventBroker.Chain<TNext>(EventChainFragment<TNext> fragment) =>
         Chain(fragment);
 
     /// <inheritdoc/>

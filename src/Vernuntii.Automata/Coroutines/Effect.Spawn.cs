@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Coroutines;
 
-partial class Effects
+partial class Effect
 {
     public static Coroutine<Coroutine> Spawn(Func<Coroutine> provider)
     {

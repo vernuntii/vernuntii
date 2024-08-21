@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Coroutines;
 
-partial class Effects
+partial class Effect
 {
     public static Coroutine Call(Func<Coroutine> provider)
     {

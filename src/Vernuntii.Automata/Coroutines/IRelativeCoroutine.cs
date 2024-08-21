@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal interface ICoroutine : IChildCoroutine, ISiblingCoroutine
+internal interface IRelativeCoroutine : IChildCoroutine, ISiblingCoroutine
 {
     bool IsChildCoroutine { get; }
     bool IsSiblingCoroutine { get; }
