@@ -9,6 +9,7 @@ internal class GlobalScope
     /// <summary>Throws the exception on the ThreadPool.</summary>
     /// <param name="exception">The exception to propagate.</param>
     /// <param name="targetContext">The target context on which to propagate the exception.  Null to use the ThreadPool.</param>
+    [SuppressMessage("Roslynator", "RCS1047:Non-asynchronous method name should not end with 'Async'.", Justification = "<pending>")]
     internal static void ThrowAsync(Exception exception, SynchronizationContext? targetContext)
     {
         // Capture the exception into an ExceptionDispatchInfo so that its

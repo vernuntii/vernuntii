@@ -19,10 +19,12 @@ partial struct Coroutine<TResult>
         /// <summary>Implementation for IValueTaskSource interfaces.</summary>
         protected ManualResetValueTaskSourceCore<TResult> _valueTaskSource;
 
-        public ValueTask<TResult> CreateGenericValueTask() =>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal ValueTask<TResult> CreateGenericValueTask() =>
             new ValueTask<TResult>(this, Version);
 
-        public ValueTask CreateValueTask() =>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal ValueTask CreateValueTask() =>
             new ValueTask(this, Version);
 
         /// <summary>Completes the box with a result.</summary>

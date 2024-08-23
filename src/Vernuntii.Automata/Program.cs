@@ -3,46 +3,6 @@ using Vernuntii.Reactive.Coroutines;
 using Vernuntii.Reactive.Coroutines.PingPong;
 using Vernuntii.Reactive.Coroutines.AsyncEffects;
 using Vernuntii.Coroutines;
-using System.Runtime.CompilerServices;
-using System.Diagnostics;
-
-//public class TestClass
-//{
-//    // Method marked with DebuggerStepThrough
-//    [DebuggerStepThrough]
-//    public void StepThroughMethod()
-//    {
-//        // This will be stepped over
-//        FirstSubMethod();
-
-//        // This will also be stepped over, despite any nested calls
-//        SecondSubMethod();
-//    }
-
-//    // Sub-method that you want to step into
-//    [DebuggerNonUserCode] // This attribute reverts the DebuggerStepThrough effect
-//    public void FirstSubMethod()
-//    {
-//        // When stepping through, the debugger will step into this method
-//        Console.WriteLine("Inside FirstSubMethod. Debugger will step into this method.");
-//    }
-
-//    public void SecondSubMethod()
-//    {
-//        // Default debugging behavior
-//        // When stepping through, the debugger will step into this method
-//        Console.WriteLine("Inside SecondSubMethod. Debugger will step into this method.");
-//    }
-//}
-
-//class Program
-//{
-//    static void Main()
-//    {
-//        var test = new TestClass();
-//        test.StepThroughMethod();
-//    }
-//}
 
 internal class Program
 {

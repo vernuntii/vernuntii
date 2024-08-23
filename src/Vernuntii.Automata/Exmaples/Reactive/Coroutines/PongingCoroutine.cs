@@ -7,8 +7,14 @@ namespace Vernuntii.Exmaples.Reactive.Coroutines;
 
 internal class PongingCoroutine
 {
-    public Coroutine PongWhenPinged()
+    public async Coroutine PongWhenPinged()
     {
-        var pingedTrace = __co.Observe(e => e.Every(PingingCoroutine.Pinged));
+        var pingedChannel = await __co.Channel(e => e.Every(PingingCoroutine.Pinged));
+
+        while (true) {
+            var pinged = await __co.Take(pingedChannel);
+            Console.WriteLine(pinged);
+            await __co.Emit(Vernuntii.Reactive.Coroutines.PingPong.PongingCoroutine.Ponged, new Pong(pinged.Counter)).ConfigureAwait(false);
+        }
     }
 }

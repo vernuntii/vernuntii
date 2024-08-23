@@ -2,17 +2,17 @@
 
 namespace Vernuntii.Coroutines;
 
-public partial struct CoroutineMethodBuilder<T>
+public partial struct CoroutineMethodBuilder<TResult>
 {
-    public static CoroutineMethodBuilder<T> Create()
+    public static CoroutineMethodBuilder<TResult> Create()
     {
-        return new CoroutineMethodBuilder<T>();
+        return new CoroutineMethodBuilder<TResult>();
     }
 
-    public Coroutine<T> Task {
+    public Coroutine<TResult> Task {
         get {
             var stateMachineBox = _stateMachineBox ??= CreateWeaklyTyedStateMachineBox();
-            return new Coroutine<T>(new ValueTask<T>(stateMachineBox, stateMachineBox.Version), stateMachineBox);
+            return new Coroutine<TResult>(new ValueTask<TResult>(stateMachineBox, stateMachineBox.Version), stateMachineBox);
         }
     }
 
@@ -29,7 +29,7 @@ public partial struct CoroutineMethodBuilder<T>
         _stateMachineBox.SetException(e);
     }
 
-    public void SetResult(T result)
+    public void SetResult(TResult result)
     {
         _stateMachineBox.SetResult(result);
     }
@@ -45,7 +45,7 @@ public partial struct CoroutineMethodBuilder<T>
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
-        CoroutineMethodBuilderCore.AttemptHandlingCoroutineAwaiter(ref awaiter, ref _stateMachineBox.CoroutineNode);
+        CoroutineMethodBuilderCore.AttemptHandlingCoroutineAwaiter(ref awaiter, ref _stateMachineBox.CoroutineContext);
         AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
     }
 

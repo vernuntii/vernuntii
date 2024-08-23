@@ -4,21 +4,25 @@ public delegate void CoroutineArgumentReceiverDelegate(ref CoroutineArgumentRece
 
 public ref struct CoroutineArgumentReceiver
 {
-    private ref CoroutineStackNode _coroutineNode;
+    private ref CoroutineContext _coroutineContext;
 
-    internal CoroutineArgumentReceiver(ref CoroutineStackNode coroutineNode)
+    internal CoroutineArgumentReceiver(ref CoroutineContext coroutineContext)
     {
-        _coroutineNode = ref coroutineNode;
+        _coroutineContext = ref coroutineContext;
     }
 
-    internal void ReceiveCallbackArgument<TArgument, TArgumentType>(in TArgument argument, in TArgumentType argumentType)
+    internal void ReceiveCallbackArgument<TArgument, TArgumentKey>(in TArgument argument, in TArgumentKey argumentKey)
         where TArgument : ICallbackArgument
-        where TArgumentType : IArgumentType
+        where TArgumentKey : IKey
     {
-        if (argumentType.Version == 1) {
-            if (default(TArgumentType) != null && argumentType is ArgumentType) {
-                argument.Callback(ref _coroutineNode);
-            }
-        }
+        //if (argumentType.SchemaVersion == 1) {
+            //if (default(TArgumentType) != null) {
+                argument.Callback(ref _coroutineContext);
+            //} else {
+            //    throw new NotSupportedException($"The argument type is not of type {typeof(ArgumentType)}");
+            //}
+        //} else {
+        //    throw new NotSupportedException($"The version of the argument type {argumentType.SchemaVersion} is not supported");
+        //}
     }
 }

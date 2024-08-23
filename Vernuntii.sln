@@ -91,6 +91,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Automata.Fody", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Coroutines.Benchmark", "perf\Vernuntii.Coroutines.Benchmark\Vernuntii.Coroutines.Benchmark.csproj", "{F99FD219-E9C7-435D-A20F-257AFD7C5EC1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Automata.GeneratedSources", "src\Vernuntii.Automata.GeneratedSources\Vernuntii.Automata.GeneratedSources.csproj", "{5AB8E77F-8EC0-441A-8E57-116858C440CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -225,6 +227,10 @@ Global
 		{F99FD219-E9C7-435D-A20F-257AFD7C5EC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F99FD219-E9C7-435D-A20F-257AFD7C5EC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F99FD219-E9C7-435D-A20F-257AFD7C5EC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AB8E77F-8EC0-441A-8E57-116858C440CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AB8E77F-8EC0-441A-8E57-116858C440CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AB8E77F-8EC0-441A-8E57-116858C440CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AB8E77F-8EC0-441A-8E57-116858C440CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

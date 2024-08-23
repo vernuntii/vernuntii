@@ -1,12 +1,8 @@
-﻿using Vernuntii.Coroutines;
-using Vernuntii.Reactive.Broker;
+﻿namespace Vernuntii.Reactive.Extensions.Coroutines;
 
-namespace Vernuntii.Reactive.Extensions.Coroutines;
-
-internal static class EffectExtensions
+internal static partial class EffectExtensions
 {
-    public static Coroutine<EventObserver<T>> Observe<T>(this Effect _, Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector)
+    internal partial class Arguments
     {
-        return default;
     }
 }

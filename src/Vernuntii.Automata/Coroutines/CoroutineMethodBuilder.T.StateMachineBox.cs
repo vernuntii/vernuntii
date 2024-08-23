@@ -4,12 +4,12 @@ using System.Threading.Tasks.Sources;
 
 namespace Vernuntii.Coroutines;
 
-partial struct CoroutineMethodBuilder<T>
+partial struct CoroutineMethodBuilder<TResult>
 {
     // Licensed to the .NET Foundation under one or more agreements.
     // The .NET Foundation licenses this file to you under the MIT license.
     /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
-    internal abstract class CoroutineStateMachineBox : IValueTaskSource<T>, IValueTaskSource, ICoroutineResultStateMachine, ICoroutineMethodBuilderBox
+    internal abstract class CoroutineStateMachineBox : IValueTaskSource<TResult>, IValueTaskSource, ICoroutineResultStateMachine, ICoroutineMethodBuilderBox
     {
         internal readonly static CoroutineStateMachineBox m_syncSuccessSentinel = new SyncSuccessSentinelCoroutineStateMachineBox();
 
@@ -19,22 +19,22 @@ partial struct CoroutineMethodBuilder<T>
         /// <summary>Captured ExecutionContext with which to invoke MoveNext.</summary>
         internal ExecutionContext? Context;
 
-        internal CoroutineStackNode CoroutineNode;
+        internal CoroutineContext CoroutineContext;
 
         /// <summary>Implementation for IValueTaskSource interfaces.</summary>
-        protected ManualResetValueTaskSourceCore<T> _valueTaskSource;
+        protected ManualResetValueTaskSourceCore<TResult> _valueTaskSource;
 
         internal CoroutineStateMachineBoxResult? State;
 
-        void ICoroutineMethodBuilderBox.InheritCoroutineNode(ref CoroutineStackNode parentNode)
+        void ICoroutineMethodBuilderBox.InheritCoroutineContext(ref CoroutineContext coroutineContext)
         {
-            parentNode.InitializeChildCoroutine(ref CoroutineNode);
+            coroutineContext.BequestContext(ref CoroutineContext);
         }
 
         void ICoroutineMethodBuilderBox.StartCoroutine()
         {
-            ref var coroutineNode = ref CoroutineNode;
-            coroutineNode.Start();
+            ref var coroutineContext = ref CoroutineContext;
+            coroutineContext.OnCoroutineStarted();
             Unsafe.As<ICoroutineStateMachineBox>(this).MoveNext();
         }
 
@@ -44,12 +44,12 @@ partial struct CoroutineMethodBuilder<T>
         protected void SetExceptionCore(Exception error) =>
             _valueTaskSource.SetException(error);
 
-        protected void SetResultCore(T result) =>
+        protected void SetResultCore(TResult result) =>
             _valueTaskSource.SetResult(result);
 
         /// <summary>Completes the box with a result.</summary>
         /// <param name="result">The result.</param>
-        public void SetResult(T result)
+        public void SetResult(TResult result)
         {
             CoroutineStateMachineBoxResult currentState;
             CoroutineStateMachineBoxResult? newState;
@@ -99,7 +99,7 @@ partial struct CoroutineMethodBuilder<T>
         public short Version => _valueTaskSource.Version;
 
         /// <summary>Implemented by derived type.</summary>
-        T IValueTaskSource<T>.GetResult(short token) => throw new NotImplementedException("");
+        TResult IValueTaskSource<TResult>.GetResult(short token) => throw new NotImplementedException("");
 
         /// <summary>Implemented by derived type.</summary>
         void IValueTaskSource.GetResult(short token) => throw new NotImplementedException("");
@@ -116,7 +116,7 @@ partial struct CoroutineMethodBuilder<T>
 
     /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
     internal sealed class CoroutineStateMachineBox<TStateMachine> :
-        CoroutineStateMachineBox, IValueTaskSource<T>, IValueTaskSource, ICoroutineStateMachineBox, IThreadPoolWorkItem, ICoroutineResultStateMachine
+        CoroutineStateMachineBox, IValueTaskSource<TResult>, IValueTaskSource, ICoroutineStateMachineBox, IThreadPoolWorkItem, ICoroutineResultStateMachine
         where TStateMachine : IAsyncStateMachine
     {
         /// <summary>Delegate used to invoke on an ExecutionContext when passed an instance of this box type.</summary>
@@ -161,7 +161,7 @@ partial struct CoroutineMethodBuilder<T>
 
         private void Initialize()
         {
-            CoroutineNode.SetResultStateMachine(this);
+            CoroutineContext.SetResultStateMachine(this);
             State = new CoroutineStateMachineBoxResult(Version);
         }
 
@@ -172,7 +172,7 @@ partial struct CoroutineMethodBuilder<T>
             // Clear out the state machine and associated context to avoid keeping arbitrary state referenced by
             // lifted locals, and reset the instance for another await.
             ClearStateUponCompletion();
-            CoroutineNode.Stop();
+            CoroutineContext.OnCoroutineCompleted();
             _valueTaskSource.Reset();
 
             // If the per-thread cache is empty, store this into it..
@@ -304,7 +304,7 @@ partial struct CoroutineMethodBuilder<T>
         void IThreadPoolWorkItem.Execute() => MoveNext();
 
         /// <summary>Get the result of the operation.</summary>
-        T IValueTaskSource<T>.GetResult(short token)
+        TResult IValueTaskSource<TResult>.GetResult(short token)
         {
             try {
                 return _valueTaskSource.GetResult(token);
@@ -339,7 +339,7 @@ partial struct CoroutineMethodBuilder<T>
             ForkCount = forkCount;
         }
 
-        public CoroutineStateMachineBoxResult(int forkCount, T result)
+        public CoroutineStateMachineBoxResult(int forkCount, TResult result)
         {
             ForkCount = forkCount;
             State = ResultState.HasResult;
@@ -381,7 +381,7 @@ partial struct CoroutineMethodBuilder<T>
         }
 
         public ResultState State { get; init; }
-        public T Result { get; init; }
+        public TResult Result { get; init; }
         public Exception? Error { get; init; }
 
         public bool Equals(CoroutineStateMachineBoxResult? other)

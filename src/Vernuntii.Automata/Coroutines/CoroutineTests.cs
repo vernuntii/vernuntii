@@ -50,7 +50,7 @@ public static class CoroutineTests
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
                 //Console.WriteLine(await Coroutine.Start(() => CallWithSpawnInvestigation2(1000)).ConfigureAwait(true));
                 //Console.WriteLine();
-                await Coroutine.Start(() => CallWithSpawnInvestigation2(1000)).ConfigureAwait(true);
+                await Coroutine.Start(() => CallWithLaunchInvestigation(1000)).ConfigureAwait(true);
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
                 Console.WriteLine(error);

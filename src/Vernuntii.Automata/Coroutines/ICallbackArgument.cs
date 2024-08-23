@@ -2,5 +2,5 @@
 
 internal interface ICallbackArgument
 {
-    void Callback(ref CoroutineStackNode coroutineNode);
+    void Callback(ref CoroutineContext coroutineContext);
 }

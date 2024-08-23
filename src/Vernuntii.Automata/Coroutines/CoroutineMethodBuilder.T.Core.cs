@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
-partial struct CoroutineMethodBuilder<T>
+partial struct CoroutineMethodBuilder<TResult>
 {
     internal static CoroutineStateMachineBox CreateWeaklyTyedStateMachineBox() => new CoroutineStateMachineBox<IAsyncStateMachine>();
 

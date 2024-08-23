@@ -30,7 +30,7 @@ internal static class CoroutineMethodBuilderCore
         }
     }
 
-    internal static Coroutine MakeChildCoroutine(ref Coroutine coroutine, ref CoroutineStackNode coroutineNode)
+    internal static Coroutine MakeChildCoroutine(ref Coroutine coroutine, ref CoroutineContext coroutineContext)
     {
         var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
         var stateMachineBox = CoroutineMethodBuilder<VoidCoroutineResult>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>>.RentFromCache();
@@ -39,11 +39,11 @@ internal static class CoroutineMethodBuilderCore
         stateMachine.State = -1;
         stateMachineBox.StateMachine = stateMachine;
         stateMachineBox.MoveNext();
-        coroutineNode.SetResultStateMachine(stateMachineBox);
+        coroutineContext.SetResultStateMachine(stateMachineBox);
         return new Coroutine(new ValueTask(stateMachineBox, stateMachineBox.Version));
     }
 
-    internal static Coroutine<T> MakeChildCoroutine<T>(ref Coroutine<T> coroutine, ref CoroutineStackNode coroutineNode)
+    internal static Coroutine<T> MakeChildCoroutine<T>(ref Coroutine<T> coroutine, ref CoroutineContext coroutineContext)
     {
         var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
         var stateMachineBox = CoroutineMethodBuilder<T>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<T>>>.RentFromCache();
@@ -52,7 +52,7 @@ internal static class CoroutineMethodBuilderCore
         stateMachine.State = -1;
         stateMachineBox.StateMachine = stateMachine;
         stateMachineBox.MoveNext();
-        coroutineNode.SetResultStateMachine(stateMachineBox);
+        coroutineContext.SetResultStateMachine(stateMachineBox);
         return new Coroutine<T>(new ValueTask<T>(stateMachineBox, stateMachineBox.Version));
     }
 }

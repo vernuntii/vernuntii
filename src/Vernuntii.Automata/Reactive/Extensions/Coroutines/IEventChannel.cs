@@ -1,5 +1,5 @@
 ﻿namespace Vernuntii.Reactive.Extensions.Coroutines;
 
-internal class EventObserver<T>
+public interface IEventChannel<T> : IDisposable
 {
 }

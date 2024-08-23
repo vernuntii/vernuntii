@@ -40,9 +40,9 @@ partial struct Coroutine
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
-        var coroutineContext = new CoroutineContext();
-        var coroutineNode = new CoroutineStackNode(coroutineContext);
-        CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
+        var coroutineScope = new CoroutineScope();
+        var coroutineContext = new CoroutineContext(coroutineScope);
+        CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineContext);
         return coroutine;
     }
 
@@ -50,9 +50,9 @@ partial struct Coroutine
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
-        var coroutineContext = new CoroutineContext();
-        var coroutineNode = new CoroutineStackNode(coroutineContext);
-        CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNode);
+        var coroutineScope = new CoroutineScope();
+        var coroutineContext = new CoroutineContext(coroutineScope);
+        CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineContext);
         return coroutine;
     }
 }

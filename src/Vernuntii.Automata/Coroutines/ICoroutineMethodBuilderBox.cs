@@ -2,6 +2,6 @@
 
 internal interface ICoroutineMethodBuilderBox
 {
-    void InheritCoroutineNode(ref CoroutineStackNode coroutineNode);
+    void InheritCoroutineContext(ref CoroutineContext coroutineContext);
     void StartCoroutine();
 }

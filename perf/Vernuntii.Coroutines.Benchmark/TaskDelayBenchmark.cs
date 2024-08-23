@@ -3,6 +3,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace Vernuntii.Coroutines.Benchmark
 {
+    [MemoryDiagnoser]
     public class TaskDelayBenchmark
     {
         [Benchmark]
