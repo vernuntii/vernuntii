@@ -162,7 +162,7 @@ partial struct CoroutineMethodBuilder<TResult>
         private void Initialize()
         {
             CoroutineContext.SetResultStateMachine(this);
-            State = new CoroutineStateMachineBoxResult(Version);
+            State = CoroutineStateMachineBoxResult.Default;
         }
 
         /// <summary>Returns this instance to the cache.</summary>
