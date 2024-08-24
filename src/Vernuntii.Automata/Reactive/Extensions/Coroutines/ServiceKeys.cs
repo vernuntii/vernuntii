@@ -1,4 +1,4 @@
-﻿using Vernuntii.Coroutines.v1;
+﻿using Vernuntii.Coroutines;
 
 namespace Vernuntii.Reactive.Extensions.Coroutines;
 

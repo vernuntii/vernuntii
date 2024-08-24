@@ -45,7 +45,7 @@ public partial struct CoroutineMethodBuilder<TResult>
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
-        CoroutineMethodBuilderCore.AttemptHandlingCoroutineAwaiter(ref awaiter, ref _stateMachineBox.CoroutineContext);
+        CoroutineMethodBuilderCore.PreprocessAwaiterIfCoroutine(ref awaiter, ref _stateMachineBox.CoroutineContext);
         AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
     }
 

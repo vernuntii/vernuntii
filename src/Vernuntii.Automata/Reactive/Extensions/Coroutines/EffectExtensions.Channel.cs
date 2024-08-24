@@ -1,6 +1,4 @@
-﻿using System.Text;
-using Vernuntii.Coroutines;
-using Vernuntii.Coroutines.v1;
+﻿using Vernuntii.Coroutines;
 using Vernuntii.Reactive.Broker;
 
 namespace Vernuntii.Reactive.Extensions.Coroutines;
@@ -9,8 +7,8 @@ partial class EffectExtensions
 {
     public static Coroutine<EventChannel<T>> Channel<T>(this Effect _, Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector)
     {
-        var completionSource = new TaskCompletionSource<EventChannel<T>>();
-        return new Coroutine<EventChannel<T>>(completionSource.Task, ArgumentReceiverDelegate);
+        var completionSource = ValueTaskCompletionSource<EventChannel<T>>.RentFromCache();
+        return new Coroutine<EventChannel<T>>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
@@ -21,11 +19,9 @@ partial class EffectExtensions
 
     partial class Arguments
     {
-        internal readonly static Key ObserveArgumentType = new Key(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("observe"));
-
         internal readonly struct ObserveArgument<T>(
             Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector,
-            TaskCompletionSource<EventChannel<T>> completionSource) : ICallbackArgument
+            ValueTaskCompletionSource<EventChannel<T>> completionSource) : ICallbackArgument
         {
             public void Callback(ref CoroutineContext coroutineContext) => throw new NotImplementedException();
         }

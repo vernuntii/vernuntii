@@ -2,15 +2,13 @@
 
 public sealed class CoroutineScope : IDisposable
 {
-
-
 #if DEBUG
     internal int CoroutineActivationCounter => _coroutineActivationCounter;
 
     private int _coroutineActivationCounter;
 #endif
 
-    public int AddCoroutineContext()
+    public int OnCoroutineStarted()
     {
 #if DEBUG
         return Interlocked.Increment(ref _coroutineActivationCounter);
@@ -19,7 +17,7 @@ public sealed class CoroutineScope : IDisposable
 #endif
     }
 
-    public void RemoveCoroutineContext()
+    public void OnCoroutineCompleted()
     {
 #if DEBUG
         Interlocked.Decrement(ref _coroutineActivationCounter);

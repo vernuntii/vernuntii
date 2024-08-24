@@ -26,12 +26,12 @@ partial struct CoroutineMethodBuilder<TResult>
 
         internal CoroutineStateMachineBoxResult? State;
 
-        void ICoroutineMethodBuilderBox.InheritCoroutineContext(ref CoroutineContext coroutineContext)
+        void IChildCoroutine.InheritCoroutineContext(ref CoroutineContext coroutineContext)
         {
             coroutineContext.BequestContext(ref CoroutineContext);
         }
 
-        void ICoroutineMethodBuilderBox.StartCoroutine()
+        void IChildCoroutine.StartCoroutine()
         {
             ref var coroutineContext = ref CoroutineContext;
             coroutineContext.OnCoroutineStarted();
@@ -162,6 +162,7 @@ partial struct CoroutineMethodBuilder<TResult>
         private void Initialize()
         {
             CoroutineContext.SetResultStateMachine(this);
+            CoroutineContext._bequeathBehaviour = CoroutineContextBequeathBehaviour.NoPrivateBequesting;
             State = CoroutineStateMachineBoxResult.Default;
         }
 

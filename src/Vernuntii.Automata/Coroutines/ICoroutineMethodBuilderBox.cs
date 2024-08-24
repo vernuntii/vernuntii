@@ -1,7 +1,5 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal interface ICoroutineMethodBuilderBox
+internal interface ICoroutineMethodBuilderBox : IChildCoroutine
 {
-    void InheritCoroutineContext(ref CoroutineContext coroutineContext);
-    void StartCoroutine();
 }

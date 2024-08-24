@@ -2,5 +2,5 @@
 
 internal interface IClosure
 {
-    T InvokeClosured<T>(Delegate delegateReference);
+    T InvokeDelegateWithClosure<T>(Delegate delegateReference);
 }

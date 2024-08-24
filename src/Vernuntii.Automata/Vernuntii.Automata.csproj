@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk"/>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -28,7 +28,7 @@
     <None Include=".config/dotnet-tools.json" />
   </ItemGroup>
 
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk"/>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
   <Target Name="DotNetToolRestore">
     <Exec Command="dotnet tool restore" />
@@ -40,6 +40,7 @@
       GenerateEffectCallExtensions;
       GenerateEffectLaunchExtensions;
       GenerateEffectSpawnExtensions;
+      GenerateEffectWithContextExtensions;
       $(BuildDependsOn)</BuildDependsOn>
   </PropertyGroup>
 
@@ -58,6 +59,10 @@
 
   <Target Name="GenerateEffectSpawnExtensions" DependsOnTargets="DotNetToolRestore">
     <Exec Command="dotnet tool run dotnet-script Effect.Spawn.csx" WorkingDirectory="Coroutines" />
+  </Target>
+
+  <Target Name="GenerateEffectWithContextExtensions" DependsOnTargets="DotNetToolRestore">
+    <Exec Command="dotnet tool run dotnet-script Effect.WithContext.csx" WorkingDirectory="Coroutines" />
   </Target>
 
 </Project>

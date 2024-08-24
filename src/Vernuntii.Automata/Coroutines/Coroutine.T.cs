@@ -95,6 +95,8 @@ public partial struct Coroutine<TResult> : IAwaiterAwareCoroutine, IEquatable<Co
     public readonly ConfiguredAwaitableCoroutine<TResult> ConfigureAwait(bool continueOnCapturedContext) =>
         new ConfiguredAwaitableCoroutine<TResult>(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
 
+    internal readonly Task AsTask() => _task.AsTask();
+
     public readonly bool Equals(Coroutine<TResult> other) => CoroutineEqualityComparer.Equals(in this, in other);
 
     /// <summary>Returns a value indicating whether this value is equal to a specified <see cref="object"/>.</summary>

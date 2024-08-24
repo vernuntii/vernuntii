@@ -23,9 +23,9 @@ static (string FileName, string FileContent) GenerateClosureClass(int from, int 
         sb.AppendLine($$"""
                     public sealed record Closure<{{genericParameters}}>({{parameters}}) : IClosure
                     {
-                        TResult IClosure.InvokeClosured<TResult>(Delegate delegateReference)
+                        TResult IClosure.InvokeDelegateWithClosure<TResult>(Delegate delegateToInvoke)
                         {
-                            return Unsafe.As<Func<{{genericParameters}},TResult>>(delegateReference).Invoke({{arguments}});
+                            return Unsafe.As<Func<{{genericParameters}},TResult>>(delegateToInvoke).Invoke({{arguments}});
                         }
                     }
                     """);

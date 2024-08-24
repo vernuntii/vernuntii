@@ -1,5 +1,5 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal struct VoidCoroutineResult
+internal struct VoidResult
 {
 }

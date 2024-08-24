@@ -16,11 +16,11 @@ internal struct CoroutineAwaiterMethodBuilder : ICoroutineAwaiterMethodBuilder
     public readonly bool IsCompleted => _awaiter.IsCompleted;
 
     public readonly ConfiguredAwaitableCoroutine.ConfiguredCoroutineAwaiter _awaiter;
-    public readonly CoroutineMethodBuilder<VoidCoroutineResult>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>> _stateMachineBox;
+    public readonly CoroutineMethodBuilder<VoidResult>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>> _stateMachineBox;
 
     public CoroutineAwaiterMethodBuilder(
         in ConfiguredAwaitableCoroutine.ConfiguredCoroutineAwaiter awaiter,
-        CoroutineMethodBuilder<VoidCoroutineResult>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>> stateMachineBox)
+        CoroutineMethodBuilder<VoidResult>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>> stateMachineBox)
     {
         _awaiter = awaiter;
         _stateMachineBox = stateMachineBox;

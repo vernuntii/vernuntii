@@ -1,6 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Text;
-using Vernuntii.Coroutines.v1;
 
 namespace Vernuntii.Coroutines;
 
@@ -9,26 +7,26 @@ partial class Effect
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine<Coroutine> SpawnInternal(Delegate provider, IClosure? providerClosure)
     {
-        var completionSource = Coroutine<Coroutine>.CompletionSource.RentFromCache();
+        var completionSource = ValueTaskCompletionSource<Coroutine>.RentFromCache();
         return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.SpawnArgument(provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallbackArgument(in argument, in Arguments.SpawnArgumentType);
+            argumentReceiver.ReceiveCallbackArgument(in argument, in Arguments.s_spawnArgumentType);
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine<Coroutine<TResult>> SpawnInternal<TResult>(Delegate provider, IClosure? providerClosure)
     {
-        var completionSource = Coroutine<Coroutine<TResult>>.CompletionSource.RentFromCache();
+        var completionSource = ValueTaskCompletionSource<Coroutine<TResult>>.RentFromCache();
         return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.SpawnArgument<TResult>(provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallbackArgument(in argument, in Arguments.SpawnArgumentType);
+            argumentReceiver.ReceiveCallbackArgument(in argument, in Arguments.s_spawnArgumentType);
         }
     }
 
@@ -40,12 +38,10 @@ partial class Effect
 
     partial class Arguments
     {
-        internal readonly static Key SpawnArgumentType = new(Encoding.ASCII.GetBytes("@vernuntii"), Encoding.ASCII.GetBytes("spawn"));
-
         internal readonly struct SpawnArgument(
             Delegate provider,
             IClosure? providerClosure,
-            Coroutine<Coroutine>.CompletionSource completionSource) : ICallbackArgument
+            ValueTaskCompletionSource<Coroutine> completionSource) : ICallbackArgument
         {
             void ICallbackArgument.Callback(ref CoroutineContext coroutineContext)
             {
@@ -54,38 +50,41 @@ partial class Effect
                     var typedProvider = Unsafe.As<Func<Coroutine>>(provider);
                     coroutine = typedProvider();
                 } else {
-                    coroutine = providerClosure.InvokeClosured<Coroutine>(provider);
+                    coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine>(provider);
                 }
-                Coroutine coroutineAsSupplement;
+                Coroutine coroutineAsReplacement;
 
-                var coroutineNodeAsCompletary = new CoroutineContext(coroutineContext._scope);
+                var childContext = coroutineContext;
+                childContext._bequeathBehaviour = CoroutineContextBequeathBehaviour.Undefined;
+
                 if (!coroutine.IsChildCoroutine) {
-                    coroutineAsSupplement = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref coroutineNodeAsCompletary);
+                    coroutineAsReplacement = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref childContext);
                 } else {
-                    coroutineAsSupplement = coroutine;
+                    coroutineAsReplacement = coroutine;
                 }
-                var coroutineAsComplementaryAwaiter = coroutineAsSupplement.GetAwaiter();
+                var coroutineAsReplacementAwaiter = coroutineAsReplacement.ConfigureAwait(false).GetAwaiter();
 
-                var intermediateCompletionSource = Coroutine<object?>.CompletionSource.RentFromCache();
-                coroutineAsSupplement._task = intermediateCompletionSource.CreateValueTask();
-                CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNodeAsCompletary);
-                coroutineAsComplementaryAwaiter.UnsafeOnCompleted(() => {
+                var intermediateCompletionSource = ValueTaskCompletionSource<object?>.RentFromCache();
+                coroutineAsReplacement._task = intermediateCompletionSource.CreateValueTask();
+                CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAsReplacementAwaiter, ref childContext);
+                coroutineAsReplacementAwaiter.UnsafeOnCompleted(() => {
                     try {
-                        coroutineAsComplementaryAwaiter.GetResult();
+                        coroutineAsReplacementAwaiter.GetResult();
                         intermediateCompletionSource.SetResult(default);
                     } catch (Exception error) {
                         intermediateCompletionSource.SetException(error);
                         throw; // Must bubble up
                     }
                 });
-                completionSource.SetResult(coroutineAsSupplement);
+                coroutineAsReplacement.MarkCoroutineAsHandled();
+                completionSource.SetResult(coroutineAsReplacement);
             }
         }
 
         internal readonly struct SpawnArgument<TResult>(
             Delegate provider,
             IClosure? providerClosure,
-            Coroutine<Coroutine<TResult>>.CompletionSource completionSource) : ICallbackArgument
+            ValueTaskCompletionSource<Coroutine<TResult>> completionSource) : ICallbackArgument
         {
             void ICallbackArgument.Callback(ref CoroutineContext coroutineContext)
             {
@@ -94,31 +93,34 @@ partial class Effect
                     var typedProvider = Unsafe.As<Func<Coroutine<TResult>>>(provider);
                     coroutine = typedProvider();
                 } else {
-                    coroutine = providerClosure.InvokeClosured<Coroutine<TResult>>(provider);
+                    coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine<TResult>>(provider);
                 }
-                Coroutine<TResult> coroutineAsSupplement;
+                Coroutine<TResult> childCoroutine;
 
-                var coroutineNodeAsCompletary = new CoroutineContext(coroutineContext._scope);
+                var childContext = coroutineContext;
+                childContext._bequeathBehaviour = CoroutineContextBequeathBehaviour.Undefined;
+
                 if (!coroutine.IsChildCoroutine) {
-                    coroutineAsSupplement = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref coroutineNodeAsCompletary);
+                    childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref childContext);
                 } else {
-                    coroutineAsSupplement = coroutine;
+                    childCoroutine = coroutine;
                 }
-                var coroutineAsComplementaryAwaiter = coroutineAsSupplement.GetAwaiter();
+                var childCoroutineAwaiter = childCoroutine.ConfigureAwait(false).GetAwaiter();
 
-                var intermediateCompletionSource = Coroutine<TResult>.CompletionSource.RentFromCache();
-                coroutineAsSupplement._task = intermediateCompletionSource.CreateGenericValueTask();
-                CoroutineMethodBuilderCore.HandleCoroutine(ref coroutine, ref coroutineNodeAsCompletary);
-                coroutineAsComplementaryAwaiter.UnsafeOnCompleted(() => {
+                var intermediateCompletionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
+                childCoroutine._task = intermediateCompletionSource.CreateGenericValueTask();
+                CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref childContext);
+                childCoroutineAwaiter.UnsafeOnCompleted(() => {
                     try {
-                        var result = coroutineAsComplementaryAwaiter.GetResult();
+                        var result = childCoroutineAwaiter.GetResult();
                         intermediateCompletionSource.SetResult(result);
                     } catch (Exception error) {
                         intermediateCompletionSource.SetException(error);
                         throw; // Must bubble up
                     }
                 });
-                completionSource.SetResult(coroutineAsSupplement);
+                childCoroutine.MarkCoroutineAsHandled();
+                completionSource.SetResult(childCoroutine);
             }
         }
     }

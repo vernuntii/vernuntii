@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using static Vernuntii.Coroutines.Effect;
+using Vernuntii.Coroutines.Generators;
 
 namespace Vernuntii.Coroutines;
 
@@ -48,9 +48,10 @@ public static class CoroutineTests
         Run(async () => {
             try {
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
-                //Console.WriteLine(await Coroutine.Start(() => CallWithSpawnInvestigation2(1000)).ConfigureAwait(true));
-                //Console.WriteLine();
-                await Coroutine.Start(() => CallWithLaunchInvestigation(1000)).ConfigureAwait(true);
+                //Console.WriteLine(await Coroutine.Start(() => CallWithLaunchInvestigation(1000)).ConfigureAwait(true));
+                //Console.WriteLine(await Coroutine.Start(() => CallWithLaunchInvestigation(1000)).ConfigureAwait(true));
+                //await Coroutine.Start(() => AsyncIterator2(1000)).ConfigureAwait(true);
+                Coroutine.Start(() => Call(static async () => Console.WriteLine("Hello World")));
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
                 Console.WriteLine(error);
@@ -62,13 +63,19 @@ public static class CoroutineTests
         //thread.Join();
     }
 
-    static async Coroutine CallWithSpawnInvestigation2(int _) {
-        var t2 = await Spawn(async () => {
-            Task.Delay(4000);
+    static async Coroutine<int> AsyncIterator2(int _) {
+        var iterator = new AsyncIterator<int>(Coroutine.FromResult(2));
+        await iterator.Next();
+        return 4;
+    }
+
+    static async Coroutine<int> CallWithSpawnInvestigation2(int _) {
+        var t2 = await WithContext(default, () => Spawn(async () => {
+            await Task.Delay(4000);
             Console.WriteLine("Latest Notification");
-        });
+        }));
         await t2;
-        //return 4;
+        return 4;
     }
 
     static async Coroutine<int> CallWithLaunchInvestigation(int _)
