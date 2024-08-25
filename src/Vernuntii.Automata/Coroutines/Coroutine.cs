@@ -7,7 +7,12 @@ namespace Vernuntii.Coroutines;
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder))]
 public partial struct Coroutine : IAwaiterAwareCoroutine, IEquatable<Coroutine>
 {
-    internal readonly bool IsChildCoroutine => _builder is not null;
+    internal readonly bool IsChildCoroutine {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get {
+            return _builder is not null;
+        }
+    }
 
     internal ValueTask _task;
     internal ICoroutineMethodBuilderBox? _builder;
@@ -99,6 +104,13 @@ public partial struct Coroutine : IAwaiterAwareCoroutine, IEquatable<Coroutine>
 
     public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
     {
+        internal readonly bool IsSiblingCoroutine {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get {
+                return _argumentReceiverDelegate is not null;
+            }
+        }
+
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
         private readonly ValueTaskAwaiter _awaiter;

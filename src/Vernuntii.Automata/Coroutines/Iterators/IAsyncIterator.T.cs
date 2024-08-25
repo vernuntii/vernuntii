@@ -1,9 +1,10 @@
-﻿namespace Vernuntii.Coroutines.Generators;
+﻿namespace Vernuntii.Coroutines.Iterators;
 
 internal interface IAsyncIterator<TResult>
 {
-    public Coroutine<AsyncIteratorResultObject> Next();
-    public Coroutine<AsyncIteratorResultObject> Next<TNextResult>(TNextResult nextResult);
+    public object Current { get; }
+    public Coroutine<bool> MoveNext();
+    public Coroutine YieldReturn<TResult>(TResult result);
     public Coroutine Return(TResult result);
-    public Coroutine Return(Exception e);
+    public Coroutine Throw(Exception e);
 }

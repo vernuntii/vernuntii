@@ -1,5 +1,5 @@
-<Project>
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />-->
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -16,25 +16,26 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Collections.Pooled" Version="1.0.82" />
+    <!--<PackageReference Include="Collections.Pooled" Version="1.0.82" />-->
     <!--<PackageReference Include="Dotnet.Script" Version="1.5.0" PrivateAssets="All" GeneratePathProperty="true" />-->
-    <PackageReference Include="Fody" Version="6.8.1" />
-    <PackageReference Include="InlineIL.Fody" Version="1.8.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Scripting" Version="4.8.0" />
+    <!--<PackageReference Include="Fody" Version="6.8.1" />-->
+    <!--<PackageReference Include="InlineIL.Fody" Version="1.8.0" PrivateAssets="All" />-->
+    <!--<PackageReference Include="Microsoft.CodeAnalysis.Scripting" Version="4.8.0" />-->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include=".config/dotnet-tools.json" />
+    <None Include="**/*.csx" />
   </ItemGroup>
 
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <!--<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />-->
 
-  <Target Name="DotNetToolRestore">
+  <!--<Target Name="DotNetToolRestore">
     <Exec Command="dotnet tool restore" />
-  </Target>
+  </Target>-->
 
-  <PropertyGroup>
+  <!--<PropertyGroup>
     <BuildDependsOn>
       GenerateClosureClasses;
       GenerateEffectCallExtensions;
@@ -42,10 +43,10 @@
       GenerateEffectSpawnExtensions;
       GenerateEffectWithContextExtensions;
       $(BuildDependsOn)</BuildDependsOn>
-  </PropertyGroup>
+  </PropertyGroup>-->
 
 
-  <Target Name="GenerateClosureClasses" DependsOnTargets="DotNetToolRestore">
+  <!--<Target Name="GenerateClosureClasses" DependsOnTargets="DotNetToolRestore">
     <Exec Command="dotnet tool run dotnet-script Closure.csx" WorkingDirectory="Coroutines" />
   </Target>
 
@@ -63,6 +64,6 @@
 
   <Target Name="GenerateEffectWithContextExtensions" DependsOnTargets="DotNetToolRestore">
     <Exec Command="dotnet tool run dotnet-script Effect.WithContext.csx" WorkingDirectory="Coroutines" />
-  </Target>
+  </Target>-->
 
 </Project>

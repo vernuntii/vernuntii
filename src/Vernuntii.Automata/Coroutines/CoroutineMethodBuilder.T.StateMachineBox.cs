@@ -11,35 +11,59 @@ partial struct CoroutineMethodBuilder<TResult>
     /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
     internal abstract class CoroutineStateMachineBox : IValueTaskSource<TResult>, IValueTaskSource, ICoroutineResultStateMachine, ICoroutineMethodBuilderBox
     {
-        internal readonly static CoroutineStateMachineBox m_syncSuccessSentinel = new SyncSuccessSentinelCoroutineStateMachineBox();
+        internal readonly static CoroutineStateMachineBox s_syncSuccessSentinel = new SyncSuccessSentinelCoroutineStateMachineBox();
 
         /// <summary>A delegate to the MoveNext method.</summary>
         protected Action? _moveNextAction;
 
         /// <summary>Captured ExecutionContext with which to invoke MoveNext.</summary>
-        internal ExecutionContext? Context;
+        internal ExecutionContext? _executionContext;
 
-        internal CoroutineContext CoroutineContext;
+        internal CoroutineContext _coroutineContext;
 
         /// <summary>Implementation for IValueTaskSource interfaces.</summary>
         protected ManualResetValueTaskSourceCore<TResult> _valueTaskSource;
 
-        internal CoroutineStateMachineBoxResult? State;
+        protected CoroutineStateMachineBoxResult? _result;
 
-        void IChildCoroutine.InheritCoroutineContext(ref CoroutineContext coroutineContext)
+        protected CoroutineStateMachineBox()
         {
-            coroutineContext.BequestContext(ref CoroutineContext);
+            _coroutineContext._bequesterOrigin = CoroutineContextBequesterOrigin.ChildCoroutine;
+        }
+
+        void IChildCoroutine.InheritCoroutineContext(ref CoroutineContext contextToBequest)
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static void InheritOrBequest(ref CoroutineContext context, ref CoroutineContext contextToBequest)
+            {
+                if (contextToBequest._bequestContext is not null) {
+                    contextToBequest._bequestContext(ref context, ref contextToBequest);
+                } else {
+                    context.InheritContext(ref contextToBequest);
+                }
+            }
+
+            if ((contextToBequest.BequesterOrigin & CoroutineContextBequesterOrigin.ContextBequester) != 0) {
+                InheritOrBequest(ref _coroutineContext, ref contextToBequest);
+            } else {
+                ref var context = ref _coroutineContext;
+                var keyedServices = context._keyedServices;
+                var bequesterOrigin = context._bequesterOrigin;
+                InheritOrBequest(ref context, ref contextToBequest);
+                context._keyedServices = keyedServices;
+                context._bequesterOrigin = bequesterOrigin;
+            }
         }
 
         void IChildCoroutine.StartCoroutine()
         {
-            ref var coroutineContext = ref CoroutineContext;
+            ref var coroutineContext = ref _coroutineContext;
             coroutineContext.OnCoroutineStarted();
             Unsafe.As<ICoroutineStateMachineBox>(this).MoveNext();
         }
 
         void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
-            throw new NotImplementedException("");
+            throw Exceptions.ImplementedByDerivedType();
 
         protected void SetExceptionCore(Exception error) =>
             _valueTaskSource.SetException(error);
@@ -55,9 +79,9 @@ partial struct CoroutineMethodBuilder<TResult>
             CoroutineStateMachineBoxResult? newState;
 
             do {
-                currentState = State!; // Cannot be null at this state
+                currentState = _result!; // Cannot be null at this state
                 newState = currentState.ForkCount == 0 ? null : new CoroutineStateMachineBoxResult(currentState.ForkCount, result);
-            } while (Interlocked.CompareExchange(ref State, newState, currentState)!.ForkCount != currentState.ForkCount);
+            } while (Interlocked.CompareExchange(ref _result, newState, currentState)!.ForkCount != currentState.ForkCount);
 
             if (newState is null) {
                 SetResultCore(result);
@@ -72,9 +96,9 @@ partial struct CoroutineMethodBuilder<TResult>
             CoroutineStateMachineBoxResult? newState;
 
             do {
-                currentState = State!; // Cannot be null at this state
+                currentState = _result!; // Cannot be null at this state
                 newState = currentState.ForkCount == 0 ? null : new CoroutineStateMachineBoxResult(currentState.ForkCount, error);
-            } while (Interlocked.CompareExchange(ref State, newState, currentState)!.ForkCount != currentState.ForkCount);
+            } while (Interlocked.CompareExchange(ref _result, newState, currentState)!.ForkCount != currentState.ForkCount);
 
             if (newState is null) {
                 SetExceptionCore(error);
@@ -99,10 +123,18 @@ partial struct CoroutineMethodBuilder<TResult>
         public short Version => _valueTaskSource.Version;
 
         /// <summary>Implemented by derived type.</summary>
-        TResult IValueTaskSource<TResult>.GetResult(short token) => throw new NotImplementedException("");
+        TResult IValueTaskSource<TResult>.GetResult(short token) => throw Exceptions.ImplementedByDerivedType();
 
         /// <summary>Implemented by derived type.</summary>
-        void IValueTaskSource.GetResult(short token) => throw new NotImplementedException("");
+        void IValueTaskSource.GetResult(short token) => throw Exceptions.ImplementedByDerivedType();
+
+        private static class Exceptions
+        {
+            public static NotImplementedException ImplementedByDerivedType([CallerMemberName] string? methodName = null)
+            {
+                return new NotImplementedException($"The method {methodName} must be explicitly overriden by derived type");
+            }
+        }
     }
 
     /// <summary>Type used as a singleton to indicate synchronous success for an async method.</summary>
@@ -161,9 +193,8 @@ partial struct CoroutineMethodBuilder<TResult>
 
         private void Initialize()
         {
-            CoroutineContext.SetResultStateMachine(this);
-            CoroutineContext._bequeathBehaviour = CoroutineContextBequeathBehaviour.NoPrivateBequesting;
-            State = CoroutineStateMachineBoxResult.Default;
+            _coroutineContext.SetResultStateMachine(this);
+            _result = CoroutineStateMachineBoxResult.Default;
         }
 
         /// <summary>Returns this instance to the cache.</summary>
@@ -173,7 +204,7 @@ partial struct CoroutineMethodBuilder<TResult>
             // Clear out the state machine and associated context to avoid keeping arbitrary state referenced by
             // lifted locals, and reset the instance for another await.
             ClearStateUponCompletion();
-            CoroutineContext.OnCoroutineCompleted();
+            _coroutineContext.OnCoroutineCompleted();
             _valueTaskSource.Reset();
 
             // If the per-thread cache is empty, store this into it..
@@ -197,14 +228,14 @@ partial struct CoroutineMethodBuilder<TResult>
             CoroutineStateMachineBoxResult newState;
 
             do {
-                currentState = State;
+                currentState = _result;
 
                 if (currentState is null || currentState.State != CoroutineStateMachineBoxResult.ResultState.NotYetComputed) {
                     throw new InvalidOperationException("Result state machine has already finished");
                 }
 
                 newState = new CoroutineStateMachineBoxResult(currentState.ForkCount + 1);
-            } while (Interlocked.CompareExchange(ref State, newState, currentState)?.ForkCount != currentState.ForkCount);
+            } while (Interlocked.CompareExchange(ref _result, newState, currentState)?.ForkCount != currentState.ForkCount);
 
             awaiter.UnsafeOnCompleted(() => {
                 Exception? childError = null;
@@ -219,7 +250,7 @@ partial struct CoroutineMethodBuilder<TResult>
                 CoroutineStateMachineBoxResult? newState;
 
                 do {
-                    currentState = State;
+                    currentState = _result;
 
                     if (currentState is null) {
                         return;
@@ -230,7 +261,7 @@ partial struct CoroutineMethodBuilder<TResult>
                     } else {
                         newState = new CoroutineStateMachineBoxResult(currentState, currentState.ForkCount - 1);
                     }
-                } while (Interlocked.CompareExchange(ref State, newState, currentState)?.ForkCount != currentState.ForkCount);
+                } while (Interlocked.CompareExchange(ref _result, newState, currentState)?.ForkCount != currentState.ForkCount);
 
                 if (newState is null) {
                     if (currentState.HasResult) {
@@ -274,7 +305,7 @@ partial struct CoroutineMethodBuilder<TResult>
         public void ClearStateUponCompletion()
         {
             StateMachine = default;
-            Context = default;
+            _executionContext = default;
         }
 
         /// <summary>
@@ -291,7 +322,7 @@ partial struct CoroutineMethodBuilder<TResult>
         /// <summary>Calls MoveNext on <see cref="StateMachine"/></summary>
         public void MoveNext()
         {
-            ExecutionContext? context = Context;
+            ExecutionContext? context = _executionContext;
 
             if (context is null) {
                 Debug.Assert(StateMachine is not null, $"Null {nameof(StateMachine)}");

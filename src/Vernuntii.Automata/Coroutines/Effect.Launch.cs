@@ -41,8 +41,12 @@ partial class Effect
         internal readonly struct LaunchArgument(
             Delegate provider,
             IClosure? providerClosure,
-            ValueTaskCompletionSource<Coroutine> immediateCompletionSource) : ICallbackArgument
+            ValueTaskCompletionSource<Coroutine> completionSource) : ICallbackArgument
         {
+            private readonly ValueTaskCompletionSource<Coroutine> _completionSource = completionSource;
+
+            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+
             void ICallbackArgument.Callback(ref CoroutineContext coroutineContext)
             {
                 Coroutine coroutine;
@@ -55,6 +59,7 @@ partial class Effect
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
                 var intermediateCompletionSource = ValueTaskCompletionSource<object?>.RentFromCache();
                 coroutine._task = intermediateCompletionSource.CreateValueTask();
+                coroutineContext.TreatAsNewSibling();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref coroutineContext);
                 coroutineContext.ResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith(ref coroutineAwaiter, () => {
                     try {
@@ -66,15 +71,19 @@ partial class Effect
                     }
                 });
                 coroutine.MarkCoroutineAsHandled();
-                immediateCompletionSource.SetResult(coroutine);
+                _completionSource.SetResult(coroutine);
             }
         }
 
         internal readonly struct LaunchArgument<TResult>(
             Delegate provider,
             IClosure? providerClosure,
-            ValueTaskCompletionSource<Coroutine<TResult>> immediateCompletionSource) : ICallbackArgument
+            ValueTaskCompletionSource<Coroutine<TResult>> completionSource) : ICallbackArgument
         {
+            private readonly ValueTaskCompletionSource<Coroutine<TResult>> _completionSource = completionSource;
+
+            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+
             void ICallbackArgument.Callback(ref CoroutineContext coroutineContext)
             {
                 Coroutine<TResult> coroutine;
@@ -87,6 +96,7 @@ partial class Effect
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
                 var intermediateCompletionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
                 coroutine._task = intermediateCompletionSource.CreateGenericValueTask();
+                coroutineContext.TreatAsNewSibling();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref coroutineContext);
                 coroutineContext.ResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith(ref coroutineAwaiter, () => {
                     try {
@@ -98,7 +108,7 @@ partial class Effect
                     }
                 });
                 coroutine.MarkCoroutineAsHandled();
-                immediateCompletionSource.SetResult(coroutine);
+                _completionSource.SetResult(coroutine);
             }
         }
     }

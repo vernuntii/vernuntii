@@ -2,5 +2,7 @@
 
 internal interface ICallbackArgument
 {
-    void Callback(ref CoroutineContext coroutineContext);
+    public ICoroutineCompletionSource CompletionSource { get; }
+
+    void Callback(ref CoroutineContext context);
 }

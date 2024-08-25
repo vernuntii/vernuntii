@@ -1,61 +1,58 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
+
+delegate void BequestContextDelegate(ref CoroutineContext context, ref CoroutineContext contextToBequest);
 
 public struct CoroutineContext : ICoroutinePreprocessor
 {
     private static readonly IReadOnlyDictionary<Key, object> s_emptyKeyedServices = new Dictionary<Key, object>();
 
-    internal static readonly Key s_coroutineScopeKey = new Key(Encoding.ASCII.GetBytes(nameof(CoroutineScope)), isContextService: true, inheritable: true);
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static CoroutineContext CreateInternal(
         IReadOnlyDictionary<Key, object>? keyedServices = null,
-        IReadOnlyDictionary<Key, object>? keyedServicesToBequest = null) =>
-        new CoroutineContext(keyedServices, keyedServicesToBequest);
+        IReadOnlyDictionary<Key, object>? keyedServicesToBequest = null)
+    {
+        var context = new CoroutineContext();
+        context._keyedServices = keyedServices;
+        context._keyedServicesToBequest = keyedServicesToBequest;
+        return context;
+    }
 
-    private ICoroutineResultStateMachine? _resultStateMachine;
-    private IReadOnlyDictionary<Key, object>? _keyedServices;
-    private IReadOnlyDictionary<Key, object>? _keyedServicesToBequest;
-    internal CoroutineContextBequeathBehaviour _bequeathBehaviour;
+    internal ICoroutineResultStateMachine? _resultStateMachine;
+    internal IReadOnlyDictionary<Key, object>? _keyedServices;
+    internal IReadOnlyDictionary<Key, object>? _keyedServicesToBequest;
+    internal CoroutineContextBequesterOrigin _bequesterOrigin;
+    internal BequestContextDelegate? _bequestContext;
+    internal bool? _isAsyncIteratorSupplier;
 #if DEBUG
     internal int _identifier;
 #endif
 
     internal ICoroutineResultStateMachine ResultStateMachine => _resultStateMachine ??= CoroutineResultStateMachine.s_immediateContinuingResultStateMachine;
-    internal IReadOnlyDictionary<Key, object> KeyedServices => _keyedServices ??= s_emptyKeyedServices;
-    internal IReadOnlyDictionary<Key, object> KeyedServicesToBequest => _keyedServicesToBequest ??= s_emptyKeyedServices;
+
+    public IReadOnlyDictionary<Key, object> KeyedServices => _keyedServices ??= s_emptyKeyedServices;
+    public IReadOnlyDictionary<Key, object> KeyedServicesToBequest => _keyedServicesToBequest ??= s_emptyKeyedServices;
+    readonly public CoroutineContextBequesterOrigin BequesterOrigin => _bequesterOrigin;
+    public bool IsAsyncIteratorAware => _isAsyncIteratorSupplier ??= KeyedServices.ContainsKey(AsyncIterator.s_asyncIteratorKey);
 
     internal CoroutineScope Scope {
         get {
-            Debug.Assert(KeyedServicesToBequest.ContainsKey(s_coroutineScopeKey));
-            return (CoroutineScope)KeyedServicesToBequest[s_coroutineScopeKey];
+            Debug.Assert(KeyedServicesToBequest.ContainsKey(CoroutineScope.s_coroutineScopeKey));
+            return (CoroutineScope)KeyedServicesToBequest[CoroutineScope.s_coroutineScopeKey];
         }
     }
 
-    internal CoroutineContext(IReadOnlyDictionary<Key, object>? keyedServices, IReadOnlyDictionary<Key, object>? keyedServicesToBequest)
+    internal void InheritContext(ref CoroutineContext contextToBequest)
     {
-        if (keyedServices is not null) {
-            _keyedServices = keyedServices;
-        }
-        if (keyedServicesToBequest is not null) {
-            _keyedServicesToBequest = keyedServicesToBequest;
-        }
-    }
-
-    internal readonly void BequestContext(ref CoroutineContext childContext)
-    {
-        if ((_bequeathBehaviour & CoroutineContextBequeathBehaviour.PrivateBequestingUntilChild) != 0) {
-            childContext._keyedServices = _keyedServices;
+        if ((contextToBequest.BequesterOrigin & CoroutineContextBequesterOrigin.ContextBequester) != 0) {
+            _keyedServices = contextToBequest.KeyedServices;
         }
 
-        childContext._keyedServicesToBequest = _keyedServicesToBequest;
-
-        if ((childContext._bequeathBehaviour & CoroutineContextBequeathBehaviour.NoPrivateBequesting) != 0) {
-            childContext._bequeathBehaviour = _bequeathBehaviour;
-        }
+        _keyedServicesToBequest = contextToBequest.KeyedServicesToBequest;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -89,7 +86,6 @@ public struct CoroutineContext : ICoroutinePreprocessor
 #if DEBUG
         Scope.OnCoroutineCompleted();
 #endif
-        _bequeathBehaviour = CoroutineContextBequeathBehaviour.Undefined;
         _keyedServicesToBequest = null!;
         _keyedServices = null!;
         _resultStateMachine = null!;

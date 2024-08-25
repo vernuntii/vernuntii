@@ -8,7 +8,7 @@ namespace Vernuntii.Coroutines;
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
-internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource
+internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, ICoroutineCompletionSource
 {
     /// <summary>Per-core cache of boxes, with one box per core.</summary>
     /// <remarks>Each element is padded to expected cache-line size so as to minimize false sharing.</remarks>
@@ -105,6 +105,19 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
     /// <param name="result">The result.</param>
     public void SetResult(TResult result) =>
         _valueTaskSource.SetResult(result);
+
+    void ICoroutineCompletionSource.SetResult<TCoroutineResult>(TCoroutineResult result)
+    {
+        if (result is null) {
+            SetResult(default!);
+        }
+
+        if (result is not TResult typedResult) {
+            throw new ArgumentException($"The result type {typeof(TCoroutineResult)} mismatches the expceted result type {typeof(TResult)}");
+        }
+
+        SetResult(typedResult);
+    }
 
     /// <summary>Completes the box with an error.</summary>
     /// <param name="error">The exception.</param>

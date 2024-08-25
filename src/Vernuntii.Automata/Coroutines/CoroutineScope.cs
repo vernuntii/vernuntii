@@ -1,7 +1,11 @@
-﻿namespace Vernuntii.Coroutines;
+﻿using System.Text;
+
+namespace Vernuntii.Coroutines;
 
 public sealed class CoroutineScope : IDisposable
 {
+    internal static readonly Key s_coroutineScopeKey = new Key(Encoding.ASCII.GetBytes(nameof(CoroutineScope)), isContextService: true, inheritable: true);
+
 #if DEBUG
     internal int CoroutineActivationCounter => _coroutineActivationCounter;
 

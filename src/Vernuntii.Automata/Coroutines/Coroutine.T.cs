@@ -174,9 +174,9 @@ public readonly struct ConfiguredAwaitableCoroutine<T>
     {
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-        private readonly ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter _awaiter;
-        private readonly ICoroutineMethodBuilderBox? _builder;
-        private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+        internal readonly ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter _awaiter;
+        internal readonly ICoroutineMethodBuilderBox? _builder;
+        internal readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
         readonly bool IRelativeCoroutine.IsChildCoroutine => _builder is not null;
         readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;

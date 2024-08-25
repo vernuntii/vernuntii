@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using Vernuntii.Coroutines.Generators;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -50,8 +50,8 @@ public static class CoroutineTests
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
                 //Console.WriteLine(await Coroutine.Start(() => CallWithLaunchInvestigation(1000)).ConfigureAwait(true));
                 //Console.WriteLine(await Coroutine.Start(() => CallWithLaunchInvestigation(1000)).ConfigureAwait(true));
-                //await Coroutine.Start(() => AsyncIterator2(1000)).ConfigureAwait(true);
-                Coroutine.Start(() => Call(static async () => Console.WriteLine("Hello World")));
+                await Coroutine.Start(() => AsyncIterator2(1000)).ConfigureAwait(true);
+                //Coroutine.Start(() => Call(static async () => Console.WriteLine("Hello World")));
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
                 Console.WriteLine(error);
@@ -64,8 +64,10 @@ public static class CoroutineTests
     }
 
     static async Coroutine<int> AsyncIterator2(int _) {
-        var iterator = new AsyncIterator<int>(Coroutine.FromResult(2));
-        await iterator.Next();
+        var iterator = new AsyncIterator<int>(async () => {
+            return await Call(() => Coroutine.FromResult(2));
+        });
+        await iterator.MoveNext();
         return 4;
     }
 

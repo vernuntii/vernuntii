@@ -43,6 +43,8 @@ partial class Effect
         {
             private readonly ValueTaskCompletionSource<object?> _completionSource = completionSource;
 
+            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+
             void ICallbackArgument.Callback(ref CoroutineContext coroutineContext)
             {
                 Coroutine coroutine;
@@ -54,6 +56,7 @@ partial class Effect
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
                 var completionSource = _completionSource;
+                coroutineContext.TreatAsNewSibling();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref coroutineContext);
                 coroutineAwaiter.UnsafeOnCompleted(() => {
                     try {
@@ -73,6 +76,8 @@ partial class Effect
         {
             private readonly ValueTaskCompletionSource<TResult> _completionSource = completionSource;
 
+            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+
             void ICallbackArgument.Callback(ref CoroutineContext coroutineContext)
             {
                 Coroutine<TResult> coroutine;
@@ -84,6 +89,7 @@ partial class Effect
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
                 var completionSource = _completionSource;
+                coroutineContext.TreatAsNewSibling();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref coroutineContext);
                 coroutineAwaiter.UnsafeOnCompleted(() => {
                     try {

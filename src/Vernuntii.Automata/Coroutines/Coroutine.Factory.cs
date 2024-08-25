@@ -41,7 +41,7 @@ partial struct Coroutine
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
         var coroutineScope = new CoroutineScope();
-        var coroutineContext = CoroutineContext.CreateInternal(keyedServicesToBequest: new Dictionary<Key, object>() { { CoroutineContext.s_coroutineScopeKey, coroutineScope } });
+        var coroutineContext = CoroutineContext.CreateInternal(keyedServicesToBequest: new Dictionary<Key, object>() { { CoroutineScope.s_coroutineScopeKey, coroutineScope } });
         CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref coroutineContext);
         return coroutine;
     }
@@ -51,7 +51,7 @@ partial struct Coroutine
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
         var coroutineScope = new CoroutineScope();
-        var coroutineContext = CoroutineContext.CreateInternal(keyedServicesToBequest: new Dictionary<Key, object>() { { CoroutineContext.s_coroutineScopeKey, coroutineScope } });
+        var coroutineContext = CoroutineContext.CreateInternal(keyedServicesToBequest: new Dictionary<Key, object>() { { CoroutineScope.s_coroutineScopeKey, coroutineScope } });
         CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref coroutineContext);
         return coroutine;
     }

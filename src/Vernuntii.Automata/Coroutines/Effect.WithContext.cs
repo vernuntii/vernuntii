@@ -44,7 +44,9 @@ partial class Effect
         {
             private readonly ValueTaskCompletionSource<object?> _completionSource = completionSource;
 
-            void ICallbackArgument.Callback(ref CoroutineContext parentContext)
+            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+
+            void ICallbackArgument.Callback(ref CoroutineContext context)
             {
                 Coroutine coroutine;
                 if (providerClosure is null) {
@@ -54,9 +56,11 @@ partial class Effect
                     coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine>(provider);
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
+                var contextToBequest = context;
+                contextToBequest._bequesterOrigin = CoroutineContextBequesterOrigin.ContextBequester;
+                contextToBequest.Plus(contextToBequest);
+                CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 var completionSource = _completionSource;
-                var contextAsMerged = new CoroutineContextBequester(parentContext, additiveContext, CoroutineContextBequeathBehaviour.PrivateBequestingUntilChild);
-                CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextAsMerged);
                 coroutineAwaiter.UnsafeOnCompleted(() => {
                     try {
                         coroutineAwaiter.GetResult();
@@ -76,7 +80,9 @@ partial class Effect
         {
             private readonly ValueTaskCompletionSource<TResult> _completionSource = completionSource;
 
-            void ICallbackArgument.Callback(ref CoroutineContext parentContext)
+            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+
+            void ICallbackArgument.Callback(ref CoroutineContext context)
             {
                 Coroutine<TResult> coroutine;
                 if (providerClosure is null) {
@@ -86,9 +92,10 @@ partial class Effect
                     coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine<TResult>>(provider);
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
+                var contextToBequest = context;
+                contextToBequest.Plus(contextToBequest);
+                CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 var completionSource = _completionSource;
-                var contextAsMerge = new CoroutineContextBequester(parentContext, additiveContext, CoroutineContextBequeathBehaviour.PrivateBequestingUntilChild);
-                CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextAsMerge);
                 coroutineAwaiter.UnsafeOnCompleted(() => {
                     try {
                         var result = coroutineAwaiter.GetResult();

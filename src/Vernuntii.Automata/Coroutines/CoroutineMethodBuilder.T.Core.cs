@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -25,8 +26,8 @@ partial struct CoroutineMethodBuilder<TResult>
         // the state machine as well as a MoveNextDelegate and a context.  The only thing
         // we might need to do is update the context if that's changed since it was stored.
         if (stateMachineBox is CoroutineStateMachineBox<TStateMachine> stronglyTypedBox) {
-            if (stronglyTypedBox.Context != currentContext) {
-                stronglyTypedBox.Context = currentContext;
+            if (stronglyTypedBox._executionContext != currentContext) {
+                stronglyTypedBox._executionContext = currentContext;
             }
 
             return stronglyTypedBox;
@@ -49,7 +50,7 @@ partial struct CoroutineMethodBuilder<TResult>
 
             // Update the context.  This only happens with a debugger, so no need to spend
             // extra IL checking for equality before doing the assignment.
-            weaklyTypedBox.Context = currentContext;
+            weaklyTypedBox._executionContext = currentContext;
             return weaklyTypedBox;
         }
 
@@ -71,7 +72,7 @@ partial struct CoroutineMethodBuilder<TResult>
         var typedStateMachineBox = CoroutineStateMachineBox<TStateMachine>.RentFromCache();
         stateMachineBox = typedStateMachineBox; // important: this must be done before storing stateMachine into box.StateMachine!
         typedStateMachineBox.StateMachine = stateMachine;
-        typedStateMachineBox.Context = currentContext;
+        typedStateMachineBox._executionContext = currentContext;
         return typedStateMachineBox;
     }
 
@@ -80,31 +81,42 @@ partial struct CoroutineMethodBuilder<TResult>
         where TAwaiter : INotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
-        try {
-            awaiter.OnCompleted(GetStateMachineBox(ref stateMachine, ref stateMachineBox).MoveNextAction);
-        } catch (Exception e) {
-            GlobalScope.ThrowAsync(e, targetContext: null);
+        ref var context = ref stateMachineBox._coroutineContext;
+        CoroutineMethodBuilderCore.TryPreprocessAwaiterIfCoroutine(ref awaiter, ref context, out var isAsyncIteratorSupplyEnsured);
+        var mustSupplyAsyncIterator = isAsyncIteratorSupplyEnsured || context.MustSupplyAsyncIterator();
+
+        if (mustSupplyAsyncIterator) {
+            var asyncIteratorContextService = context.GetAsyncIteratorContextService();
+            asyncIteratorContextService.SupplyAwaiterCompletionNotifier(ref awaiter);
+        } else {
+            var typedStateMachineBox = GetStateMachineBox(ref stateMachine, ref stateMachineBox);
+            try {
+                awaiter.OnCompleted(typedStateMachineBox.MoveNextAction);
+            } catch (Exception e) {
+                GlobalScope.ThrowAsync(e, targetContext: null);
+            }
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void AwaitUnsafeOnCompleted<TAwaiter>(ref TAwaiter awaiter, ICoroutineStateMachineBox stateMachineBox)
+    internal static void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine, ref CoroutineStateMachineBox stateMachineBox)
         where TAwaiter : ICriticalNotifyCompletion
+        where TStateMachine : IAsyncStateMachine
     {
-        try {
-            awaiter.UnsafeOnCompleted(stateMachineBox.MoveNextAction);
-        } catch (Exception e) {
-            GlobalScope.ThrowAsync(e, targetContext: null);
-        }
-    }
+        ref var context = ref stateMachineBox._coroutineContext;
+        CoroutineMethodBuilderCore.TryPreprocessAwaiterIfCoroutine(ref awaiter, ref context, out var isAsyncIteratorSupplyEnsured);
+        //var mustSupplyAsyncIterator = isAsyncIteratorSupplyEnsured || context.MustSupplyAsyncIterator();
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(
-            ref TAwaiter awaiter, ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineBox? stateMachineBox)
-            where TAwaiter : ICriticalNotifyCompletion
-            where TStateMachine : IAsyncStateMachine
-    {
-        var box = GetStateMachineBox(ref stateMachine, ref stateMachineBox);
-        AwaitUnsafeOnCompleted(ref awaiter, box);
+        if (context.MustSupplyAsyncIterator()) {
+            var asyncIteratorContextService = context.GetAsyncIteratorContextService();
+            asyncIteratorContextService.SupplyAwaiterCriticalCompletionNotifier(ref awaiter);
+        } else {
+            var typedStateMachineBox = GetStateMachineBox(ref stateMachine, ref stateMachineBox);
+            try {
+                awaiter.UnsafeOnCompleted(typedStateMachineBox.MoveNextAction);
+            } catch (Exception e) {
+                GlobalScope.ThrowAsync(e, targetContext: null);
+            }
+        }
     }
 }

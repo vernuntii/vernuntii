@@ -43,6 +43,10 @@ partial class Effect
             IClosure? providerClosure,
             ValueTaskCompletionSource<Coroutine> completionSource) : ICallbackArgument
         {
+            private readonly ValueTaskCompletionSource<Coroutine> _completionSource = completionSource;
+
+            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+
             void ICallbackArgument.Callback(ref CoroutineContext coroutineContext)
             {
                 Coroutine coroutine;
@@ -55,7 +59,7 @@ partial class Effect
                 Coroutine coroutineAsReplacement;
 
                 var childContext = coroutineContext;
-                childContext._bequeathBehaviour = CoroutineContextBequeathBehaviour.Undefined;
+                childContext.TreatAsNewChild();
 
                 if (!coroutine.IsChildCoroutine) {
                     coroutineAsReplacement = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref childContext);
@@ -77,7 +81,7 @@ partial class Effect
                     }
                 });
                 coroutineAsReplacement.MarkCoroutineAsHandled();
-                completionSource.SetResult(coroutineAsReplacement);
+                _completionSource.SetResult(coroutineAsReplacement);
             }
         }
 
@@ -86,6 +90,10 @@ partial class Effect
             IClosure? providerClosure,
             ValueTaskCompletionSource<Coroutine<TResult>> completionSource) : ICallbackArgument
         {
+            private readonly ValueTaskCompletionSource<Coroutine<TResult>> _completionSource = completionSource;
+
+            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+
             void ICallbackArgument.Callback(ref CoroutineContext coroutineContext)
             {
                 Coroutine<TResult> coroutine;
@@ -98,7 +106,7 @@ partial class Effect
                 Coroutine<TResult> childCoroutine;
 
                 var childContext = coroutineContext;
-                childContext._bequeathBehaviour = CoroutineContextBequeathBehaviour.Undefined;
+                childContext.TreatAsNewChild();
 
                 if (!coroutine.IsChildCoroutine) {
                     childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref childContext);
@@ -120,7 +128,7 @@ partial class Effect
                     }
                 });
                 childCoroutine.MarkCoroutineAsHandled();
-                completionSource.SetResult(childCoroutine);
+                _completionSource.SetResult(childCoroutine);
             }
         }
     }

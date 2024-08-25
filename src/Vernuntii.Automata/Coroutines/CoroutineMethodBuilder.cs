@@ -43,11 +43,8 @@ public struct CoroutineMethodBuilder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : ICriticalNotifyCompletion
-        where TStateMachine : IAsyncStateMachine
-    {
-        CoroutineMethodBuilderCore.PreprocessAwaiterIfCoroutine(ref awaiter, ref _stateMachineBox.CoroutineContext);
+        where TStateMachine : IAsyncStateMachine =>
         CoroutineMethodBuilder<VoidResult>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
-    }
 
     public void SetStateMachine(IAsyncStateMachine stateMachine) => throw new NotImplementedException();
 }

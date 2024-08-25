@@ -23,7 +23,11 @@ partial class EffectExtensions
             Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector,
             ValueTaskCompletionSource<EventChannel<T>> completionSource) : ICallbackArgument
         {
-            public void Callback(ref CoroutineContext coroutineContext) => throw new NotImplementedException();
+            private readonly ValueTaskCompletionSource<EventChannel<T>> _completionSource = completionSource;
+
+            ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+
+            void ICallbackArgument.Callback(ref CoroutineContext coroutineContext) => throw new NotImplementedException();
         }
     }
 }
