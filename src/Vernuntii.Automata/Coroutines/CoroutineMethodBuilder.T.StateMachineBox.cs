@@ -31,28 +31,9 @@ partial struct CoroutineMethodBuilder<TResult>
             _coroutineContext._bequesterOrigin = CoroutineContextBequesterOrigin.ChildCoroutine;
         }
 
-        void IChildCoroutine.InheritCoroutineContext(ref CoroutineContext contextToBequest)
+        void IChildCoroutine.InheritCoroutineContext(in CoroutineContext contextToBequest)
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            static void InheritOrBequest(ref CoroutineContext context, ref CoroutineContext contextToBequest)
-            {
-                if (contextToBequest._bequestContext is not null) {
-                    contextToBequest._bequestContext(ref context, ref contextToBequest);
-                } else {
-                    context.InheritContext(ref contextToBequest);
-                }
-            }
-
-            if ((contextToBequest.BequesterOrigin & CoroutineContextBequesterOrigin.ContextBequester) != 0) {
-                InheritOrBequest(ref _coroutineContext, ref contextToBequest);
-            } else {
-                ref var context = ref _coroutineContext;
-                var keyedServices = context._keyedServices;
-                var bequesterOrigin = context._bequesterOrigin;
-                InheritOrBequest(ref context, ref contextToBequest);
-                context._keyedServices = keyedServices;
-                context._bequesterOrigin = bequesterOrigin;
-            }
+            CoroutineContext.InheritirBequestCoroutineContext(ref _coroutineContext, in contextToBequest);
         }
 
         void IChildCoroutine.StartCoroutine()

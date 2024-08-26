@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.Coroutines;
+﻿using System.Collections.Immutable;
+
+namespace Vernuntii.Coroutines;
 
 partial struct Coroutine
 {
@@ -40,9 +42,10 @@ partial struct Coroutine
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
-        var coroutineScope = new CoroutineScope();
-        var coroutineContext = CoroutineContext.CreateInternal(keyedServicesToBequest: new Dictionary<Key, object>() { { CoroutineScope.s_coroutineScopeKey, coroutineScope } });
-        CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref coroutineContext);
+        var scope = new CoroutineScope();
+        var context = new CoroutineContext();
+        context._keyedServicesToBequest = ImmutableDictionary.CreateRange<Key, object>([new(CoroutineScope.s_coroutineScopeKey, scope)]);
+        CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref context);
         return coroutine;
     }
 
@@ -50,9 +53,10 @@ partial struct Coroutine
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
-        var coroutineScope = new CoroutineScope();
-        var coroutineContext = CoroutineContext.CreateInternal(keyedServicesToBequest: new Dictionary<Key, object>() { { CoroutineScope.s_coroutineScopeKey, coroutineScope } });
-        CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref coroutineContext);
+        var scope = new CoroutineScope();
+        var context = new CoroutineContext();
+        context._keyedServicesToBequest = ImmutableDictionary.CreateRange<Key, object>([new(CoroutineScope.s_coroutineScopeKey, scope)]);
+        CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref context);
         return coroutine;
     }
 }

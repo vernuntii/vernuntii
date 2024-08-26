@@ -13,15 +13,15 @@ public ref struct CoroutineArgumentReceiver
         _context = ref coroutineContext;
     }
 
-    internal void ReceiveCallbackArgument<TArgument, TArgumentKey>(in TArgument argument, in TArgumentKey argumentKey)
-        where TArgument : ICallbackArgument
+    internal void ReceiveCallableArgument<TArgument, TArgumentKey>(in TArgument argument, in TArgumentKey argumentKey)
+        where TArgument : ICallableArgument
         where TArgumentKey : IKey
     {
         if (_context.MustSupplyAsyncIterator()) {
             var asyncIteratorContextService = _context.GetAsyncIteratorContextService();
             asyncIteratorContextService.SupplyArgument(argument, argumentKey);
         } else {
-            argument.Callback(ref _context);
+            argument.Callback(in _context);
         }
     }
 }

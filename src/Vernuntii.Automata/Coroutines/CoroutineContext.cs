@@ -1,20 +1,30 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
-delegate void BequestContextDelegate(ref CoroutineContext context, ref CoroutineContext contextToBequest);
+delegate void BequestContextDelegate(ref CoroutineContext context, in CoroutineContext contextToBequest);
 
 public struct CoroutineContext : ICoroutinePreprocessor
 {
-    private static readonly IReadOnlyDictionary<Key, object> s_emptyKeyedServices = new Dictionary<Key, object>();
+    private static readonly ImmutableDictionary<Key, object> s_emptyKeyedServices = ImmutableDictionary<Key, object>.Empty;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void InheritirBequestCoroutineContext(ref CoroutineContext context, in CoroutineContext contextToBequest)
+    {
+        if (contextToBequest._bequestContext is not null) {
+            contextToBequest._bequestContext(ref context, in contextToBequest);
+        } else {
+            context.InheritContext(in contextToBequest);
+        }
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static CoroutineContext CreateInternal(
-        IReadOnlyDictionary<Key, object>? keyedServices = null,
-        IReadOnlyDictionary<Key, object>? keyedServicesToBequest = null)
+        ImmutableDictionary<Key, object>? keyedServices = null,
+        ImmutableDictionary<Key, object>? keyedServicesToBequest = null)
     {
         var context = new CoroutineContext();
         context._keyedServices = keyedServices;
@@ -23,21 +33,21 @@ public struct CoroutineContext : ICoroutinePreprocessor
     }
 
     internal ICoroutineResultStateMachine? _resultStateMachine;
-    internal IReadOnlyDictionary<Key, object>? _keyedServices;
-    internal IReadOnlyDictionary<Key, object>? _keyedServicesToBequest;
+    internal ImmutableDictionary<Key, object>? _keyedServices;
+    internal ImmutableDictionary<Key, object>? _keyedServicesToBequest;
     internal CoroutineContextBequesterOrigin _bequesterOrigin;
     internal BequestContextDelegate? _bequestContext;
-    internal bool? _isAsyncIteratorSupplier;
+    internal bool? _isAsyncIteratorAware;
 #if DEBUG
     internal int _identifier;
 #endif
 
     internal ICoroutineResultStateMachine ResultStateMachine => _resultStateMachine ??= CoroutineResultStateMachine.s_immediateContinuingResultStateMachine;
 
-    public IReadOnlyDictionary<Key, object> KeyedServices => _keyedServices ??= s_emptyKeyedServices;
-    public IReadOnlyDictionary<Key, object> KeyedServicesToBequest => _keyedServicesToBequest ??= s_emptyKeyedServices;
+    public ImmutableDictionary<Key, object> KeyedServices => _keyedServices ??= s_emptyKeyedServices;
+    public ImmutableDictionary<Key, object> KeyedServicesToBequest => _keyedServicesToBequest ??= s_emptyKeyedServices;
     readonly public CoroutineContextBequesterOrigin BequesterOrigin => _bequesterOrigin;
-    public bool IsAsyncIteratorAware => _isAsyncIteratorSupplier ??= KeyedServices.ContainsKey(AsyncIterator.s_asyncIteratorKey);
+    public bool IsAsyncIteratorAware => _isAsyncIteratorAware ??= KeyedServices.ContainsKey(AsyncIterator.s_asyncIteratorKey);
 
     internal CoroutineScope Scope {
         get {
@@ -46,13 +56,25 @@ public struct CoroutineContext : ICoroutinePreprocessor
         }
     }
 
-    internal void InheritContext(ref CoroutineContext contextToBequest)
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    internal void InheritContext(in CoroutineContext contextToBequest)
     {
         if ((contextToBequest.BequesterOrigin & CoroutineContextBequesterOrigin.ContextBequester) != 0) {
-            _keyedServices = contextToBequest.KeyedServices;
+            if (_keyedServices is null) {
+                _keyedServices = contextToBequest.KeyedServices;
+            } else if (contextToBequest._keyedServices is not null) {
+                _keyedServices = _keyedServices.AddRange(contextToBequest._keyedServices);
+            }
         }
 
-        _keyedServicesToBequest = contextToBequest.KeyedServicesToBequest;
+        if (_keyedServicesToBequest is null) {
+            _keyedServicesToBequest = contextToBequest.KeyedServicesToBequest;
+        } else if (contextToBequest._keyedServicesToBequest is not null) {
+            _keyedServicesToBequest = _keyedServicesToBequest.AddRange(contextToBequest._keyedServicesToBequest);
+        }
+
+        _bequestContext = contextToBequest._bequestContext;
+        _isAsyncIteratorAware = contextToBequest._isAsyncIteratorAware;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -71,7 +93,7 @@ public struct CoroutineContext : ICoroutinePreprocessor
 
     void ICoroutinePreprocessor.PreprocessChildCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter)
     {
-        coroutineAwaiter.InheritCoroutineContext(ref this);
+        coroutineAwaiter.InheritCoroutineContext(in this);
         coroutineAwaiter.StartCoroutine();
     }
 

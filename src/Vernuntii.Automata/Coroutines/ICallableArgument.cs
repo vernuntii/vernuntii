@@ -1,8 +1,8 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal interface ICallbackArgument
+internal interface ICallableArgument
 {
     public ICoroutineCompletionSource CompletionSource { get; }
 
-    void Callback(ref CoroutineContext context);
+    void Callback(in CoroutineContext context);
 }

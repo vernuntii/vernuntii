@@ -13,7 +13,7 @@ partial class Effect
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.SpawnArgument(provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallbackArgument(in argument, in Arguments.s_spawnArgumentType);
+            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_spawnArgumentType);
         }
     }
 
@@ -26,7 +26,7 @@ partial class Effect
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.SpawnArgument<TResult>(provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallbackArgument(in argument, in Arguments.s_spawnArgumentType);
+            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_spawnArgumentType);
         }
     }
 
@@ -41,13 +41,13 @@ partial class Effect
         internal readonly struct SpawnArgument(
             Delegate provider,
             IClosure? providerClosure,
-            ValueTaskCompletionSource<Coroutine> completionSource) : ICallbackArgument
+            ValueTaskCompletionSource<Coroutine> completionSource) : ICallableArgument
         {
             private readonly ValueTaskCompletionSource<Coroutine> _completionSource = completionSource;
 
-            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+            readonly ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
 
-            void ICallbackArgument.Callback(ref CoroutineContext coroutineContext)
+            void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine coroutine;
                 if (providerClosure is null) {
@@ -56,21 +56,22 @@ partial class Effect
                 } else {
                     coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine>(provider);
                 }
+
+                var contextToBequest = context;
+                contextToBequest.TreatAsNewChild();
+
                 Coroutine coroutineAsReplacement;
-
-                var childContext = coroutineContext;
-                childContext.TreatAsNewChild();
-
                 if (!coroutine.IsChildCoroutine) {
-                    coroutineAsReplacement = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref childContext);
+                    coroutineAsReplacement = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref contextToBequest);
                 } else {
                     coroutineAsReplacement = coroutine;
                 }
                 var coroutineAsReplacementAwaiter = coroutineAsReplacement.ConfigureAwait(false).GetAwaiter();
+                CoroutineContext.InheritirBequestCoroutineContext(ref contextToBequest, in context);
 
                 var intermediateCompletionSource = ValueTaskCompletionSource<object?>.RentFromCache();
                 coroutineAsReplacement._task = intermediateCompletionSource.CreateValueTask();
-                CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAsReplacementAwaiter, ref childContext);
+                CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAsReplacementAwaiter, ref contextToBequest);
                 coroutineAsReplacementAwaiter.UnsafeOnCompleted(() => {
                     try {
                         coroutineAsReplacementAwaiter.GetResult();
@@ -88,13 +89,13 @@ partial class Effect
         internal readonly struct SpawnArgument<TResult>(
             Delegate provider,
             IClosure? providerClosure,
-            ValueTaskCompletionSource<Coroutine<TResult>> completionSource) : ICallbackArgument
+            ValueTaskCompletionSource<Coroutine<TResult>> completionSource) : ICallableArgument
         {
             private readonly ValueTaskCompletionSource<Coroutine<TResult>> _completionSource = completionSource;
 
-            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+            readonly ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
 
-            void ICallbackArgument.Callback(ref CoroutineContext coroutineContext)
+            void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine<TResult> coroutine;
                 if (providerClosure is null) {
@@ -103,21 +104,22 @@ partial class Effect
                 } else {
                     coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine<TResult>>(provider);
                 }
+
+                var contextToBequest = context;
+                contextToBequest.TreatAsNewChild();
+
                 Coroutine<TResult> childCoroutine;
-
-                var childContext = coroutineContext;
-                childContext.TreatAsNewChild();
-
                 if (!coroutine.IsChildCoroutine) {
-                    childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref childContext);
+                    childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref contextToBequest);
                 } else {
                     childCoroutine = coroutine;
                 }
                 var childCoroutineAwaiter = childCoroutine.ConfigureAwait(false).GetAwaiter();
+                CoroutineContext.InheritirBequestCoroutineContext(ref contextToBequest, in context);
 
                 var intermediateCompletionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateGenericValueTask();
-                CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref childContext);
+                CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
                 childCoroutineAwaiter.UnsafeOnCompleted(() => {
                     try {
                         var result = childCoroutineAwaiter.GetResult();

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -18,9 +19,9 @@ public enum AsyncIteratorContextServiceOperationState
 
 internal record AsyncIteratorContextServiceOperation
 {
-    public static readonly AsyncIteratorContextServiceOperation RequiresSupply = new AsyncIteratorContextServiceOperation() {  State = AsyncIteratorContextServiceOperationState.RequiresSupply };
+    public static readonly AsyncIteratorContextServiceOperation RequiresSupply = new AsyncIteratorContextServiceOperation() { State = AsyncIteratorContextServiceOperationState.RequiresSupply };
 
-    internal ICallbackArgument? Argument { get; init; }
+    internal ICallableArgument? Argument { get; init; }
     internal IKey? ArgumentKey { get; init; }
     internal ValueTask ExternTaskCompletionNotifier { get; init; }
     internal AsyncIteratorContextServiceOperationState State { get; init; }
@@ -40,7 +41,7 @@ internal class AsyncIteratorContextService(AsyncIteratorContextServiceOperation 
         }
     }
 
-    internal void SupplyArgument(ICallbackArgument argument, IKey argumentKey)
+    internal void SupplyArgument(ICallableArgument argument, IKey argumentKey)
     {
         var operation = _currentOperation;
         ThrowIfNotRequiringSupply(operation);
@@ -84,6 +85,7 @@ internal class AsyncIteratorContextService(AsyncIteratorContextServiceOperation 
 internal class AsyncIterator<TResult> : IAsyncIterator, IAsyncIterator<TResult>
 {
     readonly ConfiguredAwaitableCoroutine<TResult>.ConfiguredCoroutineAwaiter _coroutineAwaiter;
+    CoroutineContext _capturedContext;
     readonly bool _isCoroutineGeneric;
 
     public AsyncIterator(Coroutine coroutine)
@@ -101,23 +103,24 @@ internal class AsyncIterator<TResult> : IAsyncIterator, IAsyncIterator<TResult>
 
     public object Current { get; } = null!;
 
-    private ICoroutineStateMachineBox InheritCoroutineContext<TCoroutineAwaiter>(in TCoroutineAwaiter coroutineAwaiter, ref CoroutineContext context, AsyncIteratorContextService contextService) where TCoroutineAwaiter : IRelativeCoroutine
+    private void BequestContext(ref CoroutineContext context, in CoroutineContext contextToBequest)
     {
-        static void BequestContext(ref CoroutineContext context, ref CoroutineContext contextToBequest)
-        {
-            contextToBequest._resultStateMachine = context.ResultStateMachine;
-            context.InheritContext(ref contextToBequest);
-        }
-        context._keyedServices = new Dictionary<Key, object>() { { AsyncIterator.s_asyncIteratorKey, contextService } };
-        context._keyedServicesToBequest = new Dictionary<Key, object>() { { CoroutineScope.s_coroutineScopeKey, new CoroutineScope() } };
+        context.InheritContext(in contextToBequest);
+        context._bequestContext = null;
+        ref var capturedContext = ref _capturedContext;
+        capturedContext = context;
+        capturedContext._keyedServices = capturedContext.KeyedServices.Remove(AsyncIterator.s_asyncIteratorKey);
+    }
+
+    private void BequestCoroutineContext<TCoroutineAwaiter>(in TCoroutineAwaiter coroutineAwaiter, AsyncIteratorContextService contextService) where TCoroutineAwaiter : IRelativeCoroutine
+    {
+        var scope = new CoroutineScope();
+        var context = new CoroutineContext();
+        context._keyedServices = ImmutableDictionary.CreateRange<Key, object>([new(AsyncIterator.s_asyncIteratorKey, contextService)]);
+        context._keyedServicesToBequest = ImmutableDictionary.CreateRange<Key, object>([new(CoroutineScope.s_coroutineScopeKey, scope)]);
         context._bequesterOrigin = CoroutineContextBequesterOrigin.ContextBequester;
         context._bequestContext = BequestContext;
         CoroutineMethodBuilderCore.PreprocessCoroutine(ref Unsafe.AsRef(in coroutineAwaiter), ref context);
-        var resultStateMachine = context._resultStateMachine ?? throw new InvalidOperationException("The targeting coroutine does not have a state machine");
-        if (resultStateMachine is not ICoroutineStateMachineBox stateMachine) {
-            throw new InvalidOperationException("The targeting coroutine has an invalid state machine");
-        }
-        return stateMachine;
     }
 
     public async Coroutine<bool> MoveNext()
@@ -127,8 +130,12 @@ internal class AsyncIterator<TResult> : IAsyncIterator, IAsyncIterator<TResult>
         }
 
         var contextService = new AsyncIteratorContextService(AsyncIteratorContextServiceOperation.RequiresSupply);
-        var context = new CoroutineContext();
-        var stateMachine = InheritCoroutineContext(in _coroutineAwaiter, ref context, contextService);
+        BequestCoroutineContext(in _coroutineAwaiter, contextService);
+
+        var resultStateMachine = _capturedContext._resultStateMachine ?? throw new InvalidOperationException("The targeting coroutine does not have a state machine");
+        if (resultStateMachine is not ICoroutineStateMachineBox stateMachine) {
+            throw new InvalidOperationException("The targeting coroutine has an invalid state machine");
+        }
 
         var currentOperation = contextService.CurrentOperation;
         while (currentOperation.State == AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied) {
@@ -142,10 +149,10 @@ internal class AsyncIterator<TResult> : IAsyncIterator, IAsyncIterator<TResult>
                 throw new InvalidOperationException();
             }
 
-            var argumentsReceiver = new CoroutineArgumentReceiver(ref context);
+            var argumentsReceiver = new CoroutineArgumentReceiver(ref _capturedContext);
             Debug.Assert(currentOperation.Argument is not null);
             Debug.Assert(currentOperation.ArgumentKey is not null);
-            argumentsReceiver.ReceiveCallbackArgument(currentOperation.Argument, currentOperation.ArgumentKey);
+            argumentsReceiver.ReceiveCallableArgument(currentOperation.Argument, currentOperation.ArgumentKey);
             await currentOperation.ExternTaskCompletionNotifier;
             stateMachine.MoveNext();
         }

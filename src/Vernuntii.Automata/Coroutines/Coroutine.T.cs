@@ -66,10 +66,10 @@ public partial struct Coroutine<TResult> : IAwaiterAwareCoroutine, IEquatable<Co
         _builder = builder;
     }
 
-    void IChildCoroutine.InheritCoroutineContext(ref CoroutineContext coroutineContext)
+    void IChildCoroutine.InheritCoroutineContext(in CoroutineContext context)
     {
         Debug.Assert(_builder != null);
-        _builder.InheritCoroutineContext(ref coroutineContext);
+        _builder.InheritCoroutineContext(in context);
     }
 
     void IChildCoroutine.StartCoroutine()
@@ -129,10 +129,10 @@ public partial struct Coroutine<TResult> : IAwaiterAwareCoroutine, IEquatable<Co
             _argumentReceiverDelegate = argumentReceiverDelegate;
         }
 
-        void IChildCoroutine.InheritCoroutineContext(ref CoroutineContext coroutineContext)
+        void IChildCoroutine.InheritCoroutineContext(in CoroutineContext context)
         {
             Debug.Assert(_builder != null);
-            _builder.InheritCoroutineContext(ref coroutineContext);
+            _builder.InheritCoroutineContext(in context);
         }
 
         void IChildCoroutine.StartCoroutine()
@@ -191,10 +191,10 @@ public readonly struct ConfiguredAwaitableCoroutine<T>
             _argumentReceiverDelegate = argumentReceiverDelegate;
         }
 
-        void IChildCoroutine.InheritCoroutineContext(ref CoroutineContext coroutineContext)
+        void IChildCoroutine.InheritCoroutineContext(in CoroutineContext context)
         {
             Debug.Assert(_builder != null);
-            _builder.InheritCoroutineContext(ref coroutineContext);
+            _builder.InheritCoroutineContext(in context);
         }
 
         void IChildCoroutine.StartCoroutine()

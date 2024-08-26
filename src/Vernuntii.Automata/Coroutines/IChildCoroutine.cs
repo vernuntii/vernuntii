@@ -2,6 +2,6 @@
 
 internal interface IChildCoroutine
 {
-    void InheritCoroutineContext(ref CoroutineContext context);
+    void InheritCoroutineContext(in CoroutineContext context);
     void StartCoroutine();
 }

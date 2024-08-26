@@ -13,7 +13,7 @@ partial class EffectExtensions
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.ObserveArgument<T>(eventSelector, completionSource);
-            argumentReceiver.ReceiveCallbackArgument(in argument, in Arguments.ObserveArgumentType);
+            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.ObserveArgumentType);
         }
     }
 
@@ -21,13 +21,13 @@ partial class EffectExtensions
     {
         internal readonly struct ObserveArgument<T>(
             Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector,
-            ValueTaskCompletionSource<EventChannel<T>> completionSource) : ICallbackArgument
+            ValueTaskCompletionSource<EventChannel<T>> completionSource) : ICallableArgument
         {
             private readonly ValueTaskCompletionSource<EventChannel<T>> _completionSource = completionSource;
 
-            ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+            ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
 
-            void ICallbackArgument.Callback(ref CoroutineContext coroutineContext) => throw new NotImplementedException();
+            void ICallableArgument.Callback(in CoroutineContext coroutineContext) => throw new NotImplementedException();
         }
     }
 }

@@ -13,7 +13,7 @@ partial class Effect
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.WithContextArgument(additiveContext, provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallbackArgument(in argument, in Arguments.s_withContextArgumentType);
+            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_withContextArgumentType);
         }
     }
 
@@ -26,7 +26,7 @@ partial class Effect
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.WithContextArgument<TResult>(additiveContext, provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallbackArgument(in argument, in Arguments.s_withContextArgumentType);
+            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_withContextArgumentType);
         }
     }
 
@@ -40,13 +40,13 @@ partial class Effect
             CoroutineContext additiveContext,
             Delegate provider,
             IClosure? providerClosure,
-            ValueTaskCompletionSource<object?> completionSource) : ICallbackArgument
+            ValueTaskCompletionSource<object?> completionSource) : ICallableArgument
         {
             private readonly ValueTaskCompletionSource<object?> _completionSource = completionSource;
 
-            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+            readonly ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
 
-            void ICallbackArgument.Callback(ref CoroutineContext context)
+            void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine coroutine;
                 if (providerClosure is null) {
@@ -56,9 +56,9 @@ partial class Effect
                     coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine>(provider);
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
-                var contextToBequest = context;
-                contextToBequest._bequesterOrigin = CoroutineContextBequesterOrigin.ContextBequester;
-                contextToBequest.Plus(contextToBequest);
+                ref var contextToBequest = ref additiveContext;
+                contextToBequest.TreatAsNewSibling(additionalBequesterOrigin: CoroutineContextBequesterOrigin.ContextBequester);
+                CoroutineContext.InheritirBequestCoroutineContext(ref contextToBequest, in context);
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 var completionSource = _completionSource;
                 coroutineAwaiter.UnsafeOnCompleted(() => {
@@ -76,13 +76,13 @@ partial class Effect
             CoroutineContext additiveContext,
             Delegate provider,
             IClosure? providerClosure,
-            ValueTaskCompletionSource<TResult> completionSource) : ICallbackArgument
+            ValueTaskCompletionSource<TResult> completionSource) : ICallableArgument
         {
             private readonly ValueTaskCompletionSource<TResult> _completionSource = completionSource;
 
-            readonly ICoroutineCompletionSource ICallbackArgument.CompletionSource => _completionSource;
+            readonly ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
 
-            void ICallbackArgument.Callback(ref CoroutineContext context)
+            void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine<TResult> coroutine;
                 if (providerClosure is null) {
@@ -92,8 +92,9 @@ partial class Effect
                     coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine<TResult>>(provider);
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
-                var contextToBequest = context;
-                contextToBequest.Plus(contextToBequest);
+                ref var contextToBequest = ref additiveContext;
+                contextToBequest.TreatAsNewSibling(additionalBequesterOrigin: CoroutineContextBequesterOrigin.ContextBequester);
+                CoroutineContext.InheritirBequestCoroutineContext(ref contextToBequest, in context);
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 var completionSource = _completionSource;
                 coroutineAwaiter.UnsafeOnCompleted(() => {
