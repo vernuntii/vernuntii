@@ -8,6 +8,7 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
+        var t = Arguments.s_callArgumentType.ToString();
         await CoroutineTests.HandleAsnyc();
         Environment.Exit(0);
 

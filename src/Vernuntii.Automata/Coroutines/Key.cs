@@ -14,18 +14,18 @@ internal enum KeyFlags : byte
 // 0.-3. (4 bytes) -> hash
 // 4. (1 bytes) -> schema version
 // 5. (1 bytes) -> flags
-// 6.-23. (6 bytes) -> scope
-// 24.-31. (4 bytes) -> argument
-// 6.-31. (10 bytes) -> service
+// 6.-19. (12 bytes) -> scope
+// 18.-19. (2 bytes) -> argument
+// 6.-19. (14 bytes) -> service
 [StructLayout(LayoutKind.Explicit, Pack = 1)]
 public struct Key : IKey
 {
     internal const byte CurrentSchemaVersion = 1;
 
     private const int KeyLength = 20;
-    private const int ScopeLength = 14;
+    private const int ScopeLength = 12;
     private const int ArgumentLength = 2;
-    private const int ServiceLength = 16;
+    private const int ServiceLength = 14;
 
     [FieldOffset(0)]
     private readonly int _hash;
@@ -33,7 +33,7 @@ public struct Key : IKey
     [field: FieldOffset(4)]
     public readonly byte SchemaVersion { get; } = CurrentSchemaVersion;
 
-    [field: FieldOffset(5)]
+    [FieldOffset(5)]
     internal readonly byte Flags;
 
     [FieldOffset(6)]
@@ -110,8 +110,8 @@ public struct Key : IKey
 
     public override unsafe string ToString()
     {
-        var isService = (Flags & (byte)KeyFlags.Service) == (byte)KeyFlags.Service ||
-            (Flags & (byte)KeyFlags.ContextService) == (byte)KeyFlags.ContextService;
+        var isService = (Flags & (byte)KeyFlags.Service) != 0 ||
+            (Flags & (byte)KeyFlags.ContextService) != 0;
 
         var sb = new StringBuilder();
         sb.Append("Key{v");
@@ -120,11 +120,11 @@ public struct Key : IKey
 
         if (isService) {
             fixed (byte* service = _service) {
-                sb.Append(Encoding.ASCII.GetString(service, ServiceLength));
+                sb.Append(Encoding.ASCII.GetString(service, ServiceLength).TrimEnd('\0'));
             }
         } else {
             fixed (byte* scope = _scope) {
-                sb.Append(Encoding.ASCII.GetString(scope, ScopeLength));
+                sb.Append(Encoding.ASCII.GetString(scope, ScopeLength).TrimEnd('\0'));
                 sb.Append('/');
                 sb.Append(_argument);
             }
