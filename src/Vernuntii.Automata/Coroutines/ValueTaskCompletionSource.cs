@@ -2,13 +2,14 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks.Sources;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
-internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, ICoroutineCompletionSource
+internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, IAsyncIterationCompletionSource
 {
     /// <summary>Per-core cache of boxes, with one box per core.</summary>
     /// <remarks>Each element is padded to expected cache-line size so as to minimize false sharing.</remarks>
@@ -106,7 +107,7 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
     public void SetResult(TResult result) =>
         _valueTaskSource.SetResult(result);
 
-    void ICoroutineCompletionSource.SetResult<TCoroutineResult>(TCoroutineResult result)
+    void IAsyncIterationCompletionSource.SetResult<TCoroutineResult>(TCoroutineResult result)
     {
         if (result is null) {
             SetResult(default!);

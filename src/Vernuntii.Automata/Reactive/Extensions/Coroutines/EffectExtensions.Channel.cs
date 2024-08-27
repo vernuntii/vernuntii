@@ -1,4 +1,5 @@
 ﻿using Vernuntii.Coroutines;
+using Vernuntii.Coroutines.Iterators;
 using Vernuntii.Reactive.Broker;
 
 namespace Vernuntii.Reactive.Extensions.Coroutines;
@@ -13,7 +14,7 @@ partial class EffectExtensions
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.ObserveArgument<T>(eventSelector, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.ObserveArgumentType);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.ObserveArgumentType, in argument, completionSource);
         }
     }
 
@@ -24,8 +25,6 @@ partial class EffectExtensions
             ValueTaskCompletionSource<EventChannel<T>> completionSource) : ICallableArgument
         {
             private readonly ValueTaskCompletionSource<EventChannel<T>> _completionSource = completionSource;
-
-            ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
 
             void ICallableArgument.Callback(in CoroutineContext coroutineContext) => throw new NotImplementedException();
         }

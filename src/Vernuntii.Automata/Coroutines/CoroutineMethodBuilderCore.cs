@@ -7,8 +7,7 @@ internal static class CoroutineMethodBuilderCore
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void PreprocessCoroutine<TCoroutine, TCoroutinePreprocessor>(
         ref TCoroutine coroutine,
-        ref TCoroutinePreprocessor preprocessor,
-        out bool isAsyncIteratorSupplyEnsured)
+        ref TCoroutinePreprocessor preprocessor)
         where TCoroutine : IRelativeCoroutine
         where TCoroutinePreprocessor : ICoroutinePreprocessor
     {
@@ -16,33 +15,19 @@ internal static class CoroutineMethodBuilderCore
             preprocessor.PreprocessChildCoroutine(ref coroutine);
         } else if (coroutine.IsSiblingCoroutine) {
             preprocessor.PreprocessSiblingCoroutine(ref coroutine);
-            isAsyncIteratorSupplyEnsured = true;
             return;
         }
-
-        isAsyncIteratorSupplyEnsured = false;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void PreprocessCoroutine<TCoroutine, TCoroutinePreprocessor>(
-        ref TCoroutine coroutine,
-        ref TCoroutinePreprocessor preprocessor)
-        where TCoroutine : IRelativeCoroutine
-        where TCoroutinePreprocessor : ICoroutinePreprocessor =>
-        PreprocessCoroutine(ref coroutine, ref preprocessor, out _);
-
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    internal static void TryPreprocessAwaiterIfCoroutine<TAwaiter, Preprocessor>(
+    internal static void PreprocessAwaiterIfCoroutine<TAwaiter, Preprocessor>(
         ref TAwaiter awaiter,
-        ref Preprocessor preprocessor,
-        out bool isAsyncIteratorSupplyEnsured)
+        ref Preprocessor preprocessor)
         where Preprocessor : ICoroutinePreprocessor
     {
         if (null != default(TAwaiter) && awaiter is ICoroutineAwaiter) {
             ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, Coroutine.CoroutineAwaiter>(ref awaiter);
-            PreprocessCoroutine(ref coroutineAwaiter, ref preprocessor, out isAsyncIteratorSupplyEnsured);
-        } else {
-            isAsyncIteratorSupplyEnsured = false;
+            PreprocessCoroutine(ref coroutineAwaiter, ref preprocessor);
         }
     }
 

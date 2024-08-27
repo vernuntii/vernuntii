@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -13,7 +14,7 @@ partial class Effect
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.WithContextArgument(additiveContext, provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_withContextArgumentType);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_withContextArgumentType, in argument, completionSource);
         }
     }
 
@@ -26,7 +27,7 @@ partial class Effect
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.WithContextArgument<TResult>(additiveContext, provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_withContextArgumentType);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_withContextArgumentType, in argument, completionSource);
         }
     }
 
@@ -44,8 +45,6 @@ partial class Effect
         {
             private readonly ValueTaskCompletionSource<object?> _completionSource = completionSource;
 
-            readonly ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
-
             void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine coroutine;
@@ -58,7 +57,7 @@ partial class Effect
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
                 ref var contextToBequest = ref additiveContext;
                 contextToBequest.TreatAsNewSibling(additionalBequesterOrigin: CoroutineContextBequesterOrigin.ContextBequester);
-                CoroutineContext.InheritirBequestCoroutineContext(ref contextToBequest, in context);
+                CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 var completionSource = _completionSource;
                 coroutineAwaiter.UnsafeOnCompleted(() => {
@@ -80,8 +79,6 @@ partial class Effect
         {
             private readonly ValueTaskCompletionSource<TResult> _completionSource = completionSource;
 
-            readonly ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
-
             void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine<TResult> coroutine;
@@ -94,7 +91,7 @@ partial class Effect
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
                 ref var contextToBequest = ref additiveContext;
                 contextToBequest.TreatAsNewSibling(additionalBequesterOrigin: CoroutineContextBequesterOrigin.ContextBequester);
-                CoroutineContext.InheritirBequestCoroutineContext(ref contextToBequest, in context);
+                CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 var completionSource = _completionSource;
                 coroutineAwaiter.UnsafeOnCompleted(() => {

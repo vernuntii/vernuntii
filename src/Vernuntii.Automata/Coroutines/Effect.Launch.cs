@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -7,26 +8,26 @@ partial class Effect
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine<Coroutine> LaunchInternal(Delegate provider, IClosure? providerClosure)
     {
-        var immediateCompletionSource = ValueTaskCompletionSource<Coroutine>.RentFromCache();
-        return new Coroutine<Coroutine>(immediateCompletionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
+        var completionSource = ValueTaskCompletionSource<Coroutine>.RentFromCache();
+        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.LaunchArgument(provider, providerClosure, immediateCompletionSource);
-            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_launchArgumentType);
+            var argument = new Arguments.LaunchArgument(provider, providerClosure, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_launchArgumentType, in argument, completionSource);
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine<Coroutine<TResult>> LaunchInternal<TResult>(Delegate provider, IClosure? providerClosure)
     {
-        var immediateCompletionSource = ValueTaskCompletionSource<Coroutine<TResult>>.RentFromCache();
-        return new Coroutine<Coroutine<TResult>>(immediateCompletionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
+        var completionSource = ValueTaskCompletionSource<Coroutine<TResult>>.RentFromCache();
+        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.LaunchArgument<TResult>(provider, providerClosure, immediateCompletionSource);
-            argumentReceiver.ReceiveCallableArgument(in argument, Arguments.s_launchArgumentType);
+            var argument = new Arguments.LaunchArgument<TResult>(provider, providerClosure, completionSource);
+            argumentReceiver.ReceiveCallableArgument(Arguments.s_launchArgumentType, in argument, completionSource);
         }
     }
 
@@ -45,8 +46,6 @@ partial class Effect
         {
             private readonly ValueTaskCompletionSource<Coroutine> _completionSource = completionSource;
 
-            readonly ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
-
             void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine coroutine;
@@ -62,7 +61,7 @@ partial class Effect
                 var contextToBequest = context;
                 contextToBequest.TreatAsNewSibling();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                CoroutineContext.InheritirBequestCoroutineContext(ref contextToBequest, in context);
+                CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
                 contextToBequest.ResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith(ref coroutineAwaiter, () => {
                     try {
                         coroutineAwaiter.GetResult();
@@ -84,8 +83,6 @@ partial class Effect
         {
             private readonly ValueTaskCompletionSource<Coroutine<TResult>> _completionSource = completionSource;
 
-            readonly ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
-
             void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine<TResult> coroutine;
@@ -100,7 +97,7 @@ partial class Effect
                 coroutine._task = intermediateCompletionSource.CreateGenericValueTask();
                 var contextToBequest = context;
                 contextToBequest.TreatAsNewSibling();
-                CoroutineContext.InheritirBequestCoroutineContext(ref contextToBequest, in context);
+                CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 contextToBequest.ResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith(ref coroutineAwaiter, () => {
                     try {

@@ -1,4 +1,4 @@
-﻿namespace Vernuntii;
+﻿namespace Vernuntii.Coroutines;
 
 [Flags]
 public enum CoroutineContextBequesterOrigin

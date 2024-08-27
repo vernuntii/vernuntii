@@ -33,7 +33,7 @@ partial struct CoroutineMethodBuilder<TResult>
 
         void IChildCoroutine.InheritCoroutineContext(in CoroutineContext contextToBequest)
         {
-            CoroutineContext.InheritirBequestCoroutineContext(ref _coroutineContext, in contextToBequest);
+            CoroutineContext.InheritOrBequestCoroutineContext(ref _coroutineContext, in contextToBequest);
         }
 
         void IChildCoroutine.StartCoroutine()

@@ -8,7 +8,7 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        var t = Arguments.s_callArgumentType.ToString();
+        var t = CoroutineScope.s_coroutineScopeKey.ToString();
         await CoroutineTests.HandleAsnyc();
         Environment.Exit(0);
 

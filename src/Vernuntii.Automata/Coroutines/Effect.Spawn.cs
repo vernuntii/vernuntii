@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -13,7 +14,7 @@ partial class Effect
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.SpawnArgument(provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_spawnArgumentType);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_spawnArgumentType, in argument, completionSource);
         }
     }
 
@@ -26,7 +27,7 @@ partial class Effect
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.SpawnArgument<TResult>(provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_spawnArgumentType);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_spawnArgumentType, in argument, completionSource);
         }
     }
 
@@ -44,8 +45,6 @@ partial class Effect
             ValueTaskCompletionSource<Coroutine> completionSource) : ICallableArgument
         {
             private readonly ValueTaskCompletionSource<Coroutine> _completionSource = completionSource;
-
-            readonly ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
 
             void ICallableArgument.Callback(in CoroutineContext context)
             {
@@ -67,7 +66,7 @@ partial class Effect
                     coroutineAsReplacement = coroutine;
                 }
                 var coroutineAsReplacementAwaiter = coroutineAsReplacement.ConfigureAwait(false).GetAwaiter();
-                CoroutineContext.InheritirBequestCoroutineContext(ref contextToBequest, in context);
+                CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 var intermediateCompletionSource = ValueTaskCompletionSource<object?>.RentFromCache();
                 coroutineAsReplacement._task = intermediateCompletionSource.CreateValueTask();
@@ -93,8 +92,6 @@ partial class Effect
         {
             private readonly ValueTaskCompletionSource<Coroutine<TResult>> _completionSource = completionSource;
 
-            readonly ICoroutineCompletionSource ICallableArgument.CompletionSource => _completionSource;
-
             void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine<TResult> coroutine;
@@ -115,7 +112,7 @@ partial class Effect
                     childCoroutine = coroutine;
                 }
                 var childCoroutineAwaiter = childCoroutine.ConfigureAwait(false).GetAwaiter();
-                CoroutineContext.InheritirBequestCoroutineContext(ref contextToBequest, in context);
+                CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 var intermediateCompletionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateGenericValueTask();

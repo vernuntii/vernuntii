@@ -1,10 +1,11 @@
 ﻿namespace Vernuntii.Coroutines.Iterators;
 
-internal interface IAsyncIterator<TResult>
+internal interface IAsyncIterator<TReturnResult>
 {
     public object Current { get; }
-    public Coroutine<bool> MoveNext();
-    public Coroutine YieldReturn<TResult>(TResult result);
-    public Coroutine Return(TResult result);
-    public Coroutine Throw(Exception e);
+    public ValueTask<bool> MoveNextAsync();
+    public void YieldReturn<TYieldReturnResult>(TYieldReturnResult result);
+    public void Return(TReturnResult result);
+    public void Throw(Exception e);
+    public Coroutine<TReturnResult>.CoroutineAwaiter GetAwaiter();
 }

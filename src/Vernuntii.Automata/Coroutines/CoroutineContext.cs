@@ -12,7 +12,7 @@ public struct CoroutineContext : ICoroutinePreprocessor
     private static readonly ImmutableDictionary<Key, object> s_emptyKeyedServices = ImmutableDictionary<Key, object>.Empty;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void InheritirBequestCoroutineContext(ref CoroutineContext context, in CoroutineContext contextToBequest)
+    internal static void InheritOrBequestCoroutineContext(ref CoroutineContext context, in CoroutineContext contextToBequest)
     {
         if (contextToBequest._bequestContext is not null) {
             contextToBequest._bequestContext(ref context, in contextToBequest);
@@ -63,14 +63,14 @@ public struct CoroutineContext : ICoroutinePreprocessor
             if (_keyedServices is null) {
                 _keyedServices = contextToBequest.KeyedServices;
             } else if (contextToBequest._keyedServices is not null) {
-                _keyedServices = _keyedServices.AddRange(contextToBequest._keyedServices);
+                _keyedServices = _keyedServices.Merge(contextToBequest._keyedServices);
             }
         }
 
         if (_keyedServicesToBequest is null) {
             _keyedServicesToBequest = contextToBequest.KeyedServicesToBequest;
         } else if (contextToBequest._keyedServicesToBequest is not null) {
-            _keyedServicesToBequest = _keyedServicesToBequest.AddRange(contextToBequest._keyedServicesToBequest);
+            _keyedServicesToBequest = _keyedServicesToBequest.Merge(contextToBequest._keyedServicesToBequest);
         }
 
         _bequestContext = contextToBequest._bequestContext;

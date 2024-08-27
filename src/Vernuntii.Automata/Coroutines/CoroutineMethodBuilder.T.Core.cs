@@ -82,10 +82,9 @@ partial struct CoroutineMethodBuilder<TResult>
         where TStateMachine : IAsyncStateMachine
     {
         ref var context = ref stateMachineBox._coroutineContext;
-        CoroutineMethodBuilderCore.TryPreprocessAwaiterIfCoroutine(ref awaiter, ref context, out var isAsyncIteratorSupplyEnsured);
-        var mustSupplyAsyncIterator = isAsyncIteratorSupplyEnsured || context.MustSupplyAsyncIterator();
+        CoroutineMethodBuilderCore.PreprocessAwaiterIfCoroutine(ref awaiter, ref context);
 
-        if (mustSupplyAsyncIterator) {
+        if (context.MustSupplyAsyncIterator()) {
             var asyncIteratorContextService = context.GetAsyncIteratorContextService();
             asyncIteratorContextService.SupplyAwaiterCompletionNotifier(ref awaiter);
         } else {
@@ -104,8 +103,7 @@ partial struct CoroutineMethodBuilder<TResult>
         where TStateMachine : IAsyncStateMachine
     {
         ref var context = ref stateMachineBox._coroutineContext;
-        CoroutineMethodBuilderCore.TryPreprocessAwaiterIfCoroutine(ref awaiter, ref context, out var isAsyncIteratorSupplyEnsured);
-        //var mustSupplyAsyncIterator = isAsyncIteratorSupplyEnsured || context.MustSupplyAsyncIterator();
+        CoroutineMethodBuilderCore.PreprocessAwaiterIfCoroutine(ref awaiter, ref context);
 
         if (context.MustSupplyAsyncIterator()) {
             var asyncIteratorContextService = context.GetAsyncIteratorContextService();

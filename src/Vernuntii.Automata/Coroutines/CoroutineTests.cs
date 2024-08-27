@@ -50,7 +50,7 @@ public static class CoroutineTests
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
                 //Console.WriteLine(await Coroutine.Start(() => CallWithLaunchInvestigation(1000)).ConfigureAwait(true));
                 //Console.WriteLine(await Coroutine.Start(() => CallWithLaunchInvestigation(1000)).ConfigureAwait(true));
-                await Coroutine.Start(() => AsyncIterator2(1000)).ConfigureAwait(true);
+                Console.WriteLine(await Coroutine.Start(() => AsyncIterator2(1000)).ConfigureAwait(true));
                 //Coroutine.Start(() => Call(static async () => Console.WriteLine("Hello World")));
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
@@ -63,15 +63,26 @@ public static class CoroutineTests
         //thread.Join();
     }
 
-    static async Coroutine<int> AsyncIterator2(int _) {
-        var iterator = new AsyncIterator<int>(async () => {
-            return await Call(() => Coroutine.FromResult(2));
+    static async Coroutine<int> AsyncIterator2(int _)
+    {
+        var iterator = new AsyncIteratorCore<int>(async () => {
+            await Task.Delay(100);
+
+            return await Call(async () => {
+                await Task.Delay(100);
+                return 2;
+            });
         });
-        await iterator.MoveNext();
-        return 4;
+
+        while (await iterator.MoveNextAsync()) {
+            ;
+        }
+
+        return await (IAsyncIterator<int>)iterator;
     }
 
-    static async Coroutine<int> CallWithSpawnInvestigation2(int _) {
+    static async Coroutine<int> CallWithSpawnInvestigation2(int _)
+    {
         var t2 = await WithContext(default, () => Spawn(async () => {
             await Task.Delay(4000);
             Console.WriteLine("Latest Notification");

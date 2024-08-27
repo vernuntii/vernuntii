@@ -3,8 +3,8 @@
 public interface IAsyncIterator
 {
     public object Current { get; }
-    public Coroutine<bool> MoveNext();
-    public Coroutine YieldReturn<TResult>(TResult result);
-    public Coroutine Return();
-    public Coroutine Throw(Exception e);
+    public ValueTask<bool> MoveNextAsync();
+    public void YieldReturn<TResult>(TResult result);
+    public void Return();
+    public void Throw(Exception e);
 }
