@@ -13,14 +13,14 @@ internal static class AsyncIterator
 [Flags]
 public enum AsyncIteratorContextServiceOperationState
 {
-    RequiresSupply = 1,
+    RequiringAwaiterCompletionNotifier = 1,
     ArgumentSupplied = 2,
     AwaiterCompletionNotifierSupplied = 4
 }
 
 internal record AsyncIteratorContextServiceOperation
 {
-    public static readonly AsyncIteratorContextServiceOperation RequiresSupply = new AsyncIteratorContextServiceOperation() { State = AsyncIteratorContextServiceOperationState.RequiresSupply };
+    public static readonly AsyncIteratorContextServiceOperation RequiringAwaiterCompletionNotifier = new AsyncIteratorContextServiceOperation() { State = AsyncIteratorContextServiceOperationState.RequiringAwaiterCompletionNotifier };
 
     internal ICallableArgument? Argument { get; init; }
     internal IKey? ArgumentKey { get; init; }
@@ -36,19 +36,19 @@ internal class AsyncIteratorContextService(AsyncIteratorContextServiceOperation 
     public AsyncIteratorContextServiceOperation CurrentOperation => _currentOperation;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ThrowIfNotRequiringSupply(AsyncIteratorContextServiceOperation operation)
+    private static void ThrowIfNotRequiringAwaiterCompletionNotifier(AsyncIteratorContextServiceOperation operation)
     {
-        if ((operation.State & AsyncIteratorContextServiceOperationState.RequiresSupply) == 0) {
-            throw new InvalidOperationException($"The currnet operation state {operation.State} differs from the expected state {AsyncIteratorContextServiceOperationState.RequiresSupply}");
+        if ((operation.State & AsyncIteratorContextServiceOperationState.RequiringAwaiterCompletionNotifier) == 0) {
+            throw new InvalidOperationException($"The currnet operation state {operation.State} differs from the expected state {AsyncIteratorContextServiceOperationState.RequiringAwaiterCompletionNotifier}");
         }
     }
 
     internal void SupplyArgument(IKey argumentKey, ICallableArgument argument, IAsyncIterationCompletionSource argumentCompletionSource)
     {
         var operation = _currentOperation;
-        ThrowIfNotRequiringSupply(operation);
-        _currentOperation = new AsyncIteratorContextServiceOperation() {
-            State = AsyncIteratorContextServiceOperationState.ArgumentSupplied | AsyncIteratorContextServiceOperationState.RequiresSupply,
+        ThrowIfNotRequiringAwaiterCompletionNotifier(operation);
+        _currentOperation = operation with {
+            State = AsyncIteratorContextServiceOperationState.ArgumentSupplied | (operation.State & AsyncIteratorContextServiceOperationState.RequiringAwaiterCompletionNotifier),
             ArgumentKey = argumentKey,
             Argument = argument,
             ArgumentCompletionSource = argumentCompletionSource
@@ -58,14 +58,11 @@ internal class AsyncIteratorContextService(AsyncIteratorContextServiceOperation 
     internal void SupplyAwaiterCompletionNotifier<TAwaiter>(ref TAwaiter awaiter) where TAwaiter : INotifyCompletion
     {
         var operation = _currentOperation;
-        ThrowIfNotRequiringSupply(operation);
+        ThrowIfNotRequiringAwaiterCompletionNotifier(operation);
         var externTaskCompletionNotifierSource = ValueTaskCompletionSource<VoidResult>.RentFromCache();
-        _currentOperation = new AsyncIteratorContextServiceOperation() {
-            State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (operation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied),
+        _currentOperation = operation with {
+            State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (operation.State & AsyncIteratorContextServiceOperationState.RequiringAwaiterCompletionNotifier),
             AwaiterCompletionNotifier = externTaskCompletionNotifierSource.CreateValueTask(),
-            ArgumentKey = operation.ArgumentKey,
-            Argument = operation.Argument,
-            ArgumentCompletionSource = operation.ArgumentCompletionSource
         };
         awaiter.OnCompleted(() => externTaskCompletionNotifierSource.SetDefaultResult());
     }
@@ -73,39 +70,92 @@ internal class AsyncIteratorContextService(AsyncIteratorContextServiceOperation 
     internal void SupplyAwaiterCriticalCompletionNotifier<TAwaiter>(ref TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
     {
         var operation = _currentOperation;
-        ThrowIfNotRequiringSupply(operation);
+        ThrowIfNotRequiringAwaiterCompletionNotifier(operation);
         var externTaskCompletionNotifierSource = ValueTaskCompletionSource<VoidResult>.RentFromCache();
-        _currentOperation = new AsyncIteratorContextServiceOperation() {
-            State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (operation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied),
-            AwaiterCompletionNotifier = externTaskCompletionNotifierSource.CreateValueTask(),
-            ArgumentKey = operation.ArgumentKey,
-            Argument = operation.Argument,
-            ArgumentCompletionSource = operation.ArgumentCompletionSource
+        _currentOperation = operation with {
+            State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (operation.State & AsyncIteratorContextServiceOperationState.RequiringAwaiterCompletionNotifier),
+            AwaiterCompletionNotifier = externTaskCompletionNotifierSource.CreateValueTask()
         };
         awaiter.UnsafeOnCompleted(() => externTaskCompletionNotifierSource.SetDefaultResult());
     }
 
-    internal void RequiresSupply() =>
-        _currentOperation = AsyncIteratorContextServiceOperation.RequiresSupply;
+    internal void RequiringAwaiterCompletionNotifier()
+    {
+        var operation = _currentOperation;
+        _currentOperation = new AsyncIteratorContextServiceOperation() {
+            State = AsyncIteratorContextServiceOperationState.RequiringAwaiterCompletionNotifier
+        };
+    }
 }
 
 internal class AsyncIteratorCore<TReturnResult> : IAsyncIterator, IAsyncIterator<TReturnResult>
 {
-    private readonly Coroutine<TReturnResult> _coroutine;
-    private readonly bool _isCoroutineGeneric;
+    private interface ICoroutineHolder
+    {
+        bool IsUnderlyingCoroutineGeneric { get; }
+
+        ref Coroutine<TReturnResult> Coroutine { get; }
+    }
+
+    private class CoroutineHolder<TCoroutineProvider, TCoroutine> : ICoroutineHolder
+        where TCoroutineProvider : notnull
+    {
+        TCoroutineProvider _coroutineProvider;
+        Coroutine<TReturnResult> _coroutine;
+        readonly bool _isProvider;
+        readonly bool _isGeneric;
+        bool _isDeclared;
+
+        bool ICoroutineHolder.IsUnderlyingCoroutineGeneric => _isGeneric;
+
+        public CoroutineHolder(TCoroutineProvider coroutineProvider, bool isProvider, bool isGeneric)
+        {
+            _coroutineProvider = coroutineProvider;
+            _isProvider = isProvider;
+            _isGeneric = isGeneric;
+        }
+
+        ref Coroutine<TReturnResult> ICoroutineHolder.Coroutine {
+            get {
+                if (!_isDeclared) {
+                    if (_isProvider) {
+                        var coroutineProvider = Unsafe.As<Func<TCoroutine>>(_coroutineProvider);
+                        var coroutine = coroutineProvider();
+                        _coroutine = Unsafe.As<TCoroutine, Coroutine<TReturnResult>>(ref coroutine);
+                    } else {
+                        _coroutine = Unsafe.As<TCoroutineProvider, Coroutine<TReturnResult>>(ref _coroutineProvider);
+                    }
+
+                    _isDeclared = true;
+                }
+
+                return ref _coroutine;
+            }
+        }
+    }
+
+    private readonly ICoroutineHolder _coroutineHolder;
     private AsyncIteratorContext? _iteratorContext;
     private AsyncIteratorContextServiceOperation? _nextOperation;
 
-    public AsyncIteratorCore(Func<Coroutine> coroutine)
+    public AsyncIteratorCore(Func<Coroutine> provider)
     {
-        //_coroutine = Unsafe.As<Coroutine, Coroutine<TResult>>(ref coroutine);
-        _isCoroutineGeneric = false;
+        _coroutineHolder = new CoroutineHolder<Func<Coroutine>, Coroutine>(provider, isProvider: true, isGeneric: false);
     }
 
-    public AsyncIteratorCore(Func<Coroutine<TReturnResult>> coroutine)
+    public AsyncIteratorCore(Func<Coroutine<TReturnResult>> provider)
     {
-        _coroutine = coroutine();
-        _isCoroutineGeneric = true;
+        _coroutineHolder = new CoroutineHolder<Func<Coroutine<TReturnResult>>, Coroutine<TReturnResult>>(provider, isProvider: true, isGeneric: true);
+    }
+
+    public AsyncIteratorCore(Coroutine provider)
+    {
+        _coroutineHolder = new CoroutineHolder<Coroutine, Coroutine>(provider, isProvider: false, isGeneric: false);
+    }
+
+    public AsyncIteratorCore(Coroutine<TReturnResult> provider)
+    {
+        _coroutineHolder = new CoroutineHolder<Coroutine<TReturnResult>, Coroutine<TReturnResult>>(provider, isProvider: false, isGeneric: false);
     }
 
     private void OnBequestCoroutineContext(ref CoroutineContext context, in CoroutineContext contextToBequest)
@@ -116,6 +166,7 @@ internal class AsyncIteratorCore<TReturnResult> : IAsyncIterator, IAsyncIterator
         iteratorContext._iteratorAgnosticCoroutineContext = context; // Copy befor making context async-iterator-aware
         iteratorContext._coroutineStateMachineBox = iteratorContext._iteratorAgnosticCoroutineContext.ResultStateMachine as ICoroutineStateMachineBox;
         context._keyedServices = context.KeyedServices.Merge([new(AsyncIterator.s_asyncIteratorKey, iteratorContext._coroutineContextService)]);
+        context._isAsyncIteratorAware = true;
     }
 
     private void BequestCoroutineContext(AsyncIteratorContext iteratorContext, AsyncIteratorContextService contextService, out bool isCoroutineCompleted)
@@ -139,9 +190,9 @@ internal class AsyncIteratorCore<TReturnResult> : IAsyncIterator, IAsyncIterator
             return iteratorContext;
         }
 
-        iteratorContext = new AsyncIteratorContext(new AsyncIteratorContextService(AsyncIteratorContextServiceOperation.RequiresSupply));
+        iteratorContext = new AsyncIteratorContext(new AsyncIteratorContextService(AsyncIteratorContextServiceOperation.RequiringAwaiterCompletionNotifier));
         ref var coroutineAwaiter = ref iteratorContext._coroutineAwaiter;
-        coroutineAwaiter = _coroutine.GetAwaiter();
+        coroutineAwaiter = _coroutineHolder.Coroutine.GetAwaiter();
         isCoroutineCompleted = coroutineAwaiter.IsCompleted;
         _iteratorContext = iteratorContext;
         if (!isCoroutineCompleted) {
@@ -170,7 +221,7 @@ internal class AsyncIteratorCore<TReturnResult> : IAsyncIterator, IAsyncIterator
                 Debug.Assert(nextOperation.Argument is not null);
                 Debug.Assert(nextOperation.ArgumentCompletionSource is not null);
                 argumentsReceiver.ReceiveCallableArgument(nextOperation.ArgumentKey, nextOperation.Argument, nextOperation.ArgumentCompletionSource);
-                coroutineContextService.RequiresSupply();
+                coroutineContextService.RequiringAwaiterCompletionNotifier();
                 await nextOperation.AwaiterCompletionNotifier;
                 iteratorContext._coroutineStateMachineBox?.MoveNext();
 
@@ -190,7 +241,7 @@ internal class AsyncIteratorCore<TReturnResult> : IAsyncIterator, IAsyncIterator
         }
 
         while (coroutineContextService.CurrentOperation.State == AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied) {
-            coroutineContextService.RequiresSupply();
+            coroutineContextService.RequiringAwaiterCompletionNotifier();
             await coroutineContextService.CurrentOperation.AwaiterCompletionNotifier;
             iteratorContext._coroutineStateMachineBox?.MoveNext();
         };
@@ -211,15 +262,30 @@ internal class AsyncIteratorCore<TReturnResult> : IAsyncIterator, IAsyncIterator
     public void YieldReturn<TYieldResult>(TYieldResult result) => throw new NotImplementedException();
     public void Return() => throw new NotImplementedException();
     public void Return(TReturnResult result) => throw new NotImplementedException();
-    public void Throw(Exception e) => throw new NotImplementedException();
+
+    public void Throw(Exception e)
+    {
+        var iteratorContext = GetIteratorContext(out var isCoroutineCompleted);
+        if (_nextOperation is { } nextOperation) {
+            _nextOperation = null;
+
+            if ((nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
+                iteratorContext._coroutineContextService.RequiringAwaiterCompletionNotifier();
+                Debug.Assert(nextOperation.ArgumentCompletionSource is not null);
+                nextOperation.ArgumentCompletionSource.SetException(new CancellationException());
+                iteratorContext._coroutineStateMachineBox?.MoveNext();
+
+            }
+        } else {
+            throw new InvalidOperationException("The iterator has not started or has already finished");
+        }
+    }
 
     TReturnResult IAsyncIterator<TReturnResult>.GetResult() => throw new NotImplementedException();
     void IAsyncIterator.GetResult() => throw new NotImplementedException();
 
     Coroutine<TReturnResult> IAsyncIterator<TReturnResult>.GetResultAsync() => throw new NotImplementedException();
     Coroutine IAsyncIterator.GetResultAsync() => throw new NotImplementedException();
-
-    ConfiguredAwaitableCoroutine<TReturnResult> ConfigureAwait(bool continueOnCapturedContext) => _coroutine.ConfigureAwait(continueOnCapturedContext);
 
     private class AsyncIteratorContext
     {

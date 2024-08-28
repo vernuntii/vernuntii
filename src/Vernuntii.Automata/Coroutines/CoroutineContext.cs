@@ -37,7 +37,7 @@ public struct CoroutineContext : ICoroutinePreprocessor
     internal ImmutableDictionary<Key, object>? _keyedServicesToBequest;
     internal CoroutineContextBequesterOrigin _bequesterOrigin;
     internal BequestContextDelegate? _bequestContext;
-    internal bool? _isAsyncIteratorAware;
+    internal bool _isAsyncIteratorAware;
 #if DEBUG
     internal int _identifier;
 #endif
@@ -46,8 +46,8 @@ public struct CoroutineContext : ICoroutinePreprocessor
 
     public ImmutableDictionary<Key, object> KeyedServices => _keyedServices ??= s_emptyKeyedServices;
     public ImmutableDictionary<Key, object> KeyedServicesToBequest => _keyedServicesToBequest ??= s_emptyKeyedServices;
-    readonly public CoroutineContextBequesterOrigin BequesterOrigin => _bequesterOrigin;
-    public bool IsAsyncIteratorAware => _isAsyncIteratorAware ??= KeyedServices.ContainsKey(AsyncIterator.s_asyncIteratorKey);
+    public readonly CoroutineContextBequesterOrigin BequesterOrigin => _bequesterOrigin;
+    public readonly bool IsAsyncIteratorAware => _isAsyncIteratorAware; // ??= KeyedServices.ContainsKey(AsyncIterator.s_asyncIteratorKey);
 
     internal CoroutineScope Scope {
         get {

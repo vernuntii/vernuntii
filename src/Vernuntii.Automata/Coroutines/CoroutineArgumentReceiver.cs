@@ -18,8 +18,8 @@ public ref struct CoroutineArgumentReceiver
         where TArgumentKey : IKey
     {
         if (_context.MustSupplyAsyncIterator()) {
-            var asyncIteratorContextService = _context.GetAsyncIteratorContextService();
-            asyncIteratorContextService.SupplyArgument(argumentKey, argument, completionSource);
+            var iteratorContextService = _context.GetAsyncIteratorContextService();
+            iteratorContextService.SupplyArgument(argumentKey, argument, completionSource);
         } else {
             argument.Callback(in _context);
         }

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -46,11 +47,15 @@ partial struct CoroutineMethodBuilder<TResult>
         void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
             throw Exceptions.ImplementedByDerivedType();
 
-        protected void SetExceptionCore(Exception error) =>
+        protected void SetExceptionCore(Exception error)
+        {
             _valueTaskSource.SetException(error);
+        }
 
-        protected void SetResultCore(TResult result) =>
+        protected void SetResultCore(TResult result)
+        {
             _valueTaskSource.SetResult(result);
+        }
 
         /// <summary>Completes the box with a result.</summary>
         /// <param name="result">The result.</param>
@@ -128,8 +133,7 @@ partial struct CoroutineMethodBuilder<TResult>
     }
 
     /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
-    internal sealed class CoroutineStateMachineBox<TStateMachine> :
-        CoroutineStateMachineBox, IValueTaskSource<TResult>, IValueTaskSource, ICoroutineStateMachineBox, IThreadPoolWorkItem, ICoroutineResultStateMachine
+    internal sealed class CoroutineStateMachineBox<TStateMachine> : CoroutineStateMachineBox, IValueTaskSource<TResult>, IValueTaskSource, ICoroutineStateMachineBox, IThreadPoolWorkItem, ICoroutineResultStateMachine
         where TStateMachine : IAsyncStateMachine
     {
         /// <summary>Delegate used to invoke on an ExecutionContext when passed an instance of this box type.</summary>
