@@ -213,7 +213,11 @@ internal class AsyncIteratorCore<TReturnResult> : IAsyncIterator, IAsyncIterator
     public void Return(TReturnResult result) => throw new NotImplementedException();
     public void Throw(Exception e) => throw new NotImplementedException();
 
-    Coroutine<TReturnResult>.CoroutineAwaiter IAsyncIterator<TReturnResult>.GetAwaiter() => _coroutine.GetAwaiter();
+    TReturnResult IAsyncIterator<TReturnResult>.GetResult() => throw new NotImplementedException();
+    void IAsyncIterator.GetResult() => throw new NotImplementedException();
+
+    Coroutine<TReturnResult> IAsyncIterator<TReturnResult>.GetResultAsync() => throw new NotImplementedException();
+    Coroutine IAsyncIterator.GetResultAsync() => throw new NotImplementedException();
 
     ConfiguredAwaitableCoroutine<TReturnResult> ConfigureAwait(bool continueOnCapturedContext) => _coroutine.ConfigureAwait(continueOnCapturedContext);
 
