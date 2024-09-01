@@ -21,9 +21,9 @@ public struct CoroutineMethodBuilder
     public void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine => _ = CoroutineMethodBuilder<VoidResult>.GetStateMachineBox(ref stateMachine, ref _stateMachineBox);
 
-    public void SetException(Exception e) => _stateMachineBox.SetException(e);
+    public readonly void SetException(Exception e) => _stateMachineBox.SetException(e);
 
-    public void SetResult() => _stateMachineBox.SetResult(default);
+    public readonly void SetResult() => _stateMachineBox.SetResult(default);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)

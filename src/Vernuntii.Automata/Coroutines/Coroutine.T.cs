@@ -5,7 +5,7 @@ using System.Threading.Tasks.Sources;
 namespace Vernuntii.Coroutines;
 
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder<>))]
-public partial struct Coroutine<TResult> : IAwaiterAwareCoroutine, IEquatable<Coroutine<TResult>>
+public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Coroutine<TResult>>
 {
     internal readonly bool IsChildCoroutine => _builder is not null;
 
@@ -84,7 +84,7 @@ public partial struct Coroutine<TResult> : IAwaiterAwareCoroutine, IEquatable<Co
         _argumentReceiverDelegate(ref argumentReceiver);
     }
 
-    void IAwaiterAwareCoroutine.MarkCoroutineAsHandled()
+    void IAwaitableCoroutine.MarkCoroutineAsHandled()
     {
         _builder = null;
         _argumentReceiverDelegate = null;

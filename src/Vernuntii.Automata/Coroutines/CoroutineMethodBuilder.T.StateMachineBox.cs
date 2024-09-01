@@ -10,9 +10,9 @@ partial struct CoroutineMethodBuilder<TResult>
     // Licensed to the .NET Foundation under one or more agreements.
     // The .NET Foundation licenses this file to you under the MIT license.
     /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
-    internal abstract class CoroutineStateMachineBox : IValueTaskSource<TResult>, IValueTaskSource, ICoroutineResultStateMachine, ICoroutineMethodBuilderBox
+    internal abstract class CoroutineStateMachineBox : IValueTaskSource<TResult>, IValueTaskSource, ICoroutineResultStateMachineBox, ICoroutineMethodBuilderBox
     {
-        internal readonly static CoroutineStateMachineBox s_syncSuccessSentinel = new SyncSuccessSentinelCoroutineStateMachineBox();
+        internal readonly static CoroutineStateMachineBox s_synchronousSuccessSentinel = new SynchronousSuccessSentinelCoroutineStateMachineBox();
 
         /// <summary>A delegate to the MoveNext method.</summary>
         protected Action? _moveNextAction;
@@ -23,7 +23,7 @@ partial struct CoroutineMethodBuilder<TResult>
         internal CoroutineContext _coroutineContext;
 
         /// <summary>Implementation for IValueTaskSource interfaces.</summary>
-        protected ManualResetValueTaskSourceCore<TResult> _valueTaskSource;
+        internal protected ManualResetValueTaskSourceProxy<TResult> _valueTaskSource;
 
         protected CoroutineStateMachineBoxResult? _result;
 
@@ -44,7 +44,7 @@ partial struct CoroutineMethodBuilder<TResult>
             Unsafe.As<ICoroutineStateMachineBox>(this).MoveNext();
         }
 
-        void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
+        void ICoroutineResultStateMachineBox.CallbackWhenForkCompletedUnsafe<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
             throw Exceptions.ImplementedByDerivedType();
 
         protected void SetExceptionCore(Exception error)
@@ -67,7 +67,7 @@ partial struct CoroutineMethodBuilder<TResult>
             do {
                 currentState = _result!; // Cannot be null at this state
                 newState = currentState.ForkCount == 0 ? null : new CoroutineStateMachineBoxResult(currentState.ForkCount, result);
-            } while (Interlocked.CompareExchange(ref _result, newState, currentState)!.ForkCount != currentState.ForkCount);
+            } while (!ReferenceEquals(Interlocked.CompareExchange(ref _result, newState, currentState), currentState));
 
             if (newState is null) {
                 SetResultCore(result);
@@ -84,7 +84,7 @@ partial struct CoroutineMethodBuilder<TResult>
             do {
                 currentState = _result!; // Cannot be null at this state
                 newState = currentState.ForkCount == 0 ? null : new CoroutineStateMachineBoxResult(currentState.ForkCount, error);
-            } while (Interlocked.CompareExchange(ref _result, newState, currentState)!.ForkCount != currentState.ForkCount);
+            } while (!ReferenceEquals(Interlocked.CompareExchange(ref _result, newState, currentState), currentState));
 
             if (newState is null) {
                 SetExceptionCore(error);
@@ -124,16 +124,17 @@ partial struct CoroutineMethodBuilder<TResult>
     }
 
     /// <summary>Type used as a singleton to indicate synchronous success for an async method.</summary>
-    private sealed class SyncSuccessSentinelCoroutineStateMachineBox : CoroutineStateMachineBox, ICoroutineResultStateMachine
+    private sealed class SynchronousSuccessSentinelCoroutineStateMachineBox : CoroutineStateMachineBox, ICoroutineResultStateMachineBox
     {
-        public SyncSuccessSentinelCoroutineStateMachineBox() => SetResultCore(default!);
+        public SynchronousSuccessSentinelCoroutineStateMachineBox() => SetResultCore(default!);
 
-        void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
+        void ICoroutineResultStateMachineBox.CallbackWhenForkCompletedUnsafe<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
             awaiter.UnsafeOnCompleted(continuation);
     }
 
     /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
-    internal sealed class CoroutineStateMachineBox<TStateMachine> : CoroutineStateMachineBox, IValueTaskSource<TResult>, IValueTaskSource, ICoroutineStateMachineBox, IThreadPoolWorkItem, ICoroutineResultStateMachine
+    internal sealed class CoroutineStateMachineBox<TStateMachine> : CoroutineStateMachineBox, IValueTaskSource<TResult>, IValueTaskSource, 
+        ICoroutineStateMachineBox, IThreadPoolWorkItem, ICoroutineResultStateMachineBox, IAsyncIteratorStateMachineBox<TResult>
         where TStateMachine : IAsyncStateMachine
     {
         /// <summary>Delegate used to invoke on an ExecutionContext when passed an instance of this box type.</summary>
@@ -188,7 +189,8 @@ partial struct CoroutineMethodBuilder<TResult>
         {
             // Clear out the state machine and associated context to avoid keeping arbitrary state referenced by
             // lifted locals, and reset the instance for another await.
-            ClearStateUponCompletion();
+            StateMachine = default;
+            _executionContext = default;
             _coroutineContext.OnCoroutineCompleted();
             _valueTaskSource.Reset();
 
@@ -207,7 +209,7 @@ partial struct CoroutineMethodBuilder<TResult>
             }
         }
 
-        void ICoroutineResultStateMachine.AwaitUnsafeOnCompletedThenContinueWith<TAwaiter>(ref TAwaiter awaiter, Action continuation)
+        void ICoroutineResultStateMachineBox.CallbackWhenForkCompletedUnsafe<TAwaiter>(ref TAwaiter forkAwaiter, Action forkCompleted)
         {
             CoroutineStateMachineBoxResult? currentState;
             CoroutineStateMachineBoxResult newState;
@@ -220,13 +222,13 @@ partial struct CoroutineMethodBuilder<TResult>
                 }
 
                 newState = new CoroutineStateMachineBoxResult(currentState.ForkCount + 1);
-            } while (Interlocked.CompareExchange(ref _result, newState, currentState)?.ForkCount != currentState.ForkCount);
+            } while (!ReferenceEquals(Interlocked.CompareExchange(ref _result, newState, currentState), currentState));
 
-            awaiter.UnsafeOnCompleted(() => {
+            forkAwaiter.UnsafeOnCompleted(() => {
                 Exception? childError = null;
 
                 try {
-                    continuation();
+                    forkCompleted();
                 } catch (Exception error) {
                     childError = error;
                 }
@@ -246,7 +248,7 @@ partial struct CoroutineMethodBuilder<TResult>
                     } else {
                         newState = new CoroutineStateMachineBoxResult(currentState, currentState.ForkCount - 1);
                     }
-                } while (Interlocked.CompareExchange(ref _result, newState, currentState)?.ForkCount != currentState.ForkCount);
+                } while (!ReferenceEquals(Interlocked.CompareExchange(ref _result, newState, currentState), currentState));
 
                 if (newState is null) {
                     if (currentState.HasResult) {
@@ -281,16 +283,6 @@ partial struct CoroutineMethodBuilder<TResult>
 #endif
                 return ref Unsafe.As<object?, CoroutineStateMachineBox<TStateMachine>?>(ref s_perCoreCache[i].Object);
             }
-        }
-
-        /// <summary>
-        /// Clear out the state machine and associated context to avoid keeping arbitrary state referenced by lifted locals.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ClearStateUponCompletion()
-        {
-            StateMachine = default;
-            _executionContext = default;
         }
 
         /// <summary>
@@ -339,6 +331,13 @@ partial struct CoroutineMethodBuilder<TResult>
                 ReturnToCache();
             }
         }
+
+        void IAsyncIteratorStateMachineBox<TResult>.SetAsyncIteratorCompletionSource(IAsyncIteratorCompletionSource<TResult>? completionSource) =>
+            _valueTaskSource._asyncIteratorCompletionSource = completionSource;
+
+        void IAsyncIteratorStateMachineBox<TResult>.SetResult(TResult result) => _valueTaskSource._valueTaskSource.SetResult(result);
+
+        void IAsyncIteratorStateMachineBox<TResult>.SetException(Exception e) => _valueTaskSource._valueTaskSource.SetException(e);
     }
 
     internal class CoroutineStateMachineBoxResult : IEquatable<CoroutineStateMachineBoxResult>
@@ -418,24 +417,4 @@ partial struct CoroutineMethodBuilder<TResult>
             HasError = 2
         }
     }
-}
-
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-/// <summary>
-/// An interface implemented by all <see cref="CoroutineMethodBuilder{T}.CoroutineStateMachineBox{TStateMachine}"/> instances, regardless of generics.
-/// </summary>
-internal interface ICoroutineStateMachineBox
-{
-    /// <summary>Move the state machine forward.</summary>
-    void MoveNext();
-
-    /// <summary>
-    /// Gets an action for moving forward the contained state machine.
-    /// This will lazily-allocate the delegate as needed.
-    /// </summary>
-    Action MoveNextAction { get; }
-
-    /// <summary>Clears the state of the box.</summary>
-    void ClearStateUponCompletion();
 }

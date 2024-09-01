@@ -32,22 +32,22 @@ public struct CoroutineContext : ICoroutinePreprocessor
         return context;
     }
 
-    internal ICoroutineResultStateMachine? _resultStateMachine;
+    internal ICoroutineResultStateMachineBox? _resultStateMachine;
     internal ImmutableDictionary<Key, object>? _keyedServices;
     internal ImmutableDictionary<Key, object>? _keyedServicesToBequest;
     internal CoroutineContextBequesterOrigin _bequesterOrigin;
     internal BequestContextDelegate? _bequestContext;
-    internal bool _isAsyncIteratorAware;
+    internal bool _isAsyncIteratorSupplier; // Enables fast async iterator check-ups
 #if DEBUG
     internal int _identifier;
 #endif
 
-    internal ICoroutineResultStateMachine ResultStateMachine => _resultStateMachine ??= CoroutineResultStateMachine.s_immediateContinuingResultStateMachine;
+    internal ICoroutineResultStateMachineBox ResultStateMachine => _resultStateMachine ??= CoroutineMethodBuilder<VoidResult>.CoroutineStateMachineBox.s_synchronousSuccessSentinel;
 
     public ImmutableDictionary<Key, object> KeyedServices => _keyedServices ??= s_emptyKeyedServices;
     public ImmutableDictionary<Key, object> KeyedServicesToBequest => _keyedServicesToBequest ??= s_emptyKeyedServices;
     public readonly CoroutineContextBequesterOrigin BequesterOrigin => _bequesterOrigin;
-    public readonly bool IsAsyncIteratorAware => _isAsyncIteratorAware; // ??= KeyedServices.ContainsKey(AsyncIterator.s_asyncIteratorKey);
+    public readonly bool IsAsyncIteratorSupplier => _isAsyncIteratorSupplier;
 
     internal CoroutineScope Scope {
         get {
@@ -74,7 +74,6 @@ public struct CoroutineContext : ICoroutinePreprocessor
         }
 
         _bequestContext = contextToBequest._bequestContext;
-        _isAsyncIteratorAware = contextToBequest._isAsyncIteratorAware;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -86,7 +85,7 @@ public struct CoroutineContext : ICoroutinePreprocessor
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void SetResultStateMachine(ICoroutineResultStateMachine resultStateMachine)
+    internal void SetResultStateMachine(ICoroutineResultStateMachineBox resultStateMachine)
     {
         _resultStateMachine = resultStateMachine;
     }

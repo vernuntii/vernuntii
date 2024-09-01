@@ -4,7 +4,7 @@ internal interface ICoroutineContext
 {
     bool WantsToBequest { get; }
 
-    ICoroutineResultStateMachine ResultStateMachine { get; }
+    ICoroutineResultStateMachineBox ResultStateMachine { get; }
     IReadOnlyDictionary<Key, object> KeyedServices { get; }
     IReadOnlyDictionary<Key, object> KeyedServicesToBequest { get; }
 
