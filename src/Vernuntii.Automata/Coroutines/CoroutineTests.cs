@@ -78,7 +78,7 @@ public static class CoroutineTests
             ;
         }
 
-        return await (IAsyncIterator<int>)iterator;
+        return await iterator.GetResultAsync();
     }
 
     static async Coroutine<int> CallWithSpawnInvestigation2(int _)

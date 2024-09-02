@@ -9,7 +9,7 @@ namespace Vernuntii.Coroutines;
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
-internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, IAsyncIteratorCompletionSource<TResult>, IAsyncIterationCompletionSource
+internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, IValueTaskCompletionSource<TResult>, IYieldReturnCompletionSource
 {
     /// <summary>Per-core cache of boxes, with one box per core.</summary>
     /// <remarks>Each element is padded to expected cache-line size so as to minimize false sharing.</remarks>
@@ -87,8 +87,6 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
         }
     }
 
-    /// <summary>A delegate to the MoveNext method.</summary>
-    protected Action? _moveNextAction;
     /// <summary>Captured ExecutionContext with which to invoke MoveNext.</summary>
     public ExecutionContext? Context;
     /// <summary>Implementation for IValueTaskSource interfaces.</summary>
@@ -107,7 +105,7 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
     public void SetResult(TResult result) =>
         _valueTaskSource.SetResult(result);
 
-    void IAsyncIterationCompletionSource.SetResult<TCoroutineResult>(TCoroutineResult result)
+    void IYieldReturnCompletionSource.SetResult<TCoroutineResult>(TCoroutineResult result)
     {
         if (result is null) {
             SetResult(default!);
@@ -125,15 +123,8 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
     public void SetException(Exception error) =>
         _valueTaskSource.SetException(error);
 
-    ///// <summary>Gets the status of the box.</summary>
-    //public ValueTaskSourceStatus GetStatus(short token) => _valueTaskSource.GetStatus(token);
-
     /// <summary>Gets the status of the box.</summary>
-    public ValueTaskSourceStatus GetStatus(short token)
-    {
-        //return _valueTaskSource.GetStatus(token);
-        return ValueTaskSourceStatus.Pending;
-    }
+    public ValueTaskSourceStatus GetStatus(short token) => _valueTaskSource.GetStatus(token);
 
     /// <summary>Schedules the continuation action for this box.</summary>
     public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) =>

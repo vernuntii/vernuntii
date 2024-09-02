@@ -2,7 +2,8 @@
 
 internal interface IAsyncIteratorStateMachineBox<TResult> : ICoroutineStateMachineBox
 {
-    void SetAsyncIteratorCompletionSource(IAsyncIteratorCompletionSource<TResult>? completionSource);
+    ref CoroutineContext CoroutineContext { get; }
+    void SetAsyncIteratorCompletionSource(IValueTaskCompletionSource<TResult>? completionSource);
     void SetResult(TResult result);
     void SetException(Exception e);
 }

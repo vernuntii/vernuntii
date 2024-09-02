@@ -44,7 +44,7 @@ partial struct CoroutineMethodBuilder<TResult>
             Unsafe.As<ICoroutineStateMachineBox>(this).MoveNext();
         }
 
-        void ICoroutineResultStateMachineBox.CallbackWhenForkCompletedUnsafe<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
+        void ICoroutineResultStateMachineBox.CallbackWhenForkCompletedUnsafely<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
             throw Exceptions.ImplementedByDerivedType();
 
         protected void SetExceptionCore(Exception error)
@@ -128,7 +128,7 @@ partial struct CoroutineMethodBuilder<TResult>
     {
         public SynchronousSuccessSentinelCoroutineStateMachineBox() => SetResultCore(default!);
 
-        void ICoroutineResultStateMachineBox.CallbackWhenForkCompletedUnsafe<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
+        void ICoroutineResultStateMachineBox.CallbackWhenForkCompletedUnsafely<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
             awaiter.UnsafeOnCompleted(continuation);
     }
 
@@ -177,6 +177,8 @@ partial struct CoroutineMethodBuilder<TResult>
         /// <summary>A delegate to the <see cref="MoveNext()"/> method.</summary>
         public Action MoveNextAction => _moveNextAction ??= new Action(MoveNext);
 
+        ref CoroutineContext IAsyncIteratorStateMachineBox<TResult>.CoroutineContext => ref _coroutineContext;
+
         private void Initialize()
         {
             _coroutineContext.SetResultStateMachine(this);
@@ -209,7 +211,7 @@ partial struct CoroutineMethodBuilder<TResult>
             }
         }
 
-        void ICoroutineResultStateMachineBox.CallbackWhenForkCompletedUnsafe<TAwaiter>(ref TAwaiter forkAwaiter, Action forkCompleted)
+        void ICoroutineResultStateMachineBox.CallbackWhenForkCompletedUnsafely<TAwaiter>(ref TAwaiter forkAwaiter, Action forkCompleted)
         {
             CoroutineStateMachineBoxResult? currentState;
             CoroutineStateMachineBoxResult newState;
@@ -332,7 +334,7 @@ partial struct CoroutineMethodBuilder<TResult>
             }
         }
 
-        void IAsyncIteratorStateMachineBox<TResult>.SetAsyncIteratorCompletionSource(IAsyncIteratorCompletionSource<TResult>? completionSource) =>
+        void IAsyncIteratorStateMachineBox<TResult>.SetAsyncIteratorCompletionSource(IValueTaskCompletionSource<TResult>? completionSource) =>
             _valueTaskSource._asyncIteratorCompletionSource = completionSource;
 
         void IAsyncIteratorStateMachineBox<TResult>.SetResult(TResult result) => _valueTaskSource._valueTaskSource.SetResult(result);

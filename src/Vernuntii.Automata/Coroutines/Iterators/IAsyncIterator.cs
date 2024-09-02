@@ -7,18 +7,18 @@ public interface IAsyncIterator
     /// A non-compatible suspension point is defined as awaiting a task-like object that is not a coroutine effect.
     /// </summary>
     /// <returns></returns>
-    public object Current { get; }
+    object Current { get; }
 
     /// <summary>
     /// <see cref="MoveNextAsync"/> will suspend at the next compatible suspension point in the underlying coroutine.
     /// A non-compatible suspension point is defined as awaiting a task-like object that is not a coroutine effect.
     /// </summary>
     /// <returns></returns>
-    public ValueTask<bool> MoveNextAsync();
+    ValueTask<bool> MoveNextAsync();
 
-    public void YieldReturn<TResult>(TResult result);
+    void YieldReturn<TResult>(TResult result);
 
-    public void Return();
+    void Return();
 
     /// <summary>
     /// The <see cref="Throw(Exception)"/> method, when called, can be seen as if a throw exception; statement is inserted in the generator's body at the current suspended position,
@@ -27,7 +27,7 @@ public interface IAsyncIterator
     /// </summary>
     /// <param name="e"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    public void Throw(Exception e);
+    void Throw(Exception e);
 
     /// <summary>
     /// Once <see cref="MoveNextAsync"/> returns <see langword="false"/>, 
@@ -35,12 +35,12 @@ public interface IAsyncIterator
     /// The behavior of <see cref="GetResult"/> is identical to <see cref="ValueTaskAwaiter{TReturnResult}.GetResult"/>; it cannot be called a second time.
     /// </summary>
     /// <returns></returns>
-    public void GetResult();
+    void GetResult();
 
     /// <summary>
     /// Resumes execution from the last suspension point, breaking the iterator semantics by transferring full responsibility back to the coroutine.
     /// The behavior of <see cref="GetResultAsync"/> is identical to awaiting a <see cref="ValueTask"/>; it cannot be called a second time.
     /// </summary>
     /// <returns></returns>
-    public Coroutine GetResultAsync();
+    Coroutine GetResultAsync();
 }

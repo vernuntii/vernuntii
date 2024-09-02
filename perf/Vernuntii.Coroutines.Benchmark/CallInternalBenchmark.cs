@@ -55,12 +55,13 @@ namespace Vernuntii.Coroutines.Benchmark
             return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), argumentReceiverDelegate);
             static void HandleArgumentReceiver(ArgumentReceiverClosure closure, ref CoroutineArgumentReceiver argumentReceiver)
             {
+                var completionSource = Unsafe.As<ValueTaskCompletionSource<TResult>>(closure._completionSource);
                 var argument = new Arguments.CallArgument<TResult>(
                     closure._provider,
                     closure._providerClosure,
-                    Unsafe.As<ValueTaskCompletionSource<TResult>>(closure._completionSource));
+                    completionSource);
                 ArgumentReceiverClosure.s_pool.Return(closure);
-                argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_callArgumentType);
+                argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, completionSource);
             }
         }
 
@@ -73,7 +74,7 @@ namespace Vernuntii.Coroutines.Benchmark
             void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
             {
                 var argument = new Arguments.CallArgument<TResult>(provider, providerClosure, completionSource);
-                argumentReceiver.ReceiveCallableArgument(in argument, in Arguments.s_callArgumentType);
+                argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, completionSource);
             }
         }
 

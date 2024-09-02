@@ -102,7 +102,7 @@ public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
     public static bool operator !=(Coroutine left, Coroutine right) =>
         !left.Equals(right);
 
-    public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
+    public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, IRelativeCoroutineAwaiter, ICoroutineAwaiter
     {
         internal readonly bool IsSiblingCoroutine {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -168,7 +168,7 @@ public readonly struct ConfiguredAwaitableCoroutine
 
     public ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
 
-    public readonly struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
+    public readonly struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, IRelativeCoroutineAwaiter, ICoroutineAwaiter
     {
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 

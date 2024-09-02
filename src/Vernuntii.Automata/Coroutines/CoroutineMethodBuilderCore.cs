@@ -15,7 +15,6 @@ internal static class CoroutineMethodBuilderCore
             preprocessor.PreprocessChildCoroutine(ref coroutine);
         } else if (coroutine.IsSiblingCoroutine) {
             preprocessor.PreprocessSiblingCoroutine(ref coroutine);
-            return;
         }
     }
 
@@ -25,7 +24,7 @@ internal static class CoroutineMethodBuilderCore
         ref Preprocessor preprocessor)
         where Preprocessor : ICoroutinePreprocessor
     {
-        if (null != default(TAwaiter) && awaiter is ICoroutineAwaiter) {
+        if (null != default(TAwaiter) && awaiter is IRelativeCoroutineAwaiter) {
             ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, Coroutine.CoroutineAwaiter>(ref awaiter);
             PreprocessCoroutine(ref coroutineAwaiter, ref preprocessor);
         }
@@ -34,7 +33,7 @@ internal static class CoroutineMethodBuilderCore
     internal static Coroutine MakeChildCoroutine(ref Coroutine nonChildCoroutine, ref CoroutineContext childContext)
     {
         var coroutineAwaiter = nonChildCoroutine.ConfigureAwait(false).GetAwaiter();
-        var stateMachineBox = CoroutineMethodBuilder<VoidResult>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>>.RentFromCache();
+        var stateMachineBox = CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>>.RentFromCache();
         var coroutineBuilder = new CoroutineAwaiterMethodBuilder(in coroutineAwaiter, stateMachineBox);
         var stateMachine = new CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>(coroutineBuilder);
         stateMachine.State = -1;

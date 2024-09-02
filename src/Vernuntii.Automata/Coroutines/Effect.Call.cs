@@ -8,7 +8,7 @@ partial class Effect
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine CallInternal(Delegate provider, IClosure? providerClosure)
     {
-        var completionSource = ValueTaskCompletionSource<object?>.RentFromCache();
+        var completionSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
         return new Coroutine(completionSource.CreateValueTask(), ArgumentReceiverDelegate);
 
         void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
@@ -40,9 +40,9 @@ partial class Effect
         internal struct CallArgument(
             Delegate provider,
             IClosure? providerClosure,
-            ValueTaskCompletionSource<object?> completionSource) : ICallableArgument
+            ValueTaskCompletionSource<Nothing> completionSource) : ICallableArgument
         {
-            private readonly ValueTaskCompletionSource<object?> _completionSource = completionSource;
+            private readonly ValueTaskCompletionSource<Nothing> _completionSource = completionSource;
 
             void ICallableArgument.Callback(in CoroutineContext context)
             {
@@ -59,14 +59,7 @@ partial class Effect
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                coroutineAwaiter.UnsafeOnCompleted(() => {
-                    try {
-                        coroutineAwaiter.GetResult();
-                        completionSource.SetResult(default);
-                    } catch (Exception error) {
-                        completionSource.SetException(error);
-                    }
-                });
+                coroutineAwaiter.DelegateCompletion(completionSource);
             }
         }
 
@@ -92,14 +85,7 @@ partial class Effect
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                coroutineAwaiter.UnsafeOnCompleted(() => {
-                    try {
-                        var result = coroutineAwaiter.GetResult();
-                        completionSource.SetResult(result);
-                    } catch (Exception error) {
-                        completionSource.SetException(error);
-                    }
-                });
+                coroutineAwaiter.DelegateCompletion(completionSource);
             }
         }
     }

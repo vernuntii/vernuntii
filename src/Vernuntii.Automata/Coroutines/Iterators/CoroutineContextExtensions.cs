@@ -4,8 +4,8 @@ namespace Vernuntii.Coroutines.Iterators;
 
 internal static class CoroutineContextExtensions
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool MustSupplyAsyncIterator(this CoroutineContext context) => context.IsAsyncIteratorSupplier && context.BequesterOrigin == CoroutineContextBequesterOrigin.ChildCoroutine;
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+    //internal static bool MustSupplyAsyncIterator(this CoroutineContext context) => context.IsAsyncIteratorSupplier && context.BequesterOrigin == CoroutineContextBequesterOrigin.ChildCoroutine;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static AsyncIteratorContextService GetAsyncIteratorContextService(this CoroutineContext context)

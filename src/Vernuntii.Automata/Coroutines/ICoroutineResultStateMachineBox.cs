@@ -4,5 +4,5 @@ namespace Vernuntii.Coroutines;
 
 internal interface ICoroutineResultStateMachineBox
 {
-    void CallbackWhenForkCompletedUnsafe<TAwaiter>(ref TAwaiter awaiter, Action continuation) where TAwaiter : ICriticalNotifyCompletion;
+    void CallbackWhenForkCompletedUnsafely<TAwaiter>(ref TAwaiter forkAwaiter, Action forkCompleted) where TAwaiter : ICriticalNotifyCompletion;
 }

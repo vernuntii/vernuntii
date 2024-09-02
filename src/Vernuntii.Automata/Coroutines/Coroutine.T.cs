@@ -111,7 +111,7 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
     public static bool operator !=(Coroutine<TResult> left, Coroutine<TResult> right) =>
         !left.Equals(right);
 
-    public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
+    public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, IRelativeCoroutineAwaiter, ICoroutineAwaiter<TResult>
     {
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
@@ -155,13 +155,13 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
     }
 }
 
-public readonly struct ConfiguredAwaitableCoroutine<T>
+public readonly struct ConfiguredAwaitableCoroutine<TResult>
 {
-    private readonly ConfiguredValueTaskAwaitable<T> _task;
+    private readonly ConfiguredValueTaskAwaitable<TResult> _task;
     private readonly ICoroutineMethodBuilderBox? _builder;
     private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-    internal ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable<T> task, in ICoroutineMethodBuilderBox? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
+    internal ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable<TResult> task, in ICoroutineMethodBuilderBox? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
     {
         _task = task;
         _builder = builder;
@@ -170,11 +170,11 @@ public readonly struct ConfiguredAwaitableCoroutine<T>
 
     public readonly ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
 
-    public readonly struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
+    public readonly struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, IRelativeCoroutineAwaiter, ICoroutineAwaiter<TResult>
     {
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-        internal readonly ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter _awaiter;
+        internal readonly ConfiguredValueTaskAwaitable<TResult>.ConfiguredValueTaskAwaiter _awaiter;
         internal readonly ICoroutineMethodBuilderBox? _builder;
         internal readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
@@ -182,7 +182,7 @@ public readonly struct ConfiguredAwaitableCoroutine<T>
         readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
 
         internal ConfiguredCoroutineAwaiter(
-            in ConfiguredValueTaskAwaitable<T>.ConfiguredValueTaskAwaiter awaiter,
+            in ConfiguredValueTaskAwaitable<TResult>.ConfiguredValueTaskAwaiter awaiter,
             in ICoroutineMethodBuilderBox? builder,
             CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
         {
@@ -209,7 +209,7 @@ public readonly struct ConfiguredAwaitableCoroutine<T>
             _argumentReceiverDelegate(ref argumentReceiver);
         }
 
-        public T GetResult() => _awaiter.GetResult();
+        public TResult GetResult() => _awaiter.GetResult();
 
         public void OnCompleted(Action continuation) => _awaiter.OnCompleted(continuation);
 

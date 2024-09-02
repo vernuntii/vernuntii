@@ -1,5 +1,7 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal interface ICoroutineAwaiter : IRelativeCoroutine
+internal interface ICoroutineAwaiter
 {
+    bool IsCompleted { get; }
+    void GetResult();
 }

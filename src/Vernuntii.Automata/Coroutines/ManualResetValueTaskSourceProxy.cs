@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks.Sources;
-using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -7,7 +6,7 @@ internal struct ManualResetValueTaskSourceProxy<TResult>
 {
     internal ManualResetValueTaskSourceCore<TResult> _valueTaskSource;
 
-    internal IAsyncIteratorCompletionSource<TResult>? _asyncIteratorCompletionSource;
+    internal IValueTaskCompletionSource<TResult>? _asyncIteratorCompletionSource;
 
     public bool RunContinuationsAsynchronously {
         readonly get => _valueTaskSource.RunContinuationsAsynchronously;

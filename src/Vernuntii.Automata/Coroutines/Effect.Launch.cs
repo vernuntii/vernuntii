@@ -62,7 +62,7 @@ partial class Effect
                 contextToBequest.TreatAsNewSibling();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
-                contextToBequest.ResultStateMachine.CallbackWhenForkCompletedUnsafe(ref coroutineAwaiter, () => {
+                contextToBequest.ResultStateMachine.CallbackWhenForkCompletedUnsafely(ref coroutineAwaiter, () => {
                     try {
                         coroutineAwaiter.GetResult();
                         intermediateCompletionSource.SetResult(default);
@@ -99,7 +99,7 @@ partial class Effect
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                contextToBequest.ResultStateMachine.CallbackWhenForkCompletedUnsafe(ref coroutineAwaiter, () => {
+                contextToBequest.ResultStateMachine.CallbackWhenForkCompletedUnsafely(ref coroutineAwaiter, () => {
                     try {
                         var result = coroutineAwaiter.GetResult();
                         intermediateCompletionSource.SetResult(result);

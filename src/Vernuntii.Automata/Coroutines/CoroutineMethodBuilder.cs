@@ -11,15 +11,15 @@ public struct CoroutineMethodBuilder
 
     public Coroutine Task {
         get {
-            var stateMachineBox = _stateMachineBox ??= CoroutineMethodBuilder<VoidResult>.CreateWeaklyTyedStateMachineBox();
+            var stateMachineBox = _stateMachineBox ??= CoroutineMethodBuilder<Nothing>.CreateWeaklyTyedStateMachineBox();
             return new Coroutine(new ValueTask(stateMachineBox, stateMachineBox.Version), stateMachineBox);
         }
     }
 
-    private CoroutineMethodBuilder<VoidResult>.CoroutineStateMachineBox _stateMachineBox;
+    private CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox _stateMachineBox;
 
-    public void Start<TStateMachine>(ref TStateMachine stateMachine)
-        where TStateMachine : IAsyncStateMachine => _ = CoroutineMethodBuilder<VoidResult>.GetStateMachineBox(ref stateMachine, ref _stateMachineBox);
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine => 
+        _ = CoroutineMethodBuilder<Nothing>.GetStateMachineBox(ref stateMachine, ref _stateMachineBox);
 
     public readonly void SetException(Exception e) => _stateMachineBox.SetException(e);
 
@@ -29,13 +29,13 @@ public struct CoroutineMethodBuilder
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : INotifyCompletion
         where TStateMachine : IAsyncStateMachine =>
-        CoroutineMethodBuilder<VoidResult>.AwaitOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
+        CoroutineMethodBuilder<Nothing>.AwaitOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine =>
-        CoroutineMethodBuilder<VoidResult>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
+        CoroutineMethodBuilder<Nothing>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
 
     public void SetStateMachine(IAsyncStateMachine stateMachine) => throw new NotImplementedException();
 }

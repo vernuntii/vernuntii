@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Coroutines.Iterators;
 
-public interface IAsyncIterationCompletionSource
+public interface IYieldReturnCompletionSource
 {
     void SetResult<TResult>(TResult result);
     void SetException(Exception e);

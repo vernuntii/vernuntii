@@ -16,7 +16,7 @@ internal class AsyncIteratorContextService(AsyncIteratorContextServiceOperation 
         }
     }
 
-    internal void SupplyArgument(IKey argumentKey, ICallableArgument argument, IAsyncIterationCompletionSource argumentCompletionSource)
+    internal void SupplyArgument(IKey argumentKey, ICallableArgument argument, IYieldReturnCompletionSource argumentCompletionSource)
     {
         var operation = _currentOperation;
         ThrowIfNotRequiringAwaiterCompletionNotifier(operation);
@@ -32,9 +32,9 @@ internal class AsyncIteratorContextService(AsyncIteratorContextServiceOperation 
     {
         var operation = _currentOperation;
         ThrowIfNotRequiringAwaiterCompletionNotifier(operation);
-        var externTaskCompletionNotifierSource = ValueTaskCompletionSource<VoidResult>.RentFromCache();
+        var externTaskCompletionNotifierSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
         _currentOperation = operation with {
-            State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (operation.State & AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired),
+            State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (operation.State & ~AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired),
             AwaiterCompletionNotifier = externTaskCompletionNotifierSource.CreateValueTask(),
         };
         awaiter.OnCompleted(() => externTaskCompletionNotifierSource.SetDefaultResult());
@@ -44,9 +44,9 @@ internal class AsyncIteratorContextService(AsyncIteratorContextServiceOperation 
     {
         var operation = _currentOperation;
         ThrowIfNotRequiringAwaiterCompletionNotifier(operation);
-        var externTaskCompletionNotifierSource = ValueTaskCompletionSource<VoidResult>.RentFromCache();
+        var externTaskCompletionNotifierSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
         _currentOperation = operation with {
-            State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (operation.State & AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired),
+            State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (operation.State & ~AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired),
             AwaiterCompletionNotifier = externTaskCompletionNotifierSource.CreateValueTask()
         };
         awaiter.UnsafeOnCompleted(() => externTaskCompletionNotifierSource.SetDefaultResult());
