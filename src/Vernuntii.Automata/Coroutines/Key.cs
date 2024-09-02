@@ -21,11 +21,10 @@ internal enum KeyFlags : byte
 public struct Key : IKey
 {
     internal const byte CurrentSchemaVersion = 1;
-
-    private const int KeyLength = 20;
-    private const int ScopeLength = 12;
-    private const int ArgumentLength = 2;
-    private const int ServiceLength = 14;
+    internal const int KeyLength = 20;
+    internal const int ScopeLength = 12;
+    internal const int ArgumentLength = 2;
+    internal const int ServiceLength = 14;
 
     [FieldOffset(0)]
     private readonly int _hash;

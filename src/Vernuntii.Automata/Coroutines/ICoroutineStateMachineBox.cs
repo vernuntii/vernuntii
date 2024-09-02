@@ -7,6 +7,8 @@
 /// </summary>
 internal interface ICoroutineStateMachineBox
 {
+    ref CoroutineContext CoroutineContext { get; }
+
     /// <summary>Move the state machine forward.</summary>
     void MoveNext();
 

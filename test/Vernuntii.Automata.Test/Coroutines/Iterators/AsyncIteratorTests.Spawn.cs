@@ -1,18 +1,18 @@
 ﻿namespace Vernuntii.Coroutines.Iterators;
 partial class AsyncIteratorTests
 {
-    public class Call
+    public class Spawn
     {
         public class ReturnSynchronously
         {
             private const int ExpectedResult = 2;
 
-            private Coroutine<int> Constant() => Call(() => Coroutine.FromResult(2));
+            private Coroutine<Coroutine<int>> Constant() => Spawn(() => Coroutine.FromResult(2));
 
             [Fact]
             public async Task MoveNext_ReturnsFalse()
             {
-                var iterator = new AsyncIterator<int>(Constant());
+                var iterator = AsyncIterator.Create(Constant());
                 var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
                 canMoveNext.Should().BeFalse();
             }
@@ -20,16 +20,18 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResult_Returns()
             {
-                var iterator = new AsyncIterator<int>(Constant());
-                var result = iterator.GetResult();
+                var iterator = AsyncIterator.Create(Constant());
+                var asyncResult = iterator.GetResult();
+                var result = await asyncResult;
                 result.Should().Be(ExpectedResult);
             }
 
             [Fact]
             public async Task GetResultAsync_Awaits()
             {
-                var iterator = new AsyncIterator<int>(Constant());
-                var result = await iterator.GetResultAsync().ConfigureAwait(false);
+                var iterator = AsyncIterator.Create(Constant());
+                var asyncResult = await iterator.GetResultAsync().ConfigureAwait(false);
+                var result = await asyncResult;
                 result.Should().Be(ExpectedResult);
             }
 
@@ -49,7 +51,7 @@ partial class AsyncIteratorTests
         {
             private const int ExpectedResult = 2;
 
-            private Coroutine<int> ConstantAfterDelay() => Call(async () => {
+            private Coroutine<Coroutine<int>> ConstantAfterDelay() => Spawn(async () => {
                 await Task.Delay(ContinueAfterTimeInMs).ConfigureAwait(false);
                 return ExpectedResult;
             });
@@ -57,28 +59,26 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task MoveNext_ReturnsFalse()
             {
-                var iterator = new AsyncIterator<int>(ConstantAfterDelay());
+                var iterator = AsyncIterator.Create(ConstantAfterDelay());
                 var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
                 canMoveNext.Should().Be(false);
             }
 
             [Fact]
-            public async Task GetResult_Throws()
+            public async Task GetResult_Returns()
             {
-                var iterator = new AsyncIterator<int>(ConstantAfterDelay());
-
-                var result = iterator
-                    .Invoking(x => x.GetResult())
-                    .Should()
-                    .Throw<InvalidOperationException>()
-                    .WithMessage("*not finished yet*");
+                var iterator = AsyncIterator.Create(ConstantAfterDelay());
+                var asyncResult = iterator.GetResult();
+                var result = await asyncResult;
+                result.Should().Be(ExpectedResult);
             }
 
             [Fact]
             public async Task GetResultAsync_Awaits()
             {
                 var iterator = AsyncIterator.Create(ConstantAfterDelay());
-                var result = await iterator.GetResultAsync();
+                var asyncResult = await iterator.GetResultAsync();
+                var result = await asyncResult;
                 result.Should().Be(ExpectedResult);
             }
         }

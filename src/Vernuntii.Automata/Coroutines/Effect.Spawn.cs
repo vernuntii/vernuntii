@@ -56,32 +56,32 @@ partial class Effect
                     coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine>(provider);
                 }
 
-                var contextToBequest = context;
+                CoroutineContext contextToBequest = default;
                 contextToBequest.TreatAsNewChild();
-
-                Coroutine coroutineAsReplacement;
-                if (!coroutine.IsChildCoroutine) {
-                    coroutineAsReplacement = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref contextToBequest);
-                } else {
-                    coroutineAsReplacement = coroutine;
-                }
-                var coroutineAsReplacementAwaiter = coroutineAsReplacement.ConfigureAwait(false).GetAwaiter();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
+                Coroutine childCoroutine;
+                if (!coroutine.IsChildCoroutine) {
+                    childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref contextToBequest);
+                } else {
+                    childCoroutine = coroutine;
+                }
+                var childCoroutineAwaiter = childCoroutine.ConfigureAwait(false).GetAwaiter();
+
                 var intermediateCompletionSource = ValueTaskCompletionSource<object?>.RentFromCache();
-                coroutineAsReplacement._task = intermediateCompletionSource.CreateValueTask();
-                CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAsReplacementAwaiter, ref contextToBequest);
-                coroutineAsReplacementAwaiter.UnsafeOnCompleted(() => {
+                childCoroutine._task = intermediateCompletionSource.CreateValueTask();
+                CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
+                childCoroutineAwaiter.UnsafeOnCompleted(() => {
                     try {
-                        coroutineAsReplacementAwaiter.GetResult();
+                        childCoroutineAwaiter.GetResult();
                         intermediateCompletionSource.SetResult(default);
                     } catch (Exception error) {
                         intermediateCompletionSource.SetException(error);
                         throw; // Must bubble up
                     }
                 });
-                coroutineAsReplacement.MarkCoroutineAsHandled();
-                _completionSource.SetResult(coroutineAsReplacement);
+                childCoroutine.MarkCoroutineAsHandled();
+                _completionSource.SetResult(childCoroutine);
             }
         }
 
@@ -102,8 +102,9 @@ partial class Effect
                     coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine<TResult>>(provider);
                 }
 
-                var contextToBequest = context;
+                CoroutineContext contextToBequest = default;
                 contextToBequest.TreatAsNewChild();
+                CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 Coroutine<TResult> childCoroutine;
                 if (!coroutine.IsChildCoroutine) {
@@ -112,7 +113,6 @@ partial class Effect
                     childCoroutine = coroutine;
                 }
                 var childCoroutineAwaiter = childCoroutine.ConfigureAwait(false).GetAwaiter();
-                CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 var intermediateCompletionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateGenericValueTask();
@@ -129,6 +129,7 @@ partial class Effect
                 childCoroutine.MarkCoroutineAsHandled();
                 _completionSource.SetResult(childCoroutine);
             }
+
         }
     }
 }

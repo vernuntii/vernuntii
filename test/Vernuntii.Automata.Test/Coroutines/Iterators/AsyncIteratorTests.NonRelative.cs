@@ -1,17 +1,19 @@
 ﻿namespace Vernuntii.Coroutines.Iterators;
+
 partial class AsyncIteratorTests
 {
-    public class NonRelative {
-        public class Synchronous
+    public class NonRelative
+    {
+        public class ReturnSynchronously
         {
             private const int ExpectedResult = 2;
 
-            private Coroutine<int> Return() => Coroutine.FromResult(ExpectedResult);
+            private Coroutine<int> Constant() => Coroutine.FromResult(ExpectedResult);
 
             [Fact]
             public async Task MoveNext_ReturnsFalse()
             {
-                var iterator = AsyncIterator.Create(Return);
+                var iterator = AsyncIterator.Create(Constant);
                 var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
                 canMoveNext.Should().BeFalse();
             }
@@ -19,7 +21,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResult_Returns()
             {
-                var iterator = AsyncIterator.Create(Return);
+                var iterator = AsyncIterator.Create(Constant);
                 var result = iterator.GetResult();
                 result.Should().Be(ExpectedResult);
             }
@@ -27,17 +29,28 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResultAsync_Awaits()
             {
-                var iterator = AsyncIterator.Create(Return);
+                var iterator = AsyncIterator.Create(Constant);
                 var result = await iterator.GetResultAsync();
                 result.Should().Be(ExpectedResult);
             }
+
+            [Fact]
+            public async Task Throw_Fails()
+            {
+                var iterator = AsyncIterator.Create(Constant);
+                iterator
+                    .Invoking(x => x.Throw(new Exception1()))
+                    .Should()
+                    .ThrowExactly<InvalidOperationException>()
+                    .WithMessage("*not started*already finished*not suspended*");
+            }
         }
 
-        public class Asynchronous
+        public class ReturnAfterDelay
         {
             private const int ExpectedResult = 2;
 
-            private async Coroutine<int> ReturnAfterDelay()
+            private async Coroutine<int> ConstantAfterDelay()
             {
                 await Task.Delay(ContinueAfterTimeInMs).ConfigureAwait(false);
                 return ExpectedResult;
@@ -46,7 +59,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task MoveNext_ReturnsFalse()
             {
-                var iterator = new AsyncIterator<int>(ReturnAfterDelay());
+                var iterator = new AsyncIterator<int>(ConstantAfterDelay());
                 var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
                 canMoveNext.Should().Be(false);
             }
@@ -54,7 +67,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResult_Throws()
             {
-                var iterator = new AsyncIterator<int>(ReturnAfterDelay());
+                var iterator = new AsyncIterator<int>(ConstantAfterDelay());
 
                 var result = iterator
                     .Invoking(x => x.GetResult())
@@ -66,9 +79,117 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResultAsync_Awaits()
             {
-                var iterator = AsyncIterator.Create(ReturnAfterDelay());
+                var iterator = AsyncIterator.Create(ConstantAfterDelay());
                 var result = await iterator.GetResultAsync();
                 result.Should().Be(ExpectedResult);
+            }
+
+            [Fact]
+            public async Task Throw_Fails()
+            {
+                var iterator = AsyncIterator.Create(ConstantAfterDelay);
+                iterator
+                    .Invoking(x => x.Throw(new Exception1()))
+                    .Should()
+                    .ThrowExactly<InvalidOperationException>()
+                    .WithMessage("*not started*already finished*not suspended*");
+            }
+        }
+
+        public class YieldReturnSynchronously
+        {
+            private const int ExpectedResult = 2;
+
+            private async Coroutine<int> YieldConstant() => await Call(async x => x, ExpectedResult);
+
+            [Fact]
+            public async Task MoveNext_ReturnsTrue()
+            {
+                var iterator = new AsyncIterator<int>(YieldConstant());
+                var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
+                canMoveNext.Should().BeTrue();
+            }
+
+            [Fact]
+            public async Task MoveNextThenMoveNext_ReturnsFalse()
+            {
+                var iterator = new AsyncIterator<int>(YieldConstant());
+                _ = await iterator.MoveNextAsync().ConfigureAwait(false);
+                var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
+                canMoveNext.Should().BeFalse();
+            }
+
+            [Fact]
+            public async Task GetResult_Throws()
+            {
+                var iterator = new AsyncIterator<int>(YieldConstant());
+
+                var result = iterator
+                    .Invoking(x => x.GetResult())
+                    .Should()
+                    .Throw<InvalidOperationException>()
+                    .WithMessage("*not finished yet*");
+            }
+
+            [Fact]
+            public async Task GetResultAsync_Awaits()
+            {
+                var iterator = AsyncIterator.Create(YieldConstant());
+                var result = await iterator.GetResultAsync();
+                result.Should().Be(ExpectedResult);
+            }
+
+            [Fact]
+            public async Task Throw_Fails()
+            {
+                var iterator = AsyncIterator.Create(YieldConstant);
+                iterator
+                    .Invoking(x => x.Throw(new Exception1()))
+                    .Should()
+                    .ThrowExactly<InvalidOperationException>()
+                    .WithMessage("*not started*already finished*not suspended*");
+            }
+
+            [Fact]
+            public async Task MoveNextThenYieldReturnThenThenGetResult_Returns()
+            {
+                const int expectedResult = ExpectedResult + 1;
+                var iterator = new AsyncIterator<int>(YieldConstant());
+                _ = await iterator.MoveNextAsync().ConfigureAwait(false);
+                iterator.YieldReturn(expectedResult);
+                var asyncResult = iterator.GetResultAsync();
+                var result = await asyncResult;
+                result.Should().Be(expectedResult);
+            }
+
+            [Fact]
+            public async Task MoveNextThenMoveNextThenThenGetResult_Returns()
+            {
+                var iterator = new AsyncIterator<int>(YieldConstant());
+                _ = await iterator.MoveNextAsync().ConfigureAwait(false);
+                _ = await iterator.MoveNextAsync().ConfigureAwait(false);
+                var result = iterator.GetResult();
+                result.Should().Be(ExpectedResult);
+            }
+
+            [Fact]
+            public async Task MoveNextThenGetResultAsync_Awaits()
+            {
+                var iterator = AsyncIterator.Create(YieldConstant());
+                _ = await iterator.MoveNextAsync().ConfigureAwait(false);
+                var result = await iterator.GetResultAsync();
+                result.Should().Be(ExpectedResult);
+            }
+
+            [Fact]
+            public async Task MoveNextThenThrow_Succeeds()
+            {
+                var iterator = new AsyncIterator<int>(YieldConstant());
+                _ = await iterator.MoveNextAsync().ConfigureAwait(false);
+                iterator.Throw(new Exception1());
+                await iterator.Awaiting(new Func<AsyncIterator<int>, Task>(async x => await x.GetResultAsync()))
+                    .Should()
+                    .ThrowExactlyAsync<Exception1>().ConfigureAwait(false);
             }
         }
     }

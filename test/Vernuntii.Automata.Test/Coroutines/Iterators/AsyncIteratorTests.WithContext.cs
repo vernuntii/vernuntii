@@ -1,13 +1,15 @@
 ﻿namespace Vernuntii.Coroutines.Iterators;
 partial class AsyncIteratorTests
 {
-    public class Call
+    public class WithContext
     {
+        static CoroutineContext _defaultContext = new();
+
         public class ReturnSynchronously
         {
             private const int ExpectedResult = 2;
 
-            private Coroutine<int> Constant() => Call(() => Coroutine.FromResult(2));
+            private Coroutine<int> Constant() => WithContext(_defaultContext, () => Coroutine.FromResult(2));
 
             [Fact]
             public async Task MoveNext_ReturnsFalse()
@@ -49,7 +51,7 @@ partial class AsyncIteratorTests
         {
             private const int ExpectedResult = 2;
 
-            private Coroutine<int> ConstantAfterDelay() => Call(async () => {
+            private Coroutine<int> ConstantAfterDelay() => WithContext(_defaultContext, async () => {
                 await Task.Delay(ContinueAfterTimeInMs).ConfigureAwait(false);
                 return ExpectedResult;
             });
@@ -78,7 +80,8 @@ partial class AsyncIteratorTests
             public async Task GetResultAsync_Awaits()
             {
                 var iterator = AsyncIterator.Create(ConstantAfterDelay());
-                var result = await iterator.GetResultAsync();
+                var asyncResult = iterator.GetResultAsync();
+                var result = await asyncResult;
                 result.Should().Be(ExpectedResult);
             }
         }

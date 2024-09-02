@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines.Iterators;
 
-internal struct AsyncIteratorCore<TReturnResult>
+internal class AsyncIteratorCore<TReturnResult>
 {
     private readonly ICoroutineHolder _coroutineHolder;
     private AsyncIteratorContext? _iteratorContext;
@@ -53,6 +53,7 @@ internal struct AsyncIteratorCore<TReturnResult>
         isCoroutineCompleted = coroutineAwaiter.IsCompleted;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private AsyncIteratorContext GetIteratorContext(out bool isCoroutineCompleted)
     {
         var iteratorContext = _iteratorContext;
@@ -67,9 +68,11 @@ internal struct AsyncIteratorCore<TReturnResult>
         coroutineAwaiter = _coroutineHolder.Coroutine.GetAwaiter();
         isCoroutineCompleted = coroutineAwaiter.IsCompleted;
         _iteratorContext = iteratorContext;
+
         if (!isCoroutineCompleted) {
             BequestCoroutineContext(iteratorContext, iteratorContext._coroutineContextService, out isCoroutineCompleted);
         }
+
         return iteratorContext;
     }
 
@@ -130,7 +133,22 @@ internal struct AsyncIteratorCore<TReturnResult>
         return false;
     }
 
-    public void YieldReturn<TYieldResult>(TYieldResult result) => throw new NotImplementedException();
+    public void YieldReturn<TYieldResult>(TYieldResult result)
+    {
+        if (_nextOperation is { } nextOperation) {
+            _nextOperation = null;
+            var iteratorContext = GetIteratorContext(out _);
+
+            if ((nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
+                iteratorContext._coroutineContextService.RequireAwaiterCompletionNotifier();
+                Debug.Assert(nextOperation.ArgumentCompletionSource is not null);
+                nextOperation.ArgumentCompletionSource.SetResult(result);
+                iteratorContext._coroutineStateMachineBox?.MoveNext();
+            }
+        } else {
+            throw Exceptions.NotStartedAlreadyFinishedNotSuspended();
+        }
+    }
 
     public void Return(TReturnResult result)
     {
@@ -151,7 +169,7 @@ internal struct AsyncIteratorCore<TReturnResult>
                 iteratorContext._coroutineStateMachineBox!.SetAsyncIteratorCompletionSource(null);
             }
         } else {
-            throw new InvalidOperationException("The iterator has not started or has already finished");
+            throw Exceptions.NotStartedAlreadyFinishedNotSuspended();
         }
     }
 
@@ -164,11 +182,11 @@ internal struct AsyncIteratorCore<TReturnResult>
             if ((nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
                 iteratorContext._coroutineContextService.RequireAwaiterCompletionNotifier();
                 Debug.Assert(nextOperation.ArgumentCompletionSource is not null);
-                nextOperation.ArgumentCompletionSource.SetException(new CancellationException());
+                nextOperation.ArgumentCompletionSource.SetException(e);
                 iteratorContext._coroutineStateMachineBox?.MoveNext();
             }
         } else {
-            throw new InvalidOperationException("The iterator has not started or has already finished");
+            throw Exceptions.NotStartedAlreadyFinishedNotSuspended();
         }
     }
 
@@ -241,6 +259,9 @@ internal struct AsyncIteratorCore<TReturnResult>
 
         public static InvalidOperationException ExpectedSuppliedAwaiterCompletionNotifier() =>
             new("Altough the underlying coroutine yielded an argument successfully, the coroutine misbehaved fatally by not supplying the next awaiter completion notifier");
+
+        public static InvalidOperationException NotStartedAlreadyFinishedNotSuspended() =>
+            new("The iterator has not started, has already finished or is not suspended");
     }
 
     private class AsyncIteratorContext

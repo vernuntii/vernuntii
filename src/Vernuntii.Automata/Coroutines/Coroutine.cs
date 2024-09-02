@@ -59,19 +59,19 @@ public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
         _builder = builder;
     }
 
-    void IChildCoroutine.InheritCoroutineContext(in CoroutineContext context)
+    readonly void IChildCoroutine.InheritCoroutineContext(in CoroutineContext context)
     {
         Debug.Assert(_builder != null);
         _builder.InheritCoroutineContext(in context);
     }
 
-    void IChildCoroutine.StartCoroutine()
+    readonly void IChildCoroutine.StartCoroutine()
     {
         Debug.Assert(_builder != null);
         _builder.StartCoroutine();
     }
 
-    void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
+    readonly void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
         Debug.Assert(_argumentReceiverDelegate is not null);
         _argumentReceiverDelegate(ref argumentReceiver);

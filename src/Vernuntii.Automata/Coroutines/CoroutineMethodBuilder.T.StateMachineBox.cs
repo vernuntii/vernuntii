@@ -177,7 +177,7 @@ partial struct CoroutineMethodBuilder<TResult>
         /// <summary>A delegate to the <see cref="MoveNext()"/> method.</summary>
         public Action MoveNextAction => _moveNextAction ??= new Action(MoveNext);
 
-        ref CoroutineContext IAsyncIteratorStateMachineBox<TResult>.CoroutineContext => ref _coroutineContext;
+        ref CoroutineContext ICoroutineStateMachineBox.CoroutineContext => ref _coroutineContext;
 
         private void Initialize()
         {

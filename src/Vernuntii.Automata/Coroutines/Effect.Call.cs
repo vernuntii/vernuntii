@@ -55,9 +55,11 @@ partial class Effect
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
                 var completionSource = _completionSource;
-                var contextToBequest = context;
+
+                CoroutineContext contextToBequest = default;
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
+
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 coroutineAwaiter.DelegateCompletion(completionSource);
             }
@@ -81,9 +83,11 @@ partial class Effect
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
                 var completionSource = _completionSource;
+
                 CoroutineContext contextToBequest = default;
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
+
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 coroutineAwaiter.DelegateCompletion(completionSource);
             }
