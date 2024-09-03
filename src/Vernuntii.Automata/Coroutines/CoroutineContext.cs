@@ -1,7 +1,5 @@
-﻿using System.Collections.Immutable;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -9,7 +7,7 @@ delegate void BequestContextDelegate(ref CoroutineContext context, in CoroutineC
 
 public struct CoroutineContext : ICoroutinePreprocessor
 {
-    private static readonly ImmutableDictionary<Key, object> s_emptyKeyedServices = ImmutableDictionary<Key, object>.Empty;
+    private static readonly CoroutineContextServices s_emptyKeyedServices = new CoroutineContextServices();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void InheritOrBequestCoroutineContext(ref CoroutineContext context, in CoroutineContext contextToBequest)
@@ -23,8 +21,8 @@ public struct CoroutineContext : ICoroutinePreprocessor
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static CoroutineContext CreateInternal(
-        ImmutableDictionary<Key, object>? keyedServices = null,
-        ImmutableDictionary<Key, object>? keyedServicesToBequest = null)
+        CoroutineContextServices? keyedServices = null,
+        CoroutineContextServices? keyedServicesToBequest = null)
     {
         var context = new CoroutineContext();
         context._keyedServices = keyedServices;
@@ -33,8 +31,8 @@ public struct CoroutineContext : ICoroutinePreprocessor
     }
 
     internal ICoroutineResultStateMachineBox? _resultStateMachine;
-    internal ImmutableDictionary<Key, object>? _keyedServices;
-    internal ImmutableDictionary<Key, object>? _keyedServicesToBequest;
+    internal CoroutineContextServices? _keyedServices;
+    internal CoroutineContextServices? _keyedServicesToBequest;
     internal CoroutineContextBequesterOrigin _bequesterOrigin;
     internal BequestContextDelegate? _bequestContext;
     internal bool _isAsyncIteratorSupplier; // Enables fast async iterator check-ups
@@ -44,14 +42,14 @@ public struct CoroutineContext : ICoroutinePreprocessor
 
     internal ICoroutineResultStateMachineBox ResultStateMachine => _resultStateMachine ??= CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox.s_synchronousSuccessSentinel;
 
-    public ImmutableDictionary<Key, object> KeyedServices => _keyedServices ??= s_emptyKeyedServices;
-    public ImmutableDictionary<Key, object> KeyedServicesToBequest => _keyedServicesToBequest ??= s_emptyKeyedServices;
+    public CoroutineContextServices KeyedServices => _keyedServices ??= s_emptyKeyedServices;
+    public CoroutineContextServices KeyedServicesToBequest => _keyedServicesToBequest ??= s_emptyKeyedServices;
     public readonly CoroutineContextBequesterOrigin BequesterOrigin => _bequesterOrigin;
     public readonly bool IsAsyncIteratorSupplier => _isAsyncIteratorSupplier;
 
     internal CoroutineScope Scope {
         get {
-            Debug.Assert(KeyedServicesToBequest.ContainsKey(CoroutineScope.s_coroutineScopeKey));
+            Debug.Assert(KeyedServicesToBequest.Contains(CoroutineScope.s_coroutineScopeKey));
             return (CoroutineScope)KeyedServicesToBequest[CoroutineScope.s_coroutineScopeKey];
         }
     }
@@ -106,9 +104,11 @@ public struct CoroutineContext : ICoroutinePreprocessor
     {
 #if DEBUG
         Scope.OnCoroutineCompleted();
+        _identifier = default;
 #endif
-        _keyedServicesToBequest = null!;
-        _keyedServices = null!;
-        _resultStateMachine = null!;
+        _keyedServicesToBequest = default;
+        _keyedServices = default;
+        _resultStateMachine = default;
+        _isAsyncIteratorSupplier = default;
     }
 }

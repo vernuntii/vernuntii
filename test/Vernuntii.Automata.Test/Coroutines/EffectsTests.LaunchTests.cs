@@ -11,7 +11,7 @@ partial class EffectsTests
             const int expectedResult = 1;
             var awaitableResult = await Coroutine.Start(() => Launch(async () => expectedResult)).ConfigureAwait(false);
             var result = await awaitableResult;
-            Assert.Equal(expectedResult, result);
+            result.Should().Be(expectedResult);
         }
 
         [UIFact]
@@ -20,8 +20,8 @@ partial class EffectsTests
             int[] expectedRecords = [1, 2];
             var records = new List<int>();
 
-            await Coroutine.Start(() => Call(async () => {
-                await Launch(async () => {
+            var asyncResult = Coroutine.Start(() => Call(async () => {
+                var launch = await Launch(async () => {
                     await Task.Yield();
                     records.Add(2);
                 }).ConfigureAwait(false);
@@ -29,7 +29,9 @@ partial class EffectsTests
                 records.Add(1);
             })).ConfigureAwait(false);
 
-            Assert.Equal(expectedRecords, records);
+            await asyncResult;
+
+            records.Should().Equal(expectedRecords);
         }
 
         [Fact]
@@ -47,7 +49,7 @@ partial class EffectsTests
                 return launch;
             })).ConfigureAwait(false);
 
-            Assert.Equal(expectedRecords, records);
+            records.Should().Equal(expectedRecords);
         }
     }
 }

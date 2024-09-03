@@ -1,6 +1,8 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal interface IClosure
+public interface IClosure
 {
+    int Length { get; }
+
     T InvokeDelegateWithClosure<T>(Delegate delegateReference);
 }

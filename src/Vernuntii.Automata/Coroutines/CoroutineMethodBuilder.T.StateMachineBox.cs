@@ -14,6 +14,9 @@ partial struct CoroutineMethodBuilder<TResult>
     {
         internal readonly static CoroutineStateMachineBox s_synchronousSuccessSentinel = new SynchronousSuccessSentinelCoroutineStateMachineBox();
 
+        /// <summary>Gets the current version number of the box.</summary>
+        public short Version => _valueTaskSource.Version;
+
         /// <summary>A delegate to the MoveNext method.</summary>
         protected Action? _moveNextAction;
 
@@ -46,6 +49,20 @@ partial struct CoroutineMethodBuilder<TResult>
 
         void ICoroutineResultStateMachineBox.CallbackWhenForkCompletedUnsafely<TAwaiter>(ref TAwaiter awaiter, Action continuation) =>
             throw Exceptions.ImplementedByDerivedType();
+
+        /// <summary>Gets the status of the box.</summary>
+        public ValueTaskSourceStatus GetStatus(short token) => _valueTaskSource.GetStatus(token);
+
+        /// <summary>Schedules the continuation action for this box.</summary>
+        public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) =>
+            _valueTaskSource.OnCompleted(continuation, state, token, flags);
+
+        ///// <summary>Gets the status of the box.</summary>
+        //public ValueTaskSourceStatus GetStatus(short token)
+        //{
+        //    //return _valueTaskSource.GetStatus(token);
+        //    return ValueTaskSourceStatus.Pending;
+        //}
 
         protected void SetExceptionCore(Exception error)
         {
@@ -90,23 +107,6 @@ partial struct CoroutineMethodBuilder<TResult>
                 SetExceptionCore(error);
             }
         }
-
-        /// <summary>Gets the status of the box.</summary>
-        public ValueTaskSourceStatus GetStatus(short token) => _valueTaskSource.GetStatus(token);
-
-        ///// <summary>Gets the status of the box.</summary>
-        //public ValueTaskSourceStatus GetStatus(short token)
-        //{
-        //    //return _valueTaskSource.GetStatus(token);
-        //    return ValueTaskSourceStatus.Pending;
-        //}
-
-        /// <summary>Schedules the continuation action for this box.</summary>
-        public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) =>
-            _valueTaskSource.OnCompleted(continuation, state, token, flags);
-
-        /// <summary>Gets the current version number of the box.</summary>
-        public short Version => _valueTaskSource.Version;
 
         /// <summary>Implemented by derived type.</summary>
         TResult IValueTaskSource<TResult>.GetResult(short token) => throw Exceptions.ImplementedByDerivedType();
@@ -301,7 +301,7 @@ partial struct CoroutineMethodBuilder<TResult>
         /// <summary>Calls MoveNext on <see cref="StateMachine"/></summary>
         public void MoveNext()
         {
-            ExecutionContext? context = _executionContext;
+            var context = _executionContext;
 
             if (context is null) {
                 Debug.Assert(StateMachine is not null, $"Null {nameof(StateMachine)}");

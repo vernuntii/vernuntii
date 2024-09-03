@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Vernuntii.Coroutines;
@@ -18,6 +20,7 @@ internal enum KeyFlags : byte
 // 18.-19. (2 bytes) -> argument
 // 6.-19. (14 bytes) -> service
 [StructLayout(LayoutKind.Explicit, Pack = 1)]
+[DebuggerDisplay($"{{{nameof(ToString)}(),nq}}")]
 public struct Key : IKey
 {
     internal const byte CurrentSchemaVersion = 1;
@@ -98,19 +101,21 @@ public struct Key : IKey
 
     internal unsafe bool SequenceEqual(in Key other)
     {
-        fixed (Key* thisPointer = &this) {
-            fixed (Key* otherPointer = &other) {
-                var thisSpan = new Span<byte>(thisPointer, KeyLength);
-                var otherSpan = new Span<byte>(otherPointer, KeyLength);
-                return thisSpan.SequenceEqual(otherSpan);
+        fixed (byte* thisPointer = &Unsafe.As<Key, byte>(ref this)) {
+            fixed (byte* otherPointer = &Unsafe.As<Key, byte>(ref Unsafe.AsRef(in other))) {
+                for (var i = 0; i < KeyLength; i++) {
+                    if (thisPointer[i] != otherPointer[i])
+                        return false;
+                }
             }
         }
+
+        return true;
     }
 
     public override unsafe string ToString()
     {
-        var isService = (Flags & (byte)KeyFlags.Service) != 0 ||
-            (Flags & (byte)KeyFlags.ContextService) != 0;
+        var isService = (Flags & (byte)(KeyFlags.Service | KeyFlags.ContextService)) != 0;
 
         var sb = new StringBuilder();
         sb.Append("Key{v");
@@ -118,12 +123,14 @@ public struct Key : IKey
         sb.Append('/');
 
         if (isService) {
-            fixed (byte* service = _service) {
-                sb.Append(Encoding.ASCII.GetString(service, ServiceLength).TrimEnd('\0'));
+            fixed (byte* servicePointer = _service) {
+                var serviceSpan = new Span<byte>(servicePointer, ServiceLength);
+                sb.Append(Encoding.ASCII.GetString(serviceSpan).Replace("\0", "\\0"));
             }
         } else {
-            fixed (byte* scope = _scope) {
-                sb.Append(Encoding.ASCII.GetString(scope, ScopeLength).TrimEnd('\0'));
+            fixed (byte* scopePointer = _scope) {
+                var scopeSpan = new Span<byte>(scopePointer, ServiceLength);
+                sb.Append(Encoding.ASCII.GetString(scopeSpan).Replace("\0", "\\0"));
                 sb.Append('/');
                 sb.Append(_argument);
             }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Vernuntii.Collections;
 
 namespace Vernuntii.Coroutines;
 
@@ -38,13 +39,53 @@ partial struct Coroutine
     public static Coroutine<TResult> FromException<TResult>(Exception exception) =>
         new Coroutine<TResult>(new ValueTask<TResult>(Task.FromException<TResult>(exception)));
 
+    private static void StartInternal<TCoroutine>(ref TCoroutine coroutine) where TCoroutine : IRelativeCoroutine
+    {
+        var scope = new CoroutineScope();
+        var context = new CoroutineContext();
+        context._keyedServicesToBequest = CoroutineContextServices.CreateRange(1, scope, static (x, y) => x.OverwriteInternal(new(CoroutineScope.s_coroutineScopeKey, y)));
+        CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref context);
+    }
+
+    //public static Coroutine Start(Func<Coroutine> provider)
+    //{
+    //    ArgumentNullException.ThrowIfNull(nameof(provider));
+    //    var coroutine = provider();
+    //    StartInternal(ref coroutine);
+    //    return coroutine;
+    //}
+
+    public static Coroutine Start<TState>(Func<TState, Coroutine> provider, TState state)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(provider));
+        var coroutine = provider(state);
+        StartInternal(ref coroutine);
+        return coroutine;
+    }
+
+    //public static Coroutine<T> Start<T>(Func<Coroutine<T>> provider)
+    //{
+    //    ArgumentNullException.ThrowIfNull(nameof(provider));
+    //    var coroutine = provider();
+    //    StartInternal(ref coroutine);
+    //    return coroutine;
+    //}
+
+    public static Coroutine<T> Start<T, TState>(Func<TState, Coroutine<T>> provider, TState state)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(provider));
+        var coroutine = provider(state);
+        StartInternal(ref coroutine);
+        return coroutine;
+    }
+
     public static Coroutine Start(Func<Coroutine> provider)
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         var coroutine = provider();
         var scope = new CoroutineScope();
         var context = new CoroutineContext();
-        context._keyedServicesToBequest = ImmutableDictionary.CreateRange<Key, object>([new(CoroutineScope.s_coroutineScopeKey, scope)]);
+        context._keyedServicesToBequest = CoroutineContextServices.CreateRange(1, scope, static (x, y) => x.OverwriteInternal(new(CoroutineScope.s_coroutineScopeKey, y)));
         CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref context);
         return coroutine;
     }
@@ -55,7 +96,7 @@ partial struct Coroutine
         var coroutine = provider();
         var scope = new CoroutineScope();
         var context = new CoroutineContext();
-        context._keyedServicesToBequest = ImmutableDictionary.CreateRange<Key, object>([new(CoroutineScope.s_coroutineScopeKey, scope)]);
+        context._keyedServicesToBequest = CoroutineContextServices.CreateRange(1, scope, static (x, y) => x.OverwriteInternal(new(CoroutineScope.s_coroutineScopeKey, y)));
         CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref context);
         return coroutine;
     }

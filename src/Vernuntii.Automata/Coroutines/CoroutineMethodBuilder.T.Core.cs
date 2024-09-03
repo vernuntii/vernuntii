@@ -18,7 +18,7 @@ partial struct CoroutineMethodBuilder<TResult>
     internal static ICoroutineStateMachineBox GetStateMachineBox<TStateMachine>(ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineBox? stateMachineBox)
         where TStateMachine : IAsyncStateMachine
     {
-        ExecutionContext? currentContext = ExecutionContext.Capture();
+        var currentContext = ExecutionContext.Capture();
 
         // Check first for the most common case: not the first yield in an async method.
         // In this case, the first yield will have already "boxed" the state machine in
@@ -86,7 +86,7 @@ partial struct CoroutineMethodBuilder<TResult>
 
         if (context.IsAsyncIteratorSupplier) {
             var asyncIteratorContextService = context.GetAsyncIteratorContextService();
-            asyncIteratorContextService.SupplyAwaiterCompletionNotifier(ref awaiter);
+            asyncIteratorContextService.CurrentOperation.SupplyAwaiterCompletionNotifier(ref awaiter);
         } else {
             var typedStateMachineBox = GetStateMachineBox(ref stateMachine, ref stateMachineBox);
             try {
@@ -107,7 +107,7 @@ partial struct CoroutineMethodBuilder<TResult>
 
         if (context.IsAsyncIteratorSupplier) {
             var asyncIteratorContextService = context.GetAsyncIteratorContextService();
-            asyncIteratorContextService.SupplyAwaiterCriticalCompletionNotifier(ref awaiter);
+            asyncIteratorContextService.CurrentOperation.SupplyAwaiterCriticalCompletionNotifier(ref awaiter);
         } else {
             var typedStateMachineBox = GetStateMachineBox(ref stateMachine, ref stateMachineBox);
             try {

@@ -42,19 +42,19 @@ partial class Effect
             IClosure? providerClosure,
             ValueTaskCompletionSource<Nothing> completionSource) : ICallableArgument
         {
-            private readonly ValueTaskCompletionSource<Nothing> _completionSource = completionSource;
+            public Delegate Provider { get; } = provider;
+            public IClosure? ProviderClosure { get; } = providerClosure;
 
-            void ICallableArgument.Callback(in CoroutineContext context)
+            readonly void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine coroutine;
-                if (providerClosure is null) {
-                    var typedProvider = Unsafe.As<Func<Coroutine>>(provider);
+                if (ProviderClosure is null) {
+                    var typedProvider = Unsafe.As<Func<Coroutine>>(Provider);
                     coroutine = typedProvider();
                 } else {
-                    coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine>(provider);
+                    coroutine = ProviderClosure.InvokeDelegateWithClosure<Coroutine>(Provider);
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
-                var completionSource = _completionSource;
 
                 CoroutineContext contextToBequest = default;
                 contextToBequest.TreatAsNewSibling();
@@ -65,31 +65,40 @@ partial class Effect
             }
         }
 
-        internal struct CallArgument<TResult>(
-            Delegate provider,
-            IClosure? providerClosure,
-            ValueTaskCompletionSource<TResult> completionSource) : ICallableArgument
+        public struct CallArgument<TResult> : ICallableArgument
         {
-            private readonly ValueTaskCompletionSource<TResult> _completionSource = completionSource;
+            private readonly ValueTaskCompletionSource<TResult> _completionSource;
 
-            void ICallableArgument.Callback(in CoroutineContext context)
+            public Delegate Provider { get; }
+            public IClosure? ProviderClosure { get; }
+
+            internal CallArgument(
+                Delegate provider,
+                IClosure? providerClosure,
+                ValueTaskCompletionSource<TResult> completionSource)
+            {
+                _completionSource = completionSource;
+                Provider = provider;
+                ProviderClosure = providerClosure;
+            }
+
+            readonly void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine<TResult> coroutine;
-                if (providerClosure is null) {
-                    var typedProvider = Unsafe.As<Func<Coroutine<TResult>>>(provider);
+                if (ProviderClosure is null) {
+                    var typedProvider = Unsafe.As<Func<Coroutine<TResult>>>(Provider);
                     coroutine = typedProvider();
                 } else {
-                    coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine<TResult>>(provider);
+                    coroutine = ProviderClosure.InvokeDelegateWithClosure<Coroutine<TResult>>(Provider);
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
-                var completionSource = _completionSource;
 
                 CoroutineContext contextToBequest = default;
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                coroutineAwaiter.DelegateCompletion(completionSource);
+                coroutineAwaiter.DelegateCompletion(_completionSource);
             }
         }
     }

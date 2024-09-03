@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -92,10 +93,10 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
 
     public readonly CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
 
-    public readonly ConfiguredAwaitableCoroutine<TResult> ConfigureAwait(bool continueOnCapturedContext) =>
-        new ConfiguredAwaitableCoroutine<TResult>(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
+    public readonly ConfiguredCoroutineAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) =>
+        new ConfiguredCoroutineAwaitable<TResult>(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
 
-    internal readonly Task AsTask() => _task.AsTask();
+    public AsyncIterator<TResult> GetAsyncIterator() => new(this);
 
     public readonly bool Equals(Coroutine<TResult> other) => CoroutineEqualityComparer.Equals(in this, in other);
 
@@ -155,13 +156,13 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
     }
 }
 
-public readonly struct ConfiguredAwaitableCoroutine<TResult>
+public readonly struct ConfiguredCoroutineAwaitable<TResult>
 {
     private readonly ConfiguredValueTaskAwaitable<TResult> _task;
     private readonly ICoroutineMethodBuilderBox? _builder;
     private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-    internal ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable<TResult> task, in ICoroutineMethodBuilderBox? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
+    internal ConfiguredCoroutineAwaitable(in ConfiguredValueTaskAwaitable<TResult> task, in ICoroutineMethodBuilderBox? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
     {
         _task = task;
         _builder = builder;

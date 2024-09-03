@@ -3,11 +3,52 @@ using Vernuntii.Reactive.Coroutines;
 using Vernuntii.Reactive.Coroutines.PingPong;
 using Vernuntii.Reactive.Coroutines.AsyncEffects;
 using Vernuntii.Coroutines;
+using System.Runtime.CompilerServices;
 
 internal class Program
 {
     private static async Task Main(string[] args)
     {
+        async Task CoroutineLoop(int runs = 99999*4)
+        {
+            var list = new List<int>();
+            await Vernuntii.Coroutines.Coroutine.Start(static x => Generator(x.runs, x.list), (runs, list));
+
+            [MethodImpl(MethodImplOptions.NoOptimization)]
+            static async Vernuntii.Coroutines.Coroutine Generator(int runs, List<int> list)
+            {
+                var run = runs;
+                while (run-- > 0) {
+                    list.Add(await Call(static async x => {
+                        await Task.Yield();
+                        return x;
+                    }, int.MaxValue));
+                }
+            }
+        }
+
+        async Task AsyncIterator(int runs = 99999)
+        {
+            var generator = Generator(runs).GetAsyncIterator();
+
+            while (await generator.MoveNextAsync()) {
+                _ = generator.Current;
+            }
+
+            [MethodImpl(MethodImplOptions.NoOptimization)]
+            static async Vernuntii.Coroutines.Coroutine Generator(int runs)
+            {
+                var run = runs;
+                while (run-- > 0) {
+                    await Call(async x => x, int.MaxValue);
+                    await Task.Yield();
+                }
+            }
+        }
+
+        await AsyncIterator();
+        return;
+
         var t = CoroutineScope.s_coroutineScopeKey.ToString();
         await CoroutineTests.HandleAsnyc();
         Environment.Exit(0);

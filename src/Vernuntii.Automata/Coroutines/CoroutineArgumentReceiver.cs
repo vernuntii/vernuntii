@@ -19,7 +19,7 @@ public ref struct CoroutineArgumentReceiver
     {
         if (_context.IsAsyncIteratorSupplier) {
             var iteratorContextService = _context.GetAsyncIteratorContextService();
-            iteratorContextService.SupplyArgument(argumentKey, argument, completionSource);
+            iteratorContextService.CurrentOperation.SupplyArgument(argumentKey, argument, completionSource);
         } else {
             argument.Callback(in _context);
         }

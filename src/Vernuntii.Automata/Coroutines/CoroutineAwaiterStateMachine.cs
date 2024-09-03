@@ -15,11 +15,11 @@ internal struct CoroutineAwaiterMethodBuilder : ICoroutineAwaiterMethodBuilder
 {
     public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-    public readonly ConfiguredAwaitableCoroutine.ConfiguredCoroutineAwaiter _awaiter;
+    public readonly ConfiguredCoroutineAwaitable.ConfiguredCoroutineAwaiter _awaiter;
     public readonly CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>> _stateMachineBox;
 
     public CoroutineAwaiterMethodBuilder(
-        in ConfiguredAwaitableCoroutine.ConfiguredCoroutineAwaiter awaiter,
+        in ConfiguredCoroutineAwaitable.ConfiguredCoroutineAwaiter awaiter,
         CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>> stateMachineBox)
     {
         _awaiter = awaiter;
@@ -39,12 +39,12 @@ internal struct CoroutineAwaiterMethodBuilder<T> : ICoroutineAwaiterMethodBuilde
 {
     public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-    private readonly ConfiguredAwaitableCoroutine<T>.ConfiguredCoroutineAwaiter _awaiter;
+    private readonly ConfiguredCoroutineAwaitable<T>.ConfiguredCoroutineAwaiter _awaiter;
     private readonly CoroutineMethodBuilder<T>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<T>>> _stateMachineBox;
     private T _result;
 
     public CoroutineAwaiterMethodBuilder(
-        in ConfiguredAwaitableCoroutine<T>.ConfiguredCoroutineAwaiter awaiter,
+        in ConfiguredCoroutineAwaitable<T>.ConfiguredCoroutineAwaiter awaiter,
         CoroutineMethodBuilder<T>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<T>>> stateMachineBox)
     {
         _awaiter = awaiter;

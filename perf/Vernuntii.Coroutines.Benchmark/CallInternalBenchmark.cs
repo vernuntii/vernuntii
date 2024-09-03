@@ -8,6 +8,7 @@ using BenchmarkDotNet.Attributes;
 namespace Vernuntii.Coroutines.Benchmark
 {
     [MemoryDiagnoser]
+    [ShortRunJob]
     public class CallInternalBenchmark
     {
         public class ObjectPool<T> where T : class, new()

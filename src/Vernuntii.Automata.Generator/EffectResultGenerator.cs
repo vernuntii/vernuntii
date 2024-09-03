@@ -91,8 +91,6 @@ public class EffectResultGenerator : IIncrementalGenerator
 
         // TODO: Implement anti duplication mechanism when same work context type in parent node
 
-        context.RegisterPostInitializationOutput
-
         context.RegisterSourceOutput(invocations, (ctx, src) => {
             var workClass = src.WorkContextType.Name;
 

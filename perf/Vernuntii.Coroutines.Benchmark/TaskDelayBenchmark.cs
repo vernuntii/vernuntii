@@ -4,6 +4,7 @@ using BenchmarkDotNet.Attributes;
 namespace Vernuntii.Coroutines.Benchmark
 {
     [MemoryDiagnoser]
+    [ShortRunJob]
     public class TaskDelayBenchmark
     {
         [Benchmark]

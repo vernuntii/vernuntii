@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -85,8 +86,10 @@ public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
 
     public CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
 
-    public ConfiguredAwaitableCoroutine ConfigureAwait(bool continueOnCapturedContext) =>
-        new ConfiguredAwaitableCoroutine(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
+    public ConfiguredCoroutineAwaitable ConfigureAwait(bool continueOnCapturedContext) =>
+        new ConfiguredCoroutineAwaitable(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
+
+    public AsyncIterator GetAsyncIterator() => new(this);
 
     public readonly bool Equals(Coroutine other) => CoroutineEqualityComparer.Equals(in this, in other);
 
@@ -153,13 +156,13 @@ public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
     }
 }
 
-public readonly struct ConfiguredAwaitableCoroutine
+public readonly struct ConfiguredCoroutineAwaitable
 {
     private readonly ConfiguredValueTaskAwaitable _task;
     private readonly ICoroutineMethodBuilderBox? _builder;
     private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
 
-    internal ConfiguredAwaitableCoroutine(in ConfiguredValueTaskAwaitable task, ICoroutineMethodBuilderBox? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
+    internal ConfiguredCoroutineAwaitable(in ConfiguredValueTaskAwaitable task, ICoroutineMethodBuilderBox? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
     {
         _task = task;
         _builder = builder;

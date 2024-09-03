@@ -1,5 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <!--<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />-->
+﻿<Project>
+  <!--<Project Sdk="Microsoft.NET.Sdk">-->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -29,13 +30,13 @@
     <None Include="**/*.csx" />
   </ItemGroup>
 
-  <!--<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />-->
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
-  <!--<Target Name="DotNetToolRestore">
+  <Target Name="DotNetToolRestore">
     <Exec Command="dotnet tool restore" />
-  </Target>-->
+  </Target>
 
-  <!--<PropertyGroup>
+  <PropertyGroup>
     <BuildDependsOn>
       GenerateClosureClasses;
       GenerateEffectCallExtensions;
@@ -43,27 +44,51 @@
       GenerateEffectSpawnExtensions;
       GenerateEffectWithContextExtensions;
       $(BuildDependsOn)</BuildDependsOn>
-  </PropertyGroup>-->
+  </PropertyGroup>
 
-
-  <!--<Target Name="GenerateClosureClasses" DependsOnTargets="DotNetToolRestore">
+  <ItemGroup>
+    <GenerateClosureScript Include="Coroutines/Closure.csx" />
+    <GenerateClosureCSFile Include="Coroutines/Closure.g.cs" />
+  </ItemGroup>
+  
+  <Target Name="GenerateClosureClasses" DependsOnTargets="DotNetToolRestore" Inputs="@(GenerateClosureScript)" Outputs="@(GenerateClosureCSFile)">
     <Exec Command="dotnet tool run dotnet-script Closure.csx" WorkingDirectory="Coroutines" />
   </Target>
 
-  <Target Name="GenerateEffectCallExtensions" DependsOnTargets="DotNetToolRestore">
+  <ItemGroup>
+    <GenerateCallScript Include="Coroutines/Call.csx" />
+    <GenerateCallCSFile Include="Coroutines/Call.g.cs" />
+  </ItemGroup>
+
+  <Target Name="GenerateEffectCallExtensions" DependsOnTargets="DotNetToolRestore" Inputs="@(GenerateCallScript)" Outputs="@(GenerateCallCSFile)">
     <Exec Command="dotnet tool run dotnet-script Effect.Call.csx" WorkingDirectory="Coroutines" />
   </Target>
 
-  <Target Name="GenerateEffectLaunchExtensions" DependsOnTargets="DotNetToolRestore">
+  <ItemGroup>
+    <GenerateLaunchScript Include="Coroutines/Launch.csx" />
+    <GenerateLaunchCSFile Include="Coroutines/Launch.g.cs" />
+  </ItemGroup>
+
+  <Target Name="GenerateEffectLaunchExtensions" DependsOnTargets="DotNetToolRestore" Inputs="@(GenerateLaunchScript)" Outputs="@(GenerateLaunchCSFile)">
     <Exec Command="dotnet tool run dotnet-script Effect.Launch.csx" WorkingDirectory="Coroutines" />
   </Target>
 
-  <Target Name="GenerateEffectSpawnExtensions" DependsOnTargets="DotNetToolRestore">
+  <ItemGroup>
+    <GenerateSpawnScript Include="Coroutines/Spawn.csx" />
+    <GenerateSpawnCSFile Include="Coroutines/Spawn.g.cs" />
+  </ItemGroup>
+
+  <Target Name="GenerateEffectSpawnExtensions" DependsOnTargets="DotNetToolRestore" Inputs="@(GenerateSpawnScript)" Outputs="@(GenerateSpawnCSFile)">
     <Exec Command="dotnet tool run dotnet-script Effect.Spawn.csx" WorkingDirectory="Coroutines" />
   </Target>
 
-  <Target Name="GenerateEffectWithContextExtensions" DependsOnTargets="DotNetToolRestore">
+  <ItemGroup>
+    <GenerateWithContextScript Include="Coroutines/WithContext.csx" />
+    <GenerateWithContextCSFile Include="Coroutines/WithContext.g.cs" />
+  </ItemGroup>
+
+  <Target Name="GenerateEffectWithContextExtensions" DependsOnTargets="DotNetToolRestore" Inputs="@(GenerateWithContextScript)" Outputs="@(GenerateWithContextCSFile)">
     <Exec Command="dotnet tool run dotnet-script Effect.WithContext.csx" WorkingDirectory="Coroutines" />
-  </Target>-->
+  </Target>
 
 </Project>

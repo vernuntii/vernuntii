@@ -3,7 +3,7 @@ using System.IO;
 
 var (FileName, FileContent) = GenerateClosureClass(1, 16);
 File.WriteAllText(FileName, FileContent);
-
+ 
 static (string FileName, string FileContent) GenerateClosureClass(int from, int to)
 {
     var sb = new StringBuilder();
@@ -23,6 +23,8 @@ static (string FileName, string FileContent) GenerateClosureClass(int from, int 
         sb.AppendLine($$"""
                     public sealed record Closure<{{genericParameters}}>({{parameters}}) : IClosure
                     {
+                        public int Length => {{count}};
+
                         TResult IClosure.InvokeDelegateWithClosure<TResult>(Delegate delegateToInvoke)
                         {
                             return Unsafe.As<Func<{{genericParameters}},TResult>>(delegateToInvoke).Invoke({{arguments}});
