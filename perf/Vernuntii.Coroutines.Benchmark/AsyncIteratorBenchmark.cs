@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 
@@ -18,17 +17,15 @@ namespace Vernuntii.Coroutines.Benchmark
         [Arguments(RunLess)]
         [Arguments(RunMore)]
         [Arguments(RunMost)]
-        [MethodImpl(MethodImplOptions.NoOptimization)]
         public async Task AsyncIterator(int runs)
         {
             var generator = Generator(runs).GetAsyncIterator();
+            var results = new List<int>();
 
             while (await generator.MoveNextAsync()) {
-                //_ =  ((Closure<int>)((Arguments.CallArgument<int>)generator.Current).ProviderClosure).Value1;
-                _ = generator.Current;
+                results.Add(((Arguments.CallArgument<int, int>)generator.Current).Closure);
             }
 
-            [MethodImpl(MethodImplOptions.NoOptimization)]
             static async Coroutine Generator(int runs)
             {
                 var run = runs;
@@ -43,16 +40,15 @@ namespace Vernuntii.Coroutines.Benchmark
         [Arguments(RunLess)]
         [Arguments(RunMore)]
         [Arguments(RunMost)]
-        [MethodImpl(MethodImplOptions.NoOptimization)]
         public async Task AsyncEnumerable(int runs)
         {
             var generator = Generator(runs).GetAsyncEnumerator();
+            var results = new List<int>();
 
             while (await generator.MoveNextAsync()) {
-                _ = generator.Current;
+                results.Add(generator.Current);
             }
 
-            [MethodImpl(MethodImplOptions.NoOptimization)]
             static async IAsyncEnumerable<int> Generator(int runs)
             {
                 var run = runs;

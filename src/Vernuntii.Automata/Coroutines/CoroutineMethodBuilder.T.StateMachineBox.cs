@@ -226,7 +226,7 @@ partial struct CoroutineMethodBuilder<TResult>
                 newState = new CoroutineStateMachineBoxResult(currentState.ForkCount + 1);
             } while (!ReferenceEquals(Interlocked.CompareExchange(ref _result, newState, currentState), currentState));
 
-            forkAwaiter.UnsafeOnCompleted(() => {
+            forkAwaiter.UnsafeOnCompleted(ActionClosure.Create(this, forkCompleted, static (stateMachineBox, forkCompleted) => {
                 Exception? childError = null;
 
                 try {
@@ -239,7 +239,7 @@ partial struct CoroutineMethodBuilder<TResult>
                 CoroutineStateMachineBoxResult? newState;
 
                 do {
-                    currentState = _result;
+                    currentState = stateMachineBox._result;
 
                     if (currentState is null) {
                         return;
@@ -250,18 +250,18 @@ partial struct CoroutineMethodBuilder<TResult>
                     } else {
                         newState = new CoroutineStateMachineBoxResult(currentState, currentState.ForkCount - 1);
                     }
-                } while (!ReferenceEquals(Interlocked.CompareExchange(ref _result, newState, currentState), currentState));
+                } while (!ReferenceEquals(Interlocked.CompareExchange(ref stateMachineBox._result, newState, currentState), currentState));
 
                 if (newState is null) {
                     if (currentState.HasResult) {
-                        SetResultCore(currentState.Result);
+                        stateMachineBox.SetResultCore(currentState.Result);
                     } else if (currentState.HasError) {
-                        SetExceptionCore(currentState.Error);
+                        stateMachineBox.SetExceptionCore(currentState.Error);
                     } else if (childError is not null) {
-                        SetExceptionCore(childError);
+                        stateMachineBox.SetExceptionCore(childError);
                     }
                 }
-            });
+            }).Delegate);
         }
 
         /// <summary>Gets the slot in <see cref="s_perCoreCache"/> for the current core.</summary>

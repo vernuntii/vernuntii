@@ -19,15 +19,9 @@ public class AsyncIterator : IAsyncIterator
 
     public object Current => _asyncIterator.Current;
 
-    public AsyncIterator(Func<Coroutine> provider)
-    {
-        _asyncIterator = new AsyncIteratorCore<Nothing>(provider);
-    }
+    public AsyncIterator(Func<Coroutine> provider) => _asyncIterator = new AsyncIteratorCore<Nothing>(provider);
 
-    public AsyncIterator(Coroutine coroutine)
-    {
-        _asyncIterator = new AsyncIteratorCore<Nothing>(coroutine);
-    }
+    public AsyncIterator(Coroutine coroutine) => _asyncIterator = new AsyncIteratorCore<Nothing>(coroutine);
 
     public ValueTask<bool> MoveNextAsync() => _asyncIterator.MoveNextAsync();
 

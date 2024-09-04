@@ -6,54 +6,78 @@ namespace Vernuntii.Coroutines;
 partial class Effect
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static Coroutine<Coroutine> SpawnInternal(Delegate provider, IClosure? providerClosure)
+    internal static Coroutine<Coroutine> SpawnInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ValueTaskCompletionSource<Coroutine>.RentFromCache();
-        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
+        CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine>> argumentReceiver = AcceptArgumentReceiver;
+        var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(provider, closure, isProviderWithClosure, completionSource, argumentReceiver);
+        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
 
-        void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
+        static void AcceptArgumentReceiver(
+            Tuple<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine>>> closure,
+            ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.SpawnArgument(provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_spawnArgumentType, in argument, completionSource);
+            var argument = new Arguments.SpawnArgument<TClosure>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static Coroutine<Coroutine<TResult>> SpawnInternal<TResult>(Delegate provider, IClosure? providerClosure)
+    internal static Coroutine<Coroutine<TResult>> SpawnInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ValueTaskCompletionSource<Coroutine<TResult>>.RentFromCache();
-        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
+        CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine<TResult>>> argumentReceiver = AcceptArgumentReceiver;
+        var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(provider, closure, isProviderWithClosure, completionSource, argumentReceiver);
+        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
 
-        void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
+        static void AcceptArgumentReceiver(
+            Tuple<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine<TResult>>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine<TResult>>>> closure,
+            ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.SpawnArgument<TResult>(provider, providerClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_spawnArgumentType, in argument, completionSource);
+            var argument = new Arguments.SpawnArgument<TClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
         }
     }
 
-    public static Coroutine<Coroutine> Spawn(Func<Coroutine> provider) =>
-        SpawnInternal(provider, providerClosure: null);
+    public static Coroutine<Coroutine> Spawn(Func<Coroutine> provider) => SpawnInternal<object?>(provider, closure: null, isProviderWithClosure: false);
 
-    public static Coroutine<Coroutine<TResult>> Spawn<TResult>(Func<Coroutine<TResult>> provider) =>
-        SpawnInternal<TResult>(provider, providerClosure: null);
+    public static Coroutine<Coroutine> Spawn<TClosure>(Func<TClosure, Coroutine> provider, TClosure closure) => SpawnInternal(provider, closure, isProviderWithClosure: true);
+
+    public static Coroutine<Coroutine<TResult>> Spawn<TResult>(Func<Coroutine<TResult>> provider) => SpawnInternal<object?, TResult>(provider, closure: null, isProviderWithClosure: false);
+
+    public static Coroutine<Coroutine<TResult>> Spawn<TClosure, TResult>(Func<TClosure, Coroutine<TResult>> provider, TClosure closure) => SpawnInternal<TClosure, TResult>(provider, closure, isProviderWithClosure: true);
 
     partial class Arguments
     {
-        internal readonly struct SpawnArgument(
-            Delegate provider,
-            IClosure? providerClosure,
-            ValueTaskCompletionSource<Coroutine> completionSource) : ICallableArgument
+        public readonly struct SpawnArgument<TClosure> : ICallableArgument
         {
-            private readonly ValueTaskCompletionSource<Coroutine> _completionSource = completionSource;
+            private readonly Delegate _provider;
+            private readonly TClosure _closure;
+            private readonly bool _isProviderWithClosure;
+            private readonly ValueTaskCompletionSource<Coroutine> _completionSource;
+
+            public readonly Delegate Provider => _provider;
+            public readonly TClosure Closure => _closure;
+
+            internal SpawnArgument(
+                Delegate provider,
+                TClosure closure,
+                bool isProviderWithClosure,
+                ValueTaskCompletionSource<Coroutine> completionSource)
+            {
+                _provider = provider;
+                _closure = closure;
+                _isProviderWithClosure = isProviderWithClosure;
+                _completionSource = completionSource;
+            }
 
             void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine coroutine;
-                if (providerClosure is null) {
-                    var typedProvider = Unsafe.As<Func<Coroutine>>(provider);
-                    coroutine = typedProvider();
+                if (_isProviderWithClosure) {
+                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(Provider)(Closure);
                 } else {
-                    coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine>(provider);
+                    coroutine = Unsafe.As<Func<Coroutine>>(Provider)();
                 }
 
                 CoroutineContext contextToBequest = default;
@@ -71,35 +95,49 @@ partial class Effect
                 var intermediateCompletionSource = ValueTaskCompletionSource<object?>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateValueTask();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
-                childCoroutineAwaiter.UnsafeOnCompleted(() => {
+                childCoroutineAwaiter.UnsafeOnCompleted(ActionClosure.Create(childCoroutineAwaiter, intermediateCompletionSource, static (awaiter, completionSource) => {
                     try {
-                        childCoroutineAwaiter.GetResult();
-                        intermediateCompletionSource.SetResult(default);
+                        awaiter.GetResult();
+                        completionSource.SetResult(default);
                     } catch (Exception error) {
-                        intermediateCompletionSource.SetException(error);
+                        completionSource.SetException(error);
                         throw; // Must bubble up
                     }
-                });
+                }).Delegate);
                 childCoroutine.MarkCoroutineAsHandled();
                 _completionSource.SetResult(childCoroutine);
             }
         }
 
-        internal readonly struct SpawnArgument<TResult>(
-            Delegate provider,
-            IClosure? providerClosure,
-            ValueTaskCompletionSource<Coroutine<TResult>> completionSource) : ICallableArgument
+        internal readonly struct SpawnArgument<TClosure, TResult> : ICallableArgument
         {
-            private readonly ValueTaskCompletionSource<Coroutine<TResult>> _completionSource = completionSource;
+            private readonly Delegate _provider;
+            private readonly TClosure _closure;
+            private readonly bool _isProviderWithClosure;
+            private readonly ValueTaskCompletionSource<Coroutine<TResult>> _completionSource;
+
+            public readonly Delegate Provider => _provider;
+            public readonly TClosure Closure => _closure;
+
+            internal SpawnArgument(
+                Delegate provider,
+                TClosure closure,
+                bool isProviderWithClosure,
+                ValueTaskCompletionSource<Coroutine<TResult>> completionSource)
+            {
+                _provider = provider;
+                _closure = closure;
+                _isProviderWithClosure = isProviderWithClosure;
+                _completionSource = completionSource;
+            }
 
             void ICallableArgument.Callback(in CoroutineContext context)
             {
                 Coroutine<TResult> coroutine;
-                if (providerClosure is null) {
-                    var typedProvider = Unsafe.As<Func<Coroutine<TResult>>>(provider);
-                    coroutine = typedProvider();
+                if (_isProviderWithClosure) {
+                    coroutine = Unsafe.As<Func<TClosure, Coroutine<TResult>>>(Provider)(Closure);
                 } else {
-                    coroutine = providerClosure.InvokeDelegateWithClosure<Coroutine<TResult>>(provider);
+                    coroutine = Unsafe.As<Func<Coroutine<TResult>>>(Provider)();
                 }
 
                 CoroutineContext contextToBequest = default;
@@ -117,15 +155,15 @@ partial class Effect
                 var intermediateCompletionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateGenericValueTask();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
-                childCoroutineAwaiter.UnsafeOnCompleted(() => {
+                childCoroutineAwaiter.UnsafeOnCompleted(ActionClosure.Create(childCoroutineAwaiter, intermediateCompletionSource, static (awaiter, completionSource) => {
                     try {
-                        var result = childCoroutineAwaiter.GetResult();
-                        intermediateCompletionSource.SetResult(result);
+                        var result = awaiter.GetResult();
+                        completionSource.SetResult(result);
                     } catch (Exception error) {
-                        intermediateCompletionSource.SetException(error);
+                        completionSource.SetException(error);
                         throw; // Must bubble up
                     }
-                });
+                }).Delegate);
                 childCoroutine.MarkCoroutineAsHandled();
                 _completionSource.SetResult(childCoroutine);
             }

@@ -10,15 +10,9 @@ public class AsyncIterator<TResult> : IAsyncIterator<TResult>
 
     public object Current => _asyncIterator.Current;
 
-    public AsyncIterator(Func<Coroutine<TResult>> provider)
-    {
-        _asyncIterator = new AsyncIteratorCore<TResult>(provider);
-    }
+    public AsyncIterator(Func<Coroutine<TResult>> provider) => _asyncIterator = new AsyncIteratorCore<TResult>(provider);
 
-    public AsyncIterator(Coroutine<TResult> coroutine)
-    {
-        _asyncIterator = new AsyncIteratorCore<TResult>(coroutine);
-    }
+    public AsyncIterator(Coroutine<TResult> coroutine) => _asyncIterator = new AsyncIteratorCore<TResult>(coroutine);
 
     public ValueTask<bool> MoveNextAsync() => _asyncIterator.MoveNextAsync();
 

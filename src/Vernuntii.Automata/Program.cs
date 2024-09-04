@@ -9,7 +9,7 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        async Task CoroutineLoop(int runs = 99999*4)
+        async Task CoroutineLoop(int runs = 99999*5)
         {
             var list = new List<int>();
             await Vernuntii.Coroutines.Coroutine.Start(static x => Generator(x.runs, x.list), (runs, list));
@@ -27,7 +27,7 @@ internal class Program
             }
         }
 
-        async Task AsyncIterator(int runs = 99999)
+        async Task AsyncIterator(int runs = 99999*5)
         {
             var generator = Generator(runs).GetAsyncIterator();
 
