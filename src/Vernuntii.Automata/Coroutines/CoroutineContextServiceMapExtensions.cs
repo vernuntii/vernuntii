@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Coroutines;
 
-internal static class CoroutineContextServicesExtensions
+internal static class CoroutineContextServiceMapExtensions
 {
     /// <summary>
     /// Merges the right dictionary into the left dictionary.
@@ -12,9 +12,9 @@ internal static class CoroutineContextServicesExtensions
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static CoroutineContextServices Merge(this CoroutineContextServices? left, CoroutineContextServices right, bool forceNewInstance = false)
+    public static CoroutineContextServiceMap Merge(this CoroutineContextServiceMap? left, CoroutineContextServiceMap right, bool forceNewInstance = false)
     {
-        CoroutineContextServices merge;
+        CoroutineContextServiceMap merge;
 
         if (!forceNewInstance) {
             if (left is null || left.Count == 0) {
@@ -25,9 +25,9 @@ internal static class CoroutineContextServicesExtensions
                 return left;
             }
 
-            merge = new CoroutineContextServices();
+            merge = new CoroutineContextServiceMap();
         } else {
-            merge = new CoroutineContextServices();
+            merge = new CoroutineContextServiceMap();
 
             if (left is null || left.Count == 0) {
                 merge.Copy(right);
@@ -45,7 +45,7 @@ internal static class CoroutineContextServicesExtensions
         return merge;
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        static void CopyTo(CoroutineContextServices from, CoroutineContextServices to)
+        static void CopyTo(CoroutineContextServiceMap from, CoroutineContextServiceMap to)
         {
             for (int i = 0, l = from.Count; i < l; ++i) {
                 var meta = from._meta[i];
@@ -65,7 +65,7 @@ To Be Replaced By = {fromEntry}
             }
         }
 
-        static (CoroutineContextServices Smaller, CoroutineContextServices Greater) SortByCount(CoroutineContextServices left, CoroutineContextServices right)
+        static (CoroutineContextServiceMap Smaller, CoroutineContextServiceMap Greater) SortByCount(CoroutineContextServiceMap left, CoroutineContextServiceMap right)
         {
             if (left.Count < right.Count) {
                 return (left, right);

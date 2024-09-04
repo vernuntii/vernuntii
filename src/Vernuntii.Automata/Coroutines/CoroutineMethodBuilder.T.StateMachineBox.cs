@@ -133,7 +133,7 @@ partial struct CoroutineMethodBuilder<TResult>
     }
 
     /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
-    internal sealed class CoroutineStateMachineBox<TStateMachine> : CoroutineStateMachineBox, IValueTaskSource<TResult>, IValueTaskSource, 
+    internal sealed class CoroutineStateMachineBox<TStateMachine> : CoroutineStateMachineBox, IValueTaskSource<TResult>, IValueTaskSource,
         ICoroutineStateMachineBox, IThreadPoolWorkItem, ICoroutineResultStateMachineBox, IAsyncIteratorStateMachineBox<TResult>
         where TStateMachine : IAsyncStateMachine
     {
@@ -226,7 +226,7 @@ partial struct CoroutineMethodBuilder<TResult>
                 newState = new CoroutineStateMachineBoxResult(currentState.ForkCount + 1);
             } while (!ReferenceEquals(Interlocked.CompareExchange(ref _result, newState, currentState), currentState));
 
-            forkAwaiter.UnsafeOnCompleted(ActionClosure.Create(this, forkCompleted, static (stateMachineBox, forkCompleted) => {
+            forkAwaiter.UnsafeOnCompleted(() => {
                 Exception? childError = null;
 
                 try {
@@ -239,7 +239,7 @@ partial struct CoroutineMethodBuilder<TResult>
                 CoroutineStateMachineBoxResult? newState;
 
                 do {
-                    currentState = stateMachineBox._result;
+                    currentState = _result;
 
                     if (currentState is null) {
                         return;
@@ -250,18 +250,18 @@ partial struct CoroutineMethodBuilder<TResult>
                     } else {
                         newState = new CoroutineStateMachineBoxResult(currentState, currentState.ForkCount - 1);
                     }
-                } while (!ReferenceEquals(Interlocked.CompareExchange(ref stateMachineBox._result, newState, currentState), currentState));
+                } while (!ReferenceEquals(Interlocked.CompareExchange(ref _result, newState, currentState), currentState));
 
                 if (newState is null) {
                     if (currentState.HasResult) {
-                        stateMachineBox.SetResultCore(currentState.Result);
+                        SetResultCore(currentState.Result);
                     } else if (currentState.HasError) {
-                        stateMachineBox.SetExceptionCore(currentState.Error);
+                        SetExceptionCore(currentState.Error);
                     } else if (childError is not null) {
-                        stateMachineBox.SetExceptionCore(childError);
+                        SetExceptionCore(childError);
                     }
                 }
-            }).Delegate);
+            });
         }
 
         /// <summary>Gets the slot in <see cref="s_perCoreCache"/> for the current core.</summary>

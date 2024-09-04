@@ -4,8 +4,7 @@ namespace Vernuntii.Coroutines;
 
 internal static class CoroutineAwaiterExtensions
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void DelegateCompletion<TAwaiter>(this ref TAwaiter coroutineAwaiter, IValueTaskCompletionSource<Nothing> completionSource)
+    public static void DelegateCompletion<TAwaiter>(this ref TAwaiter coroutineAwaiter, IValueTaskCompletionSource<Nothing> completionSource)
         where TAwaiter : struct, ICriticalNotifyCompletion, ICoroutineAwaiter
     {
         if (coroutineAwaiter.IsCompleted) {
@@ -16,19 +15,19 @@ internal static class CoroutineAwaiterExtensions
                 completionSource.SetException(error);
             }
         } else {
-            coroutineAwaiter.UnsafeOnCompleted(ActionClosure.Create(coroutineAwaiter, completionSource, static (coroutineAwaiterCopy, completionSource) => {
+            var coroutineAwaiterCopy = coroutineAwaiter;
+            coroutineAwaiter.UnsafeOnCompleted(() => {
                 try {
                     coroutineAwaiterCopy.GetResult();
                     completionSource.SetResult(default);
                 } catch (Exception error) {
                     completionSource.SetException(error);
                 }
-            }).Delegate);
+            });
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void DelegateCompletion<TAwaiter, TResult>(this ref TAwaiter coroutineAwaiter, IValueTaskCompletionSource<TResult> completionSource)
+    public static void DelegateCompletion<TAwaiter, TResult>(this ref TAwaiter coroutineAwaiter, IValueTaskCompletionSource<TResult> completionSource)
         where TAwaiter : struct, ICriticalNotifyCompletion, ICoroutineAwaiter<TResult>
     {
         if (coroutineAwaiter.IsCompleted) {
@@ -40,14 +39,14 @@ internal static class CoroutineAwaiterExtensions
             }
         } else {
             var coroutineAwaiterCopy = coroutineAwaiter;
-            coroutineAwaiter.UnsafeOnCompleted(ActionClosure.Create(coroutineAwaiter, completionSource, static (coroutineAwaiterCopy, completionSource) => {
+            coroutineAwaiter.UnsafeOnCompleted(() => {
                 try {
                     var result = coroutineAwaiterCopy.GetResult();
                     completionSource.SetResult(result);
                 } catch (Exception error) {
                     completionSource.SetException(error);
                 }
-            }).Delegate);
+            });
         }
     }
 }

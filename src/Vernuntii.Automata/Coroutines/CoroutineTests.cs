@@ -18,6 +18,7 @@ public static class CoroutineTests
 
         public void RunOnCurrentThread()
         {
+            Console.WriteLine("RUNNING ON THREAD " + Thread.CurrentThread.ManagedThreadId);
             while (_queue.TryTake(out var workItem, Timeout.Infinite)) {
                 workItem.Item1(workItem.Item2);
             }
@@ -50,7 +51,7 @@ public static class CoroutineTests
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
                 //Console.WriteLine(await Coroutine.Start(() => CallWithLaunchInvestigation(1000)).ConfigureAwait(true));
                 //Console.WriteLine(await Coroutine.Start(() => CallWithLaunchInvestigation(1000)).ConfigureAwait(true));
-                Console.WriteLine(await Coroutine.Start(() => AsyncIterator2(1000)).ConfigureAwait(true));
+                Console.WriteLine("RESULT -> " + await Coroutine.Start(() => AsyncIterator2(1000)));
                 //Coroutine.Start(() => Call(static async () => Console.WriteLine("Hello World")));
                 Console.WriteLine("THREAD: " + Thread.CurrentThread.ManagedThreadId);
             } catch (Exception error) {
@@ -65,19 +66,31 @@ public static class CoroutineTests
 
     static async Coroutine<int> AsyncIterator2(int _)
     {
+        Console.WriteLine("AsyncIterator2[PRE] " + Thread.CurrentThread.ManagedThreadId);
         var iterator = new AsyncIteratorCore<int>(async () => {
             await Task.Delay(100);
 
-            return await Call(async () => {
-                await Task.Delay(100);
-                return 2;
-            });
+            var runs = 20;
+
+            while (runs-- > 0) {
+                Console.WriteLine("CALL[PRE] " + Thread.CurrentThread.ManagedThreadId);
+                await Call(async () => {
+                    Console.WriteLine("INNER[PRE] " + Thread.CurrentThread.ManagedThreadId);
+                    await Task.Delay(50);
+                    Console.WriteLine("INNER[POST] " + Thread.CurrentThread.ManagedThreadId);
+                    return 2;
+                });
+                Console.WriteLine("CALL[POST] " + Thread.CurrentThread.ManagedThreadId);
+            }
+            return 2;
         });
 
         while (await iterator.MoveNextAsync()) {
+            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
             ;
         }
 
+        Console.WriteLine("AsyncIterator2[POST] " + Thread.CurrentThread.ManagedThreadId);
         return await iterator.GetResultAsync();
     }
 

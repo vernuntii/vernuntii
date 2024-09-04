@@ -29,22 +29,35 @@ internal struct AsyncIteratorContextServiceOperation
         ArgumentCompletionSource = argumentCompletionSource;
     }
 
-    internal void SupplyAwaiterCompletionNotifier<TAwaiter>(ref TAwaiter awaiter) where TAwaiter : INotifyCompletion
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void BeginSupplyingAwaiterCompletionNotifier(out ValueTaskCompletionSource<Nothing> externTaskCompletionNotifierSource)
     {
         ThrowIfNotRequiringAwaiterCompletionNotifier(in this);
-        var externTaskCompletionNotifierSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
         State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (State & ~AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired);
+        externTaskCompletionNotifierSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
         AwaiterCompletionNotifier = externTaskCompletionNotifierSource.CreateValueTask();
+    }
+
+    internal void SupplyAwaiterCompletionNotifier<TAwaiter>(ref TAwaiter awaiter) where TAwaiter : INotifyCompletion
+    {
+        BeginSupplyingAwaiterCompletionNotifier(out var externTaskCompletionNotifierSource); // and end with ..        
         awaiter.OnCompleted(externTaskCompletionNotifierSource.SetDefaultResult);
     }
 
     internal void SupplyAwaiterCriticalCompletionNotifier<TAwaiter>(ref TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
     {
-        ThrowIfNotRequiringAwaiterCompletionNotifier(in this);
-        var externTaskCompletionNotifierSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
-        State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (State & ~AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired);
-        AwaiterCompletionNotifier = externTaskCompletionNotifierSource.CreateValueTask();
+        BeginSupplyingAwaiterCompletionNotifier(out var externTaskCompletionNotifierSource); // and end with ..
         awaiter.UnsafeOnCompleted(externTaskCompletionNotifierSource.SetDefaultResult);
+    }
+
+    internal void SupplyCoroutineAwaiterCriticalCompletionNotifier<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter) where TCoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
+    {
+        BeginSupplyingAwaiterCompletionNotifier(out var externTaskCompletionNotifierSource); // and end with ..
+        if (coroutineAwaiter.IsCompleted) {
+            externTaskCompletionNotifierSource.SetDefaultResult();
+        } else {
+            coroutineAwaiter.UnsafeOnCompleted(externTaskCompletionNotifierSource.SetDefaultResult);
+        }
     }
 
     internal void RequireAwaiterCompletionNotifier()
@@ -56,7 +69,8 @@ internal struct AsyncIteratorContextServiceOperation
         AwaiterCompletionNotifier = default;
     }
 
-    internal void Uninitialize() {
+    internal void Uninitialize()
+    {
         State = 0;
         ArgumentKey = default;
         Argument = default;

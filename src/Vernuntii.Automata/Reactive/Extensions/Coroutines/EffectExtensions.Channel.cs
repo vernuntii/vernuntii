@@ -6,7 +6,7 @@ namespace Vernuntii.Reactive.Extensions.Coroutines;
 
 partial class EffectExtensions
 {
-    public static Coroutine<EventChannel<T>> Channel<T>(this Effect _, Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector)
+    public static Coroutine<EventChannel<T>> Channel<T>(this Yielders _, Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector)
     {
         var completionSource = ValueTaskCompletionSource<EventChannel<T>>.RentFromCache();
         return new Coroutine<EventChannel<T>>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);

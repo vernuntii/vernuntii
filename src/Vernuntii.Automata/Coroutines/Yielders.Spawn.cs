@@ -3,22 +3,18 @@ using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
-partial class Effect
+partial class Yielders
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine<Coroutine> SpawnInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ValueTaskCompletionSource<Coroutine>.RentFromCache();
-        CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine>> argumentReceiver = AcceptArgumentReceiver;
-        var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(provider, closure, isProviderWithClosure, completionSource, argumentReceiver);
-        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
+        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
 
-        static void AcceptArgumentReceiver(
-            Tuple<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine>>> closure,
-            ref CoroutineArgumentReceiver argumentReceiver)
+        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.SpawnArgument<TClosure>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
+            var argument = new Arguments.SpawnArgument<TClosure>(provider, closure, isProviderWithClosure, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_spawnArgumentType, in argument, completionSource);
         }
     }
 
@@ -26,16 +22,12 @@ partial class Effect
     internal static Coroutine<Coroutine<TResult>> SpawnInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ValueTaskCompletionSource<Coroutine<TResult>>.RentFromCache();
-        CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine<TResult>>> argumentReceiver = AcceptArgumentReceiver;
-        var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(provider, closure, isProviderWithClosure, completionSource, argumentReceiver);
-        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
+        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
 
-        static void AcceptArgumentReceiver(
-            Tuple<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine<TResult>>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine<TResult>>>> closure,
-            ref CoroutineArgumentReceiver argumentReceiver)
+        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.SpawnArgument<TClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
+            var argument = new Arguments.SpawnArgument<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_spawnArgumentType, in argument, completionSource);
         }
     }
 
@@ -95,15 +87,15 @@ partial class Effect
                 var intermediateCompletionSource = ValueTaskCompletionSource<object?>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateValueTask();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
-                childCoroutineAwaiter.UnsafeOnCompleted(ActionClosure.Create(childCoroutineAwaiter, intermediateCompletionSource, static (awaiter, completionSource) => {
+                childCoroutineAwaiter.UnsafeOnCompleted(() => {
                     try {
-                        awaiter.GetResult();
-                        completionSource.SetResult(default);
+                        childCoroutineAwaiter.GetResult();
+                        intermediateCompletionSource.SetResult(default);
                     } catch (Exception error) {
-                        completionSource.SetException(error);
+                        intermediateCompletionSource.SetException(error);
                         throw; // Must bubble up
                     }
-                }).Delegate);
+                });
                 childCoroutine.MarkCoroutineAsHandled();
                 _completionSource.SetResult(childCoroutine);
             }
@@ -155,15 +147,15 @@ partial class Effect
                 var intermediateCompletionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateGenericValueTask();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
-                childCoroutineAwaiter.UnsafeOnCompleted(ActionClosure.Create(childCoroutineAwaiter, intermediateCompletionSource, static (awaiter, completionSource) => {
+                childCoroutineAwaiter.UnsafeOnCompleted(() => {
                     try {
-                        var result = awaiter.GetResult();
-                        completionSource.SetResult(result);
+                        var result = childCoroutineAwaiter.GetResult();
+                        intermediateCompletionSource.SetResult(result);
                     } catch (Exception error) {
-                        completionSource.SetException(error);
+                        intermediateCompletionSource.SetException(error);
                         throw; // Must bubble up
                     }
-                }).Delegate);
+                });
                 childCoroutine.MarkCoroutineAsHandled();
                 _completionSource.SetResult(childCoroutine);
             }

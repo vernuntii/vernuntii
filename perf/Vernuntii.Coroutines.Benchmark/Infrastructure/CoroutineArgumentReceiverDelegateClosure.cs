@@ -1,6 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
-namespace Vernuntii.Coroutines;
+namespace Vernuntii.Coroutines.Benchmark.Infrastructure;
+
+public delegate void CoroutineArgumentReceiverDelegate<T1, T2, T3, T4>(Tuple<T1, T2, T3, T4> closure, ref CoroutineArgumentReceiver argumentReceiver);
+public delegate void CoroutineArgumentReceiverDelegate<T1, T2, T3, T4, T5>(Tuple<T1, T2, T3, T4, T5> closure, ref CoroutineArgumentReceiver argumentReceiver);
+public delegate void CoroutineArgumentReceiverDelegateWithClosure<T1, T2, T3, T4>(Tuple<T1, T2, T3, T4, CoroutineArgumentReceiverDelegateWithClosure<T1, T2, T3, T4>> closure, ref CoroutineArgumentReceiver argumentReceiver);
+public delegate void CoroutineArgumentReceiverDelegateWithClosure<T1, T2, T3, T4, T5>(Tuple<T1, T2, T3, T4, T5, CoroutineArgumentReceiverDelegateWithClosure<T1, T2, T3, T4, T5>> closure, ref CoroutineArgumentReceiver argumentReceiver);
 
 internal static class CoroutineArgumentReceiverDelegateClosure
 {

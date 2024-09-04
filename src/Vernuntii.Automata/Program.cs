@@ -27,12 +27,13 @@ internal class Program
             }
         }
 
-        async Task AsyncIterator(int runs = 99999*5)
+        async Task AsyncIterator(int runs = 99999*10)
         {
             var generator = Generator(runs).GetAsyncIterator();
+            var results = new List<int>();
 
             while (await generator.MoveNextAsync()) {
-                _ = generator.Current;
+                results.Add(((Arguments.ReturnArgument<int>)generator.Current).Result);
             }
 
             [MethodImpl(MethodImplOptions.NoOptimization)]
@@ -40,14 +41,15 @@ internal class Program
             {
                 var run = runs;
                 while (run-- > 0) {
-                    await Call(async x => x, int.MaxValue);
+                    await Return(run);
                     await Task.Yield();
                 }
             }
         }
 
-        await AsyncIterator();
-        return;
+        //await AsyncIterator();
+        //return;
+
 
         var t = CoroutineScope.s_coroutineScopeKey.ToString();
         await CoroutineTests.HandleAsnyc();

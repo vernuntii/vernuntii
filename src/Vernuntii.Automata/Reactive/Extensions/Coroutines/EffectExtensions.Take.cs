@@ -4,7 +4,7 @@ namespace Vernuntii.Reactive.Extensions.Coroutines;
 
 partial class EffectExtensions
 {
-    public static Coroutine<T> Take<T>(this Effect _, EventChannel<T> channel)
+    public static Coroutine<T> Take<T>(this Yielders _, EventChannel<T> channel)
     {
         return default;
     }

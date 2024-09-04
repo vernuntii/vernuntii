@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Vernuntii.Collections;
+﻿using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -39,65 +38,46 @@ partial struct Coroutine
     public static Coroutine<TResult> FromException<TResult>(Exception exception) =>
         new Coroutine<TResult>(new ValueTask<TResult>(Task.FromException<TResult>(exception)));
 
-    private static void StartInternal<TCoroutine>(ref TCoroutine coroutine) where TCoroutine : IRelativeCoroutine
+    private static void StartCore<TCoroutine>(ref TCoroutine coroutine) where TCoroutine : IRelativeCoroutine
     {
         var scope = new CoroutineScope();
-        var context = new CoroutineContext();
-        context._keyedServicesToBequest = CoroutineContextServices.CreateRange(1, scope, static (x, y) => x.OverwriteInternal(new(CoroutineScope.s_coroutineScopeKey, y)));
+        var context = new CoroutineContext {
+            _keyedServicesToBequest = CoroutineContextServiceMap.CreateRange(1, scope, static (x, y) => x.OverwriteInternal(new(CoroutineScope.s_coroutineScopeKey, y)))
+        };
         CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref context);
     }
 
-    //public static Coroutine Start(Func<Coroutine> provider)
-    //{
-    //    ArgumentNullException.ThrowIfNull(nameof(provider));
-    //    var coroutine = provider();
-    //    StartInternal(ref coroutine);
-    //    return coroutine;
-    //}
-
-    public static Coroutine Start<TState>(Func<TState, Coroutine> provider, TState state)
+    private static Coroutine StartInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
-        var coroutine = provider(state);
-        StartInternal(ref coroutine);
+        Coroutine coroutine;
+        if (isProviderWithClosure) {
+            coroutine = Unsafe.As<Delegate, Func<TClosure, Coroutine>>(ref provider)(closure);
+        } else {
+            coroutine = Unsafe.As<Delegate, Func<Coroutine>>(ref provider)();
+        }
+        StartCore(ref coroutine);
         return coroutine;
     }
 
-    //public static Coroutine<T> Start<T>(Func<Coroutine<T>> provider)
-    //{
-    //    ArgumentNullException.ThrowIfNull(nameof(provider));
-    //    var coroutine = provider();
-    //    StartInternal(ref coroutine);
-    //    return coroutine;
-    //}
-
-    public static Coroutine<T> Start<T, TState>(Func<TState, Coroutine<T>> provider, TState state)
+    private static Coroutine<TResult> StartInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
-        var coroutine = provider(state);
-        StartInternal(ref coroutine);
+        Coroutine<TResult> coroutine;
+        if (isProviderWithClosure) {
+            coroutine = Unsafe.As<Delegate, Func<TClosure, Coroutine<TResult>>>(ref provider)(closure);
+        } else {
+            coroutine = Unsafe.As<Delegate, Func<Coroutine<TResult>>>(ref provider)();
+        }
+        StartCore(ref coroutine);
         return coroutine;
     }
 
-    public static Coroutine Start(Func<Coroutine> provider)
-    {
-        ArgumentNullException.ThrowIfNull(nameof(provider));
-        var coroutine = provider();
-        var scope = new CoroutineScope();
-        var context = new CoroutineContext();
-        context._keyedServicesToBequest = CoroutineContextServices.CreateRange(1, scope, static (x, y) => x.OverwriteInternal(new(CoroutineScope.s_coroutineScopeKey, y)));
-        CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref context);
-        return coroutine;
-    }
+    public static Coroutine Start(Func<Coroutine> provider) => StartInternal<object?>(provider, null, isProviderWithClosure: false);
 
-    public static Coroutine<T> Start<T>(Func<Coroutine<T>> provider)
-    {
-        ArgumentNullException.ThrowIfNull(nameof(provider));
-        var coroutine = provider();
-        var scope = new CoroutineScope();
-        var context = new CoroutineContext();
-        context._keyedServicesToBequest = CoroutineContextServices.CreateRange(1, scope, static (x, y) => x.OverwriteInternal(new(CoroutineScope.s_coroutineScopeKey, y)));
-        CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref context);
-        return coroutine;
-    }
+    public static Coroutine Start<TClosure>(Func<TClosure, Coroutine> provider, TClosure closure) => StartInternal(provider, closure, isProviderWithClosure: true);
+
+    public static Coroutine<TResult> Start<TResult>(Func<Coroutine<TResult>> provider) => StartInternal<object?, TResult>(provider, null, isProviderWithClosure: false);
+
+    public static Coroutine<TResult> Start<TClosure, TResult>(Func<TClosure, Coroutine<TResult>> provider, TClosure closure) => StartInternal<TClosure, TResult>(provider, closure, isProviderWithClosure: true);
 }

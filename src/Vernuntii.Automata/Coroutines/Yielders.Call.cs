@@ -2,22 +2,18 @@
 
 namespace Vernuntii.Coroutines;
 
-partial class Effect
+partial class Yielders
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine CallInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
-       var completionSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
-        CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Nothing>> argumentReceiver = AcceptArgumentReceiver;
-        var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(provider, closure, isProviderWithClosure, completionSource, argumentReceiver);
-        return new Coroutine(completionSource.CreateValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
+        var completionSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
+        return new Coroutine(completionSource.CreateValueTask(), CoroutineArgumentReceiver);
 
-        static void AcceptArgumentReceiver(
-            Tuple<Delegate, TClosure, bool, ValueTaskCompletionSource<Nothing>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Nothing>>> closure,
-            ref CoroutineArgumentReceiver argumentReceiver)
+        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.CallArgument<TClosure>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
+            var argument = new Arguments.CallArgument<TClosure>(provider, closure, isProviderWithClosure, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, completionSource);
         }
     }
 
@@ -25,16 +21,12 @@ partial class Effect
     internal static Coroutine<TResult> CallInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
-        CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<TResult>> argumentReceiver = AcceptArgumentReceiver;
-        var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(provider, closure, isProviderWithClosure, completionSource, argumentReceiver);
-        return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
+        return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
 
-        static void AcceptArgumentReceiver(
-            Tuple<Delegate, TClosure, bool, ValueTaskCompletionSource<TResult>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<TResult>>> closure,
-            ref CoroutineArgumentReceiver argumentReceiver)
+        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.CallArgument<TClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
+            var argument = new Arguments.CallArgument<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, completionSource);
         }
     }
 
@@ -74,7 +66,7 @@ partial class Effect
             {
                 Coroutine coroutine;
                 if (_isProviderWithClosure) {
-                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(_provider)(_closure);
+                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(_provider)(_closure!);
                 } else {
                     coroutine = Unsafe.As<Func<Coroutine>>(_provider)();
                 }

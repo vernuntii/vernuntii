@@ -93,17 +93,14 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
     protected ManualResetValueTaskSourceCore<TResult> _valueTaskSource;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal ValueTask<TResult> CreateGenericValueTask() =>
-        new ValueTask<TResult>(this, Version);
+    internal ValueTask<TResult> CreateGenericValueTask() => new(this, Version);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal ValueTask CreateValueTask() =>
-        new ValueTask(this, Version);
+    internal ValueTask CreateValueTask() => new(this, Version);
 
     /// <summary>Completes the box with a result.</summary>
     /// <param name="result">The result.</param>
-    public void SetResult(TResult result) =>
-        _valueTaskSource.SetResult(result);
+    public void SetResult(TResult result) => _valueTaskSource.SetResult(result);
 
     void IYieldReturnCompletionSource.SetResult<TCoroutineResult>(TCoroutineResult result)
     {

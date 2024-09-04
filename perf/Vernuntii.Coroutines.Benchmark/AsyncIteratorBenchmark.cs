@@ -5,7 +5,7 @@ using BenchmarkDotNet.Attributes;
 namespace Vernuntii.Coroutines.Benchmark
 {
     [MemoryDiagnoser]
-    [ShortRunJob]
+    [MediumRunJob]
     public class AsyncIteratorBenchmark
     {
         private const int RunLess = 9;
@@ -23,14 +23,14 @@ namespace Vernuntii.Coroutines.Benchmark
             var results = new List<int>();
 
             while (await generator.MoveNextAsync()) {
-                results.Add(((Arguments.CallArgument<int, int>)generator.Current).Closure);
+                results.Add(((ReturnArgument<int>)generator.Current).Result);
             }
 
             static async Coroutine Generator(int runs)
             {
                 var run = runs;
                 while (run-- > 0) {
-                    await Call(static async x => x, Constant);
+                    await Return(run);
                     await Task.Yield();
                 }
             }
@@ -53,7 +53,7 @@ namespace Vernuntii.Coroutines.Benchmark
             {
                 var run = runs;
                 while (run-- > 0) {
-                    yield return Constant;
+                    yield return run;
                     await Task.Yield();
                 }
             }

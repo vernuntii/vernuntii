@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.Coroutines;
+﻿using System;
+
+namespace Vernuntii.Coroutines.Benchmark.Infrastructure;
 
 public static class CoroutineArgumentReceiverDelegateClosureExtensions
 {

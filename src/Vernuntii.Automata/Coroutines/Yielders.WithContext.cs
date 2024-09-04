@@ -2,22 +2,18 @@
 
 namespace Vernuntii.Coroutines;
 
-partial class Effect
+partial class Yielders
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine WithContextInternal<TClosure>(CoroutineContext additiveContext, Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
-        CoroutineArgumentReceiverDelegateWithClosure<CoroutineContext, Delegate, TClosure, bool, ValueTaskCompletionSource<Nothing>> argumentReceiver = AcceptArgumentReceiver;
-        var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(additiveContext, provider, closure, isProviderWithClosure, completionSource, argumentReceiver);
-        return new Coroutine(completionSource.CreateValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
+        return new Coroutine(completionSource.CreateValueTask(), CoroutineArgumentReceiver);
 
-        static void AcceptArgumentReceiver(
-            Tuple<CoroutineContext, Delegate, TClosure, bool, ValueTaskCompletionSource<Nothing>, CoroutineArgumentReceiverDelegateWithClosure<CoroutineContext, Delegate, TClosure, bool, ValueTaskCompletionSource<Nothing>>> closure,
-            ref CoroutineArgumentReceiver argumentReceiver)
+        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.WithContextArgument<TClosure>(closure.Item1, closure.Item2, closure.Item3, closure.Item4, closure.Item5);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item5);
+            var argument = new Arguments.WithContextArgument<TClosure>(additiveContext, provider, closure, isProviderWithClosure, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_withContextArgumentType, in argument, completionSource);
         }
     }
 
@@ -25,16 +21,12 @@ partial class Effect
     internal static Coroutine<TResult> WithContextInternal<TClosure, TResult>(CoroutineContext additiveContext, Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
-        CoroutineArgumentReceiverDelegateWithClosure<CoroutineContext, Delegate, TClosure, bool, ValueTaskCompletionSource<TResult>> argumentReceiver = AcceptArgumentReceiver;
-        var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(additiveContext, provider, closure, isProviderWithClosure, completionSource, argumentReceiver);
-        return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
+        return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
 
-        static void AcceptArgumentReceiver(
-            Tuple<CoroutineContext, Delegate, TClosure, bool, ValueTaskCompletionSource<TResult>, CoroutineArgumentReceiverDelegateWithClosure<CoroutineContext, Delegate, TClosure, bool, ValueTaskCompletionSource<TResult>>> closure,
-            ref CoroutineArgumentReceiver argumentReceiver)
+        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.WithContextArgument<TClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4, closure.Item5);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item5);
+            var argument = new Arguments.WithContextArgument<TClosure, TResult>(additiveContext, provider, closure, isProviderWithClosure, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_withContextArgumentType, in argument, completionSource);
         }
     }
 
@@ -75,7 +67,7 @@ partial class Effect
                 Coroutine
                     coroutine;
                 if (_isProviderWithClosure) {
-                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(_provider)(_closure);
+                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(_provider)(_closure!);
                 } else {
                     coroutine = Unsafe.As<Func<Coroutine>>(_provider)();
                 }
@@ -86,8 +78,7 @@ partial class Effect
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                var completionSource = _completionSource;
-                coroutineAwaiter.DelegateCompletion(completionSource);
+                coroutineAwaiter.DelegateCompletion(_completionSource);
             }
         }
 
@@ -117,7 +108,7 @@ partial class Effect
             {
                 Coroutine<TResult> coroutine;
                 if (_isProviderWithClosure) {
-                    coroutine = Unsafe.As<Func<TClosure, Coroutine<TResult>>>(_provider)(_closure);
+                    coroutine = Unsafe.As<Func<TClosure, Coroutine<TResult>>>(_provider)(_closure!);
                 } else {
                     coroutine = Unsafe.As<Func<Coroutine<TResult>>>(_provider)();
                 }
@@ -128,8 +119,7 @@ partial class Effect
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                var completionSource = _completionSource;
-                coroutineAwaiter.DelegateCompletion(completionSource);
+                coroutineAwaiter.DelegateCompletion(_completionSource);
             }
         }
     }

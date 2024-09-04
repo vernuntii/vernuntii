@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using FastExpressionCompiler.LightExpression;
-using static Vernuntii.Coroutines.CoroutineArgumentReceiverDelegateClosure;
+using static Vernuntii.Coroutines.Benchmark.Infrastructure.CoroutineArgumentReceiverDelegateClosure;
 
 namespace Vernuntii.Coroutines.Benchmark.Infrastructure;
 

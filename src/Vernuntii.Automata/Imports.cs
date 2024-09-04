@@ -2,4 +2,4 @@
 global using Vernuntii.Reactive.Events;
 global using System.Diagnostics.CodeAnalysis;
 global using Vernuntii.Collections;
-global using static Vernuntii.Coroutines.Effect;
+global using static Vernuntii.Coroutines.Yielders;

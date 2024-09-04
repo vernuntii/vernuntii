@@ -9,7 +9,7 @@ internal struct CoroutinePropertyKey
     public CoroutinePropertyKey(object identity) =>
         _identity = identity;
 
-    public override bool Equals([NotNullWhen(true)] object? obj) =>
+    public override readonly bool Equals([NotNullWhen(true)] object? obj) =>
         (obj is CoroutinePropertyKey key && Equals(key._identity, _identity))
         || ReferenceEquals(obj, _identity)
         || Equals(obj, _identity);

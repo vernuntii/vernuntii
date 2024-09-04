@@ -10,9 +10,9 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
 {
     internal readonly bool IsChildCoroutine => _builder is not null;
 
-    internal ValueTask<TResult> _task;
     internal ICoroutineMethodBuilderBox? _builder;
     internal CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+    internal ValueTask<TResult> _task;
 
     readonly bool IRelativeCoroutine.IsChildCoroutine => IsChildCoroutine;
     readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
@@ -96,12 +96,12 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
     public readonly ConfiguredCoroutineAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) =>
         new ConfiguredCoroutineAwaitable<TResult>(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
 
-    public AsyncIterator<TResult> GetAsyncIterator() => new(this);
+    public readonly AsyncIterator<TResult> GetAsyncIterator() => new(this);
 
     public readonly bool Equals(Coroutine<TResult> other) => CoroutineEqualityComparer.Equals(in this, in other);
 
     /// <summary>Returns a value indicating whether this value is equal to a specified <see cref="object"/>.</summary>
-    public override bool Equals([NotNullWhen(true)] object? obj) =>
+    public override readonly bool Equals([NotNullWhen(true)] object? obj) =>
         obj is Coroutine<TResult> && Equals((Coroutine<TResult>)obj);
 
     /// <summary>Returns a value indicating whether two <see cref="ValueTask"/> values are equal.</summary>
@@ -116,9 +116,9 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
     {
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-        private readonly ValueTaskAwaiter<TResult> _awaiter;
         private readonly ICoroutineMethodBuilderBox? _builder;
         private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+        private readonly ValueTaskAwaiter<TResult> _awaiter;
 
         readonly bool IRelativeCoroutine.IsChildCoroutine => _builder is not null;
         readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
@@ -158,9 +158,9 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
 
 public readonly struct ConfiguredCoroutineAwaitable<TResult>
 {
-    private readonly ConfiguredValueTaskAwaitable<TResult> _task;
     private readonly ICoroutineMethodBuilderBox? _builder;
     private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+    private readonly ConfiguredValueTaskAwaitable<TResult> _task;
 
     internal ConfiguredCoroutineAwaitable(in ConfiguredValueTaskAwaitable<TResult> task, in ICoroutineMethodBuilderBox? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
     {

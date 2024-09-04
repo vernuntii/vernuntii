@@ -22,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-using System.Buffers;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -41,6 +40,9 @@ namespace Vernuntii.Collections;
 /// </summary>
 public class RobinhoodMap<TKey, TValue> where TKey : notnull
 {
+    private const uint GoldenRatio = 0x9E3779B9; //2654435769;
+    private const int DefaultShiftToSubtractFrom = 32;
+
     /// <summary>
     /// Gets or sets how many elements are stored in the map
     /// </summary>
@@ -115,8 +117,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
     internal Entry[] _entries;
     private uint _length;
     private readonly double _loadFactor;
-    private const uint _goldenRatio = 0x9E3779B9; //2654435769;
-    private byte _shift = 32;
+    private byte _shift;
     private byte _maxProbeSequenceLength;
     private readonly IEqualityComparer<TKey> _keyComparer;
     private int _maxLookupsBeforeResize;
@@ -157,11 +158,14 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         _maxProbeSequenceLength = (byte)BitOperations.Log2(_length);
         _maxLookupsBeforeResize = (int)((_length + _maxProbeSequenceLength) * loadFactor);
         _keyComparer = keyComparer ?? EqualityComparer<TKey>.Default;
-        _shift = (byte)(_shift - BitOperations.Log2(_length));
+        _shift = (byte)(DefaultShiftToSubtractFrom - BitOperations.Log2(_length));
 
         var size = (int)_length + _maxProbeSequenceLength;
-        _entries = GC.AllocateUninitializedArray<Entry>(size);
-        _meta = GC.AllocateArray<byte>(size);
+        // We cannot use AllocateUninitializedArray because the performance benefical path is only taken,
+        // if TKey or TValue are not or does not contain a reference type and the total size in bytes of that array is greater than 2048.
+        _entries = new Entry[size];
+        // Since we must not create an pinned array but also require the array to be zero-initialized, we cannot use AllocateArray/AllocateUninitializedArray either.
+        _meta = new byte[size];
     }
 
     /// <summary>
@@ -456,21 +460,19 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
     internal uint Hash(TKey key)
     {
         var hashcode = (uint)key.GetHashCode();
-        return (_goldenRatio * hashcode) >> _shift;
+        return (GoldenRatio * hashcode) >> _shift;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ref Entry Find(Entry[] array, uint index)
     {
-        //return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), index);
-        return ref array[index];
+        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), index);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ref byte Find(byte[] array, uint index)
     {
-        //return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), index);
-        return ref array[index];
+        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), index);
     }
 
     /// <summary>

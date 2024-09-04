@@ -69,8 +69,7 @@ public struct Key : IKey
         _hash = hashCode.ToHashCode();
     }
 
-    public unsafe Key(byte[] scope, ushort argument)
-        : this(scope.AsSpan(), argument)
+    public unsafe Key(byte[] scope, ushort argument) : this(scope.AsSpan(), argument)
     {
     }
 

@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Vernuntii.Coroutines.Iterators;
@@ -81,10 +82,11 @@ partial struct CoroutineMethodBuilder<TResult>
         where TAwaiter : INotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
+        // We should never expect an awaiter being a coroutine in this path
+        Debug.Assert(awaiter is not IRelativeCoroutineAwaiter);
         ref var context = ref stateMachineBox._coroutineContext;
-        CoroutineMethodBuilderCore.PreprocessAwaiterIfCoroutine(ref awaiter, ref context);
 
-        if (context.IsAsyncIteratorSupplier) {
+        if (context.IsCoroutineAsyncIteratorSupplier) {
             var asyncIteratorContextService = context.GetAsyncIteratorContextService();
             asyncIteratorContextService.CurrentOperation.SupplyAwaiterCompletionNotifier(ref awaiter);
         } else {
@@ -97,15 +99,19 @@ partial struct CoroutineMethodBuilder<TResult>
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     internal static void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine, ref CoroutineStateMachineBox stateMachineBox)
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
     {
         ref var context = ref stateMachineBox._coroutineContext;
-        CoroutineMethodBuilderCore.PreprocessAwaiterIfCoroutine(ref awaiter, ref context);
 
-        if (context.IsAsyncIteratorSupplier) {
+        if (null != default(TAwaiter) && awaiter is IRelativeCoroutineAwaiter) {
+            ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, Coroutine.CoroutineAwaiter>(ref awaiter);
+            CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref context);
+        }
+
+        if (context.IsCoroutineAsyncIteratorSupplier) {
             var asyncIteratorContextService = context.GetAsyncIteratorContextService();
             asyncIteratorContextService.CurrentOperation.SupplyAwaiterCriticalCompletionNotifier(ref awaiter);
         } else {

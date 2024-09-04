@@ -3,22 +3,18 @@ using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
-partial class Effect
+partial class Yielders
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine<Coroutine> LaunchInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ValueTaskCompletionSource<Coroutine>.RentFromCache();
-        CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine>> argumentReceiver = AcceptArgumentReceiver;
-        var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(provider, closure, isProviderWithClosure, completionSource, argumentReceiver);
-        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
+        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
 
-        static void AcceptArgumentReceiver(
-            Tuple<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine>>> closure,
-            ref CoroutineArgumentReceiver argumentReceiver)
+        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.LaunchArgument<TClosure>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
+            var argument = new Arguments.LaunchArgument<TClosure>(provider, closure, isProviderWithClosure, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_launchArgumentType, in argument, completionSource);
         }
     }
 
@@ -26,16 +22,12 @@ partial class Effect
     internal static Coroutine<Coroutine<TResult>> LaunchInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ValueTaskCompletionSource<Coroutine<TResult>>.RentFromCache();
-        CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine<TResult>>> argumentReceiver = AcceptArgumentReceiver;
-        var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(provider, closure, isProviderWithClosure, completionSource, argumentReceiver);
-        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
+        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
 
-        static void AcceptArgumentReceiver(
-            Tuple<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine<TResult>>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TClosure, bool, ValueTaskCompletionSource<Coroutine<TResult>>>> closure,
-            ref CoroutineArgumentReceiver argumentReceiver)
+        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
-            var argument = new Arguments.LaunchArgument<TClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
+            var argument = new Arguments.LaunchArgument<TClosure,TResult>(provider, closure, isProviderWithClosure, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.s_launchArgumentType, in argument, completionSource);
         }
     }
 
@@ -75,7 +67,7 @@ partial class Effect
             {
                 Coroutine coroutine;
                 if (_isProviderWithClosure) {
-                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(_provider)(_closure);
+                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(_provider)(_closure!);
                 } else {
                     coroutine = Unsafe.As<Func<Coroutine>>(_provider)();
                 }

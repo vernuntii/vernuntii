@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Vernuntii.Coroutines.Benchmark.Infrastructure;
 
 namespace Vernuntii.Coroutines.Benchmark
 {
@@ -11,8 +12,8 @@ namespace Vernuntii.Coroutines.Benchmark
     {
         //static void ArgumentReceiverDelegate(Tuple<Func<TProviderClosure, Coroutine<TResult>>, TProviderClosure, ValueTaskCompletionSource<TResult>> closure, ref CoroutineArgumentReceiver argumentReceiver)
         //{
-        //    var argument = new Arguments.CallArgument<TResult>(closure.provider, providerClosure, completionSource);
-        //    argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, completionSource);
+        //    var argument = new CallArgument<TResult>(closure.provider, providerClosure, completionSource);
+        //    argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, completionSource);
         //}
     }
 
@@ -59,8 +60,8 @@ namespace Vernuntii.Coroutines.Benchmark
 
             void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
             {
-                var argument = new Arguments.CallArgument<int, TResult>(provider, providerClosure, isProviderWithClosure: true, completionSource);
-                argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, completionSource);
+                var argument = new CallArgument<int, TResult>(provider, providerClosure, isProviderWithClosure: true, completionSource);
+                argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, completionSource);
             }
         }
 
@@ -78,13 +79,13 @@ namespace Vernuntii.Coroutines.Benchmark
             static void HandleArgumentReceiver(ArgumentReceiverClosure closure, ref CoroutineArgumentReceiver argumentReceiver)
             {
                 var completionSource = Unsafe.As<ValueTaskCompletionSource<TResult>>(closure._completionSource);
-                var argument = new Arguments.CallArgument<ITuple?, TResult>(
+                var argument = new CallArgument<ITuple?, TResult>(
                     closure._provider,
                     closure._providerClosure,
                     isProviderWithClosure: true,
                     completionSource);
                 ArgumentReceiverClosure.s_pool.Return(closure);
-                argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, completionSource);
+                argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, completionSource);
             }
         }
 
@@ -100,8 +101,8 @@ namespace Vernuntii.Coroutines.Benchmark
                 Tuple<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>>> closure,
                 ref CoroutineArgumentReceiver argumentReceiver)
             {
-                var argument = new Arguments.CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-                argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
+                var argument = new CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
+                argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, closure.Item4);
             }
         }
 
@@ -110,15 +111,15 @@ namespace Vernuntii.Coroutines.Benchmark
         {
             var completionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
             CoroutineArgumentReceiverDelegate<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>> argumentReceiver = AcceptArgumentReceiver;
-            var argumentReceiverClosure = Infrastructure.CoroutineArgumentReceiverDelegateFactory.CreateDelegate(provider, providerClosure, isProviderWithClosure, completionSource, argumentReceiver);
+            var argumentReceiverClosure = CoroutineArgumentReceiverDelegateFactory.CreateDelegate(provider, providerClosure, isProviderWithClosure, completionSource, argumentReceiver);
             return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), argumentReceiverClosure);
 
             static void AcceptArgumentReceiver(
                 Tuple<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>> closure,
                 ref CoroutineArgumentReceiver argumentReceiver)
             {
-                var argument = new Arguments.CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-                argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
+                var argument = new CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
+                argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, closure.Item4);
             }
         }
 
@@ -127,21 +128,27 @@ namespace Vernuntii.Coroutines.Benchmark
         {
             var completionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
             CoroutineArgumentReceiverDelegate<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>> argumentReceiver = AcceptArgumentReceiver;
-            var argumentReceiverClosure = Infrastructure.CoroutineArgumentReceiverCachedDelegateFactory.CreateDelegate(provider, providerClosure, isProviderWithClosure, completionSource, argumentReceiver);
+            var argumentReceiverClosure = CoroutineArgumentReceiverCachedDelegateFactory.CreateDelegate(provider, providerClosure, isProviderWithClosure, completionSource, argumentReceiver);
             return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), argumentReceiverClosure);
 
             static void AcceptArgumentReceiver(
                 Tuple<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>> closure,
                 ref CoroutineArgumentReceiver argumentReceiver)
             {
-                var argument = new Arguments.CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-                argumentReceiver.ReceiveCallableArgument(in Arguments.s_callArgumentType, in argument, closure.Item4);
+                var argument = new CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
+                argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, closure.Item4);
             }
         }
 
         async static Coroutine<int> CoroutineReturningNumber(int number)
         {
             return number;
+        }
+
+        [Benchmark(Baseline = true)]
+        public async Task CallInternal()
+        {
+            await Coroutine.Start(() => CallInternal<int, int>(CoroutineReturningNumber, 2, isProviderWithClosure: true)).ConfigureAwait(false);
         }
 
         [Benchmark]
