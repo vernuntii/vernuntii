@@ -5,6 +5,21 @@ namespace Vernuntii.Coroutines.Iterators;
 
 internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturnResult>, IAsyncIterator
 {
+    public Key CurrentKey {
+        get {
+            EnsureNextOperationIsHavingSuppliedArgument();
+            return _nextOperation.ArgumentKey;
+        }
+    }
+
+    public object Current {
+        get {
+            EnsureNextOperationIsHavingSuppliedArgument();,
+            Debug.Assert(_nextOperation.Argument is not null);
+            return _nextOperation.Argument;
+        }
+    }
+
     private readonly ICoroutineHolder _coroutineHolder;
     private AsyncIteratorContext? _iteratorContext;
     private AsyncIteratorContextServiceOperation _nextOperation;
@@ -77,36 +92,15 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
         return iteratorContext;
     }
 
-    public Key CurrentKey {
-        get {
-            _ = GetIteratorContext(out var isCoroutineCompleted);
-
-            if (_nextOperation.State == 0) {
-                throw Exceptions.NotStartedAlreadyFinishedOrNotSuspended();
-            }
-
-            if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) == 0) {
-                throw new InvalidOperationException("Although the iterator is suspended, the coroutine effect which let to the suspension misbehaved fatally by not supplying an argument");
-            }
-
-            return _nextOperation.ArgumentKey;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void EnsureNextOperationIsHavingSuppliedArgument()
+    {
+        if (_nextOperation.State == 0) {
+            throw Exceptions.NotStartedAlreadyFinishedOrNotSuspended();
         }
-    }
 
-    public object Current {
-        get {
-            _ = GetIteratorContext(out var isCoroutineCompleted);
-
-            if (_nextOperation.State == 0) {
-                throw Exceptions.NotStartedAlreadyFinishedOrNotSuspended();
-            }
-
-            if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) == 0) {
-                throw new InvalidOperationException("Although the iterator is suspended, the coroutine effect which let to the suspension misbehaved fatally by not supplying an argument");
-            }
-
-            Debug.Assert(_nextOperation.Argument is not null);
-            return _nextOperation.Argument;
+        if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) == 0) {
+            throw new InvalidOperationException("Although the iterator is suspended, the coroutine effect which let to the suspension misbehaved fatally by not supplying an argument");
         }
     }
 
