@@ -54,8 +54,8 @@ internal static class CoroutineContextServiceMapExtensions
                 }
 
                 if (!to.Emplace(from._entries[i].Key, from._entries[i].Value)) {
-                    var toEntry = to.Find(to._entries, to.Hash(from._entries[i].Key));
-                    var fromEntry = from.Find(from._entries, from.Hash(from._entries[i].Key));
+                    var toEntry = RobinhoodMap<Key, object>.Find(to._entries, to.Hash(from._entries[i].Key));
+                    var fromEntry = RobinhoodMap<Key, object>.Find(from._entries, from.Hash(from._entries[i].Key));
                     throw new InvalidOperationException($"""
 When attempting to merge a key-value pair into the target dictionary, both key hashes matched but did not pass the equality check due to hash collision or faulty equality check:
 To Be Replaced = {toEntry}

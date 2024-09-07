@@ -61,7 +61,7 @@ namespace Vernuntii.Coroutines.Benchmark
             void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
             {
                 var argument = new CallArgument<int, TResult>(provider, providerClosure, isProviderWithClosure: true, completionSource);
-                argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, completionSource);
+                argumentReceiver.ReceiveCallableArgument(in CallKey, in argument, completionSource);
             }
         }
 
@@ -85,7 +85,7 @@ namespace Vernuntii.Coroutines.Benchmark
                     isProviderWithClosure: true,
                     completionSource);
                 ArgumentReceiverClosure.s_pool.Return(closure);
-                argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, completionSource);
+                argumentReceiver.ReceiveCallableArgument(in CallKey, in argument, completionSource);
             }
         }
 
@@ -102,7 +102,7 @@ namespace Vernuntii.Coroutines.Benchmark
                 ref CoroutineArgumentReceiver argumentReceiver)
             {
                 var argument = new CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-                argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, closure.Item4);
+                argumentReceiver.ReceiveCallableArgument(in CallKey, in argument, closure.Item4);
             }
         }
 
@@ -119,7 +119,7 @@ namespace Vernuntii.Coroutines.Benchmark
                 ref CoroutineArgumentReceiver argumentReceiver)
             {
                 var argument = new CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-                argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, closure.Item4);
+                argumentReceiver.ReceiveCallableArgument(in CallKey, in argument, closure.Item4);
             }
         }
 
@@ -136,7 +136,7 @@ namespace Vernuntii.Coroutines.Benchmark
                 ref CoroutineArgumentReceiver argumentReceiver)
             {
                 var argument = new CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
-                argumentReceiver.ReceiveCallableArgument(in s_callArgumentType, in argument, closure.Item4);
+                argumentReceiver.ReceiveCallableArgument(in CallKey, in argument, closure.Item4);
             }
         }
 

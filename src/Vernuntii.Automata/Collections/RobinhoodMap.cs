@@ -43,6 +43,12 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
     private const uint GoldenRatio = 0x9E3779B9; //2654435769;
     private const int DefaultShiftToSubtractFrom = 32;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ref Entry Find(Entry[] array, uint index) => ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), index);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ref byte Find(byte[] array, uint index) => ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), index);
+
     /// <summary>
     /// Gets or sets how many elements are stored in the map
     /// </summary>
@@ -188,12 +194,12 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         var entry = new Entry(key, value);
 
         do {
-            ref var meta = ref Find(_meta, index);
+            ref var meta = ref RobinhoodMap<TKey, TValue>.Find(_meta, index);
 
             //Empty spot, add Entry
             if (meta == 0) {
                 meta = distance;
-                Find(_entries, index) = entry;
+                RobinhoodMap<TKey, TValue>.Find(_entries, index) = entry;
                 ++Count;
                 return true;
             }
@@ -201,7 +207,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
             //Steal from the rich, give to the poor
             if (distance > meta) {
                 Swap(ref distance, ref meta);
-                Swap(ref entry, ref Find(_entries, index));
+                Swap(ref entry, ref RobinhoodMap<TKey, TValue>.Find(_entries, index));
 
                 ++distance;
                 ++index;
@@ -209,7 +215,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
             }
 
             //equals check
-            if (_keyComparer.Equals(key, Find(_entries, index).Key)) {
+            if (_keyComparer.Equals(key, RobinhoodMap<TKey, TValue>.Find(_entries, index).Key)) {
                 return false;
             }
 
@@ -232,7 +238,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         var maxDistance = index + _maxProbeSequenceLength;
 
         do {
-            ref var entry = ref Find(_entries, index);
+            ref var entry = ref RobinhoodMap<TKey, TValue>.Find(_entries, index);
 
             if (_keyComparer.Equals(entry.Key, key)) {
                 value = entry.Value;
@@ -273,16 +279,16 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         }
 
         var index = Hash(key);
-        var entry = new Entry(key, default);
+        var entry = new Entry(key, default!);
         byte distance = 1;
 
         do {
-            ref var meta = ref Find(_meta, index);
+            ref var meta = ref RobinhoodMap<TKey, TValue>.Find(_meta, index);
 
             //Empty spot, add Entry
             if (meta == 0) {
                 meta = distance;
-                ref var x = ref Find(_entries, index);
+                ref var x = ref RobinhoodMap<TKey, TValue>.Find(_entries, index);
                 x = entry;
 
                 ++Count;
@@ -292,13 +298,13 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
             //Steal from the rich, give to the poor
             if (distance > meta) {
                 Swap(ref distance, ref meta);
-                Swap(ref entry, ref Find(_entries, index));
+                Swap(ref entry, ref RobinhoodMap<TKey, TValue>.Find(_entries, index));
                 goto next;
             }
 
             //equals check
-            if (_keyComparer.Equals(key, Find(_entries, index).Key)) {
-                return ref Find(_entries, index).Value;
+            if (_keyComparer.Equals(key, RobinhoodMap<TKey, TValue>.Find(_entries, index).Key)) {
+                return ref RobinhoodMap<TKey, TValue>.Find(_entries, index).Value;
             }
 
             next:
@@ -318,7 +324,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         var maxDistance = index + _maxProbeSequenceLength;
 
         do {
-            ref var entry = ref Find(_entries, index);
+            ref var entry = ref RobinhoodMap<TKey, TValue>.Find(_entries, index);
 
             if (_keyComparer.Equals(entry.Key, key)) {
                 entry.Value = value;
@@ -344,26 +350,26 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
 
         do {
             //validate hash en compare keys
-            if (_keyComparer.Equals(key, Find(_entries, index).Key)) {
+            if (_keyComparer.Equals(key, RobinhoodMap<TKey, TValue>.Find(_entries, index).Key)) {
                 uint nextIndex = index + 1;
-                var nextMeta = Find(_meta, nextIndex);
+                var nextMeta = RobinhoodMap<TKey, TValue>.Find(_meta, nextIndex);
 
                 while (nextMeta > 1) {
                     //decrease next psl by 1
                     nextMeta--;
 
-                    Find(_meta, index) = nextMeta;
-                    Find(_entries, index) = Find(_entries, nextIndex);
+                    RobinhoodMap<TKey, TValue>.Find(_meta, index) = nextMeta;
+                    RobinhoodMap<TKey, TValue>.Find(_entries, index) = RobinhoodMap<TKey, TValue>.Find(_entries, nextIndex);
 
                     index++;
                     nextIndex++;
 
                     //increase index by one
-                    nextMeta = Find(_meta, nextIndex);
+                    nextMeta = RobinhoodMap<TKey, TValue>.Find(_meta, nextIndex);
                 }
 
-                Find(_meta, index) = default;
-                Find(_entries, index) = default;
+                RobinhoodMap<TKey, TValue>.Find(_meta, index) = default;
+                RobinhoodMap<TKey, TValue>.Find(_entries, index) = default;
 
                 --Count;
                 return true;
@@ -391,7 +397,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         var maxDistance = index + _maxProbeSequenceLength;
 
         do {
-            var entry = Find(_entries, index);
+            var entry = RobinhoodMap<TKey, TValue>.Find(_entries, index);
             if (_keyComparer.Equals(entry.Key, key)) {
                 return true;
             }
@@ -463,18 +469,6 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         return (GoldenRatio * hashcode) >> _shift;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal ref Entry Find(Entry[] array, uint index)
-    {
-        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), index);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ref byte Find(byte[] array, uint index)
-    {
-        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), index);
-    }
-
     /// <summary>
     /// Overwrites the entry without checking upper bound.
     /// </summary>
@@ -485,19 +479,19 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         byte distance = 1;
 
         do {
-            ref var meta = ref Find(_meta, index);
+            ref var meta = ref RobinhoodMap<TKey, TValue>.Find(_meta, index);
 
             //Empty spot, add Entry
             if (meta == 0) {
                 meta = distance;
-                Find(_entries, index) = entry;
+                RobinhoodMap<TKey, TValue>.Find(_entries, index) = entry;
                 return;
             }
 
             //Steal from the rich, give to the poor
             if (distance > meta) {
                 Swap(ref distance, ref meta);
-                Swap(ref entry, ref Find(_entries, index));
+                Swap(ref entry, ref RobinhoodMap<TKey, TValue>.Find(_entries, index));
             }
 
             //increase probe sequence length
@@ -516,12 +510,12 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         byte distance = 1;
 
         do {
-            ref var meta = ref Find(_meta, index);
+            ref var meta = ref RobinhoodMap<TKey, TValue>.Find(_meta, index);
 
             //Empty spot, add Entry
             if (meta == 0) {
                 meta = distance;
-                Find(_entries, index) = entry;
+                RobinhoodMap<TKey, TValue>.Find(_entries, index) = entry;
                 Count++;
                 return;
             }
@@ -529,7 +523,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
             //Steal from the rich, give to the poor
             if (distance > meta) {
                 Swap(ref distance, ref meta);
-                Overwrite(in entry, ref Find(_entries, index));
+                Overwrite(in entry, ref RobinhoodMap<TKey, TValue>.Find(_entries, index));
             }
 
             //increase probe sequence length
@@ -570,15 +564,15 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         var oldEntries = _entries;
         var oldMeta = _meta;
 
-        _entries = GC.AllocateUninitializedArray<Entry>(size);
-        _meta = GC.AllocateArray<byte>(size);
+        _entries = new Entry[size];
+        _meta = new byte[size];
 
         for (uint i = 0; i < oldMeta.Length; ++i) {
             if (oldMeta[i] == 0) {
                 continue;
             }
 
-            Overwrite(ref Find(oldEntries, i));
+            Overwrite(ref RobinhoodMap<TKey, TValue>.Find(oldEntries, i));
         }
     }
 

@@ -10,7 +10,7 @@ partial class Yielders
         void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.ThrowArgument(exception, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_throwArgumentType, in argument, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.ThrowKey, in argument, completionSource);
         }
     }
 

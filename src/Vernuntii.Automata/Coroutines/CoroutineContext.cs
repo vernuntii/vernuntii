@@ -35,7 +35,7 @@ public struct CoroutineContext : ICoroutinePreprocessor
     internal CoroutineContextServiceMap? _keyedServicesToBequest;
     internal CoroutineContextBequesterOrigin _bequesterOrigin;
     internal BequestContextDelegate? _bequestContext;
-    internal bool _isCoroutineAsyncIteratorSupplier; // Enables fast async iterator check-ups
+    internal bool _isCoroutineAsyncIteratorSupplier; // To enable fast async iterator check-up
 #if DEBUG
     internal int _identifier;
 #endif

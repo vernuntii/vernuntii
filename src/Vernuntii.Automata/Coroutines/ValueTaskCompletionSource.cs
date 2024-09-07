@@ -13,7 +13,7 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
 {
     /// <summary>Per-core cache of boxes, with one box per core.</summary>
     /// <remarks>Each element is padded to expected cache-line size so as to minimize false sharing.</remarks>
-    private static readonly PaddedReference[] s_perCoreCache = new PaddedReference[Environment.ProcessorCount];
+    private static readonly CacheLineSizePaddedReference[] s_perCoreCache = new CacheLineSizePaddedReference[Environment.ProcessorCount];
 
     /// <summary>Thread-local cache of boxes. This currently only ever stores one.</summary>
     [ThreadStatic]
@@ -163,7 +163,7 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>A class for common padding constants and eventually routines.</summary>
-internal static class PaddingSizeHolder
+internal static class CacheLineSizeHolder
 {
     /// <summary>A size greater than or equal to the size of the most common CPU cache lines.</summary>
 #if TARGET_ARM64 || TARGET_LOONGARCH64
@@ -176,8 +176,8 @@ internal static class PaddingSizeHolder
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>Padded reference to an object.</summary>
-[StructLayout(LayoutKind.Explicit, Size = PaddingSizeHolder.CACHE_LINE_SIZE)]
-internal struct PaddedReference
+[StructLayout(LayoutKind.Explicit, Size = CacheLineSizeHolder.CACHE_LINE_SIZE)]
+internal struct CacheLineSizePaddedReference
 {
     [FieldOffset(0)]
     public object? Object;

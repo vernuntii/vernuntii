@@ -142,7 +142,7 @@ partial struct CoroutineMethodBuilder<TResult>
 
         /// <summary>Per-core cache of boxes, with one box per core.</summary>
         /// <remarks>Each element is padded to expected cache-line size so as to minimize false sharing.</remarks>
-        private static readonly PaddedReference[] s_perCoreCache = new PaddedReference[Environment.ProcessorCount];
+        private static readonly CacheLineSizePaddedReference[] s_perCoreCache = new CacheLineSizePaddedReference[Environment.ProcessorCount];
 
         /// <summary>Thread-local cache of boxes. This currently only ever stores one.</summary>
         [ThreadStatic]

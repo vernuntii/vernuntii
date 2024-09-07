@@ -96,7 +96,7 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
     public readonly ConfiguredCoroutineAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) =>
         new ConfiguredCoroutineAwaitable<TResult>(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
 
-    public readonly AsyncIterator<TResult> GetAsyncIterator() => new(this);
+    public readonly IAsyncIterator<TResult> GetAsyncIterator() => new AsyncIteratorImpl<TResult>(this);
 
     public readonly bool Equals(Coroutine<TResult> other) => CoroutineEqualityComparer.Equals(in this, in other);
 

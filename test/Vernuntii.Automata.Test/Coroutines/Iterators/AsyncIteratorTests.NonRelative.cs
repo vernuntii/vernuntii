@@ -59,7 +59,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task MoveNext_ReturnsFalse()
             {
-                var iterator = new AsyncIterator<int>(ConstantAfterDelay());
+                var iterator = ConstantAfterDelay().GetAsyncIterator();
                 var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
                 canMoveNext.Should().Be(false);
             }
@@ -67,7 +67,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResult_Throws()
             {
-                var iterator = new AsyncIterator<int>(ConstantAfterDelay());
+                var iterator = ConstantAfterDelay().GetAsyncIterator();
 
                 var result = iterator
                     .Invoking(x => x.GetResult())
@@ -79,7 +79,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResultAsync_Awaits()
             {
-                var iterator = AsyncIterator.Create(ConstantAfterDelay());
+                var iterator = ConstantAfterDelay().GetAsyncIterator();
                 var result = await iterator.GetResultAsync();
                 result.Should().Be(ExpectedResult);
             }
@@ -105,7 +105,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task MoveNext_ReturnsTrue()
             {
-                var iterator = new AsyncIterator<int>(YieldConstant());
+                var iterator = YieldConstant().GetAsyncIterator();
                 var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
                 canMoveNext.Should().BeTrue();
             }
@@ -113,7 +113,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task MoveNextThenMoveNext_ReturnsFalse()
             {
-                var iterator = new AsyncIterator<int>(YieldConstant());
+                var iterator = YieldConstant().GetAsyncIterator();
                 _ = await iterator.MoveNextAsync().ConfigureAwait(false);
                 var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
                 canMoveNext.Should().BeFalse();
@@ -122,7 +122,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResult_Throws()
             {
-                var iterator = new AsyncIterator<int>(YieldConstant());
+                var iterator = YieldConstant().GetAsyncIterator();
 
                 var result = iterator
                     .Invoking(x => x.GetResult())
@@ -154,7 +154,7 @@ partial class AsyncIteratorTests
             public async Task MoveNextThenYieldReturnThenThenGetResult_Returns()
             {
                 const int expectedResult = ExpectedResult + 1;
-                var iterator = new AsyncIterator<int>(YieldConstant());
+                var iterator = YieldConstant().GetAsyncIterator();
                 _ = await iterator.MoveNextAsync().ConfigureAwait(false);
                 iterator.YieldReturn(expectedResult);
                 var asyncResult = iterator.GetResultAsync();
@@ -165,7 +165,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task MoveNextThenMoveNextThenThenGetResult_Returns()
             {
-                var iterator = new AsyncIterator<int>(YieldConstant());
+                var iterator = YieldConstant().GetAsyncIterator();
                 _ = await iterator.MoveNextAsync().ConfigureAwait(false);
                 _ = await iterator.MoveNextAsync().ConfigureAwait(false);
                 var result = iterator.GetResult();
@@ -184,10 +184,10 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task MoveNextThenThrow_Succeeds()
             {
-                var iterator = new AsyncIterator<int>(YieldConstant());
+                var iterator = YieldConstant().GetAsyncIterator();
                 _ = await iterator.MoveNextAsync().ConfigureAwait(false);
                 iterator.Throw(new Exception1());
-                await iterator.Awaiting(new Func<AsyncIterator<int>, Task>(async x => await x.GetResultAsync()))
+                await iterator.Awaiting(new Func<IAsyncIterator<int>, Task>(async x => await x.GetResultAsync()))
                     .Should()
                     .ThrowExactlyAsync<Exception1>().ConfigureAwait(false);
             }

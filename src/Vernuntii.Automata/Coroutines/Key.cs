@@ -21,7 +21,7 @@ internal enum KeyFlags : byte
 // 6.-19. (14 bytes) -> service
 [StructLayout(LayoutKind.Explicit, Pack = 1)]
 [DebuggerDisplay($"{{{nameof(ToString)}(),nq}}")]
-public struct Key : IKey
+public struct Key : IEquatable<Key>
 {
     internal const byte CurrentSchemaVersion = 1;
     internal const int KeyLength = 20;
@@ -112,6 +112,16 @@ public struct Key : IKey
         return true;
     }
 
+    public bool Equals(Key other) => SequenceEqual(other);
+
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is Key key && SequenceEqual(key);
+
+    public static bool operator ==(Key left, Key right) => left.Equals(right);
+
+    public static bool operator !=(Key left, Key right) => !(left == right);
+
+    public override readonly int GetHashCode() => _hash;
+
     public override unsafe string ToString()
     {
         var isService = (Flags & (byte)(KeyFlags.Service | KeyFlags.ContextService)) != 0;
@@ -130,7 +140,7 @@ public struct Key : IKey
             fixed (byte* scopePointer = _scope) {
                 var scopeSpan = new Span<byte>(scopePointer, ServiceLength);
                 sb.Append(Encoding.ASCII.GetString(scopeSpan).Replace("\0", "\\0"));
-                sb.Append('/');
+                sb.Append('#');
                 sb.Append(_argument);
             }
         }
@@ -138,6 +148,4 @@ public struct Key : IKey
         sb.Append('}');
         return sb.ToString();
     }
-
-    public override int GetHashCode() => _hash;
 }

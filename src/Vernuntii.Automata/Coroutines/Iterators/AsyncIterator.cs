@@ -3,39 +3,36 @@ using System.Text;
 
 namespace Vernuntii.Coroutines.Iterators;
 
-public class AsyncIterator : IAsyncIterator
+public static class AsyncIterator
 {
-    public static AsyncIterator Create(Func<Coroutine> provider) => new(provider);
-
-    public static AsyncIterator Create(Coroutine coroutine) => new(coroutine);
-
-    public static AsyncIterator<TResult> Create<TResult>(Func<Coroutine<TResult>> provider) => new(provider);
-
-    public static AsyncIterator<TResult> Create<TResult>(Coroutine<TResult> coroutine) => new(coroutine);
-
     internal static readonly Key s_asyncIteratorKey = new Key(Encoding.ASCII.GetBytes(nameof(AsyncIterator)));
 
-    private AsyncIteratorCore<Nothing> _asyncIterator;
+    public static IAsyncIterator Create(Func<Coroutine> provider) => new AsyncIteratorImpl<Nothing>(provider);
 
-    public object Current => _asyncIterator.Current;
+    public static IAsyncIterator Create(Coroutine coroutine) => new AsyncIteratorImpl<Nothing>(coroutine);
 
-    public AsyncIterator(Func<Coroutine> provider) => _asyncIterator = new AsyncIteratorCore<Nothing>(provider);
+    public static IAsyncIterator<TResult> Create<TResult>(Func<Coroutine<TResult>> provider) => new AsyncIteratorImpl<TResult>(provider);
 
-    public AsyncIterator(Coroutine coroutine) => _asyncIterator = new AsyncIteratorCore<Nothing>(coroutine);
+    public static IAsyncIterator<TResult> Create<TResult>(Coroutine<TResult> coroutine) => new AsyncIteratorImpl<TResult>(coroutine);
+}
 
-    public ValueTask<bool> MoveNextAsync() => _asyncIterator.MoveNextAsync();
+partial class AsyncIteratorImpl<TReturnResult>
+{
+    object IAsyncIterator.Current => Current;
 
-    public void YieldReturn<TYieldResult>(TYieldResult result) => _asyncIterator.YieldReturn(result);
+    ValueTask<bool> IAsyncIterator.MoveNextAsync() => MoveNextAsync();
 
-    public void Return() => _asyncIterator.Return(default);
+    void IAsyncIterator.YieldReturn<TYieldResult>(TYieldResult result) => YieldReturn(result);
 
-    public void Throw(Exception e) => _asyncIterator.Throw(e);
+    void IAsyncIterator.Return() => Return(default!);
 
-    public void GetResult() => _ = _asyncIterator.GetResult();
+    void IAsyncIterator.Throw(Exception e) => Throw(e);
 
-    public Coroutine GetResultAsync()
+    void IAsyncIterator.GetResult() => _ = GetResult();
+
+    Coroutine IAsyncIterator.GetResultAsync()
     {
-        var coroutine = _asyncIterator.GetResultAsync();
-        return Unsafe.As<Coroutine<Nothing>, Coroutine>(ref coroutine);
+        var coroutine = GetResultAsync();
+        return Unsafe.As<Coroutine<TReturnResult>, Coroutine>(ref coroutine);
     }
 }

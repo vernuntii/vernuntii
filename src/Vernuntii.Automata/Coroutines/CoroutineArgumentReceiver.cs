@@ -13,9 +13,8 @@ public ref struct CoroutineArgumentReceiver
         _context = ref coroutineContext;
     }
 
-    internal void ReceiveCallableArgument<TArgument, TArgumentKey>(in TArgumentKey argumentKey, in TArgument argument, IYieldReturnCompletionSource completionSource)
+    internal void ReceiveCallableArgument<TArgument>(in Key argumentKey, in TArgument argument, IYieldReturnCompletionSource completionSource)
         where TArgument : ICallableArgument
-        where TArgumentKey : IKey
     {
         if (_context.IsCoroutineAsyncIteratorSupplier) {
             var iteratorContextService = _context.GetAsyncIteratorContextService();

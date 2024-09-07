@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -14,7 +13,7 @@ partial class Yielders
         void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.LaunchArgument<TClosure>(provider, closure, isProviderWithClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_launchArgumentType, in argument, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.LaunchKey, in argument, completionSource);
         }
     }
 
@@ -27,7 +26,7 @@ partial class Yielders
         void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.LaunchArgument<TClosure,TResult>(provider, closure, isProviderWithClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_launchArgumentType, in argument, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.LaunchKey, in argument, completionSource);
         }
     }
 

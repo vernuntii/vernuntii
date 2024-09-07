@@ -3,28 +3,28 @@ using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines.Iterators;
 
-internal class AsyncIteratorCore<TReturnResult>
+internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturnResult>, IAsyncIterator
 {
     private readonly ICoroutineHolder _coroutineHolder;
     private AsyncIteratorContext? _iteratorContext;
     private AsyncIteratorContextServiceOperation _nextOperation;
 
-    public AsyncIteratorCore(Func<Coroutine> provider)
+    public AsyncIteratorImpl(Func<Coroutine> provider)
     {
         _coroutineHolder = new CoroutineHolder<Func<Coroutine>, Coroutine>(provider, isProvider: true, isGeneric: false);
     }
 
-    public AsyncIteratorCore(Func<Coroutine<TReturnResult>> provider)
+    public AsyncIteratorImpl(Func<Coroutine<TReturnResult>> provider)
     {
         _coroutineHolder = new CoroutineHolder<Func<Coroutine<TReturnResult>>, Coroutine<TReturnResult>>(provider, isProvider: true, isGeneric: true);
     }
 
-    public AsyncIteratorCore(Coroutine coroutine)
+    public AsyncIteratorImpl(Coroutine coroutine)
     {
         _coroutineHolder = new CoroutineHolder<Coroutine, Coroutine>(coroutine, isProvider: false, isGeneric: false);
     }
 
-    public AsyncIteratorCore(Coroutine<TReturnResult> coroutine)
+    public AsyncIteratorImpl(Coroutine<TReturnResult> coroutine)
     {
         _coroutineHolder = new CoroutineHolder<Coroutine<TReturnResult>, Coroutine<TReturnResult>>(coroutine, isProvider: false, isGeneric: true);
     }
@@ -77,6 +77,22 @@ internal class AsyncIteratorCore<TReturnResult>
         return iteratorContext;
     }
 
+    public Key CurrentKey {
+        get {
+            _ = GetIteratorContext(out var isCoroutineCompleted);
+
+            if (_nextOperation.State == 0) {
+                throw Exceptions.NotStartedAlreadyFinishedOrNotSuspended();
+            }
+
+            if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) == 0) {
+                throw new InvalidOperationException("Although the iterator is suspended, the coroutine effect which let to the suspension misbehaved fatally by not supplying an argument");
+            }
+
+            return _nextOperation.ArgumentKey;
+        }
+    }
+
     public object Current {
         get {
             _ = GetIteratorContext(out var isCoroutineCompleted);
@@ -107,7 +123,6 @@ internal class AsyncIteratorCore<TReturnResult>
             try {
                 if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
                     var argumentsReceiver = new CoroutineArgumentReceiver(ref iteratorContext._iteratorAgnosticCoroutineContext);
-                    Debug.Assert(_nextOperation.ArgumentKey is not null);
                     Debug.Assert(_nextOperation.Argument is not null);
                     Debug.Assert(_nextOperation.ArgumentCompletionSource is not null);
                     argumentsReceiver.ReceiveCallableArgument(_nextOperation.ArgumentKey, _nextOperation.Argument, _nextOperation.ArgumentCompletionSource);
@@ -260,7 +275,6 @@ internal class AsyncIteratorCore<TReturnResult>
 
         if ((nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
             var argumentsReceiver = new CoroutineArgumentReceiver(ref iteratorContext._iteratorAgnosticCoroutineContext);
-            Debug.Assert(nextOperation.ArgumentKey is not null);
             Debug.Assert(nextOperation.Argument is not null);
             Debug.Assert(nextOperation.ArgumentCompletionSource is not null);
             argumentsReceiver.ReceiveCallableArgument(nextOperation.ArgumentKey, nextOperation.Argument, nextOperation.ArgumentCompletionSource);

@@ -2,7 +2,7 @@
 
 namespace Vernuntii.Coroutines.Iterators;
 
-internal interface IAsyncIterator<TResult>
+public interface IAsyncIterator<TResult>
 {
     /// <summary>
     /// The value yielded when the underlying coroutine suspends at a compatible suspension point.

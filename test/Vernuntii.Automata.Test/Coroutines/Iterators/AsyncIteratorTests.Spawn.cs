@@ -59,7 +59,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task MoveNext_ReturnsFalse()
             {
-                var iterator = AsyncIterator.Create(ConstantAfterDelay());
+                var iterator = ConstantAfterDelay().GetAsyncIterator();
                 var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
                 canMoveNext.Should().Be(false);
             }
@@ -67,7 +67,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResult_Returns()
             {
-                var iterator = AsyncIterator.Create(ConstantAfterDelay());
+                var iterator = ConstantAfterDelay().GetAsyncIterator();
                 var asyncResult = iterator.GetResult();
                 var result = await asyncResult;
                 result.Should().Be(ExpectedResult);
@@ -76,7 +76,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResultAsync_Awaits()
             {
-                var iterator = AsyncIterator.Create(ConstantAfterDelay());
+                var iterator = ConstantAfterDelay().GetAsyncIterator();
                 var asyncResult = await iterator.GetResultAsync();
                 var result = await asyncResult;
                 result.Should().Be(ExpectedResult);

@@ -9,18 +9,12 @@ public class CoroutineScopeBuilder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Dictionary<Key, object> KeyedServices() => _keyedServices ??= [];
 
-    public void AddKeyedService<TServiceKey, TService>(in TServiceKey serviceKey, TService service)
-        where TServiceKey : IKey
+    public void AddKeyedService<TServiceKey, TService>(in Key serviceKey, TService service)
         where TService : class
     {
         if (serviceKey.SchemaVersion == 1) {
-            if (default(TServiceKey) != null && serviceKey is Key) {
-                ref var typedServiceKey = ref Unsafe.As<TServiceKey, Key>(ref Unsafe.AsRef(in serviceKey));
-                var keyedServices = KeyedServices();
-                keyedServices.Add(typedServiceKey, service);
-            } else {
-                throw new NotSupportedException($"The service key is not of type {typeof(Key)}");
-            }
+            var keyedServices = KeyedServices();
+            keyedServices.Add(serviceKey, service);
         } else {
             throw new NotSupportedException($"The schema version of the key {serviceKey.SchemaVersion} is not supported");
         }

@@ -4,13 +4,14 @@ namespace Vernuntii.Coroutines.Iterators;
 
 internal struct AsyncIteratorContextServiceOperation
 {
-    public static readonly AsyncIteratorContextServiceOperation AwaiterCompletionNotifierRequired = new AsyncIteratorContextServiceOperation() { State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired };
+    public static readonly AsyncIteratorContextServiceOperation AwaiterCompletionNotifierRequired = new() { State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired };
+    public static readonly AsyncIteratorContextServiceOperation Unitialized = default;
 
+    internal AsyncIteratorContextServiceOperationState State { get; private set; }
     internal ICallableArgument? Argument { get; private set; }
-    internal IKey? ArgumentKey { get; private set; }
+    internal Key ArgumentKey { get; private set; }
     internal IYieldReturnCompletionSource? ArgumentCompletionSource { get; private set; }
     internal ValueTask AwaiterCompletionNotifier { get; private set; }
-    internal AsyncIteratorContextServiceOperationState State { get; private set; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ThrowIfNotRequiringAwaiterCompletionNotifier(in AsyncIteratorContextServiceOperation operation)
@@ -20,7 +21,7 @@ internal struct AsyncIteratorContextServiceOperation
         }
     }
 
-    internal void SupplyArgument(IKey argumentKey, ICallableArgument argument, IYieldReturnCompletionSource argumentCompletionSource)
+    internal void SupplyArgument(Key argumentKey, ICallableArgument argument, IYieldReturnCompletionSource argumentCompletionSource)
     {
         ThrowIfNotRequiringAwaiterCompletionNotifier(in this);
         State = AsyncIteratorContextServiceOperationState.ArgumentSupplied | (State & AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired);
@@ -50,31 +51,7 @@ internal struct AsyncIteratorContextServiceOperation
         awaiter.UnsafeOnCompleted(externTaskCompletionNotifierSource.SetDefaultResult);
     }
 
-    internal void SupplyCoroutineAwaiterCriticalCompletionNotifier<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter) where TCoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter
-    {
-        BeginSupplyingAwaiterCompletionNotifier(out var externTaskCompletionNotifierSource); // and end with ..
-        if (coroutineAwaiter.IsCompleted) {
-            externTaskCompletionNotifierSource.SetDefaultResult();
-        } else {
-            coroutineAwaiter.UnsafeOnCompleted(externTaskCompletionNotifierSource.SetDefaultResult);
-        }
-    }
+    internal void RequireAwaiterCompletionNotifier() => this = AwaiterCompletionNotifierRequired;
 
-    internal void RequireAwaiterCompletionNotifier()
-    {
-        State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired;
-        ArgumentKey = default;
-        Argument = default;
-        ArgumentCompletionSource = default;
-        AwaiterCompletionNotifier = default;
-    }
-
-    internal void Uninitialize()
-    {
-        State = 0;
-        ArgumentKey = default;
-        Argument = default;
-        ArgumentCompletionSource = default;
-        AwaiterCompletionNotifier = default;
-    }
+    internal void Uninitialize() => this = Unitialized;
 }

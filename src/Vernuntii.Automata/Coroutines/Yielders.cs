@@ -11,12 +11,12 @@ public sealed partial class Yielders
     {
         private readonly static byte[] s_scope = Encoding.ASCII.GetBytes("@vernuntii");
 
-        internal readonly static Key s_callArgumentType = new(s_scope, 1);
-        internal readonly static Key s_launchArgumentType = new(s_scope, 2);
-        internal readonly static Key s_spawnArgumentType = new(s_scope, 3);
-        internal readonly static Key s_withContextArgumentType = new(s_scope, 4);
-        internal readonly static Key s_returnArgumentType = new(s_scope, 5);
-        internal readonly static Key s_throwArgumentType = new(s_scope, 6);
-        internal readonly static Key s_yieldArgumentType = new(s_scope, 7);
+        public readonly static Key CallKey = new(s_scope, 1);
+        public readonly static Key LaunchKey = new(s_scope, 2);
+        public readonly static Key SpawnKey = new(s_scope, 3);
+        public readonly static Key WithContextKey = new(s_scope, 4);
+        public readonly static Key ReturnKey = new(s_scope, 5);
+        public readonly static Key ThrowKey = new(s_scope, 6);
+        public readonly static Key YieldKey = new(s_scope, 7);
     }
 }

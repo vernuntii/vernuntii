@@ -12,7 +12,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task MoveNext_ReturnsFalse()
             {
-                var iterator = new AsyncIterator<int>(Constant());
+                var iterator = Constant().GetAsyncIterator();
                 var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
                 canMoveNext.Should().BeFalse();
             }
@@ -20,7 +20,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResult_Returns()
             {
-                var iterator = new AsyncIterator<int>(Constant());
+                var iterator = Constant().GetAsyncIterator();
                 var result = iterator.GetResult();
                 result.Should().Be(ExpectedResult);
             }
@@ -28,7 +28,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResultAsync_Awaits()
             {
-                var iterator = new AsyncIterator<int>(Constant());
+                var iterator = Constant().GetAsyncIterator();
                 var result = await iterator.GetResultAsync().ConfigureAwait(false);
                 result.Should().Be(ExpectedResult);
             }
@@ -57,7 +57,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task MoveNext_ReturnsFalse()
             {
-                var iterator = new AsyncIterator<int>(ConstantAfterDelay());
+                var iterator = ConstantAfterDelay().GetAsyncIterator();
                 var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
                 canMoveNext.Should().Be(false);
             }
@@ -65,7 +65,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResult_Throws()
             {
-                var iterator = new AsyncIterator<int>(ConstantAfterDelay());
+                var iterator = ConstantAfterDelay().GetAsyncIterator();
 
                 var result = iterator
                     .Invoking(x => x.GetResult())
@@ -77,7 +77,7 @@ partial class AsyncIteratorTests
             [Fact]
             public async Task GetResultAsync_Awaits()
             {
-                var iterator = AsyncIterator.Create(ConstantAfterDelay());
+                var iterator = ConstantAfterDelay().GetAsyncIterator();
                 var result = await iterator.GetResultAsync();
                 result.Should().Be(ExpectedResult);
             }

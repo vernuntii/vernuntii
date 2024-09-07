@@ -67,7 +67,7 @@ public static class CoroutineTests
     static async Coroutine<int> AsyncIterator2(int _)
     {
         Console.WriteLine("AsyncIterator2[PRE] " + Thread.CurrentThread.ManagedThreadId);
-        var iterator = new AsyncIteratorCore<int>(async () => {
+        var iterator = new AsyncIteratorImpl<int>(async () => {
             await Task.Delay(100);
 
             var runs = 20;

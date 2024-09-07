@@ -9,7 +9,7 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        async Task CoroutineLoop(int runs = 99999*5)
+        async Task CoroutineLoop(int runs = 99999*10)
         {
             var list = new List<int>();
             await Vernuntii.Coroutines.Coroutine.Start(static x => Generator(x.runs, x.list), (runs, list));
@@ -32,8 +32,8 @@ internal class Program
             var generator = Generator(runs).GetAsyncIterator();
             var results = new List<int>();
 
-            while (await generator.MoveNextAsync()) {
-                results.Add(((Arguments.ReturnArgument<int>)generator.Current).Result);
+            while (await ((Vernuntii.Coroutines.Iterators.IAsyncIterator)generator).MoveNextAsync()) {
+                results.Add(((Arguments.ReturnArgument<int>)((Vernuntii.Coroutines.Iterators.IAsyncIterator)generator).Current).Result);
             }
 
             [MethodImpl(MethodImplOptions.NoOptimization)]
@@ -47,8 +47,9 @@ internal class Program
             }
         }
 
-        //await AsyncIterator();
-        //return;
+        //await CoroutineLoop();
+        await AsyncIterator();
+        return;
 
 
         var t = CoroutineScope.s_coroutineScopeKey.ToString();

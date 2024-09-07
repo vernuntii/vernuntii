@@ -14,7 +14,7 @@ partial class Yielders
         void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.SpawnArgument<TClosure>(provider, closure, isProviderWithClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_spawnArgumentType, in argument, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.SpawnKey, in argument, completionSource);
         }
     }
 
@@ -27,7 +27,7 @@ partial class Yielders
         void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
             var argument = new Arguments.SpawnArgument<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.s_spawnArgumentType, in argument, completionSource);
+            argumentReceiver.ReceiveCallableArgument(in Arguments.SpawnKey, in argument, completionSource);
         }
     }
 
