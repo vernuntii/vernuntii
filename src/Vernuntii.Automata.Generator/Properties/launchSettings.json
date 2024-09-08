@@ -1,8 +1,0 @@
-{
-    "profiles": {
-        "Vernuntii.Automata.Generator": {
-            "commandName": "DebugRoslynComponent",
-            "targetProject": "..\\Vernuntii.Automata\\Vernuntii.Automata.csproj"
-        }
-    }
-}

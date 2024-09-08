@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Vernuntii.Automata\Vernuntii.Automata.csproj" />
+    <ProjectReference Include="..\..\src\Vernuntii.Coroutines\Vernuntii.Coroutines.csproj" />
   </ItemGroup>
 
 </Project>

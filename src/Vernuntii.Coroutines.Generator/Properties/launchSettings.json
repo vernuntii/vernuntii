@@ -1,0 +1,8 @@
+{
+    "profiles": {
+        "Vernuntii.Coroutines.Generator": {
+            "commandName": "DebugRoslynComponent",
+            "targetProject": "..\\Vernuntii.Coroutines\\Vernuntii.Coroutines.csproj"
+        }
+    }
+}

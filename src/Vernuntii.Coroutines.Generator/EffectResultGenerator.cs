@@ -1,6 +1,6 @@
 ﻿using Nito.Comparers;
 
-namespace Vernuntii.Automata.GeneratedSources;
+namespace Vernuntii.Coroutines.GeneratedSources;
 
 [Generator]
 public class EffectResultGenerator : IIncrementalGenerator

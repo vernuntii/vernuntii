@@ -1,3 +1,3 @@
-﻿namespace Vernuntii.Automata.GeneratedSources;
+﻿namespace Vernuntii.Coroutines.GeneratedSources;
 
 public record AllEffectResultProperty(string PropertyName, ITypeSymbol PropertyType, ITypeSymbol? AwaitingType);

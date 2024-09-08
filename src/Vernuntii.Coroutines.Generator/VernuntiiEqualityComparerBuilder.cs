@@ -1,6 +1,6 @@
 ﻿using Nito.Comparers;
 
-namespace Vernuntii.Automata.GeneratedSources;
+namespace Vernuntii.Coroutines.GeneratedSources;
 
 internal static class VernuntiiEqualityComparerBuilder
 {

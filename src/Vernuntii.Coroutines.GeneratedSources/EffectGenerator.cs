@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Vernuntii.Automata.GeneratedSources;
+namespace Vernuntii.Coroutines.GeneratedSources;
 
 [Generator]
 public class EffectGenerator : IIncrementalGenerator
