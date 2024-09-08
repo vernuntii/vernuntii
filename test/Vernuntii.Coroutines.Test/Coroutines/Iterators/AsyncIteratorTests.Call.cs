@@ -3,6 +3,19 @@ partial class AsyncIteratorTests
 {
     public class Call
     {
+        public static IEnumerable<object[]> NonGeneric_IsNoChildCoroutine_Generator()
+        {
+            yield return [new ReleativeCoroutineHolder(Call(async () => { }))];
+            yield return [new ReleativeCoroutineHolder(Call(() => Call(async () => { })))];
+        }
+
+        [Theory]
+        [MemberData(nameof(NonGeneric_IsNoChildCoroutine_Generator))]
+        public void NonGeneric_IsNoChildCoroutine(ReleativeCoroutineHolder holder)
+        {
+            holder.Coroutine.IsChildCoroutine.Should().BeFalse();
+        }
+
         public class ReturnSynchronously
         {
             private const int ExpectedResult = 2;

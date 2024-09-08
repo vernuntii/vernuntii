@@ -88,7 +88,7 @@ public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
         _argumentReceiverDelegate = null;
     }
 
-    public CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
+    public readonly CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
 
     public readonly ConfiguredCoroutineAwaitable ConfigureAwait(bool continueOnCapturedContext) =>
         new(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
