@@ -3,7 +3,7 @@ using System.Threading.Channels;
 
 namespace Vernuntii.Reactive.Extensions.Coroutines;
 
-public class EventChannel<T> : IDisposable
+public sealed class EventChannel<T> : IDisposable
 {
     internal readonly Channel<T> _channel;
 
@@ -15,5 +15,5 @@ public class EventChannel<T> : IDisposable
     public ValueTask<T> Take(CancellationToken cancellationToken = default) =>
         _channel.Reader.ReadAsync(cancellationToken);
 
-    public void Dispose() => throw new NotImplementedException();
+    public void Dispose() => _ = _channel.Writer.TryComplete();
 }
