@@ -1,8 +1,9 @@
 ﻿namespace Vernuntii.Coroutines;
 
-public class CoroutineContextServiceMap : RobinhoodMap<Key, object>
+public class CoroutineContextServiceMap : AbstractRobinhoodMap<Key, object>
 {
-    private const double s_defaultLoadFactor = 0.5d;
+    private static readonly ReadonlyReferenceEqualsDelegate<Key> ReadOnlyReferenceEqualsDelegate = KeyEqualityComparer.Equals;
+    private static readonly ReadonlyReferenceGetHashCodeDelegate<Key> ReadOnlyReferenceGetHashCodeDelegate = KeyEqualityComparer.GetHashCode;
 
     public static CoroutineContextServiceMap CreateRange<TState>(int length, TState state, Action<CoroutineContextServiceMap, TState> entriesBuilder)
     {
@@ -11,11 +12,11 @@ public class CoroutineContextServiceMap : RobinhoodMap<Key, object>
         return dictionary;
     }
 
-    public CoroutineContextServiceMap() : base(4, s_defaultLoadFactor, KeyEqualityComparer.Default)
+    public CoroutineContextServiceMap() : base(4, DefaultLoadFactor, ReadOnlyReferenceEqualsDelegate, ReadOnlyReferenceGetHashCodeDelegate)
     {
     }
 
-    public CoroutineContextServiceMap(uint length) : base(length, s_defaultLoadFactor, KeyEqualityComparer.Default)
+    public CoroutineContextServiceMap(uint length) : base(length, DefaultLoadFactor, ReadOnlyReferenceEqualsDelegate, ReadOnlyReferenceGetHashCodeDelegate)
     {
     }
 }

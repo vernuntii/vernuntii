@@ -1,11 +1,19 @@
 ﻿
+using System.Threading.Channels;
+
 namespace Vernuntii.Reactive.Extensions.Coroutines;
 
-public class EventChannel<T> : IEventChannel<T>
+public class EventChannel<T> : IDisposable
 {
-    private readonly IEventChannel<T> _impl;
+    internal readonly Channel<T> _channel;
 
-    public EventChannel(IEventChannel<T> impl) => _impl = impl;
+    internal EventChannel(Channel<T> channel)
+    {
+        _channel = channel;
+    }
 
-    public void Dispose() => _impl.Dispose();
+    public ValueTask<T> Take(CancellationToken cancellationToken = default) =>
+        _channel.Reader.ReadAsync(cancellationToken);
+
+    public void Dispose() => throw new NotImplementedException();
 }

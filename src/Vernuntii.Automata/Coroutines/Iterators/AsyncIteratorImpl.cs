@@ -53,7 +53,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
         iteratorContext._iteratorAgnosticCoroutineContext = context; // Copy befor making context async-iterator-aware
         iteratorContext._coroutineStateMachineBox = iteratorContext._iteratorAgnosticCoroutineContext.ResultStateMachine as IAsyncIteratorStateMachineBox<TReturnResult>;
         context._keyedServices = context.KeyedServices.Merge(
-            CoroutineContextServiceMap.CreateRange(1, iteratorContext._iteratorContextService, static (x, y) => x.OverwriteInternal(new(AsyncIterator.s_asyncIteratorKey, y))),
+            CoroutineContextServiceMap.CreateRange(1, iteratorContext._iteratorContextService, static (x, y) => x.Emplace(AsyncIterator.s_asyncIteratorKey, y)),
             forceNewInstance: true);
         context._isCoroutineAsyncIteratorSupplier = true;
     }
@@ -62,7 +62,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
     {
         var scope = new CoroutineScope();
         var context = new CoroutineContext();
-        context._keyedServicesToBequest = CoroutineContextServiceMap.CreateRange(1, scope, static (x, y) => x.OverwriteInternal(new(CoroutineScope.s_coroutineScopeKey, y)));
+        context._keyedServicesToBequest = CoroutineContextServiceMap.CreateRange(1, scope, static (x, y) => x.Emplace(CoroutineScope.s_coroutineScopeKey, y));
         context._bequesterOrigin = CoroutineContextBequesterOrigin.ContextBequester;
         context._bequestContext = OnBequestCoroutineContext;
         ref var coroutineAwaiter = ref iteratorContext._coroutineAwaiter;

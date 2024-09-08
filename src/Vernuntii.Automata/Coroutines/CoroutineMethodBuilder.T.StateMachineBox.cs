@@ -20,6 +20,8 @@ partial struct CoroutineMethodBuilder<TResult>
         /// <summary>A delegate to the MoveNext method.</summary>
         protected Action? _moveNextAction;
 
+        protected int _isCoroutineReserved;
+
         /// <summary>Captured ExecutionContext with which to invoke MoveNext.</summary>
         internal ExecutionContext? _executionContext;
 
@@ -35,6 +37,14 @@ partial struct CoroutineMethodBuilder<TResult>
             _coroutineContext._bequesterOrigin = CoroutineContextBequesterOrigin.ChildCoroutine;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ReserveCoroutine()
+        {
+            if (Interlocked.Exchange(ref _isCoroutineReserved, 1) != 0) {
+                throw RelativeCoroutineThrowHelper.CannotBePreprocessedTwice();
+            }
+        }
+
         void IChildCoroutine.InheritCoroutineContext(in CoroutineContext contextToBequest)
         {
             CoroutineContext.InheritOrBequestCoroutineContext(ref _coroutineContext, in contextToBequest);
@@ -42,6 +52,7 @@ partial struct CoroutineMethodBuilder<TResult>
 
         void IChildCoroutine.StartCoroutine()
         {
+            ReserveCoroutine();
             ref var coroutineContext = ref _coroutineContext;
             coroutineContext.OnCoroutineStarted();
             Unsafe.As<ICoroutineStateMachineBox>(this).MoveNext();
@@ -218,6 +229,7 @@ partial struct CoroutineMethodBuilder<TResult>
             _executionContext = default;
             _coroutineContext.OnCoroutineCompleted();
             _coroutineContext = default;
+            _isCoroutineReserved = 0;
             _valueTaskSource.Reset();
 
             // If the per-thread cache is empty, store this into it..

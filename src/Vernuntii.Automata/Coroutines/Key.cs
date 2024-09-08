@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using K4os.Hash.xxHash;
 
 namespace Vernuntii.Coroutines;
 
@@ -23,6 +24,8 @@ internal enum KeyFlags : byte
 [DebuggerDisplay($"{{{nameof(ToString)}(),nq}}")]
 public struct Key : IEquatable<Key>
 {
+    private static readonly XXH32 s_hash = new();
+
     internal const byte CurrentSchemaVersion = 1;
     internal const int KeyLength = 20;
     internal const int ScopeLength = 12;
@@ -30,7 +33,7 @@ public struct Key : IEquatable<Key>
     internal const int ServiceLength = 14;
 
     [FieldOffset(0)]
-    private readonly int _hash;
+    internal readonly uint _hash;
 
     [field: FieldOffset(4)]
     public readonly byte SchemaVersion { get; } = CurrentSchemaVersion;
@@ -53,49 +56,53 @@ public struct Key : IEquatable<Key>
             throw new ArgumentOutOfRangeException(nameof(scope), $"Scope must be {ScopeLength} bytes or lesser");
         }
 
-        var hashCode = new HashCode();
-        hashCode.Add(SchemaVersion);
-        hashCode.Add(Flags);
-
         fixed (byte* scopePointer = _scope) {
             var scopeSpan = new Span<byte>(scopePointer, ScopeLength);
             scope.CopyTo(scopeSpan);
-            hashCode.AddBytes(scopeSpan);
         }
 
         _argument = argument;
-        hashCode.Add(argument);
-
-        _hash = hashCode.ToHashCode();
+        ComputeHash(out _hash);
     }
 
-    public unsafe Key(byte[] scope, ushort argument) : this(scope.AsSpan(), argument)
+    public unsafe Key(byte[] scope, ushort argument, bool inheritable = false) : this(scope.AsSpan(), argument)
     {
     }
 
+    [Obsolete]
     internal unsafe Key(Span<byte> service, bool isContextService = false, bool inheritable = false)
     {
         if (service.Length > ServiceLength) {
             throw new ArgumentOutOfRangeException(nameof(service), $"Scope must be {ServiceLength} bytes or lesser");
         }
 
-        var hashCode = new HashCode();
-        hashCode.Add(SchemaVersion);
 
         Flags = (byte)((isContextService ? KeyFlags.ContextService : KeyFlags.Service) | (inheritable ? KeyFlags.Inheritable : KeyFlags.None));
-        hashCode.Add(Flags);
 
         fixed (byte* servicePointer = _service) {
             var serviceSpan = new Span<byte>(servicePointer, ServiceLength);
             service.CopyTo(serviceSpan);
-            hashCode.AddBytes(serviceSpan);
         }
 
-        _hash = hashCode.ToHashCode();
+        ComputeHash(out _hash);
+    }
+
+    public unsafe Key(string service, bool inheritable = false) : this(Encoding.ASCII.GetBytes(service), isContextService: false, inheritable: false)
+    {
     }
 
     public unsafe Key(Span<byte> service, bool inheritable) : this(service, isContextService: false, inheritable: inheritable)
     {
+    }
+
+    private unsafe void ComputeHash(out uint hash) { 
+        fixed (byte* thisPointer = &Unsafe.As<Key, byte>(ref this)) {
+#pragma warning disable CS0618 // Type or member is obsolete
+            s_hash.Update(thisPointer, 2);
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+        hash = s_hash.Digest();
+        s_hash.Reset();
     }
 
     internal unsafe bool SequenceEqual(in Key other)
@@ -120,7 +127,7 @@ public struct Key : IEquatable<Key>
 
     public static bool operator !=(Key left, Key right) => !(left == right);
 
-    public override readonly int GetHashCode() => _hash;
+    public override readonly int GetHashCode() => (int)_hash;
 
     public override unsafe string ToString()
     {

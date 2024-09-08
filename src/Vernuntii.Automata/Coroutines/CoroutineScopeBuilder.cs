@@ -16,7 +16,7 @@ public class CoroutineScopeBuilder
             var keyedServices = KeyedServices();
             keyedServices.Add(serviceKey, service);
         } else {
-            throw new NotSupportedException($"The schema version of the key {serviceKey.SchemaVersion} is not supported");
+            throw KeyThrowHelper.SchemaVersionNotSupported(serviceKey);
         }
     }
 

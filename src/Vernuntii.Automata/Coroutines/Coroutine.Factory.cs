@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -33,16 +34,14 @@ partial struct Coroutine
     /// <returns>The faulted coroutine.</returns>
     public static Coroutine<TResult> FromException<TResult>(Exception exception) => new(new ValueTask<TResult>(Task.FromException<TResult>(exception)));
 
-    private static void StartCore<TCoroutine>(ref TCoroutine coroutine) where TCoroutine : IRelativeCoroutine
+    private static void StartCore<TCoroutine>(ref TCoroutine coroutine, ref CoroutineContext context) where TCoroutine : IRelativeCoroutine
     {
         var scope = new CoroutineScope();
-        var context = new CoroutineContext {
-            _keyedServicesToBequest = CoroutineContextServiceMap.CreateRange(1, scope, static (x, y) => x.OverwriteInternal(new(CoroutineScope.s_coroutineScopeKey, y)))
-        };
+        context._keyedServicesToBequest = context._keyedServicesToBequest.Merge(CoroutineContextServiceMap.CreateRange(1, scope, static (x, y) => x.Emplace(CoroutineScope.s_coroutineScopeKey, y)));
         CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref context);
     }
 
-    private static Coroutine StartInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
+    private static Coroutine StartInternal<TClosure>(Delegate provider, TClosure closure, ref CoroutineContext context, bool isProviderWithClosure)
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         Coroutine coroutine;
@@ -51,11 +50,11 @@ partial struct Coroutine
         } else {
             coroutine = Unsafe.As<Delegate, Func<Coroutine>>(ref provider)();
         }
-        StartCore(ref coroutine);
+        StartCore(ref coroutine, ref context);
         return coroutine;
     }
 
-    private static Coroutine<TResult> StartInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
+    private static Coroutine<TResult> StartInternal<TClosure, TResult>(Delegate provider, TClosure closure, ref CoroutineContext context, bool isProviderWithClosure)
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
         Coroutine<TResult> coroutine;
@@ -64,15 +63,19 @@ partial struct Coroutine
         } else {
             coroutine = Unsafe.As<Delegate, Func<Coroutine<TResult>>>(ref provider)();
         }
-        StartCore(ref coroutine);
+        StartCore(ref coroutine, ref context);
         return coroutine;
     }
 
-    public static Coroutine Start(Func<Coroutine> provider) => StartInternal<object?>(provider, null, isProviderWithClosure: false);
+    public static CoroutineAwaitable Start(Func<Coroutine> provider, CoroutineContext context = default) =>
+        new(StartInternal<object?>(provider, null, ref context, isProviderWithClosure: false));
 
-    public static Coroutine Start<TClosure>(Func<TClosure, Coroutine> provider, TClosure closure) => StartInternal(provider, closure, isProviderWithClosure: true);
+    public static CoroutineAwaitable Start<TClosure>(Func<TClosure, Coroutine> provider, TClosure closure, CoroutineContext context = default) =>
+        new(StartInternal(provider, closure, ref context, isProviderWithClosure: true));
 
-    public static Coroutine<TResult> Start<TResult>(Func<Coroutine<TResult>> provider) => StartInternal<object?, TResult>(provider, null, isProviderWithClosure: false);
+    public static CoroutineAwaitable<TResult> Start<TResult>(Func<Coroutine<TResult>> provider, CoroutineContext context = default) =>
+        new(StartInternal<object?, TResult>(provider, null, ref context, isProviderWithClosure: false));
 
-    public static Coroutine<TResult> Start<TClosure, TResult>(Func<TClosure, Coroutine<TResult>> provider, TClosure closure) => StartInternal<TClosure, TResult>(provider, closure, isProviderWithClosure: true);
+    public static CoroutineAwaitable<TResult> Start<TClosure, TResult>(Func<TClosure, Coroutine<TResult>> provider, TClosure closure, CoroutineContext context = default) =>
+        new(StartInternal<TClosure, TResult>(provider, closure, ref context, isProviderWithClosure: true));
 }

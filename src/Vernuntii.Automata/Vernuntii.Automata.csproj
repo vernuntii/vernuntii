@@ -1,4 +1,4 @@
-﻿  <Project Sdk="Microsoft.NET.Sdk">
+  <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -20,6 +20,7 @@
     <!--<PackageReference Include="Fody" Version="6.8.1" />-->
     <!--<PackageReference Include="InlineIL.Fody" Version="1.8.0" PrivateAssets="All" />-->
     <!--<PackageReference Include="Microsoft.CodeAnalysis.Scripting" Version="4.8.0" />-->
+    <PackageReference Include="K4os.Hash.xxHash" Version="1.0.8" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
 

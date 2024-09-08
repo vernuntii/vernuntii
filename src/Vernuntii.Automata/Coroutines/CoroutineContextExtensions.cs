@@ -17,4 +17,10 @@ internal static class CoroutineContextExtensions
         context._keyedServices = null;
         context._bequesterOrigin = CoroutineContextBequesterOrigin.SiblingCoroutine | additionalBequesterOrigin;
     }
+
+    internal static TService GetBequestedService<TService>(this in CoroutineContext coroutineContext, Key serviceKey) =>
+        serviceKey.SchemaVersion switch {
+            1 => (TService)coroutineContext.KeyedServicesToBequest[serviceKey],
+            _ => throw KeyThrowHelper.SchemaVersionNotSupported(serviceKey)
+        };
 }

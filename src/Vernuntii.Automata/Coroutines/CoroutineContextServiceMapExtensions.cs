@@ -30,7 +30,7 @@ internal static class CoroutineContextServiceMapExtensions
             merge = new CoroutineContextServiceMap();
 
             if (left is null || left.Count == 0) {
-                merge.Copy(right);
+                merge.CopyFrom(right);
                 return merge;
             }
 
@@ -40,24 +40,25 @@ internal static class CoroutineContextServiceMapExtensions
         }
 
         var (smaller, greater) = SortByCount(left, right);
-        merge.Copy(greater);
+        merge.CopyFrom(greater);
         CopyTo(smaller, merge);
         return merge;
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         static void CopyTo(CoroutineContextServiceMap from, CoroutineContextServiceMap to)
         {
-            for (int i = 0, l = from.Count; i < l; ++i) {
+            for (int i = 0, l = from.Size; i < l; i++) {
                 var meta = from._meta[i];
+             
                 if (meta is 0) {
                     continue;
                 }
 
                 if (!to.Emplace(from._entries[i].Key, from._entries[i].Value)) {
-                    var toEntry = RobinhoodMap<Key, object>.Find(to._entries, to.Hash(from._entries[i].Key));
-                    var fromEntry = RobinhoodMap<Key, object>.Find(from._entries, from.Hash(from._entries[i].Key));
+                    var toEntry = AbstractRobinhoodMap<Key, object>.Find(to._entries, to.Hash(from._entries[i].Key));
+                    var fromEntry = AbstractRobinhoodMap<Key, object>.Find(from._entries, from.Hash(from._entries[i].Key));
                     throw new InvalidOperationException($"""
-When attempting to merge a key-value pair into the target dictionary, both key hashes matched but did not pass the equality check due to hash collision or faulty equality check:
+When attempting to merge a key-value pair into the target dictionary, both key hashes matched but their values did not pass the equality check due to hash collision or faulty equality check:
 To Be Replaced = {toEntry}
 To Be Replaced By = {fromEntry}
 """);

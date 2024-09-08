@@ -77,7 +77,7 @@ partial class Yielders
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                coroutineAwaiter.DelegateCompletion(_completionSource);
+                coroutineAwaiter.DelegateCoroutineCompletion(_completionSource);
             }
         }
 
@@ -118,7 +118,7 @@ partial class Yielders
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                coroutineAwaiter.DelegateCompletion(_completionSource);
+                coroutineAwaiter.DelegateCoroutineCompletion(_completionSource);
             }
         }
     }

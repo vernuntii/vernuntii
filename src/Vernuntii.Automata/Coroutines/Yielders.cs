@@ -9,7 +9,7 @@ public sealed partial class Yielders
 
     public partial class Arguments
     {
-        private readonly static byte[] s_scope = Encoding.ASCII.GetBytes("vernuntii");
+        private readonly static byte[] s_scope = Encoding.ASCII.GetBytes("__co");
 
         public readonly static Key CallKey = new(s_scope, 1);
         public readonly static Key LaunchKey = new(s_scope, 2);

@@ -86,7 +86,7 @@ partial class Yielders
                 var intermediateCompletionSource = ManualResetCoroutineCompletionSource<Nothing>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateValueTask();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
-                childCoroutineAwaiter.DelegateCompletion(intermediateCompletionSource);
+                childCoroutineAwaiter.DelegateCoroutineCompletion(intermediateCompletionSource);
                 childCoroutine.MarkCoroutineAsHandled();
                 _completionSource.SetResult(childCoroutine);
             }
@@ -138,7 +138,7 @@ partial class Yielders
                 var intermediateCompletionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateGenericValueTask();
                 CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
-                childCoroutineAwaiter.DelegateCompletion(intermediateCompletionSource);
+                childCoroutineAwaiter.DelegateCoroutineCompletion(intermediateCompletionSource);
                 childCoroutine.MarkCoroutineAsHandled();
                 _completionSource.SetResult(childCoroutine);
             }
