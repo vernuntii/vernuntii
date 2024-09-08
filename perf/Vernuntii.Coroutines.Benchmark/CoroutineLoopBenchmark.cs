@@ -7,7 +7,6 @@ using BenchmarkDotNet.Attributes;
 namespace Vernuntii.Coroutines.Benchmark
 {
     [MemoryDiagnoser]
-    [ShortRunJob]
     public class CoroutineLoopBenchmark
     {
         private const int RunLess = 9;
@@ -43,7 +42,7 @@ namespace Vernuntii.Coroutines.Benchmark
         [Arguments(RunMore)]
         [Arguments(RunMost)]
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public async Task TaskLoop(int runs)
+        public async Task ValueTaskLoop(int runs)
         {
             var list = new List<int>();
             await Generator(runs, list);
@@ -53,10 +52,10 @@ namespace Vernuntii.Coroutines.Benchmark
             {
                 var run = runs;
                 while (run-- > 0) {
-                    list.Add(await Task.Run(static async () => {
-                         await Task.Yield();
-                         return Constant;
-                     }));
+                    list.Add(await new Func<ValueTask<int>>(static async () => {
+                        await Task.Yield();
+                        return Constant;
+                    })());
                 }
             }
         }

@@ -56,7 +56,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
     /// 
     /// The EntryTwo count.
     /// </value>
-    public int Count { get; private set; }
+    public int Count { get => _count; private set => _count = value; }
 
     /// <summary>
     /// Gets the size of the map
@@ -127,6 +127,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
     private byte _maxProbeSequenceLength;
     private readonly IEqualityComparer<TKey> _keyComparer;
     private int _maxLookupsBeforeResize;
+    private int _count;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DenseMap{TKey,TValue}"/> class.
@@ -167,6 +168,12 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
         _shift = (byte)(DefaultShiftToSubtractFrom - BitOperations.Log2(_length));
 
         var size = (int)_length + _maxProbeSequenceLength;
+
+        /* Pooling these arrays via FixedSizedPooling is only beneficial when exceeding following conditions
+         * Entry (e.g. Entry<Key,object>) byte size >= 24 & array size >= 64 & runs >= 100_000
+         * (TBD)
+         */
+
         // We cannot use AllocateUninitializedArray because the performance benefical path is only taken,
         // if TKey or TValue are not or does not contain a reference type and the total size in bytes of that array is greater than 2048.
         _entries = new Entry[size];
@@ -184,7 +191,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
     public bool Emplace(TKey key, TValue value)
     {
         //Resize if loadfactor is reached
-        if (Count > _maxLookupsBeforeResize) {
+        if (_count > _maxLookupsBeforeResize) {
             Resize();
         }
 
@@ -200,7 +207,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
             if (meta == 0) {
                 meta = distance;
                 RobinhoodMap<TKey, TValue>.Find(_entries, index) = entry;
-                ++Count;
+                ++_count;
                 return true;
             }
 
@@ -274,7 +281,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
     public ref TValue GetOrUpdate(TKey key)
     {
         //Resize if loadfactor is reached
-        if (Count >= _maxLookupsBeforeResize) {
+        if (_count >= _maxLookupsBeforeResize) {
             Resize();
         }
 
@@ -291,7 +298,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
                 ref var x = ref RobinhoodMap<TKey, TValue>.Find(_entries, index);
                 x = entry;
 
-                ++Count;
+                ++_count;
                 return ref x.Value;
             }
 
@@ -371,7 +378,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
                 RobinhoodMap<TKey, TValue>.Find(_meta, index) = default;
                 RobinhoodMap<TKey, TValue>.Find(_entries, index) = default;
 
-                --Count;
+                --_count;
                 return true;
             }
 
@@ -431,7 +438,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
     {
         Array.Clear(_entries);
         Array.Clear(_meta);
-        Count = 0;
+        _count = 0;
     }
 
     /// <summary>
@@ -516,7 +523,7 @@ public class RobinhoodMap<TKey, TValue> where TKey : notnull
             if (meta == 0) {
                 meta = distance;
                 RobinhoodMap<TKey, TValue>.Find(_entries, index) = entry;
-                Count++;
+                _count++;
                 return;
             }
 

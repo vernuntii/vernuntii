@@ -31,11 +31,11 @@ internal struct AsyncIteratorContextServiceOperation
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void BeginSupplyingAwaiterCompletionNotifier(out ValueTaskCompletionSource<Nothing> externTaskCompletionNotifierSource)
+    private void BeginSupplyingAwaiterCompletionNotifier(out ManualResetValueTaskCompletionSource<Nothing> externTaskCompletionNotifierSource)
     {
         ThrowIfNotRequiringAwaiterCompletionNotifier(in this);
         State = AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied | (State & ~AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired);
-        externTaskCompletionNotifierSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
+        externTaskCompletionNotifierSource = ManualResetValueTaskCompletionSource<Nothing>.RentFromCache();
         AwaiterCompletionNotifier = externTaskCompletionNotifierSource.CreateValueTask();
     }
 

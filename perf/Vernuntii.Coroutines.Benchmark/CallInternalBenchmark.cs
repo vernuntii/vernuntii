@@ -55,7 +55,7 @@ namespace Vernuntii.Coroutines.Benchmark
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Coroutine<TResult> CallInternalWithImplicitClosure<TResult>(Delegate provider, int providerClosure)
         {
-            var completionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
+            var completionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
             return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
 
             void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
@@ -68,7 +68,7 @@ namespace Vernuntii.Coroutines.Benchmark
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Coroutine<TResult> CallInternalWithPoolClosure<TResult>(Delegate provider, ITuple? providerClosure)
         {
-            var completionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
+            var completionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
             var argumentReceiverClosure = ArgumentReceiverClosure.s_pool.Get();
             argumentReceiverClosure._provider = provider;
             argumentReceiverClosure._providerClosure = providerClosure;
@@ -78,7 +78,7 @@ namespace Vernuntii.Coroutines.Benchmark
             return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), argumentReceiverDelegate);
             static void HandleArgumentReceiver(ArgumentReceiverClosure closure, ref CoroutineArgumentReceiver argumentReceiver)
             {
-                var completionSource = Unsafe.As<ValueTaskCompletionSource<TResult>>(closure._completionSource);
+                var completionSource = Unsafe.As<ManualResetCoroutineCompletionSource<TResult>>(closure._completionSource);
                 var argument = new CallArgument<ITuple?, TResult>(
                     closure._provider,
                     closure._providerClosure,
@@ -92,13 +92,13 @@ namespace Vernuntii.Coroutines.Benchmark
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Coroutine<TResult> CallInternalWithClosedDelegate<TProviderClosure, TResult>(Delegate provider, TProviderClosure providerClosure, bool isProviderWithClosure)
         {
-            var completionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
-            CoroutineArgumentReceiverDelegateWithClosure<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>> argumentReceiver = AcceptArgumentReceiver;
+            var completionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
+            CoroutineArgumentReceiverDelegateWithClosure<Delegate, TProviderClosure, bool, ManualResetCoroutineCompletionSource<TResult>> argumentReceiver = AcceptArgumentReceiver;
             var argumentReceiverClosure = CoroutineArgumentReceiverDelegateClosure.Create(provider, providerClosure, isProviderWithClosure, completionSource, argumentReceiver);
             return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), argumentReceiverClosure.CoroutineArgumentReceiver);
 
             static void AcceptArgumentReceiver(
-                Tuple<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>>> closure,
+                Tuple<Delegate, TProviderClosure, bool, ManualResetCoroutineCompletionSource<TResult>, CoroutineArgumentReceiverDelegateWithClosure<Delegate, TProviderClosure, bool, ManualResetCoroutineCompletionSource<TResult>>> closure,
                 ref CoroutineArgumentReceiver argumentReceiver)
             {
                 var argument = new CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
@@ -109,13 +109,13 @@ namespace Vernuntii.Coroutines.Benchmark
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Coroutine<TResult> CallInternalWithCompiledDelegate<TProviderClosure, TResult>(Func<TProviderClosure, Coroutine<TResult>> provider, TProviderClosure providerClosure, bool isProviderWithClosure)
         {
-            var completionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
-            CoroutineArgumentReceiverDelegate<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>> argumentReceiver = AcceptArgumentReceiver;
+            var completionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
+            CoroutineArgumentReceiverDelegate<Delegate, TProviderClosure, bool, ManualResetCoroutineCompletionSource<TResult>> argumentReceiver = AcceptArgumentReceiver;
             var argumentReceiverClosure = CoroutineArgumentReceiverDelegateFactory.CreateDelegate(provider, providerClosure, isProviderWithClosure, completionSource, argumentReceiver);
             return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), argumentReceiverClosure);
 
             static void AcceptArgumentReceiver(
-                Tuple<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>> closure,
+                Tuple<Delegate, TProviderClosure, bool, ManualResetCoroutineCompletionSource<TResult>> closure,
                 ref CoroutineArgumentReceiver argumentReceiver)
             {
                 var argument = new CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);
@@ -126,13 +126,13 @@ namespace Vernuntii.Coroutines.Benchmark
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Coroutine<TResult> CallInternalWithCachedCompiledDelegate<TProviderClosure, TResult>(Func<TProviderClosure, Coroutine<TResult>> provider, TProviderClosure providerClosure, bool isProviderWithClosure)
         {
-            var completionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
-            CoroutineArgumentReceiverDelegate<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>> argumentReceiver = AcceptArgumentReceiver;
+            var completionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
+            CoroutineArgumentReceiverDelegate<Delegate, TProviderClosure, bool, ManualResetCoroutineCompletionSource<TResult>> argumentReceiver = AcceptArgumentReceiver;
             var argumentReceiverClosure = CoroutineArgumentReceiverCachedDelegateFactory.CreateDelegate(provider, providerClosure, isProviderWithClosure, completionSource, argumentReceiver);
             return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), argumentReceiverClosure);
 
             static void AcceptArgumentReceiver(
-                Tuple<Delegate, TProviderClosure, bool, ValueTaskCompletionSource<TResult>> closure,
+                Tuple<Delegate, TProviderClosure, bool, ManualResetCoroutineCompletionSource<TResult>> closure,
                 ref CoroutineArgumentReceiver argumentReceiver)
             {
                 var argument = new CallArgument<TProviderClosure, TResult>(closure.Item1, closure.Item2, closure.Item3, closure.Item4);

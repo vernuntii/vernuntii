@@ -1,7 +1,7 @@
 ﻿
 namespace Vernuntii.Reactive.Extensions.Coroutines;
 
-public readonly struct EventChannel<T> : IEventChannel<T>
+public class EventChannel<T> : IEventChannel<T>
 {
     private readonly IEventChannel<T> _impl;
 

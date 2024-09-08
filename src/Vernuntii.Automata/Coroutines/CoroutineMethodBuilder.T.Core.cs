@@ -3,6 +3,7 @@
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.CompilerServices;
 using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
@@ -107,7 +108,7 @@ partial struct CoroutineMethodBuilder<TResult>
         ref var context = ref stateMachineBox._coroutineContext;
 
         if (null != default(TAwaiter) && awaiter is IRelativeCoroutineAwaiter) {
-            ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, Coroutine.CoroutineAwaiter>(ref awaiter);
+            ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, CoroutineAwaiter>(ref awaiter);
             CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref context);
         }
 

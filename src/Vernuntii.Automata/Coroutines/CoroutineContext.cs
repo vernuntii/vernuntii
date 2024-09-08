@@ -88,7 +88,7 @@ public struct CoroutineContext : ICoroutinePreprocessor
         _resultStateMachine = resultStateMachine;
     }
 
-    void ICoroutinePreprocessor.PreprocessChildCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter)
+    readonly void ICoroutinePreprocessor.PreprocessChildCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter)
     {
         coroutineAwaiter.InheritCoroutineContext(in this);
         coroutineAwaiter.StartCoroutine();
@@ -104,11 +104,6 @@ public struct CoroutineContext : ICoroutinePreprocessor
     {
 #if DEBUG
         Scope.OnCoroutineCompleted();
-        _identifier = default;
 #endif
-        _keyedServicesToBequest = default;
-        _keyedServices = default;
-        _resultStateMachine = default;
-        _isCoroutineAsyncIteratorSupplier = default;
     }
 }

@@ -3,7 +3,7 @@ using Vernuntii.Reactive.Broker;
 
 namespace Vernuntii.Reactive.Extensions.Coroutines;
 
-partial class EffectExtensions
+partial class YieldersExtensions
 {
     public static Coroutine Emit<T>(this Yielders _, IEventDiscriminator<T> eventDiscriminator, T eventData)
     {

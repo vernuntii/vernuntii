@@ -7,7 +7,7 @@ partial class Yielders
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine<Coroutine> LaunchInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
-        var completionSource = ValueTaskCompletionSource<Coroutine>.RentFromCache();
+        var completionSource = ManualResetCoroutineCompletionSource<Coroutine>.RentFromCache();
         return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
 
         void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
@@ -20,7 +20,7 @@ partial class Yielders
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine<Coroutine<TResult>> LaunchInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
-        var completionSource = ValueTaskCompletionSource<Coroutine<TResult>>.RentFromCache();
+        var completionSource = ManualResetCoroutineCompletionSource<Coroutine<TResult>>.RentFromCache();
         return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
 
         void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
@@ -45,7 +45,7 @@ partial class Yielders
             private readonly Delegate _provider;
             private readonly TClosure _closure;
             private readonly bool _isProviderWithClosure;
-            private readonly ValueTaskCompletionSource<Coroutine> _completionSource;
+            private readonly ManualResetCoroutineCompletionSource<Coroutine> _completionSource;
 
             public readonly Delegate Provider => _provider;
             public readonly TClosure Closure => _closure;
@@ -54,7 +54,7 @@ partial class Yielders
                 Delegate provider,
                 TClosure closure,
                 bool isProviderWithClosure,
-                ValueTaskCompletionSource<Coroutine> completionSource)
+                ManualResetCoroutineCompletionSource<Coroutine> completionSource)
             {
                 _provider = provider;
                 _closure = closure;
@@ -71,10 +71,10 @@ partial class Yielders
                     coroutine = Unsafe.As<Func<Coroutine>>(_provider)();
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
-                var intermediateCompletionSource = ValueTaskCompletionSource<object?>.RentFromCache();
+                var intermediateCompletionSource = ManualResetCoroutineCompletionSource<object?>.RentFromCache();
                 coroutine._task = intermediateCompletionSource.CreateValueTask();
 
-                CoroutineContext contextToBequest = default;
+                ref var contextToBequest = ref _completionSource._coroutineContext;
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
@@ -98,7 +98,7 @@ partial class Yielders
             private readonly Delegate _provider;
             private readonly TClosure _closure;
             private readonly bool _isProviderWithClosure;
-            private readonly ValueTaskCompletionSource<Coroutine<TResult>> _completionSource;
+            private readonly ManualResetCoroutineCompletionSource<Coroutine<TResult>> _completionSource;
 
             public readonly Delegate Provider => _provider;
             public readonly TClosure Closure => _closure;
@@ -107,7 +107,7 @@ partial class Yielders
                 Delegate provider,
                 TClosure closure,
                 bool isProviderWithClosure,
-                ValueTaskCompletionSource<Coroutine<TResult>> completionSource)
+                ManualResetCoroutineCompletionSource<Coroutine<TResult>> completionSource)
             {
                 _provider = provider;
                 _closure = closure;
@@ -124,10 +124,10 @@ partial class Yielders
                     coroutine = Unsafe.As<Func<Coroutine<TResult>>>(_provider)();
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
-                var intermediateCompletionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
+                var intermediateCompletionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
                 coroutine._task = intermediateCompletionSource.CreateGenericValueTask();
 
-                CoroutineContext contextToBequest = default;
+                ref var contextToBequest = ref _completionSource._coroutineContext;
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 

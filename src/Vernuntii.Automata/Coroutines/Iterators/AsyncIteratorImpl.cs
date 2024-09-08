@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.CompilerServices;
 
 namespace Vernuntii.Coroutines.Iterators;
 
@@ -14,7 +15,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
 
     public object Current {
         get {
-            EnsureNextOperationIsHavingSuppliedArgument();,
+            EnsureNextOperationIsHavingSuppliedArgument();
             Debug.Assert(_nextOperation.Argument is not null);
             return _nextOperation.Argument;
         }
@@ -187,7 +188,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
                 var iteratorContext = GetIteratorContext(out _);
 
                 if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
-                    var completionSource = ValueTaskCompletionSource<TReturnResult>.RentFromCache();
+                    var completionSource = ManualResetValueTaskCompletionSource<TReturnResult>.RentFromCache();
                     iteratorContext._iteratorContextService.CurrentOperation.RequireAwaiterCompletionNotifier();
                     iteratorContext._coroutineStateMachineBox!.SetAsyncIteratorCompletionSource(completionSource);
                     Debug.Assert(_nextOperation.ArgumentCompletionSource is not null);
@@ -302,7 +303,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
     private class AsyncIteratorContext
     {
         public readonly AsyncIteratorContextService _iteratorContextService;
-        public Coroutine<TReturnResult>.CoroutineAwaiter _coroutineAwaiter;
+        public CoroutineAwaiter<TReturnResult> _coroutineAwaiter;
         public CoroutineContext _iteratorAgnosticCoroutineContext;
         public IAsyncIteratorStateMachineBox<TReturnResult>? _coroutineStateMachineBox;
         private bool? _hasCoroutineStateMachineBox;

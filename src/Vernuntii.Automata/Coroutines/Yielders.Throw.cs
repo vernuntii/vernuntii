@@ -4,7 +4,7 @@ partial class Yielders
 {
     public static Coroutine Throw(Exception exception)
     {
-        var completionSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
+        var completionSource = ManualResetValueTaskCompletionSource<Nothing>.RentFromCache();
         return new Coroutine(completionSource.CreateValueTask(), CoroutineArgumentReceiver);
 
         void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
@@ -19,13 +19,13 @@ partial class Yielders
         internal readonly struct ThrowArgument : ICallableArgument
         {
             private readonly Exception _exception;
-            private readonly ValueTaskCompletionSource<Nothing> _completionSource;
+            private readonly ManualResetValueTaskCompletionSource<Nothing> _completionSource;
 
             public readonly Exception Exception => _exception;
 
             internal ThrowArgument(
                 Exception exception,
-                ValueTaskCompletionSource<Nothing> completionSource)
+                ManualResetValueTaskCompletionSource<Nothing> completionSource)
             {
                 _exception = exception;
                 _completionSource = completionSource;

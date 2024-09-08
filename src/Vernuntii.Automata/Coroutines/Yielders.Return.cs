@@ -4,7 +4,7 @@ partial class Yielders
 {
     public static Coroutine<TResult> Return<TResult>(TResult result)
     {
-        var completionSource = ValueTaskCompletionSource<TResult>.RentFromCache();
+        var completionSource = ManualResetValueTaskCompletionSource<TResult>.RentFromCache();
         return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
 
         void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
@@ -19,13 +19,13 @@ partial class Yielders
         internal readonly struct ReturnArgument<TResult> : ICallableArgument
         {
             private readonly TResult _result;
-            private readonly ValueTaskCompletionSource<TResult> _completionSource;
+            private readonly ManualResetValueTaskCompletionSource<TResult> _completionSource;
 
             public readonly TResult Result => _result;
 
             internal ReturnArgument(
                 TResult result,
-                ValueTaskCompletionSource<TResult> completionSource)
+                ManualResetValueTaskCompletionSource<TResult> completionSource)
             {
                 _result = result;
                 _completionSource = completionSource;

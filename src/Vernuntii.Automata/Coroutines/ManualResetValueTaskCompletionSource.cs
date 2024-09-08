@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks.Sources;
 using Vernuntii.Coroutines.Iterators;
 
@@ -9,19 +8,42 @@ namespace Vernuntii.Coroutines;
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>The base type for all value task box reusable box objects, regardless of state machine type.</summary>
-internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, IValueTaskCompletionSource<TResult>, IYieldReturnCompletionSource
+internal class ManualResetValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, IValueTaskCompletionSource<TResult>, IYieldReturnCompletionSource
 {
     /// <summary>Per-core cache of boxes, with one box per core.</summary>
     /// <remarks>Each element is padded to expected cache-line size so as to minimize false sharing.</remarks>
     private static readonly CacheLineSizePaddedReference[] s_perCoreCache = new CacheLineSizePaddedReference[Environment.ProcessorCount];
 
+    /// <summary>Gets the slot in <see cref="s_perCoreCache"/> for the current core.</summary>
+    private static ref ManualResetValueTaskCompletionSource<TResult>? PerCoreCacheSlot {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // only two callers are RentFrom/ReturnToCache
+        get {
+            // Get the current processor ID.  We need to ensure it fits within s_perCoreCache, so we
+            // could % by its length, but we can do so instead by Environment.ProcessorCount, which will be a const
+            // in tier 1, allowing better code gen, and then further use uints for even better code gen.
+            Debug.Assert(s_perCoreCache.Length == Environment.ProcessorCount, $"{s_perCoreCache.Length} != {Environment.ProcessorCount}");
+            var i = (int)((uint)Thread.GetCurrentProcessorId() % (uint)Environment.ProcessorCount);
+
+            // We want an array of StateMachineBox<> objects, each consuming its own cache line so that
+            // elements don't cause false sharing with each other.  But we can't use StructLayout.Explicit
+            // with generics.  So we use object fields, but always reinterpret them (for all reads and writes
+            // to avoid any safety issues) as StateMachineBox<> instances.
+#if DEBUG
+            var transientValue = s_perCoreCache[i].Object;
+            Debug.Assert(transientValue is null || transientValue is ManualResetValueTaskCompletionSource<TResult>,
+                $"Expected null or {nameof(ManualResetValueTaskCompletionSource<TResult>)}, got '{transientValue}'");
+#endif
+            return ref Unsafe.As<object?, ManualResetValueTaskCompletionSource<TResult>?>(ref s_perCoreCache[i].Object);
+        }
+    }
+
     /// <summary>Thread-local cache of boxes. This currently only ever stores one.</summary>
     [ThreadStatic]
-    private static ValueTaskCompletionSource<TResult>? t_tlsCache;
+    private static ManualResetValueTaskCompletionSource<TResult>? t_tlsCache;
 
     /// <summary>Gets a box object to use for an operation.  This may be a reused, pooled object, or it may be new.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)] // only one caller
-    internal static ValueTaskCompletionSource<TResult> RentFromCache()
+    internal static ManualResetValueTaskCompletionSource<TResult> RentFromCache()
     {
         // First try to get a box from the per-thread cache.
         var box = t_tlsCache;
@@ -34,7 +56,7 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
 
             if (slot is null || (box = Interlocked.Exchange(ref slot, null)) is null) {
                 // If we can't, just create a new one.
-                box = new ValueTaskCompletionSource<TResult>();
+                box = new ManualResetValueTaskCompletionSource<TResult>();
             }
         }
 
@@ -47,7 +69,7 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
     {
         // Clear out the state machine and associated context to avoid keeping arbitrary state referenced by
         // lifted locals, and reset the instance for another await.
-        ClearStateUponCompletion();
+        _executionContext = default;
         _valueTaskSource.Reset();
 
         // If the per-thread cache is empty, store this into it..
@@ -64,31 +86,9 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
         }
     }
 
-    /// <summary>Gets the slot in <see cref="s_perCoreCache"/> for the current core.</summary>
-    private static ref ValueTaskCompletionSource<TResult>? PerCoreCacheSlot {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] // only two callers are RentFrom/ReturnToCache
-        get {
-            // Get the current processor ID.  We need to ensure it fits within s_perCoreCache, so we
-            // could % by its length, but we can do so instead by Environment.ProcessorCount, which will be a const
-            // in tier 1, allowing better code gen, and then further use uints for even better code gen.
-            Debug.Assert(s_perCoreCache.Length == Environment.ProcessorCount, $"{s_perCoreCache.Length} != {Environment.ProcessorCount}");
-            int i = (int)((uint)Thread.GetCurrentProcessorId() % (uint)Environment.ProcessorCount);
-
-            // We want an array of StateMachineBox<> objects, each consuming its own cache line so that
-            // elements don't cause false sharing with each other.  But we can't use StructLayout.Explicit
-            // with generics.  So we use object fields, but always reinterpret them (for all reads and writes
-            // to avoid any safety issues) as StateMachineBox<> instances.
-#if DEBUG
-            object? transientValue = s_perCoreCache[i].Object;
-            Debug.Assert(transientValue is null || transientValue is ValueTaskCompletionSource<TResult>,
-                $"Expected null or {nameof(ValueTaskCompletionSource<TResult>)}, got '{transientValue}'");
-#endif
-            return ref Unsafe.As<object?, ValueTaskCompletionSource<TResult>?>(ref s_perCoreCache[i].Object);
-        }
-    }
-
     /// <summary>Captured ExecutionContext with which to invoke MoveNext.</summary>
-    public ExecutionContext? Context;
+    internal ExecutionContext? _executionContext;
+
     /// <summary>Implementation for IValueTaskSource interfaces.</summary>
     protected ManualResetValueTaskSourceCore<TResult> _valueTaskSource;
 
@@ -130,15 +130,6 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
     /// <summary>Gets the current version number of the box.</summary>
     public short Version => _valueTaskSource.Version;
 
-    /// <summary>
-    /// Clear out the state machine and associated context to avoid keeping arbitrary state referenced by lifted locals.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void ClearStateUponCompletion()
-    {
-        Context = default;
-    }
-
     /// <summary>Get the result of the operation.</summary>
     TResult IValueTaskSource<TResult>.GetResult(short token)
     {
@@ -158,27 +149,4 @@ internal class ValueTaskCompletionSource<TResult> : IValueTaskSource<TResult>, I
             ReturnToCache();
         }
     }
-}
-
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-/// <summary>A class for common padding constants and eventually routines.</summary>
-internal static class CacheLineSizeHolder
-{
-    /// <summary>A size greater than or equal to the size of the most common CPU cache lines.</summary>
-#if TARGET_ARM64 || TARGET_LOONGARCH64
-    internal const int CACHE_LINE_SIZE = 128;
-#else
-    internal const int CACHE_LINE_SIZE = 64;
-#endif
-}
-
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-/// <summary>Padded reference to an object.</summary>
-[StructLayout(LayoutKind.Explicit, Size = CacheLineSizeHolder.CACHE_LINE_SIZE)]
-internal struct CacheLineSizePaddedReference
-{
-    [FieldOffset(0)]
-    public object? Object;
 }

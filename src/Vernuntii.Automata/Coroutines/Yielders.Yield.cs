@@ -6,7 +6,7 @@ partial class Yielders
 {
     public static Coroutine Yield()
     {
-        var completionSource = ValueTaskCompletionSource<Nothing>.RentFromCache();
+        var completionSource = ManualResetValueTaskCompletionSource<Nothing>.RentFromCache();
         return new Coroutine(completionSource.CreateValueTask(), CoroutineArgumentReceiver);
 
         void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
@@ -20,9 +20,9 @@ partial class Yielders
     {
         internal readonly struct YieldArgument : ICallableArgument
         {
-            private readonly ValueTaskCompletionSource<Nothing> _completionSource;
+            private readonly ManualResetValueTaskCompletionSource<Nothing> _completionSource;
 
-            internal YieldArgument(ValueTaskCompletionSource<Nothing> completionSource) => _completionSource = completionSource;
+            internal YieldArgument(ManualResetValueTaskCompletionSource<Nothing> completionSource) => _completionSource = completionSource;
 
             void ICallableArgument.Callback(in CoroutineContext context) => new YieldAwaitable.YieldAwaiter().UnsafeOnCompleted(_completionSource.SetDefaultResult);
         }

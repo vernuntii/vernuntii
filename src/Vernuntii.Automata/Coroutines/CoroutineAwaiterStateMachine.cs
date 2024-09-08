@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 

@@ -48,7 +48,12 @@ internal class Program
         }
 
         //await CoroutineLoop();
-        await AsyncIterator();
+        //await AsyncIterator();
+        var pool = new FixedSizedArrayPool<int>(4);
+        var t35346 = pool.Rent();
+        t35346[0] = 4;
+        pool.Return(t35346);
+        var t35346534 = pool.Rent();
         return;
 
 

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -26,7 +27,7 @@ internal static class CoroutineMethodBuilderCore
         where Preprocessor : ICoroutinePreprocessor
     {
         if (null != default(TAwaiter) && awaiter is IRelativeCoroutineAwaiter) {
-            ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, Coroutine.CoroutineAwaiter>(ref awaiter);
+            ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, CoroutineAwaiter>(ref awaiter);
             PreprocessCoroutine(ref coroutineAwaiter, ref preprocessor);
         }
     }
