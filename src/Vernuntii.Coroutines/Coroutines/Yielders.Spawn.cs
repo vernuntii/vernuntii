@@ -83,7 +83,7 @@ partial class Yielders
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 Coroutine childCoroutine;
-                if (!coroutine.IsChildCoroutine) {
+                if (coroutine._coroutineAction != CoroutineAction.Child) {
                     childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref contextToBequest);
                 } else {
                     childCoroutine = coroutine;
@@ -135,7 +135,7 @@ partial class Yielders
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 Coroutine<TResult> childCoroutine;
-                if (!coroutine.IsChildCoroutine) {
+                if (coroutine._coroutineAction != CoroutineAction.Child) {
                     childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref contextToBequest);
                 } else {
                     childCoroutine = coroutine;

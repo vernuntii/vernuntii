@@ -12,13 +12,25 @@ internal static class CoroutineMethodBuilderCore
         ref CoroutineContext context)
         where TCoroutine : IRelativeCoroutine
     {
-        if (coroutine.IsChildCoroutine) {
-            coroutine.InheritCoroutineContext(in context);
-            coroutine.StartCoroutine();
-        } else if (coroutine.IsSiblingCoroutine) {
-            var argumentReceiver = new CoroutineArgumentReceiver(ref context);
-            coroutine.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
+        switch (coroutine.CoroutineAction) {
+            case CoroutineAction.Task:
+                return;
+            case CoroutineAction.Sibling:
+                Debug.Assert(coroutine.CoroutineActioner is not null);
+                var siblingCoroutine = Unsafe.As<ISiblingCoroutine>(coroutine.CoroutineActioner);
+                var argumentReceiver = new CoroutineArgumentReceiver(ref context);
+                siblingCoroutine.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
+                break;
+            case CoroutineAction.Child:
+                Debug.Assert(coroutine.CoroutineActioner is not null);
+                var childCoroutine = Unsafe.As<IChildCoroutine>(coroutine.CoroutineActioner);
+                childCoroutine.StartCoroutine(in context);
+                break;
+            default:
+                throw new Exception();
         }
+
+        coroutine.MarkCoroutineAsActedOn();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -26,7 +38,7 @@ internal static class CoroutineMethodBuilderCore
         ref TAwaiter awaiter,
         ref CoroutineContext context)
     {
-        if (null != default(TAwaiter) && awaiter is IRelativeCoroutineAwaiter) {
+        if (null != default(TAwaiter) && awaiter is IRelativeCoroutine) {
             ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, CoroutineAwaiter>(ref awaiter);
             ActOnCoroutine(ref coroutineAwaiter, ref context);
         }

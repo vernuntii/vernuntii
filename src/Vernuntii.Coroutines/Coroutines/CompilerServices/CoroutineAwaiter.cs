@@ -1,50 +1,26 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines.CompilerServices;
 
-public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, IRelativeCoroutineAwaiter, ICoroutineAwaiter
+public struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter, IRelativeCoroutine
 {
-    internal readonly bool IsSiblingCoroutine {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get {
-            return _argumentReceiverDelegate is not null;
-        }
-    }
-
     public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-    private readonly IChildCoroutine? _builder;
-    private readonly ISiblingCoroutine? _argumentReceiverDelegate;
+    private readonly object? _coroutineActioner;
+    internal CoroutineAction _coroutineAction;
     private readonly ValueTaskAwaiter _awaiter;
 
-    readonly bool IRelativeCoroutine.IsChildCoroutine => _builder is not null;
-    readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
+    readonly object? IRelativeCoroutine.CoroutineActioner => _coroutineActioner;
+    readonly CoroutineAction IRelativeCoroutine.CoroutineAction => _coroutineAction;
 
-    internal CoroutineAwaiter(in ValueTaskAwaiter awaiter, IChildCoroutine? builder, ISiblingCoroutine? argumentReceiverDelegate)
+    internal CoroutineAwaiter(in ValueTaskAwaiter awaiter, object? coroutineActioner, CoroutineAction coroutineAction)
     {
         _awaiter = awaiter;
-        _builder = builder;
-        _argumentReceiverDelegate = argumentReceiverDelegate;
+        _coroutineActioner = coroutineActioner;
+        _coroutineAction = coroutineAction;
     }
 
-    void IChildCoroutine.InheritCoroutineContext(in CoroutineContext context)
-    {
-        Debug.Assert(_builder != null);
-        _builder.InheritCoroutineContext(in context);
-    }
-
-    void IChildCoroutine.StartCoroutine()
-    {
-        Debug.Assert(_builder != null);
-        _builder.StartCoroutine();
-    }
-
-    void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
-    {
-        Debug.Assert(_argumentReceiverDelegate is not null);
-        _argumentReceiverDelegate.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
-    }
+    void IRelativeCoroutine.MarkCoroutineAsActedOn() => _coroutineAction = CoroutineAction.Task;
 
     public void GetResult() => _awaiter.GetResult();
 

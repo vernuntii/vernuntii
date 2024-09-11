@@ -84,7 +84,7 @@ partial struct CoroutineMethodBuilder<TResult>
         where TStateMachine : IAsyncStateMachine
     {
         // We should never expect an awaiter being a coroutine in this path
-        Debug.Assert(awaiter is not IRelativeCoroutineAwaiter);
+        Debug.Assert(awaiter is not IRelativeCoroutine);
         ref var context = ref stateMachineBox._coroutineContext;
 
         if (context.IsCoroutineAsyncIteratorSupplier) {

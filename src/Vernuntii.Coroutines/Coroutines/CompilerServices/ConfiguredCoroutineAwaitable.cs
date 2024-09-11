@@ -3,56 +3,40 @@ using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines.CompilerServices;
 
-public readonly struct ConfiguredCoroutineAwaitable
+public struct ConfiguredCoroutineAwaitable
 {
-    private readonly IChildCoroutine? _builder;
-    private readonly ISiblingCoroutine? _argumentReceiverDelegate;
+    private readonly object? _coroutineActioner;
+    internal CoroutineAction _coroutineAction;
     private readonly ConfiguredValueTaskAwaitable _task;
 
-    internal ConfiguredCoroutineAwaitable(in ConfiguredValueTaskAwaitable task, IChildCoroutine? builder, ISiblingCoroutine? argumentReceiverDelegate)
+    internal ConfiguredCoroutineAwaitable(in ConfiguredValueTaskAwaitable task, object? coroutineActioner, CoroutineAction coroutineAction)
     {
         _task = task;
-        _builder = builder;
-        _argumentReceiverDelegate = argumentReceiverDelegate;
+        _coroutineActioner = coroutineActioner;
+        _coroutineAction = coroutineAction;
     }
 
-    public ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
+    public ConfiguredCoroutineAwaiter GetAwaiter() => new ConfiguredCoroutineAwaiter(_task.GetAwaiter(), _coroutineActioner, _coroutineAction);
 
-    public readonly struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, IRelativeCoroutineAwaiter, ICoroutineAwaiter
+    public struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, IRelativeCoroutine, ICoroutineAwaiter
     {
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-        internal readonly IChildCoroutine? _builder;
-        internal readonly ISiblingCoroutine? _argumentReceiverDelegate;
+        internal readonly object? _coroutineActioner;
+        internal CoroutineAction _coroutineAction;
         internal readonly ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter _awaiter;
 
-        readonly bool IRelativeCoroutine.IsChildCoroutine => _builder is not null;
-        readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
+        readonly object? IRelativeCoroutine.CoroutineActioner => _coroutineActioner;
+        readonly CoroutineAction IRelativeCoroutine.CoroutineAction => _coroutineAction;
 
-        internal ConfiguredCoroutineAwaiter(in ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter awaiter, IChildCoroutine? builder, ISiblingCoroutine? argumentReceiverDelegate)
+        internal ConfiguredCoroutineAwaiter(in ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter awaiter, object? coroutineActioner, CoroutineAction coroutineAction)
         {
             _awaiter = awaiter;
-            _builder = builder;
-            _argumentReceiverDelegate = argumentReceiverDelegate;
+            _coroutineActioner = coroutineActioner;
+            _coroutineAction = coroutineAction;
         }
 
-        void IChildCoroutine.InheritCoroutineContext(in CoroutineContext context)
-        {
-            Debug.Assert(_builder != null);
-            _builder.InheritCoroutineContext(in context);
-        }
-
-        void IChildCoroutine.StartCoroutine()
-        {
-            Debug.Assert(_builder != null);
-            _builder.StartCoroutine();
-        }
-
-        void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
-        {
-            Debug.Assert(_argumentReceiverDelegate is not null);
-            _argumentReceiverDelegate.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
-        }
+        void IRelativeCoroutine.MarkCoroutineAsActedOn() => _coroutineAction = CoroutineAction.Task;
 
         public void GetResult() => _awaiter.GetResult();
 

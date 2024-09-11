@@ -34,13 +34,6 @@ partial struct Coroutine
     /// <returns>The faulted coroutine.</returns>
     public static Coroutine<TResult> FromException<TResult>(Exception exception) => new(new ValueTask<TResult>(Task.FromException<TResult>(exception)));
 
-    private static void StartCore<TCoroutine>(ref TCoroutine coroutine, ref CoroutineContext context) where TCoroutine : IRelativeCoroutine
-    {
-        var scope = new CoroutineScope();
-        context._keyedServicesToBequest = context._keyedServicesToBequest.Merge(CoroutineContextServiceMap.CreateRange(1, scope, static (x, y) => x.Emplace(CoroutineScope.s_coroutineScopeKey, y)));
-        CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutine, ref context);
-    }
-
     private static Coroutine StartInternal<TClosure>(Delegate provider, TClosure closure, ref CoroutineContext context, bool isProviderWithClosure)
     {
         ArgumentNullException.ThrowIfNull(nameof(provider));
@@ -50,7 +43,7 @@ partial struct Coroutine
         } else {
             coroutine = Unsafe.As<Delegate, Func<Coroutine>>(ref provider)();
         }
-        StartCore(ref coroutine, ref context);
+        CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutine, ref context);
         return coroutine;
     }
 
@@ -63,7 +56,7 @@ partial struct Coroutine
         } else {
             coroutine = Unsafe.As<Delegate, Func<Coroutine<TResult>>>(ref provider)();
         }
-        StartCore(ref coroutine, ref context);
+        CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutine, ref context);
         return coroutine;
     }
 

@@ -10,21 +10,14 @@ namespace Vernuntii.Coroutines;
  * Never attempt to use Unsafe.As to access _task.
  */
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder))]
-public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
+public partial struct Coroutine : IRelativeCoroutine, IEquatable<Coroutine>
 {
-    internal readonly bool IsChildCoroutine {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get {
-            return _builder is not null;
-        }
-    }
-
-    internal IChildCoroutine? _builder;
-    internal ISiblingCoroutine? _argumentReceiverDelegate;
+    internal object? _coroutineActioner;
+    internal CoroutineAction _coroutineAction;
     internal ValueTask _task;
 
-    readonly bool IRelativeCoroutine.IsChildCoroutine => IsChildCoroutine;
-    readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
+    readonly object? IRelativeCoroutine.CoroutineActioner => _coroutineActioner;
+    readonly CoroutineAction IRelativeCoroutine.CoroutineAction => _coroutineAction;
 
     public Coroutine(in ValueTask task)
     {
@@ -41,57 +34,40 @@ public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
         _task = new ValueTask(task);
     }
 
-    public Coroutine(in ValueTask task, ISiblingCoroutine argumentReceiverDelegate)
+    public Coroutine(in ValueTask task, ISiblingCoroutine siblingCoroutine)
     {
         _task = task;
-        _argumentReceiverDelegate = argumentReceiverDelegate;
+        _coroutineActioner = siblingCoroutine;
+        _coroutineAction = CoroutineAction.Sibling;
     }
 
-    public Coroutine(IValueTaskSource source, short token, ISiblingCoroutine argumentReceiverDelegate)
+    public Coroutine(IValueTaskSource source, short token, ISiblingCoroutine siblingCoroutine)
     {
         _task = new ValueTask(source, token);
-        _argumentReceiverDelegate = argumentReceiverDelegate;
+        _coroutineActioner = siblingCoroutine;
+        _coroutineAction = CoroutineAction.Sibling;
     }
 
-    public Coroutine(Task task, ISiblingCoroutine argumentReceiverDelegate)
+    public Coroutine(Task task, ISiblingCoroutine siblingCoroutine)
     {
         _task = new ValueTask(task);
+        _coroutineActioner = siblingCoroutine;
+        _coroutineAction = CoroutineAction.Sibling;
     }
 
-    internal Coroutine(in ValueTask task, IChildCoroutine builder)
+    internal Coroutine(in ValueTask task, IChildCoroutine childCoroutine)
     {
         _task = task;
-        _builder = builder;
+        _coroutineActioner = childCoroutine;
+        _coroutineAction = CoroutineAction.Child;
     }
 
-    readonly void IChildCoroutine.InheritCoroutineContext(in CoroutineContext context)
-    {
-        Debug.Assert(_builder != null);
-        _builder.InheritCoroutineContext(in context);
-    }
+    void IRelativeCoroutine.MarkCoroutineAsActedOn() => _coroutineAction = CoroutineAction.Task;
 
-    readonly void IChildCoroutine.StartCoroutine()
-    {
-        Debug.Assert(_builder != null);
-        _builder.StartCoroutine();
-    }
-
-    readonly void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
-    {
-        Debug.Assert(_argumentReceiverDelegate is not null);
-        _argumentReceiverDelegate.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
-    }
-
-    void IAwaitableCoroutine.MarkCoroutineAsActedOn()
-    {
-        _builder = null;
-        _argumentReceiverDelegate = null;
-    }
-
-    public readonly CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _builder, _argumentReceiverDelegate);
+    public readonly CoroutineAwaiter GetAwaiter() => new CoroutineAwaiter(_task.GetAwaiter(), _coroutineActioner, _coroutineAction);
 
     public readonly ConfiguredCoroutineAwaitable ConfigureAwait(bool continueOnCapturedContext) =>
-        new(_task.ConfigureAwait(continueOnCapturedContext), _builder, _argumentReceiverDelegate);
+        new(_task.ConfigureAwait(continueOnCapturedContext), _coroutineActioner, _coroutineAction);
 
     public readonly IAsyncIterator GetAsyncIterator() => new AsyncIteratorImpl<Nothing>(this);
 

@@ -47,10 +47,13 @@ public struct CoroutineContext
     public readonly CoroutineContextBequesterOrigin BequesterOrigin => _bequesterOrigin;
     public readonly bool IsCoroutineAsyncIteratorSupplier => _isCoroutineAsyncIteratorSupplier;
 
-    internal CoroutineScope Scope {
+    internal CoroutineScope? Scope {
         get {
-            Debug.Assert(KeyedServicesToBequest.Contains(CoroutineScope.s_coroutineScopeKey));
-            return (CoroutineScope)KeyedServicesToBequest[CoroutineScope.s_coroutineScopeKey];
+            if (KeyedServicesToBequest.Get(CoroutineScope.s_coroutineScopeKey, out var scope)) {
+                return scope as CoroutineScope;
+            }
+
+            return null;
         }
     }
 
@@ -78,7 +81,9 @@ public struct CoroutineContext
     internal void OnCoroutineStarted()
     {
 #if DEBUG
-        _identifier = Scope.OnCoroutineStarted();
+        if (Scope is {} scope) {
+            _identifier = scope.OnCoroutineStarted();
+        }
 #endif
     }
 
@@ -91,7 +96,7 @@ public struct CoroutineContext
     public void OnCoroutineCompleted()
     {
 #if DEBUG
-        Scope.OnCoroutineCompleted();
+        Scope?.OnCoroutineCompleted();
 #endif
     }
 }

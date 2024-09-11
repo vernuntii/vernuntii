@@ -326,7 +326,7 @@ public abstract class AbstractRobinhoodMap<TKey, TValue> where TKey : notnull
             //Steal from the rich, give to the poor
             if (distance > meta) {
                 Swap(ref distance, ref meta);
-                Overwrite(ref entry, ref Find(_entries, index));
+                Overwrite(in entry, ref Find(_entries, index));
                 goto next;
             }
 

@@ -1,7 +1,9 @@
 ﻿namespace Vernuntii.Coroutines;
 
-internal interface IRelativeCoroutine : IChildCoroutine, ISiblingCoroutine
+internal interface IRelativeCoroutine
 {
-    bool IsChildCoroutine { get; }
-    bool IsSiblingCoroutine { get; }
+    object? CoroutineActioner { get; }
+    CoroutineAction CoroutineAction { get; }
+
+    void MarkCoroutineAsActedOn();
 }
