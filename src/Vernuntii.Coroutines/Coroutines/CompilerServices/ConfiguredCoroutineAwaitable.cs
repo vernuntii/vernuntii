@@ -36,12 +36,24 @@ public struct ConfiguredCoroutineAwaitable
             _coroutineAction = coroutineAction;
         }
 
-        void IRelativeCoroutine.MarkCoroutineAsActedOn() => _coroutineAction = CoroutineAction.Task;
+        void IRelativeCoroutine.MarkCoroutineAsActedOn() => _coroutineAction = CoroutineAction.None;
 
         public void GetResult() => _awaiter.GetResult();
 
-        public void OnCompleted(Action continuation) => _awaiter.OnCompleted(continuation);
+        public void OnCompleted(Action continuation)
+        {
+            if (_coroutineAction != CoroutineAction.None) {
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref this);
+            }
+            _awaiter.OnCompleted(continuation);
+        }
 
-        public void UnsafeOnCompleted(Action continuation) => _awaiter.UnsafeOnCompleted(continuation);
+        public void UnsafeOnCompleted(Action continuation)
+        {
+            if (_coroutineAction != CoroutineAction.None) {
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref this);
+            }
+            _awaiter.UnsafeOnCompleted(continuation);
+        }
     }
 }

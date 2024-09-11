@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -7,6 +6,8 @@ delegate void BequestContextDelegate(ref CoroutineContext context, in CoroutineC
 
 public struct CoroutineContext
 {
+    internal static CoroutineContext s_statelessCoroutineContext = default;
+
     private static readonly CoroutineContextServiceMap s_emptyKeyedServices = new();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

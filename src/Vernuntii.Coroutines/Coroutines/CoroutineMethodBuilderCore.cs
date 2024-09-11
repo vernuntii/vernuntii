@@ -13,7 +13,7 @@ internal static class CoroutineMethodBuilderCore
         where TCoroutine : IRelativeCoroutine
     {
         switch (coroutine.CoroutineAction) {
-            case CoroutineAction.Task:
+            case CoroutineAction.None:
                 return;
             case CoroutineAction.Sibling:
                 Debug.Assert(coroutine.CoroutineActioner is not null);
@@ -31,6 +31,28 @@ internal static class CoroutineMethodBuilderCore
         }
 
         coroutine.MarkCoroutineAsActedOn();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void ActOnCoroutine<TCoroutine>(
+        ref TCoroutine coroutine)
+        where TCoroutine : IRelativeCoroutine
+    {
+        switch (coroutine.CoroutineAction) {
+            case CoroutineAction.Sibling:
+                Debug.Assert(coroutine.CoroutineActioner is not null);
+                var siblingCoroutine = Unsafe.As<ISiblingCoroutine>(coroutine.CoroutineActioner);
+                var argumentReceiver = new CoroutineArgumentReceiver(ref CoroutineContext.s_statelessCoroutineContext);
+                siblingCoroutine.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
+                break;
+            case CoroutineAction.Child:
+                Debug.Assert(coroutine.CoroutineActioner is not null);
+                var childCoroutine = Unsafe.As<IChildCoroutine>(coroutine.CoroutineActioner);
+                childCoroutine.StartCoroutine(in CoroutineContext.s_statelessCoroutineContext);
+                break;
+            default:
+                throw new Exception();
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]

@@ -74,7 +74,7 @@ public partial struct Coroutine<TResult> : IRelativeCoroutine, IEquatable<Corout
         _coroutineAction = CoroutineAction.Child;
     }
 
-    void IRelativeCoroutine.MarkCoroutineAsActedOn() => _coroutineAction = CoroutineAction.Task;
+    void IRelativeCoroutine.MarkCoroutineAsActedOn() => _coroutineAction = CoroutineAction.None;
 
     public readonly CoroutineAwaiter<TResult> GetAwaiter() => new CoroutineAwaiter<TResult>(_task.GetAwaiter(), _coroutineActioner, _coroutineAction);
 

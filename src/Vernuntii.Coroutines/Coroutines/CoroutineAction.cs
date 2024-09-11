@@ -2,7 +2,7 @@
 
 internal enum CoroutineAction : byte
 {
-    Task,
+    None,
     Child,
     Sibling
 }
