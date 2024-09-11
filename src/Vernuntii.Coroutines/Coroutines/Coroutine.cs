@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
 using Vernuntii.Coroutines.CompilerServices;
 using Vernuntii.Coroutines.Iterators;
@@ -12,7 +11,7 @@ namespace Vernuntii.Coroutines;
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder))]
 public partial struct Coroutine : IRelativeCoroutine, IEquatable<Coroutine>
 {
-    internal object? _coroutineActioner;
+    internal readonly object? _coroutineActioner;
     internal CoroutineAction _coroutineAction;
     internal ValueTask _task;
 
@@ -68,6 +67,12 @@ public partial struct Coroutine : IRelativeCoroutine, IEquatable<Coroutine>
 
     public readonly ConfiguredCoroutineAwaitable ConfigureAwait(bool continueOnCapturedContext) =>
         new(_task.ConfigureAwait(continueOnCapturedContext), _coroutineActioner, _coroutineAction);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Coroutine(Task task) => new(task);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Coroutine(ValueTask task) => new(task);
 
     public readonly IAsyncIterator GetAsyncIterator() => new AsyncIteratorImpl<Nothing>(this);
 

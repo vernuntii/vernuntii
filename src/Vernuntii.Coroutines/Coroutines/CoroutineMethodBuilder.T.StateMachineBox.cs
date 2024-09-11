@@ -53,13 +53,6 @@ partial struct CoroutineMethodBuilder<TResult>
         public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) =>
             _valueTaskSource.OnCompleted(continuation, state, token, flags);
 
-        ///// <summary>Gets the status of the box.</summary>
-        //public ValueTaskSourceStatus GetStatus(short token)
-        //{
-        //    //return _valueTaskSource.GetStatus(token);
-        //    return ValueTaskSourceStatus.Pending;
-        //}
-
         protected void SetExceptionCore(Exception error)
         {
             _valueTaskSource.SetException(error);

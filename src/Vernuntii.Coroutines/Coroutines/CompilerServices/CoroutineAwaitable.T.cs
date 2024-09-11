@@ -2,7 +2,7 @@
 
 public readonly struct CoroutineAwaitable<TResult>
 {
-    private readonly Coroutine<TResult> _coroutine;
+    internal readonly Coroutine<TResult> _coroutine;
 
     internal CoroutineAwaitable(Coroutine<TResult> coroutine) => _coroutine = coroutine;
 

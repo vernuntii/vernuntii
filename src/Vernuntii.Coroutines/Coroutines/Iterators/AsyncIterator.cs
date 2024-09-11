@@ -5,7 +5,7 @@ namespace Vernuntii.Coroutines.Iterators;
 
 public static class AsyncIterator
 {
-    internal static readonly Key s_asyncIteratorKey = new Key(Encoding.ASCII.GetBytes(nameof(AsyncIterator)));
+    internal static readonly Key s_asyncIteratorKey = new(Encoding.ASCII.GetBytes(nameof(AsyncIterator)));
 
     public static IAsyncIterator Create(Func<Coroutine> provider) => new AsyncIteratorImpl<Nothing>(provider);
 

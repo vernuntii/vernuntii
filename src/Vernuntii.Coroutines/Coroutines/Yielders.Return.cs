@@ -1,41 +1,41 @@
 ﻿namespace Vernuntii.Coroutines;
 using static Vernuntii.Coroutines.Yielders.Arguments;
 
-file class CoroutineargumentReceiverAcceptor<TResult>(TResult result, ManualResetValueTaskCompletionSource<TResult> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+file class CoroutineargumentReceiverAcceptor<T>(T value, ManualResetValueTaskCompletionSource<T> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
-        var argument = new ReturnArgument<TResult>(result, completionSource);
+        var argument = new ReturnArgument<T>(value, completionSource);
         argumentReceiver.ReceiveCallableArgument(in ReturnKey, in argument, completionSource);
     }
 }
 
 partial class Yielders
 {
-    public static Coroutine<TResult> Return<TResult>(TResult result)
+    public static Coroutine Return<T>(T value)
     {
-        var completionSource = ManualResetValueTaskCompletionSource<TResult>.RentFromCache();
-        return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), new CoroutineargumentReceiverAcceptor<TResult>(result, completionSource));
+        var completionSource = ManualResetValueTaskCompletionSource<T>.RentFromCache();
+        return new Coroutine(completionSource.CreateValueTask(), new CoroutineargumentReceiverAcceptor<T>(value, completionSource));
     }
 
     partial class Arguments
     {
-        internal readonly struct ReturnArgument<TResult> : ICallableArgument
+        internal readonly struct ReturnArgument<T> : ICallableArgument
         {
-            private readonly TResult _result;
-            private readonly ManualResetValueTaskCompletionSource<TResult> _completionSource;
+            private readonly T _value;
+            private readonly ManualResetValueTaskCompletionSource<T> _completionSource;
 
-            public readonly TResult Result => _result;
+            public readonly T Result => _value;
 
             internal ReturnArgument(
-                TResult result,
-                ManualResetValueTaskCompletionSource<TResult> completionSource)
+                T result,
+                ManualResetValueTaskCompletionSource<T> completionSource)
             {
-                _result = result;
+                _value = result;
                 _completionSource = completionSource;
             }
 
-            void ICallableArgument.Callback(in CoroutineContext context) => _completionSource.SetResult(_result);
+            void ICallableArgument.Callback(in CoroutineContext context) => _completionSource.SetResult(_value);
         }
     }
 }

@@ -4,28 +4,40 @@ partial class YieldersTests
 {
     public class CallTests
     {
-        [Fact]
-        public async Task AsyncCallReturningConstant_Suceeds()
+        const int ExpectedResult = 1;
+
+        public static IEnumerable<object[]> AsyncCallReturningConstant_RunsThrough_Generator()
         {
-            const int expectedResult = 1;
-            var result = await Coroutine.Start(() => Call(async () => expectedResult)).ConfigureAwait(false);
-            Assert.Equal(expectedResult, result);
+            yield return [Coroutine.Start(() => Call(async () => {
+                await Task.Delay(ContinueAfterTimeInMs).ConfigureAwait(false);
+                return ExpectedResult;
+            }))._coroutine];
+            yield return [Call(async () => {
+                await Task.Delay(ContinueAfterTimeInMs).ConfigureAwait(false);
+                return ExpectedResult;
+            })];
+        }
+
+        [Theory]
+        [MemberData(nameof(AsyncCallReturningConstant_RunsThrough_Generator))]
+        public async Task AsyncCallReturningConstant_RunsThrough(Coroutine<int> coroutine)
+        {
+            var result = await coroutine.ConfigureAwait(false);
+            Assert.Equal(ExpectedResult, result);
         }
 
         [Fact]
         public async Task AwaitingAsyncCallReturningConstant_Suceeds()
         {
-            const int expectedResult = 1;
-            var result = await Coroutine.Start(async () => await Call(async () => expectedResult)).ConfigureAwait(false);
-            Assert.Equal(expectedResult, result);
+            var result = await Coroutine.Start(async () => await Call(async () => ExpectedResult)).ConfigureAwait(false);
+            Assert.Equal(ExpectedResult, result);
         }
 
         [Fact]
         public async Task AwaitingAsyncCallWithClosure_Suceeds()
         {
-            const int EXPECTED_RESULT = 1;
-            var result = await Coroutine.Start(async () => await Call(async (expectedResult) => expectedResult, EXPECTED_RESULT)).ConfigureAwait(false);
-            Assert.Equal(EXPECTED_RESULT, result);
+            var result = await Coroutine.Start(async () => await Call(async (expectedResult) => expectedResult, ExpectedResult)).ConfigureAwait(false);
+            Assert.Equal(ExpectedResult, result);
         }
     }
 }

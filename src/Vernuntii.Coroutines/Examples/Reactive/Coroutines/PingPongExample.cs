@@ -27,23 +27,23 @@ internal class PingPongExample
 
     public static async Coroutine PingWhenPonged()
     {
-        using var pongedChannel = await __co.Channel(broker => broker.Every(Ponged));
+        using var pongedChannel = await Channel(broker => broker.Every(Ponged));
 
         while (true) {
-            var ponged = await __co.Take(pongedChannel);
+            var ponged = await Take(pongedChannel);
             Console.WriteLine(ponged);
-            await __co.Emit(Pinged, new Pong(ponged.Counter)).ConfigureAwait(false);
+            await Emit(Pinged, new Pong(ponged.Counter)).ConfigureAwait(false);
         }
     }
 
     public static async Coroutine PongWhenPinged()
     {
-        using var pingedChannel = await __co.Channel(broker => broker.Every(Pinged));
+        using var pingedChannel = await Channel(broker => broker.Every(Pinged));
 
         while (true) {
-            var pinged = await __co.Take(pingedChannel);
+            var pinged = await Take(pingedChannel);
             Console.WriteLine(pinged);
-            await __co.Emit(Ponged, new Pong(pinged.Counter + 1)).ConfigureAwait(false);
+            await Emit(Ponged, new Pong(pinged.Counter + 1)).ConfigureAwait(false);
         }
     }
 

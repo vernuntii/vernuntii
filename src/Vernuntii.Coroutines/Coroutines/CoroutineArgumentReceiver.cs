@@ -4,9 +4,9 @@ namespace Vernuntii.Coroutines;
 
 public delegate void CoroutineArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver);
 
-public ref struct CoroutineArgumentReceiver
+public readonly ref struct CoroutineArgumentReceiver
 {
-    private ref CoroutineContext _context;
+    private readonly ref CoroutineContext _context;
 
     internal CoroutineArgumentReceiver(ref CoroutineContext coroutineContext)
     {

@@ -16,7 +16,7 @@ namespace Vernuntii.Coroutines.Benchmark
         [Benchmark]
         public async Task AwaitCoroutineTaskDelay()
         {
-            await Coroutine.Start(() => Task.Delay(1).AsCoroutine()).ConfigureAwait(false);
+            await Coroutine.Start(() => Task.Delay(1)).ConfigureAwait(false);
         }
     }
 }

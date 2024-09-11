@@ -69,7 +69,6 @@ public struct Key : IEquatable<Key>
     {
     }
 
-    [Obsolete]
     internal unsafe Key(Span<byte> service, bool isContextService = false, bool inheritable = false)
     {
         if (service.Length > ServiceLength) {
