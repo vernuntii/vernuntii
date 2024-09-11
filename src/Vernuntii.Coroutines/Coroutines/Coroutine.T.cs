@@ -12,7 +12,7 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
     internal readonly bool IsChildCoroutine => _builder is not null;
 
     internal IChildCoroutine? _builder;
-    internal CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+    internal ISiblingCoroutine? _argumentReceiverDelegate;
     internal ValueTask<TResult> _task;
 
     readonly bool IRelativeCoroutine.IsChildCoroutine => IsChildCoroutine;
@@ -38,25 +38,25 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
         _task = new ValueTask<TResult>(result);
     }
 
-    public Coroutine(in ValueTask<TResult> task, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    public Coroutine(in ValueTask<TResult> task, ISiblingCoroutine argumentReceiverDelegate)
     {
         _task = task;
         _argumentReceiverDelegate = argumentReceiverDelegate;
     }
 
-    public Coroutine(IValueTaskSource<TResult> source, short token, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    public Coroutine(IValueTaskSource<TResult> source, short token, ISiblingCoroutine argumentReceiverDelegate)
     {
         _task = new ValueTask<TResult>(source, token);
         _argumentReceiverDelegate = argumentReceiverDelegate;
     }
 
-    public Coroutine(Task<TResult> task, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    public Coroutine(Task<TResult> task, ISiblingCoroutine argumentReceiverDelegate)
     {
         _task = new ValueTask<TResult>(task);
         _argumentReceiverDelegate = argumentReceiverDelegate;
     }
 
-    public Coroutine(TResult result, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    public Coroutine(TResult result, ISiblingCoroutine argumentReceiverDelegate)
     {
         _task = new ValueTask<TResult>(result);
         _argumentReceiverDelegate = argumentReceiverDelegate;
@@ -83,7 +83,7 @@ public partial struct Coroutine<TResult> : IAwaitableCoroutine, IEquatable<Corou
     readonly void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
         Debug.Assert(_argumentReceiverDelegate is not null);
-        _argumentReceiverDelegate(ref argumentReceiver);
+        _argumentReceiverDelegate.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
     }
 
     void IAwaitableCoroutine.MarkCoroutineAsHandled()

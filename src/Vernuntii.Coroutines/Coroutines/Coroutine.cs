@@ -20,7 +20,7 @@ public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
     }
 
     internal IChildCoroutine? _builder;
-    internal CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+    internal ISiblingCoroutine? _argumentReceiverDelegate;
     internal ValueTask _task;
 
     readonly bool IRelativeCoroutine.IsChildCoroutine => IsChildCoroutine;
@@ -41,19 +41,19 @@ public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
         _task = new ValueTask(task);
     }
 
-    public Coroutine(in ValueTask task, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    public Coroutine(in ValueTask task, ISiblingCoroutine argumentReceiverDelegate)
     {
         _task = task;
         _argumentReceiverDelegate = argumentReceiverDelegate;
     }
 
-    public Coroutine(IValueTaskSource source, short token, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    public Coroutine(IValueTaskSource source, short token, ISiblingCoroutine argumentReceiverDelegate)
     {
         _task = new ValueTask(source, token);
         _argumentReceiverDelegate = argumentReceiverDelegate;
     }
 
-    public Coroutine(Task task, CoroutineArgumentReceiverDelegate argumentReceiverDelegate)
+    public Coroutine(Task task, ISiblingCoroutine argumentReceiverDelegate)
     {
         _task = new ValueTask(task);
     }
@@ -79,7 +79,7 @@ public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
     readonly void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
         Debug.Assert(_argumentReceiverDelegate is not null);
-        _argumentReceiverDelegate(ref argumentReceiver);
+        _argumentReceiverDelegate.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
     }
 
     void IAwaitableCoroutine.MarkCoroutineAsHandled()

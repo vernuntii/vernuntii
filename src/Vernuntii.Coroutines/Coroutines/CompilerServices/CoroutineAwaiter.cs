@@ -15,13 +15,13 @@ public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, IRelativeCo
     public readonly bool IsCompleted => _awaiter.IsCompleted;
 
     private readonly IChildCoroutine? _builder;
-    private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+    private readonly ISiblingCoroutine? _argumentReceiverDelegate;
     private readonly ValueTaskAwaiter _awaiter;
 
     readonly bool IRelativeCoroutine.IsChildCoroutine => _builder is not null;
     readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
 
-    internal CoroutineAwaiter(in ValueTaskAwaiter awaiter, IChildCoroutine? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
+    internal CoroutineAwaiter(in ValueTaskAwaiter awaiter, IChildCoroutine? builder, ISiblingCoroutine? argumentReceiverDelegate)
     {
         _awaiter = awaiter;
         _builder = builder;
@@ -43,7 +43,7 @@ public readonly struct CoroutineAwaiter : ICriticalNotifyCompletion, IRelativeCo
     void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
         Debug.Assert(_argumentReceiverDelegate is not null);
-        _argumentReceiverDelegate(ref argumentReceiver);
+        _argumentReceiverDelegate.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
     }
 
     public void GetResult() => _awaiter.GetResult();

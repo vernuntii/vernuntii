@@ -5,7 +5,7 @@ namespace Vernuntii.Coroutines;
 
 delegate void BequestContextDelegate(ref CoroutineContext context, in CoroutineContext contextToBequest);
 
-public struct CoroutineContext : ICoroutinePreprocessor
+public struct CoroutineContext : ICoroutineActor
 {
     private static readonly CoroutineContextServiceMap s_emptyKeyedServices = new();
 
@@ -88,13 +88,13 @@ public struct CoroutineContext : ICoroutinePreprocessor
         _resultStateMachine = resultStateMachine;
     }
 
-    readonly void ICoroutinePreprocessor.PreprocessChildCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter)
+    readonly void ICoroutineActor.ActOnChildCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter)
     {
         coroutineAwaiter.InheritCoroutineContext(in this);
         coroutineAwaiter.StartCoroutine();
     }
 
-    void ICoroutinePreprocessor.PreprocessSiblingCoroutine<TCoroutine>(ref TCoroutine coroutine)
+    void ICoroutineActor.ActOnSiblingCoroutine<TCoroutine>(ref TCoroutine coroutine)
     {
         var argumentReceiver = new CoroutineArgumentReceiver(ref this);
         coroutine.AcceptCoroutineArgumentReceiver(ref argumentReceiver);

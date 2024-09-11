@@ -1,17 +1,21 @@
 ﻿namespace Vernuntii.Coroutines;
+using static Vernuntii.Coroutines.Yielders.Arguments;
+
+file class CoroutineargumentReceiverAcceptor(Exception exception, ManualResetValueTaskCompletionSource<Nothing> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+{
+    protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
+    {
+        var argument = new ThrowArgument(exception, completionSource);
+        argumentReceiver.ReceiveCallableArgument(in ThrowKey, in argument, completionSource);
+    }
+}
 
 partial class Yielders
 {
     public static Coroutine Throw(Exception exception)
     {
         var completionSource = ManualResetValueTaskCompletionSource<Nothing>.RentFromCache();
-        return new Coroutine(completionSource.CreateValueTask(), CoroutineArgumentReceiver);
-
-        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
-        {
-            var argument = new Arguments.ThrowArgument(exception, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.ThrowKey, in argument, completionSource);
-        }
+        return new Coroutine(completionSource.CreateValueTask(), new CoroutineargumentReceiverAcceptor(exception, completionSource));
     }
 
     partial class Arguments

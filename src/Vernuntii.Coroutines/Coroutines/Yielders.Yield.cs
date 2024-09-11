@@ -1,19 +1,23 @@
 ﻿using System.Runtime.CompilerServices;
+using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
+
+file class CoroutineargumentReceiverAcceptor(ManualResetValueTaskCompletionSource<Nothing> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+{
+    protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
+    {
+        var argument = new YieldArgument(completionSource);
+        argumentReceiver.ReceiveCallableArgument(in YieldKey, in argument, completionSource);
+    }
+}
 
 partial class Yielders
 {
     public static Coroutine Yield()
     {
         var completionSource = ManualResetValueTaskCompletionSource<Nothing>.RentFromCache();
-        return new Coroutine(completionSource.CreateValueTask(), CoroutineArgumentReceiver);
-
-        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
-        {
-            var argument = new Arguments.YieldArgument(completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.YieldKey, in argument, completionSource);
-        }
+        return new Coroutine(completionSource.CreateValueTask(), new CoroutineargumentReceiverAcceptor(completionSource));
     }
 
     partial class Arguments

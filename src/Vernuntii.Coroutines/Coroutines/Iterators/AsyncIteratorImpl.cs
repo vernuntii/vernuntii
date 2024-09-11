@@ -66,7 +66,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
         context._bequesterOrigin = CoroutineContextBequesterOrigin.ContextBequester;
         context._bequestContext = OnBequestCoroutineContext;
         ref var coroutineAwaiter = ref iteratorContext._coroutineAwaiter;
-        CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref context);
+        CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref context);
         isCoroutineCompleted = coroutineAwaiter.IsCompleted;
     }
 

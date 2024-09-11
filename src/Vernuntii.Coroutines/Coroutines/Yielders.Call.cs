@@ -1,6 +1,25 @@
 ﻿using System.Runtime.CompilerServices;
+using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
+
+file class CoroutineargumentReceiverAcceptor<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<Nothing> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+{
+    protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
+    {
+        var argument = new CallArgument<TClosure>(provider, closure, isProviderWithClosure, completionSource);
+        argumentReceiver.ReceiveCallableArgument(in CallKey, in argument, completionSource);
+    }
+}
+
+file class CoroutineargumentReceiverAcceptor<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<TResult> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+{
+    protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
+    {
+        var argument = new CallArgument<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource);
+        argumentReceiver.ReceiveCallableArgument(in CallKey, in argument, completionSource);
+    }
+}
 
 partial class Yielders
 {
@@ -8,26 +27,14 @@ partial class Yielders
     internal static Coroutine CallInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ManualResetCoroutineCompletionSource<Nothing>.RentFromCache();
-        return new Coroutine(completionSource.CreateValueTask(), CoroutineArgumentReceiver);
-
-        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
-        {
-            var argument = new Arguments.CallArgument<TClosure>(provider, closure, isProviderWithClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.CallKey, in argument, completionSource);
-        }
+        return new Coroutine(completionSource.CreateValueTask(), new CoroutineargumentReceiverAcceptor<TClosure>(provider, closure, isProviderWithClosure, completionSource));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine<TResult> CallInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
-        return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
-
-        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
-        {
-            var argument = new Arguments.CallArgument<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.CallKey, in argument, completionSource);
-        }
+        return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), new CoroutineargumentReceiverAcceptor<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource));
     }
 
     public static Coroutine Call(Func<Coroutine> provider) => CallInternal<object?>(provider, closure: null, isProviderWithClosure: false);
@@ -76,7 +83,7 @@ partial class Yielders
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
-                CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 coroutineAwaiter.DelegateCoroutineCompletion(_completionSource);
             }
         }
@@ -117,7 +124,7 @@ partial class Yielders
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
-                CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 coroutineAwaiter.DelegateCoroutineCompletion(_completionSource);
             }
         }

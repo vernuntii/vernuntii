@@ -1,20 +1,24 @@
 ﻿using Vernuntii.Coroutines;
 using Vernuntii.Reactive.Broker;
+using static Vernuntii.Reactive.Extensions.Coroutines.YieldersExtensions.Arguments;
 
 namespace Vernuntii.Reactive.Extensions.Coroutines;
+
+file class CoroutineargumentReceiverAcceptor<T>(IEventDiscriminator<T> eventDiscriminator, T eventData, ManualResetValueTaskCompletionSource<Nothing> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+{
+    protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
+    {
+        var argument = new EmitArgument<T>(eventDiscriminator, eventData, completionSource);
+        argumentReceiver.ReceiveCallableArgument(in EmitKey, in argument, completionSource);
+    }
+}
 
 partial class YieldersExtensions
 {
     public static Coroutine Emit<T>(this Yielders _, IEventDiscriminator<T> eventDiscriminator, T eventData)
     {
         var completionSource = ManualResetValueTaskCompletionSource<Nothing>.RentFromCache();
-        return new Coroutine(completionSource.CreateValueTask(), ArgumentReceiverDelegate);
-
-        void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
-        {
-            var argument = new Arguments.EmitArgument<T>(eventDiscriminator, eventData, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.EmitKey, in argument, completionSource);
-        }
+        return new Coroutine(completionSource.CreateValueTask(), new CoroutineargumentReceiverAcceptor<T>(eventDiscriminator, eventData, completionSource));
     }
 
     partial class Arguments

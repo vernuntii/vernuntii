@@ -7,28 +7,28 @@ namespace Vernuntii.Coroutines;
 internal static class CoroutineMethodBuilderCore
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void PreprocessCoroutine<TCoroutine, TCoroutinePreprocessor>(
+    internal static void ActOnCoroutine<TCoroutine, TCoroutineActor>(
         ref TCoroutine coroutine,
-        ref TCoroutinePreprocessor preprocessor)
+        ref TCoroutineActor coroutineActor)
         where TCoroutine : IRelativeCoroutine
-        where TCoroutinePreprocessor : ICoroutinePreprocessor
+        where TCoroutineActor : ICoroutineActor
     {
         if (coroutine.IsChildCoroutine) {
-            preprocessor.PreprocessChildCoroutine(ref coroutine);
+            coroutineActor.ActOnChildCoroutine(ref coroutine);
         } else if (coroutine.IsSiblingCoroutine) {
-            preprocessor.PreprocessSiblingCoroutine(ref coroutine);
+            coroutineActor.ActOnSiblingCoroutine(ref coroutine);
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    internal static void PreprocessAwaiterIfCoroutine<TAwaiter, Preprocessor>(
+    internal static void ActOnAwaiterIfCoroutine<TAwaiter, TCoroutineActor>(
         ref TAwaiter awaiter,
-        ref Preprocessor preprocessor)
-        where Preprocessor : ICoroutinePreprocessor
+        ref TCoroutineActor coroutineActor)
+        where TCoroutineActor : ICoroutineActor
     {
         if (null != default(TAwaiter) && awaiter is IRelativeCoroutineAwaiter) {
             ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, CoroutineAwaiter>(ref awaiter);
-            PreprocessCoroutine(ref coroutineAwaiter, ref preprocessor);
+            ActOnCoroutine(ref coroutineAwaiter, ref coroutineActor);
         }
     }
 

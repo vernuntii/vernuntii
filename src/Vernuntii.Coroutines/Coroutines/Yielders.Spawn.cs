@@ -1,6 +1,25 @@
 ﻿using System.Runtime.CompilerServices;
+using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
+
+file class CoroutineargumentReceiverAcceptor<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<Coroutine> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+{
+    protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
+    {
+        var argument = new SpawnArgument<TClosure>(provider, closure, isProviderWithClosure, completionSource);
+        argumentReceiver.ReceiveCallableArgument(in SpawnKey, in argument, completionSource);
+    }
+}
+
+file class CoroutineargumentReceiverAcceptor<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<Coroutine<TResult>> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+{
+    protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
+    {
+        var argument = new SpawnArgument<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource);
+        argumentReceiver.ReceiveCallableArgument(in SpawnKey, in argument, completionSource);
+    }
+}
 
 partial class Yielders
 {
@@ -8,26 +27,14 @@ partial class Yielders
     internal static Coroutine<Coroutine> SpawnInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ManualResetCoroutineCompletionSource<Coroutine>.RentFromCache();
-        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
-
-        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
-        {
-            var argument = new Arguments.SpawnArgument<TClosure>(provider, closure, isProviderWithClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.SpawnKey, in argument, completionSource);
-        }
+        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), new CoroutineargumentReceiverAcceptor<TClosure>(provider, closure, isProviderWithClosure, completionSource));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Coroutine<Coroutine<TResult>> SpawnInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ManualResetCoroutineCompletionSource<Coroutine<TResult>>.RentFromCache();
-        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), CoroutineArgumentReceiver);
-
-        void CoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
-        {
-            var argument = new Arguments.SpawnArgument<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.SpawnKey, in argument, completionSource);
-        }
+        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), new CoroutineargumentReceiverAcceptor<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource));
     }
 
     public static Coroutine<Coroutine> Spawn(Func<Coroutine> provider) => SpawnInternal<object?>(provider, closure: null, isProviderWithClosure: false);
@@ -85,7 +92,7 @@ partial class Yielders
 
                 var intermediateCompletionSource = ManualResetCoroutineCompletionSource<Nothing>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateValueTask();
-                CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
                 childCoroutineAwaiter.DelegateCoroutineCompletion(intermediateCompletionSource);
                 childCoroutine.MarkCoroutineAsHandled();
                 _completionSource.SetResult(childCoroutine);
@@ -137,7 +144,7 @@ partial class Yielders
 
                 var intermediateCompletionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateGenericValueTask();
-                CoroutineMethodBuilderCore.PreprocessCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
                 childCoroutineAwaiter.DelegateCoroutineCompletion(intermediateCompletionSource);
                 childCoroutine.MarkCoroutineAsHandled();
                 _completionSource.SetResult(childCoroutine);

@@ -290,11 +290,11 @@ public static class CoroutineTests
                     await Task.Delay(100);
                     t2.SetResult(2);
                 }, CancellationToken.None);
-                var t = await new Coroutine<int>(new ValueTask<int>(t2.Task), test);
-                void test(in CoroutineArgumentReceiver argumentReceiver)
-                {
-                    //argumentReceiver.ReceiveArgument("hello from coroutine");
-                }
+                //var t = await new Coroutine<int>(new ValueTask<int>(t2.Task), test);
+                //void test(in CoroutineArgumentReceiver argumentReceiver)
+                //{
+                //    //argumentReceiver.ReceiveArgument("hello from coroutine");
+                //}
                 await await Spawn(new Func<Coroutine>(async () => { Console.WriteLine("Hello from spawn"); }));
                 await Task.Delay(waitTime).ConfigureAwait(false);
                 Console.WriteLine($"{nameof(CO3)} after");

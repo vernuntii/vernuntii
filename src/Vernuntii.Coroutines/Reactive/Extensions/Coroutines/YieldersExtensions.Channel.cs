@@ -1,20 +1,24 @@
 ﻿using Vernuntii.Coroutines;
 using Vernuntii.Reactive.Broker;
+using static Vernuntii.Reactive.Extensions.Coroutines.YieldersExtensions.Arguments;
 
 namespace Vernuntii.Reactive.Extensions.Coroutines;
+
+file class CoroutineargumentReceiverAcceptor<T>(Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector, ManualResetValueTaskCompletionSource<EventChannel<T>> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+{
+    protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
+    {
+        var argument = new ObserveArgument<T>(eventSelector, completionSource);
+        argumentReceiver.ReceiveCallableArgument(in ChannelKey, in argument, completionSource);
+    }
+}
 
 partial class YieldersExtensions
 {
     public static Coroutine<EventChannel<T>> Channel<T>(this Yielders _, Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector)
     {
         var completionSource = ManualResetValueTaskCompletionSource<EventChannel<T>>.RentFromCache();
-        return new Coroutine<EventChannel<T>>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
-
-        void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
-        {
-            var argument = new Arguments.ObserveArgument<T>(eventSelector, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.ChannelKey, in argument, completionSource);
-        }
+        return new Coroutine<EventChannel<T>>(completionSource.CreateGenericValueTask(), new CoroutineargumentReceiverAcceptor<T>(eventSelector, completionSource));
     }
 
     partial class Arguments

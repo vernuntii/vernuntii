@@ -38,7 +38,7 @@ partial struct Coroutine
     {
         var scope = new CoroutineScope();
         context._keyedServicesToBequest = context._keyedServicesToBequest.Merge(CoroutineContextServiceMap.CreateRange(1, scope, static (x, y) => x.Emplace(CoroutineScope.s_coroutineScopeKey, y)));
-        CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutine, ref context);
+        CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutine, ref context);
     }
 
     private static Coroutine StartInternal<TClosure>(Delegate provider, TClosure closure, ref CoroutineContext context, bool isProviderWithClosure)

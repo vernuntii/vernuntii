@@ -6,10 +6,10 @@ namespace Vernuntii.Coroutines.CompilerServices;
 public readonly struct ConfiguredCoroutineAwaitable
 {
     private readonly IChildCoroutine? _builder;
-    private readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+    private readonly ISiblingCoroutine? _argumentReceiverDelegate;
     private readonly ConfiguredValueTaskAwaitable _task;
 
-    internal ConfiguredCoroutineAwaitable(in ConfiguredValueTaskAwaitable task, IChildCoroutine? builder, CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
+    internal ConfiguredCoroutineAwaitable(in ConfiguredValueTaskAwaitable task, IChildCoroutine? builder, ISiblingCoroutine? argumentReceiverDelegate)
     {
         _task = task;
         _builder = builder;
@@ -23,16 +23,13 @@ public readonly struct ConfiguredCoroutineAwaitable
         public readonly bool IsCompleted => _awaiter.IsCompleted;
 
         internal readonly IChildCoroutine? _builder;
-        internal readonly CoroutineArgumentReceiverDelegate? _argumentReceiverDelegate;
+        internal readonly ISiblingCoroutine? _argumentReceiverDelegate;
         internal readonly ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter _awaiter;
 
         readonly bool IRelativeCoroutine.IsChildCoroutine => _builder is not null;
         readonly bool IRelativeCoroutine.IsSiblingCoroutine => _argumentReceiverDelegate is not null;
 
-        internal ConfiguredCoroutineAwaiter(
-            in ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter awaiter,
-            IChildCoroutine? builder,
-            CoroutineArgumentReceiverDelegate? argumentReceiverDelegate)
+        internal ConfiguredCoroutineAwaiter(in ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter awaiter, IChildCoroutine? builder, ISiblingCoroutine? argumentReceiverDelegate)
         {
             _awaiter = awaiter;
             _builder = builder;
@@ -54,7 +51,7 @@ public readonly struct ConfiguredCoroutineAwaitable
         void ISiblingCoroutine.AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
         {
             Debug.Assert(_argumentReceiverDelegate is not null);
-            _argumentReceiverDelegate(ref argumentReceiver);
+            _argumentReceiverDelegate.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
         }
 
         public void GetResult() => _awaiter.GetResult();

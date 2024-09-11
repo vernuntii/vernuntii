@@ -109,7 +109,7 @@ partial struct CoroutineMethodBuilder<TResult>
 
         if (null != default(TAwaiter) && awaiter is IRelativeCoroutineAwaiter) {
             ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, CoroutineAwaiter>(ref awaiter);
-            CoroutineMethodBuilderCore.PreprocessCoroutine(ref coroutineAwaiter, ref context);
+            CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref context);
         }
 
         if (context.IsCoroutineAsyncIteratorSupplier) {

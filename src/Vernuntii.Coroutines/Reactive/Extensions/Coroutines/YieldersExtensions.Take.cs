@@ -1,19 +1,23 @@
 ﻿using Vernuntii.Coroutines;
+using static Vernuntii.Reactive.Extensions.Coroutines.YieldersExtensions.Arguments;
 
 namespace Vernuntii.Reactive.Extensions.Coroutines;
+
+file class CoroutineargumentReceiverAcceptor<T>(EventChannel<T> eventChannel, CancellationToken cancellationToken, ManualResetValueTaskCompletionSource<T> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+{
+    protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
+    {
+        var argument = new TakeArgument<T>(eventChannel, cancellationToken, completionSource);
+        argumentReceiver.ReceiveCallableArgument(in EmitKey, in argument, completionSource);
+    }
+}
 
 partial class YieldersExtensions
 {
     public static Coroutine<T> Take<T>(this Yielders _, EventChannel<T> eventChannel, CancellationToken cancellationToken = default)
     {
         var completionSource = ManualResetValueTaskCompletionSource<T>.RentFromCache();
-        return new Coroutine<T>(completionSource.CreateGenericValueTask(), ArgumentReceiverDelegate);
-
-        void ArgumentReceiverDelegate(ref CoroutineArgumentReceiver argumentReceiver)
-        {
-            var argument = new Arguments.TakeArgument<T>(eventChannel, cancellationToken, completionSource);
-            argumentReceiver.ReceiveCallableArgument(in Arguments.EmitKey, in argument, completionSource);
-        }
+        return new Coroutine<T>(completionSource.CreateGenericValueTask(), new CoroutineargumentReceiverAcceptor<T>(eventChannel, cancellationToken, completionSource));
     }
 
     partial class Arguments
