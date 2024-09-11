@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Coroutines;
 
-partial class EffectsTests
+partial class YieldersTests
 {
     /* FYI: Given `Coroutine.Start(() => Call(..))`, then the Calls's coroutine of Start's provider waits for coroutine of Call's provider. */
     public class LaunchTests

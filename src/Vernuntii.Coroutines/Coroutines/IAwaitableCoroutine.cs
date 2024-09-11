@@ -2,5 +2,5 @@
 
 internal interface IAwaitableCoroutine : IRelativeCoroutine
 {
-    void MarkCoroutineAsHandled();
+    void MarkCoroutineAsActedOn();
 }

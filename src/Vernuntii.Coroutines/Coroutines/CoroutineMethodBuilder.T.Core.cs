@@ -106,11 +106,7 @@ partial struct CoroutineMethodBuilder<TResult>
         where TStateMachine : IAsyncStateMachine
     {
         ref var context = ref stateMachineBox._coroutineContext;
-
-        if (null != default(TAwaiter) && awaiter is IRelativeCoroutineAwaiter) {
-            ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, CoroutineAwaiter>(ref awaiter);
-            CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref context);
-        }
+        CoroutineMethodBuilderCore.ActOnAwaiterIfCoroutine(ref awaiter, ref context);
 
         if (context.IsCoroutineAsyncIteratorSupplier) {
             var asyncIteratorContextService = context.GetAsyncIteratorContextService();

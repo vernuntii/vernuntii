@@ -82,7 +82,7 @@ public partial struct Coroutine : IAwaitableCoroutine, IEquatable<Coroutine>
         _argumentReceiverDelegate.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
     }
 
-    void IAwaitableCoroutine.MarkCoroutineAsHandled()
+    void IAwaitableCoroutine.MarkCoroutineAsActedOn()
     {
         _builder = null;
         _argumentReceiverDelegate = null;

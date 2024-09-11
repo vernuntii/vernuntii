@@ -7,28 +7,28 @@ namespace Vernuntii.Coroutines;
 internal static class CoroutineMethodBuilderCore
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void ActOnCoroutine<TCoroutine, TCoroutineActor>(
+    internal static void ActOnCoroutine<TCoroutine>(
         ref TCoroutine coroutine,
-        ref TCoroutineActor coroutineActor)
+        ref CoroutineContext context)
         where TCoroutine : IRelativeCoroutine
-        where TCoroutineActor : ICoroutineActor
     {
         if (coroutine.IsChildCoroutine) {
-            coroutineActor.ActOnChildCoroutine(ref coroutine);
+            coroutine.InheritCoroutineContext(in context);
+            coroutine.StartCoroutine();
         } else if (coroutine.IsSiblingCoroutine) {
-            coroutineActor.ActOnSiblingCoroutine(ref coroutine);
+            var argumentReceiver = new CoroutineArgumentReceiver(ref context);
+            coroutine.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    internal static void ActOnAwaiterIfCoroutine<TAwaiter, TCoroutineActor>(
+    internal static void ActOnAwaiterIfCoroutine<TAwaiter>(
         ref TAwaiter awaiter,
-        ref TCoroutineActor coroutineActor)
-        where TCoroutineActor : ICoroutineActor
+        ref CoroutineContext context)
     {
         if (null != default(TAwaiter) && awaiter is IRelativeCoroutineAwaiter) {
             ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, CoroutineAwaiter>(ref awaiter);
-            ActOnCoroutine(ref coroutineAwaiter, ref coroutineActor);
+            ActOnCoroutine(ref coroutineAwaiter, ref context);
         }
     }
 

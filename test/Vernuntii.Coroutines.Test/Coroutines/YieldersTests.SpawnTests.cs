@@ -1,6 +1,6 @@
 ﻿namespace Vernuntii.Coroutines;
 
-partial class EffectsTests
+partial class YieldersTests
 {
     public class SpawnTests
     {
