@@ -15,7 +15,7 @@ public sealed partial class Yielders
         public readonly static Key LaunchKey = new(s_scope, 2);
         public readonly static Key SpawnKey = new(s_scope, 3);
         public readonly static Key WithContextKey = new(s_scope, 4);
-        public readonly static Key ReturnKey = new(s_scope, 5);
+        public readonly static Key YieldReturnKey = new(s_scope, 5);
         public readonly static Key ThrowKey = new(s_scope, 6);
         public readonly static Key YieldKey = new(s_scope, 7);
     }
