@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks.Sources;
 using Vernuntii.Coroutines.CompilerServices;
 using Vernuntii.Coroutines.Iterators;
@@ -9,6 +10,7 @@ namespace Vernuntii.Coroutines;
  * Never attempt to use Unsafe.As to access _task.
  */
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder))]
+[StructLayout(LayoutKind.Auto)]
 public partial struct Coroutine : IRelativeCoroutine, IEquatable<Coroutine>
 {
     internal readonly object? _coroutineActioner;

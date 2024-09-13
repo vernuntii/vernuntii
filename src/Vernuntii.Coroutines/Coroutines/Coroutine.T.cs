@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks.Sources;
 using Vernuntii.Coroutines.CompilerServices;
 using Vernuntii.Coroutines.Iterators;
@@ -6,6 +7,7 @@ using Vernuntii.Coroutines.Iterators;
 namespace Vernuntii.Coroutines;
 
 [AsyncMethodBuilder(typeof(CoroutineMethodBuilder<>))]
+[StructLayout(LayoutKind.Auto)]
 public partial struct Coroutine<TResult> : IRelativeCoroutine, IEquatable<Coroutine<TResult>>
 {
     internal readonly object? _coroutineActioner;
