@@ -16,6 +16,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Vernuntii.Coroutines\Vernuntii.Coroutines.csproj" />
+    <ProjectReference Include="..\..\src\Vernuntii.Reactive.Extensions.Coroutines\Vernuntii.Reactive.Extensions.Coroutines.csproj" />
+    <ProjectReference Include="..\..\src\Vernuntii.Reactive\Vernuntii.Reactive.csproj" />
   </ItemGroup>
 
 </Project>

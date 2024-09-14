@@ -4,19 +4,16 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Vernuntii.Coroutines</RootNamespace>
+    <RootNamespace>Vernuntii.Reactive.Extensions.Reactive</RootNamespace>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <LangVersion>preview</LangVersion>
     <DotnetScripTargetFramework>net7.0</DotnetScripTargetFramework>
     <DotnetScriptVersion>1.5.0</DotnetScriptVersion>
   </PropertyGroup>
-
+    
   <ItemGroup>
-    <PackageReference Include="K4os.Hash.xxHash" Version="1.0.8" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Coroutines\" />
+    <ProjectReference Include="..\Vernuntii.Coroutines\Vernuntii.Coroutines.csproj" />
+    <ProjectReference Include="..\Vernuntii.Reactive\Vernuntii.Reactive.csproj" />
   </ItemGroup>
 
 </Project>

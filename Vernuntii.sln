@@ -93,6 +93,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Coroutines.Benchm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Coroutines.GeneratedSources", "src\Vernuntii.Coroutines.GeneratedSources\Vernuntii.Coroutines.GeneratedSources.csproj", "{5AB8E77F-8EC0-441A-8E57-116858C440CC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Reactive", "src\Vernuntii.Reactive\Vernuntii.Reactive.csproj", "{6CD32D11-BD18-4A4D-A519-665E4A14564F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vernuntii.Reactive.Extensions.Reactive", "src\Vernuntii.Reactive.Extensions.Coroutines\Vernuntii.Reactive.Extensions.Coroutines.csproj", "{08DB6D6F-9CA5-4CDF-A6B1-914F85FE4CDF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -231,6 +235,14 @@ Global
 		{5AB8E77F-8EC0-441A-8E57-116858C440CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5AB8E77F-8EC0-441A-8E57-116858C440CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5AB8E77F-8EC0-441A-8E57-116858C440CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CD32D11-BD18-4A4D-A519-665E4A14564F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CD32D11-BD18-4A4D-A519-665E4A14564F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CD32D11-BD18-4A4D-A519-665E4A14564F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CD32D11-BD18-4A4D-A519-665E4A14564F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08DB6D6F-9CA5-4CDF-A6B1-914F85FE4CDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08DB6D6F-9CA5-4CDF-A6B1-914F85FE4CDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08DB6D6F-9CA5-4CDF-A6B1-914F85FE4CDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08DB6D6F-9CA5-4CDF-A6B1-914F85FE4CDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
