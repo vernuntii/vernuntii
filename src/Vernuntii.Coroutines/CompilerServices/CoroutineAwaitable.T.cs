@@ -7,7 +7,7 @@ public readonly struct CoroutineAwaitable<TResult>
     internal readonly Coroutine<TResult> _coroutine;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal CoroutineAwaitable(Coroutine<TResult> coroutine) => _coroutine = coroutine;
+    internal CoroutineAwaitable(in Coroutine<TResult> coroutine) => _coroutine = coroutine;
 
     public CoroutineAwaiter<TResult> GetAwaiter() => _coroutine.GetAwaiter();
 
@@ -15,5 +15,9 @@ public readonly struct CoroutineAwaitable<TResult>
 
     public readonly Task<TResult> AsTask() => _coroutine._task.AsTask();
 
-    public readonly ValueTask<TResult> AsValueTask() => _coroutine._task;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Coroutine<TResult>(CoroutineAwaitable<TResult> awaitable) => awaitable._coroutine;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator ValueTask<TResult>(CoroutineAwaitable<TResult> awaitable) => awaitable._coroutine._task;
 }

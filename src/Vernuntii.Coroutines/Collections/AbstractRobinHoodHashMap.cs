@@ -30,8 +30,8 @@ using System.Runtime.InteropServices;
 
 namespace Vernuntii.Collections;
 
-delegate bool ReadonlyReferenceEqualsDelegate<T>(in T? x, in T? y);
-delegate uint ReadonlyReferenceGetHashCodeDelegate<T>([DisallowNull] in T obj);
+internal delegate bool ReadonlyReferenceEqualsDelegate<T>(in T? x, in T? y);
+internal delegate uint ReadonlyReferenceGetHashCodeDelegate<T>([DisallowNull] in T obj);
 
 /// <summary>
 /// This hashmap uses the following

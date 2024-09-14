@@ -213,14 +213,14 @@ namespace Vernuntii.Coroutines
         public static Vernuntii.Coroutines.Coroutine<TResult> Call<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
         public static Vernuntii.Coroutines.Coroutine Call<TClosure>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure) { }
         public static Vernuntii.Coroutines.Coroutine<TResult> Call<TClosure, TResult>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure) { }
-        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine> Launch(System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
-        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine<TResult>> Launch<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
-        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine> Launch<TClosure>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure) { }
-        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine<TResult>> Launch<TClosure, TResult>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure) { }
-        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine> Spawn(System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
-        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine<TResult>> Spawn<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
-        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine> Spawn<TClosure>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure) { }
-        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine<TResult>> Spawn<TClosure, TResult>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable> Launch(System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable<TResult>> Launch<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable> Launch<TClosure>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable<TResult>> Launch<TClosure, TResult>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable> Spawn(System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable<TResult>> Spawn<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable> Spawn<TClosure>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable<TResult>> Spawn<TClosure, TResult>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure) { }
         public static Vernuntii.Coroutines.Coroutine Throw(System.Exception exception) { }
         public static Vernuntii.Coroutines.Coroutine WithContext(Vernuntii.Coroutines.CoroutineContext additiveContext, System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
         public static Vernuntii.Coroutines.Coroutine<TResult> WithContext<TResult>(Vernuntii.Coroutines.CoroutineContext additiveContext, System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
@@ -294,16 +294,18 @@ namespace Vernuntii.Coroutines.CompilerServices
     public readonly struct CoroutineAwaitable
     {
         public System.Threading.Tasks.Task AsTask() { }
-        public System.Threading.Tasks.ValueTask AsValueTask() { }
         public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable ConfigureAwait(bool continueOnCapturedContext) { }
         public Vernuntii.Coroutines.CompilerServices.CoroutineAwaiter GetAwaiter() { }
+        public static Vernuntii.Coroutines.Coroutine op_Implicit(Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable awaitable) { }
+        public static System.Threading.Tasks.ValueTask op_Implicit(Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable awaitable) { }
     }
     public readonly struct CoroutineAwaitable<TResult>
     {
         public System.Threading.Tasks.Task<TResult> AsTask() { }
-        public System.Threading.Tasks.ValueTask<TResult> AsValueTask() { }
         public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) { }
         public Vernuntii.Coroutines.CompilerServices.CoroutineAwaiter<TResult> GetAwaiter() { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> op_Implicit(Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable<TResult> awaitable) { }
+        public static System.Threading.Tasks.ValueTask<TResult> op_Implicit(Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable<TResult> awaitable) { }
     }
     public struct CoroutineAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion, System.Runtime.CompilerServices.INotifyCompletion
     {

@@ -7,8 +7,7 @@ internal static class CoroutineEqualityComparer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool Equals(in Coroutine x, in Coroutine y)
     {
-        return x._coroutineAction == y._coroutineAction &&
-            x._coroutineAction == y._coroutineAction &&
+        return x._coroutineActioner == y._coroutineActioner &&
             x._task == y._task;
     }
 
@@ -16,7 +15,6 @@ internal static class CoroutineEqualityComparer
     internal static bool Equals<TResult>(in Coroutine<TResult> x, in Coroutine<TResult> y)
     {
         return x._coroutineAction == y._coroutineAction &&
-            x._coroutineAction == y._coroutineAction &&
             x._task == y._task;
     }
 
@@ -25,7 +23,6 @@ internal static class CoroutineEqualityComparer
     {
         var hashCode = new HashCode();
         hashCode.Add(co._coroutineActioner);
-        hashCode.Add(co._coroutineAction);
         hashCode.Add(co._task);
         return hashCode.ToHashCode();
     }
@@ -35,7 +32,6 @@ internal static class CoroutineEqualityComparer
     {
         var hashCode = new HashCode();
         hashCode.Add(co._coroutineActioner);
-        hashCode.Add(co._coroutineAction);
         hashCode.Add(co._task);
         return hashCode.ToHashCode();
     }

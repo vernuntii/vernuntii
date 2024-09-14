@@ -1,4 +1,6 @@
-﻿namespace Vernuntii.Coroutines.Iterators;
+﻿using Vernuntii.Coroutines.CompilerServices;
+
+namespace Vernuntii.Coroutines.Iterators;
 partial class AsyncIteratorTests
 {
     public class Launch
@@ -7,7 +9,7 @@ partial class AsyncIteratorTests
         {
             private const int ExpectedResult = 2;
 
-            private Coroutine<Coroutine<int>> Constant() => Launch(() => Coroutine.FromResult(2));
+            private Coroutine<CoroutineAwaitable<int>> Constant() => Launch(() => Coroutine.FromResult(2));
 
             [Fact]
             public async Task MoveNext_ReturnsFalse()
@@ -51,7 +53,7 @@ partial class AsyncIteratorTests
         {
             private const int ExpectedResult = 2;
 
-            private Coroutine<Coroutine<int>> ConstantAfterDelay() => Launch(async () => {
+            private Coroutine<CoroutineAwaitable<int>> ConstantAfterDelay() => Launch(async () => {
                 await Task.Delay(ContinueAfterTimeInMs).ConfigureAwait(false);
                 return ExpectedResult;
             });

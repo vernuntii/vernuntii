@@ -4,7 +4,7 @@ using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
 
-file class CoroutineArgumentReceiverAcceptor<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<Coroutine> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+file class CoroutineArgumentReceiverAcceptor<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<CoroutineAwaitable> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
@@ -13,7 +13,7 @@ file class CoroutineArgumentReceiverAcceptor<TClosure>(Delegate provider, TClosu
     }
 }
 
-file class CoroutineArgumentReceiverAcceptor<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<Coroutine<TResult>> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+file class CoroutineArgumentReceiverAcceptor<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
@@ -25,26 +25,26 @@ file class CoroutineArgumentReceiverAcceptor<TClosure, TResult>(Delegate provide
 partial class Yielders
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static Coroutine<Coroutine> SpawnInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
+    internal static Coroutine<CoroutineAwaitable> SpawnInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
-        var completionSource = ManualResetCoroutineCompletionSource<Coroutine>.RentFromCache();
-        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), new CoroutineArgumentReceiverAcceptor<TClosure>(provider, closure, isProviderWithClosure, completionSource));
+        var completionSource = ManualResetCoroutineCompletionSource<CoroutineAwaitable>.RentFromCache();
+        return new Coroutine<CoroutineAwaitable>(completionSource.CreateGenericValueTask(), new CoroutineArgumentReceiverAcceptor<TClosure>(provider, closure, isProviderWithClosure, completionSource));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static Coroutine<Coroutine<TResult>> SpawnInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
+    internal static Coroutine<CoroutineAwaitable<TResult>> SpawnInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
-        var completionSource = ManualResetCoroutineCompletionSource<Coroutine<TResult>>.RentFromCache();
-        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), new CoroutineArgumentReceiverAcceptor<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource));
+        var completionSource = ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>>.RentFromCache();
+        return new Coroutine<CoroutineAwaitable<TResult>>(completionSource.CreateGenericValueTask(), new CoroutineArgumentReceiverAcceptor<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource));
     }
 
-    public static Coroutine<Coroutine> Spawn(Func<Coroutine> provider) => SpawnInternal<object?>(provider, closure: null, isProviderWithClosure: false);
+    public static Coroutine<CoroutineAwaitable> Spawn(Func<Coroutine> provider) => SpawnInternal<object?>(provider, closure: null, isProviderWithClosure: false);
 
-    public static Coroutine<Coroutine> Spawn<TClosure>(Func<TClosure, Coroutine> provider, TClosure closure) => SpawnInternal(provider, closure, isProviderWithClosure: true);
+    public static Coroutine<CoroutineAwaitable> Spawn<TClosure>(Func<TClosure, Coroutine> provider, TClosure closure) => SpawnInternal(provider, closure, isProviderWithClosure: true);
 
-    public static Coroutine<Coroutine<TResult>> Spawn<TResult>(Func<Coroutine<TResult>> provider) => SpawnInternal<object?, TResult>(provider, closure: null, isProviderWithClosure: false);
+    public static Coroutine<CoroutineAwaitable<TResult>> Spawn<TResult>(Func<Coroutine<TResult>> provider) => SpawnInternal<object?, TResult>(provider, closure: null, isProviderWithClosure: false);
 
-    public static Coroutine<Coroutine<TResult>> Spawn<TClosure, TResult>(Func<TClosure, Coroutine<TResult>> provider, TClosure closure) => SpawnInternal<TClosure, TResult>(provider, closure, isProviderWithClosure: true);
+    public static Coroutine<CoroutineAwaitable<TResult>> Spawn<TClosure, TResult>(Func<TClosure, Coroutine<TResult>> provider, TClosure closure) => SpawnInternal<TClosure, TResult>(provider, closure, isProviderWithClosure: true);
 
     partial class Arguments
     {
@@ -53,7 +53,7 @@ partial class Yielders
             private readonly Delegate _provider;
             private readonly TClosure _closure;
             private readonly bool _isProviderWithClosure;
-            private readonly ManualResetCoroutineCompletionSource<Coroutine> _completionSource;
+            private readonly ManualResetCoroutineCompletionSource<CoroutineAwaitable> _completionSource;
 
             public readonly Delegate Provider => _provider;
             public readonly TClosure Closure => _closure;
@@ -62,7 +62,7 @@ partial class Yielders
                 Delegate provider,
                 TClosure closure,
                 bool isProviderWithClosure,
-                ManualResetCoroutineCompletionSource<Coroutine> completionSource)
+                ManualResetCoroutineCompletionSource<CoroutineAwaitable> completionSource)
             {
                 _provider = provider;
                 _closure = closure;
@@ -76,13 +76,9 @@ partial class Yielders
                 if (_isProviderWithClosure) {
                     coroutine = Unsafe.As<Func<TClosure, Coroutine>>(Provider)(Closure);
                 } else {
-                    coroutine = Unsafe.As<Func<Coroutine>>(Provider)();
+                    coroutine = Unsafe.As<Func<CoroutineAwaitable>>(Provider)();
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
-                if (coroutineAwaiter.IsCompleted) {
-                    _completionSource.SetResult(coroutine);
-                    return;
-                }
 
                 ref var contextToBequest = ref _completionSource._coroutineContext;
                 contextToBequest.TreatAsNewChild();
@@ -101,7 +97,7 @@ partial class Yielders
                 CoroutineMethodBuilderCore.ActOnCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
                 childCoroutineAwaiter.DelegateCoroutineCompletion(intermediateCompletionSource);
                 childCoroutine.MarkCoroutineAsHandled();
-                _completionSource.SetResult(childCoroutine);
+                _completionSource.SetResult(new (in childCoroutine));
             }
         }
 
@@ -110,7 +106,7 @@ partial class Yielders
             private readonly Delegate _provider;
             private readonly TClosure _closure;
             private readonly bool _isProviderWithClosure;
-            private readonly ManualResetCoroutineCompletionSource<Coroutine<TResult>> _completionSource;
+            private readonly ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>> _completionSource;
 
             public readonly Delegate Provider => _provider;
             public readonly TClosure Closure => _closure;
@@ -119,7 +115,7 @@ partial class Yielders
                 Delegate provider,
                 TClosure closure,
                 bool isProviderWithClosure,
-                ManualResetCoroutineCompletionSource<Coroutine<TResult>> completionSource)
+                ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>> completionSource)
             {
                 _provider = provider;
                 _closure = closure;
@@ -133,13 +129,9 @@ partial class Yielders
                 if (_isProviderWithClosure) {
                     coroutine = Unsafe.As<Func<TClosure, Coroutine<TResult>>>(Provider)(Closure);
                 } else {
-                    coroutine = Unsafe.As<Func<Coroutine<TResult>>>(Provider)();
+                    coroutine = Unsafe.As<Func<CoroutineAwaitable<TResult>>>(Provider)();
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
-                if (coroutineAwaiter.IsCompleted) {
-                    _completionSource.SetResult(coroutine);
-                    return;
-                }
 
                 ref var contextToBequest = ref _completionSource._coroutineContext;
                 contextToBequest.TreatAsNewChild();
@@ -158,7 +150,7 @@ partial class Yielders
                 CoroutineMethodBuilderCore.ActOnCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
                 childCoroutineAwaiter.DelegateCoroutineCompletion(intermediateCompletionSource);
                 childCoroutine.MarkCoroutineAsHandled();
-                _completionSource.SetResult(childCoroutine);
+                _completionSource.SetResult(new (in childCoroutine));
             }
 
         }

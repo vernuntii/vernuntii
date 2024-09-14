@@ -1,9 +1,10 @@
 ﻿using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.CompilerServices;
 using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
 
-file class CoroutineArgumentReceiverAcceptor<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<Coroutine> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+file class CoroutineArgumentReceiverAcceptor<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<CoroutineAwaitable> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
@@ -12,7 +13,7 @@ file class CoroutineArgumentReceiverAcceptor<TClosure>(Delegate provider, TClosu
     }
 }
 
-file class CoroutineArgumentReceiverAcceptor<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<Coroutine<TResult>> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+file class CoroutineArgumentReceiverAcceptor<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure, ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
@@ -24,26 +25,26 @@ file class CoroutineArgumentReceiverAcceptor<TClosure, TResult>(Delegate provide
 partial class Yielders
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static Coroutine<Coroutine> LaunchInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
+    internal static Coroutine<CoroutineAwaitable> LaunchInternal<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
-        var completionSource = ManualResetCoroutineCompletionSource<Coroutine>.RentFromCache();
-        return new Coroutine<Coroutine>(completionSource.CreateGenericValueTask(), new CoroutineArgumentReceiverAcceptor<TClosure>(provider, closure, isProviderWithClosure, completionSource));
+        var completionSource = ManualResetCoroutineCompletionSource<CoroutineAwaitable>.RentFromCache();
+        return new Coroutine<CoroutineAwaitable>(completionSource.CreateGenericValueTask(), new CoroutineArgumentReceiverAcceptor<TClosure>(provider, closure, isProviderWithClosure, completionSource));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static Coroutine<Coroutine<TResult>> LaunchInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
+    internal static Coroutine<CoroutineAwaitable<TResult>> LaunchInternal<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
-        var completionSource = ManualResetCoroutineCompletionSource<Coroutine<TResult>>.RentFromCache();
-        return new Coroutine<Coroutine<TResult>>(completionSource.CreateGenericValueTask(), new CoroutineArgumentReceiverAcceptor<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource));
+        var completionSource = ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>>.RentFromCache();
+        return new Coroutine<CoroutineAwaitable<TResult>>(completionSource.CreateGenericValueTask(), new CoroutineArgumentReceiverAcceptor<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource));
     }
 
-    public static Coroutine<Coroutine> Launch(Func<Coroutine> provider) => LaunchInternal<object?>(provider, closure: null, isProviderWithClosure: false);
+    public static Coroutine<CoroutineAwaitable> Launch(Func<Coroutine> provider) => LaunchInternal<object?>(provider, closure: null, isProviderWithClosure: false);
 
-    public static Coroutine<Coroutine> Launch<TClosure>(Func<TClosure, Coroutine> provider, TClosure closure) => LaunchInternal(provider, closure, isProviderWithClosure: true);
+    public static Coroutine<CoroutineAwaitable> Launch<TClosure>(Func<TClosure, Coroutine> provider, TClosure closure) => LaunchInternal(provider, closure, isProviderWithClosure: true);
 
-    public static Coroutine<Coroutine<TResult>> Launch<TResult>(Func<Coroutine<TResult>> provider) => LaunchInternal<object?, TResult>(provider, closure: null, isProviderWithClosure: false);
+    public static Coroutine<CoroutineAwaitable<TResult>> Launch<TResult>(Func<Coroutine<TResult>> provider) => LaunchInternal<object?, TResult>(provider, closure: null, isProviderWithClosure: false);
 
-    public static Coroutine<Coroutine<TResult>> Launch<TClosure, TResult>(Func<TClosure, Coroutine<TResult>> provider, TClosure closure) => LaunchInternal<TClosure, TResult>(provider, closure, isProviderWithClosure: true);
+    public static Coroutine<CoroutineAwaitable<TResult>> Launch<TClosure, TResult>(Func<TClosure, Coroutine<TResult>> provider, TClosure closure) => LaunchInternal<TClosure, TResult>(provider, closure, isProviderWithClosure: true);
 
     partial class Arguments
     {
@@ -52,7 +53,7 @@ partial class Yielders
             private readonly Delegate _provider;
             private readonly TClosure _closure;
             private readonly bool _isProviderWithClosure;
-            private readonly ManualResetCoroutineCompletionSource<Coroutine> _completionSource;
+            private readonly ManualResetCoroutineCompletionSource<CoroutineAwaitable> _completionSource;
 
             public readonly Delegate Provider => _provider;
             public readonly TClosure Closure => _closure;
@@ -61,7 +62,7 @@ partial class Yielders
                 Delegate provider,
                 TClosure closure,
                 bool isProviderWithClosure,
-                ManualResetCoroutineCompletionSource<Coroutine> completionSource)
+                ManualResetCoroutineCompletionSource<CoroutineAwaitable> completionSource)
             {
                 _provider = provider;
                 _closure = closure;
@@ -96,7 +97,7 @@ partial class Yielders
                     }
                 });
                 coroutine.MarkCoroutineAsHandled();
-                _completionSource.SetResult(coroutine);
+                _completionSource.SetResult(new(in coroutine));
             }
         }
 
@@ -105,7 +106,7 @@ partial class Yielders
             private readonly Delegate _provider;
             private readonly TClosure _closure;
             private readonly bool _isProviderWithClosure;
-            private readonly ManualResetCoroutineCompletionSource<Coroutine<TResult>> _completionSource;
+            private readonly ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>> _completionSource;
 
             public readonly Delegate Provider => _provider;
             public readonly TClosure Closure => _closure;
@@ -114,7 +115,7 @@ partial class Yielders
                 Delegate provider,
                 TClosure closure,
                 bool isProviderWithClosure,
-                ManualResetCoroutineCompletionSource<Coroutine<TResult>> completionSource)
+                ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>> completionSource)
             {
                 _provider = provider;
                 _closure = closure;
@@ -149,7 +150,7 @@ partial class Yielders
                     }
                 });
                 coroutine.MarkCoroutineAsHandled();
-                _completionSource.SetResult(coroutine);
+                _completionSource.SetResult(new(in coroutine));
             }
         }
     }

@@ -288,6 +288,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
         }
 
         exit:
+        _coroutineHolder.Coroutine.MarkCoroutineAsHandled();
         return _coroutineHolder.Coroutine;
     }
 

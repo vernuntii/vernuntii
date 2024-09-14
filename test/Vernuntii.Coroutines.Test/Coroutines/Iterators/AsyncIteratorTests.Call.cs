@@ -91,7 +91,8 @@ partial class AsyncIteratorTests
             public async Task GetResultAsync_Awaits()
             {
                 var iterator = ConstantAfterDelay().GetAsyncIterator();
-                var result = await iterator.GetResultAsync();
+                var asyncResult = iterator.GetResultAsync();
+                var result = await asyncResult;
                 result.Should().Be(ExpectedResult);
             }
         }
