@@ -66,14 +66,14 @@ internal static class CoroutineMethodBuilderCore
         }
     }
 
-    internal static Coroutine MakeChildCoroutine(ref Coroutine nonChildCoroutine, ref CoroutineContext contextToBequest)
+    internal static Coroutine MakeChildCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter, ref CoroutineContext contextToBequest)
+        where TCoroutineAwaiter : struct, ICriticalNotifyCompletion, ICoroutineAwaiter
     {
         Debug.Assert(contextToBequest.BequesterOrigin == CoroutineContextBequesterOrigin.ChildCoroutine);
-        var coroutineAwaiter = nonChildCoroutine.ConfigureAwait(false).GetAwaiter();
-        var stateMachineBox = CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>>.RentFromCache();
-        var coroutineBuilder = new CoroutineAwaiterMethodBuilder(in coroutineAwaiter, stateMachineBox);
-        var stateMachine = new CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder>(coroutineBuilder) {
-            State = -1
+        var stateMachineBox = CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>>>.RentFromCache();
+        var coroutineBuilder = new CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>(in coroutineAwaiter, stateMachineBox);
+        var stateMachine = new CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>>(coroutineBuilder) {
+            _state = -1
         };
         stateMachineBox.StateMachine = stateMachine;
 
@@ -87,14 +87,14 @@ internal static class CoroutineMethodBuilderCore
         return new Coroutine(new ValueTask(stateMachineBox, stateMachineBox.Version));
     }
 
-    internal static Coroutine<T> MakeChildCoroutine<T>(ref Coroutine<T> nonChildCoroutine, ref CoroutineContext contextToBequest)
+    internal static Coroutine<TResult> MakeChildCoroutine<TCoroutineAwaiter, TResult>(ref TCoroutineAwaiter coroutineAwaiter, ref CoroutineContext contextToBequest)
+        where TCoroutineAwaiter : struct, ICriticalNotifyCompletion, ICoroutineAwaiter<TResult>
     {
         Debug.Assert(contextToBequest.BequesterOrigin == CoroutineContextBequesterOrigin.ChildCoroutine);
-        var coroutineAwaiter = nonChildCoroutine.ConfigureAwait(false).GetAwaiter();
-        var stateMachineBox = CoroutineMethodBuilder<T>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<T>>>.RentFromCache();
-        var coroutineBuilder = new CoroutineAwaiterMethodBuilder<T>(in coroutineAwaiter, stateMachineBox);
-        var stateMachine = new CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<T>>(coroutineBuilder) {
-            State = -1
+        var stateMachineBox = CoroutineMethodBuilder<TResult>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>>>.RentFromCache();
+        var coroutineBuilder = new CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>(in coroutineAwaiter, stateMachineBox);
+        var stateMachine = new CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>>(coroutineBuilder) {
+            _state = -1
         };
         stateMachineBox.StateMachine = stateMachine;
 
@@ -105,6 +105,6 @@ internal static class CoroutineMethodBuilderCore
 
         contextToBequest.SetResultStateMachine(stateMachineBox);
         stateMachineBox.MoveNext();
-        return new Coroutine<T>(new ValueTask<T>(stateMachineBox, stateMachineBox.Version));
+        return new Coroutine<TResult>(new ValueTask<TResult>(stateMachineBox, stateMachineBox.Version));
     }
 }

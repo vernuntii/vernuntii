@@ -10,7 +10,7 @@ internal struct AsyncIteratorContextServiceOperation
     internal AsyncIteratorContextServiceOperationState State { get; private set; }
     internal ICallableArgument? Argument { get; private set; }
     internal Key ArgumentKey { get; private set; }
-    internal IYieldReturnCompletionSource? ArgumentCompletionSource { get; private set; }
+    internal IYieldCompletionSource? ArgumentCompletionSource { get; private set; }
     internal ValueTask AwaiterCompletionNotifier { get; private set; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -21,7 +21,7 @@ internal struct AsyncIteratorContextServiceOperation
         }
     }
 
-    internal void SupplyArgument(Key argumentKey, ICallableArgument argument, IYieldReturnCompletionSource argumentCompletionSource)
+    internal void SupplyArgument(Key argumentKey, ICallableArgument argument, IYieldCompletionSource argumentCompletionSource)
     {
         ThrowIfNotRequiringAwaiterCompletionNotifier(in this);
         State = AsyncIteratorContextServiceOperationState.ArgumentSupplied | (State & AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired);

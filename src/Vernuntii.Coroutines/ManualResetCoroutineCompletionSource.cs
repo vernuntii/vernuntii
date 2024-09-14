@@ -7,7 +7,7 @@ namespace Vernuntii.Coroutines;
 
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-internal class ManualResetCoroutineCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, IValueTaskCompletionSource<TResult>, IYieldReturnCompletionSource
+internal class ManualResetCoroutineCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, IValueTaskCompletionSource<TResult>, IYieldCompletionSource
 {
     /// <summary>Per-core cache of boxes, with one box per core.</summary>
     /// <remarks>Each element is padded to expected cache-line size so as to minimize false sharing.</remarks>
@@ -15,6 +15,7 @@ internal class ManualResetCoroutineCompletionSource<TResult> : IValueTaskSource<
 
     /// <summary>Thread-local cache of boxes. This currently only ever stores one.</summary>
     [ThreadStatic]
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "thread-static")]
     private static ManualResetCoroutineCompletionSource<TResult>? t_tlsCache;
 
     /// <summary>Gets the slot in <see cref="s_perCoreCache"/> for the current core.</summary>
@@ -105,7 +106,7 @@ internal class ManualResetCoroutineCompletionSource<TResult> : IValueTaskSource<
     /// <param name="result">The result.</param>
     public void SetResult(TResult result) => _valueTaskSource.SetResult(result);
 
-    void IYieldReturnCompletionSource.SetResult<TCoroutineResult>(TCoroutineResult result)
+    void IYieldCompletionSource.SetResult<TCoroutineResult>(TCoroutineResult result)
     {
         if (result is null) {
             SetResult(default!);

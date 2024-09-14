@@ -49,14 +49,14 @@ internal static class CoroutineContextServiceMapExtensions
         {
             for (int i = 0, l = from.Size; i < l; i++) {
                 var meta = from._meta[i];
-             
+
                 if (meta is 0) {
                     continue;
                 }
 
                 if (!to.Emplace(from._entries[i].Key, from._entries[i].Value)) {
-                    var toEntry = AbstractRobinhoodMap<Key, object>.Find(to._entries, to.Hash(from._entries[i].Key));
-                    var fromEntry = AbstractRobinhoodMap<Key, object>.Find(from._entries, from.Hash(from._entries[i].Key));
+                    var toEntry = AbstractRobinHoodHashMap<Key, object>.Find(to._entries, to.Hash(from._entries[i].Key));
+                    var fromEntry = AbstractRobinHoodHashMap<Key, object>.Find(from._entries, from.Hash(from._entries[i].Key));
                     throw new InvalidOperationException($"""
 When attempting to merge a key-value pair into the target dictionary, both key hashes matched but their values did not pass the equality check due to hash collision or faulty equality check:
 To Be Replaced = {toEntry}

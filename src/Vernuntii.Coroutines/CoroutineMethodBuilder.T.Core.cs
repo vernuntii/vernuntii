@@ -87,7 +87,7 @@ partial struct CoroutineMethodBuilder<TResult>
         Debug.Assert(awaiter is not IRelativeCoroutine);
         ref var context = ref stateMachineBox._coroutineContext;
 
-        if (context.IsCoroutineAsyncIteratorSupplier) {
+        if (context._isCoroutineAsyncIteratorSupplier) {
             var asyncIteratorContextService = context.GetAsyncIteratorContextService();
             asyncIteratorContextService.CurrentOperation.SupplyAwaiterCompletionNotifier(ref awaiter);
         } else {
@@ -108,7 +108,7 @@ partial struct CoroutineMethodBuilder<TResult>
         ref var context = ref stateMachineBox._coroutineContext;
         CoroutineMethodBuilderCore.ActOnAwaiterIfCoroutine(ref awaiter, ref context);
 
-        if (context.IsCoroutineAsyncIteratorSupplier) {
+        if (context._isCoroutineAsyncIteratorSupplier) {
             var asyncIteratorContextService = context.GetAsyncIteratorContextService();
             asyncIteratorContextService.CurrentOperation.SupplyAwaiterCriticalCompletionNotifier(ref awaiter);
         } else {

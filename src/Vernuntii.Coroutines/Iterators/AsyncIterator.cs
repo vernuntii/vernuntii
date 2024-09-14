@@ -13,6 +13,7 @@ public static class AsyncIterator
 
     public static IAsyncIterator<TResult> Create<TResult>(Func<Coroutine<TResult>> provider) => new AsyncIteratorImpl<TResult>(provider);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IAsyncIterator<TResult> Create<TResult>(Coroutine<TResult> coroutine) => new AsyncIteratorImpl<TResult>(coroutine);
 }
 
@@ -22,7 +23,7 @@ partial class AsyncIteratorImpl<TReturnResult>
 
     ValueTask<bool> IAsyncIterator.MoveNextAsync() => MoveNextAsync();
 
-    void IAsyncIterator.YieldReturn<TYieldResult>(TYieldResult result) => YieldReturn(result);
+    void IAsyncIterator.Yield<TYieldResult>(TYieldResult result) => YieldReturn(result);
 
     void IAsyncIterator.Return() => Return(default!);
 

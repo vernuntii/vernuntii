@@ -22,6 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -41,7 +42,9 @@ delegate uint ReadonlyReferenceGetHashCodeDelegate<T>([DisallowNull] in T obj);
 /// - Keeps track of the currentProbeCount which makes sure we can back out early eventhough the maxprobcount exceeds the cpc
 /// - fibonacci hashing
 /// </summary>
-public abstract class AbstractRobinhoodMap<TKey, TValue> where TKey : notnull
+[Browsable(false)]
+[EditorBrowsable(EditorBrowsableState.Never)]
+public abstract class AbstractRobinHoodHashMap<TKey, TValue> where TKey : notnull
 {
     public const double DefaultLoadFactor = 0.5;
 
@@ -79,8 +82,8 @@ public abstract class AbstractRobinhoodMap<TKey, TValue> where TKey : notnull
     /// </value>
     public IEnumerable<KeyValuePair<TKey, TValue>> Entries {
         get {
-            //iterate backwards so we can remove the current item
-            for (int i = _meta.Length - 1; i >= 0; --i) {
+            // Iterate backwards so we can remove the current item
+            for (var i = _meta.Length - 1; i >= 0; --i) {
                 var meta = _meta[i];
                 if (meta is not 0) {
                     yield return new KeyValuePair<TKey, TValue>(_entries[i].Key, _entries[i].Value);
@@ -97,8 +100,8 @@ public abstract class AbstractRobinhoodMap<TKey, TValue> where TKey : notnull
     /// </value>
     public IEnumerable<TKey> Keys {
         get {
-            //iterate backwards so we can remove the current item
-            for (int i = _meta.Length - 1; i >= 0; --i) {
+            // Iterate backwards so we can remove the current item
+            for (var i = _meta.Length - 1; i >= 0; --i) {
                 var meta = _meta[i];
                 if (meta > 0) {
                     yield return _entries[i].Key;
@@ -115,7 +118,7 @@ public abstract class AbstractRobinhoodMap<TKey, TValue> where TKey : notnull
     /// </value>
     public IEnumerable<TValue> Values {
         get {
-            for (int i = _meta.Length - 1; i >= 0; --i) {
+            for (var i = _meta.Length - 1; i >= 0; --i) {
                 var meta = _meta[i];
                 if (meta is not 0) {
                     yield return _entries[i].Value;
@@ -141,8 +144,8 @@ public abstract class AbstractRobinhoodMap<TKey, TValue> where TKey : notnull
     /// <param name="length">The length of the hashmap. Will always take the closest power of two</param>
     /// <param name="loadFactor">The loadfactor determines when the hashmap will resize(default is 0.5d) i.e size 32 loadfactor 0.5 hashmap will resize at 16</param>
     /// <param name="keyEqualityComparer">Used to compare keys to resolve hashcollisions</param>
-    internal AbstractRobinhoodMap(
-        uint length, 
+    internal AbstractRobinHoodHashMap(
+        uint length,
         double loadFactor,
         ReadonlyReferenceEqualsDelegate<TKey> keyEqualityComparer,
         ReadonlyReferenceGetHashCodeDelegate<TKey> keyHashCodeProvider)
@@ -260,7 +263,7 @@ public abstract class AbstractRobinhoodMap<TKey, TValue> where TKey : notnull
     /// <param name="value">The value.</param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Get(in TKey key, out TValue value)
+    public bool Get(in TKey key, [MaybeNullWhen(false)] out TValue value)
     {
         var index = Hash(in key);
         var maxDistance = index + _maxProbeSequenceLength;
@@ -440,7 +443,7 @@ public abstract class AbstractRobinhoodMap<TKey, TValue> where TKey : notnull
     /// Copies entries from one map to another
     /// </summary>
     /// <param name="denseMap">The map.</param>
-    public void CopyFrom(AbstractRobinhoodMap<TKey, TValue> denseMap)
+    public void CopyFrom(AbstractRobinHoodHashMap<TKey, TValue> denseMap)
     {
         for (var i = 0; i < denseMap._entries.Length; ++i) {
             var meta = denseMap._meta[i];
@@ -535,7 +538,7 @@ public abstract class AbstractRobinhoodMap<TKey, TValue> where TKey : notnull
         _entries = new Entry[size];
         _meta = new byte[size];
 
-        for (uint i = 0; i < oldMeta.Length; ++i) {
+        for (var i = 0u; i < oldMeta.Length; ++i) {
             if (oldMeta[i] == 0) {
                 continue;
             }
@@ -562,6 +565,6 @@ public abstract class AbstractRobinhoodMap<TKey, TValue> where TKey : notnull
 
     private static class Exceptions
     {
-        internal static KeyNotFoundException KeyNotFound<TKey>(TKey key) => new($"Unable to find the entry for key {key} (Hash Code = {key?.GetHashCode()})");
+        internal static KeyNotFoundException KeyNotFound(TKey key) => new($"Unable to find the entry for key {key} (Hash Code = {key?.GetHashCode()})");
     }
 }

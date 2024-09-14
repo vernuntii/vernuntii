@@ -156,7 +156,7 @@ partial class AsyncIteratorTests
                 const int expectedYieldResult = ExpectedResult + 1;
                 var iterator = YieldConstant().GetAsyncIterator();
                 _ = await iterator.MoveNextAsync().ConfigureAwait(false);
-                iterator.YieldReturn(expectedYieldResult);
+                iterator.Yield(expectedYieldResult);
                 var asyncResult = iterator.GetResultAsync();
                 var result = await asyncResult;
                 result.Should().Be(expectedYieldResult);

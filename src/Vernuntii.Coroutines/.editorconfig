@@ -255,3 +255,6 @@ end_of_line = lf
 end_of_line = crlf
 
 # Add here new options
+
+[*.cs]
+dotnet_public_api_analyzer.require_api_files = true

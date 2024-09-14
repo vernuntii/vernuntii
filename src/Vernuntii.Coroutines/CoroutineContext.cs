@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
@@ -43,10 +44,15 @@ public struct CoroutineContext
 
     internal ICoroutineResultStateMachineBox ResultStateMachine => _resultStateMachine ??= CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox.s_synchronousSuccessSentinel;
 
+    [Browsable(false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public CoroutineContextServiceMap KeyedServices => _keyedServices ??= s_emptyKeyedServices;
+
+    [Browsable(false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public CoroutineContextServiceMap KeyedServicesToBequest => _keyedServicesToBequest ??= s_emptyKeyedServices;
+
     public readonly CoroutineContextBequesterOrigin BequesterOrigin => _bequesterOrigin;
-    public readonly bool IsCoroutineAsyncIteratorSupplier => _isCoroutineAsyncIteratorSupplier;
 
     internal CoroutineScope? Scope {
         get {
@@ -82,7 +88,7 @@ public struct CoroutineContext
     internal void OnCoroutineStarted()
     {
 #if DEBUG
-        if (Scope is {} scope) {
+        if (Scope is { } scope) {
             _identifier = scope.OnCoroutineStarted();
         }
 #endif

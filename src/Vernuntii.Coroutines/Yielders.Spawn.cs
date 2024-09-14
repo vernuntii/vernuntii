@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Vernuntii.Coroutines.CompilerServices;
 using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
@@ -77,6 +78,11 @@ partial class Yielders
                 } else {
                     coroutine = Unsafe.As<Func<Coroutine>>(Provider)();
                 }
+                var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
+                if (coroutineAwaiter.IsCompleted) {
+                    _completionSource.SetResult(coroutine);
+                    return;
+                }
 
                 ref var contextToBequest = ref _completionSource._coroutineContext;
                 contextToBequest.TreatAsNewChild();
@@ -84,7 +90,7 @@ partial class Yielders
 
                 Coroutine childCoroutine;
                 if (coroutine._coroutineAction != CoroutineAction.Child) {
-                    childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref contextToBequest);
+                    childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutineAwaiter, ref contextToBequest);
                 } else {
                     childCoroutine = coroutine;
                 }
@@ -129,6 +135,11 @@ partial class Yielders
                 } else {
                     coroutine = Unsafe.As<Func<Coroutine<TResult>>>(Provider)();
                 }
+                var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
+                if (coroutineAwaiter.IsCompleted) {
+                    _completionSource.SetResult(coroutine);
+                    return;
+                }
 
                 ref var contextToBequest = ref _completionSource._coroutineContext;
                 contextToBequest.TreatAsNewChild();
@@ -136,7 +147,7 @@ partial class Yielders
 
                 Coroutine<TResult> childCoroutine;
                 if (coroutine._coroutineAction != CoroutineAction.Child) {
-                    childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine(ref coroutine, ref contextToBequest);
+                    childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine<ConfiguredCoroutineAwaitable<TResult>.ConfiguredCoroutineAwaiter, TResult>(ref coroutineAwaiter, ref contextToBequest);
                 } else {
                     childCoroutine = coroutine;
                 }

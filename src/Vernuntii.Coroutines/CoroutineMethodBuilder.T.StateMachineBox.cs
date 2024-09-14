@@ -141,7 +141,7 @@ partial struct CoroutineMethodBuilder<TResult>
                 // could % by its length, but we can do so instead by Environment.ProcessorCount, which will be a const
                 // in tier 1, allowing better code gen, and then further use uints for even better code gen.
                 Debug.Assert(s_perCoreCache.Length == Environment.ProcessorCount, $"{s_perCoreCache.Length} != {Environment.ProcessorCount}");
-                int i = (int)((uint)Thread.GetCurrentProcessorId() % (uint)Environment.ProcessorCount);
+                var i = (int)((uint)Thread.GetCurrentProcessorId() % (uint)Environment.ProcessorCount);
 
                 // We want an array of StateMachineBox<> objects, each consuming its own cache line so that
                 // elements don't cause false sharing with each other.  But we can't use StructLayout.Explicit

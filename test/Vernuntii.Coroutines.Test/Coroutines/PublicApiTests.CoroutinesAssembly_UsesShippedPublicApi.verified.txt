@@ -1,0 +1,377 @@
+﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Vernuntii.Coroutines.Benchmark")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Vernuntii.Coroutines.Test")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Vernuntii.Reactive.Extensions.Coroutines")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v7.0", FrameworkDisplayName=".NET 7.0")]
+namespace Vernuntii.Collections
+{
+    [System.ComponentModel.Browsable(false)]
+    public abstract class AbstractRobinHoodHashMap<TKey, TValue>
+        where TKey :  notnull
+    {
+        public const double DefaultLoadFactor = 0.5D;
+        public int Count { get; }
+        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<TKey, TValue>> Entries { get; }
+        public TValue this[TKey& key] { get; set; }
+        public System.Collections.Generic.IEnumerable<TKey> Keys { get; }
+        public int Size { get; }
+        public System.Collections.Generic.IEnumerable<TValue> Values { get; }
+        public void Clear() { }
+        public bool Contains(in TKey key) { }
+        public void CopyFrom(Vernuntii.Collections.AbstractRobinHoodHashMap<TKey, TValue> denseMap) { }
+        public bool Emplace(in TKey key, TValue value) { }
+        public bool Get(in TKey key, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue value) { }
+        public TValue& GetOrUpdate(in TKey key) { }
+        public bool Remove(TKey key) { }
+        public bool Update(in TKey key, TValue value) { }
+        [System.Diagnostics.DebuggerDisplay("{Key} {Value}")]
+        public struct Entry
+        {
+            public TKey Key;
+            public TValue Value;
+            public Entry(TKey key, TValue value) { }
+            public override string ToString() { }
+        }
+    }
+}
+namespace Vernuntii.Coroutines
+{
+    public abstract class AbstractCoroutineArgumentReceiverAcceptor : Vernuntii.Coroutines.ISiblingCoroutine
+    {
+        protected AbstractCoroutineArgumentReceiverAcceptor() { }
+        protected abstract void AcceptCoroutineArgumentReceiver(ref Vernuntii.Coroutines.CoroutineArgumentReceiver argumentReceiver);
+    }
+    [System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(Vernuntii.Coroutines.CoroutineMethodBuilder))]
+    public struct Coroutine : System.IEquatable<Vernuntii.Coroutines.Coroutine>
+    {
+        public Coroutine(System.Threading.Tasks.Task task) { }
+        public Coroutine(in System.Threading.Tasks.ValueTask task) { }
+        public Coroutine(System.Threading.Tasks.Sources.IValueTaskSource source, short token) { }
+        public Coroutine(System.Threading.Tasks.Task task, Vernuntii.Coroutines.ISiblingCoroutine siblingCoroutine) { }
+        public Coroutine(in System.Threading.Tasks.ValueTask task, Vernuntii.Coroutines.ISiblingCoroutine siblingCoroutine) { }
+        public Coroutine(System.Threading.Tasks.Sources.IValueTaskSource source, short token, Vernuntii.Coroutines.ISiblingCoroutine siblingCoroutine) { }
+        public static Vernuntii.Coroutines.Coroutine CompletedCoroutine { get; }
+        public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable ConfigureAwait(bool continueOnCapturedContext) { }
+        public bool Equals(Vernuntii.Coroutines.Coroutine other) { }
+        public override bool Equals([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? obj) { }
+        public Vernuntii.Coroutines.Iterators.IAsyncIterator GetAsyncIterator() { }
+        public Vernuntii.Coroutines.CompilerServices.CoroutineAwaiter GetAwaiter() { }
+        public override int GetHashCode() { }
+        public static Vernuntii.Coroutines.Coroutine FromCanceled(System.Threading.CancellationToken cancellationToken) { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> FromCanceled<TResult>(System.Threading.CancellationToken cancellationToken) { }
+        public static Vernuntii.Coroutines.Coroutine FromException(System.Exception exception) { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> FromException<TResult>(System.Exception exception) { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> FromResult<TResult>(TResult result) { }
+        public static Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable Start(System.Func<Vernuntii.Coroutines.Coroutine> provider, Vernuntii.Coroutines.CoroutineContext context = default) { }
+        public static Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable<TResult> Start<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider, Vernuntii.Coroutines.CoroutineContext context = default) { }
+        public static Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable Start<TClosure>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure, Vernuntii.Coroutines.CoroutineContext context = default) { }
+        public static Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable<TResult> Start<TClosure, TResult>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure, Vernuntii.Coroutines.CoroutineContext context = default) { }
+        public static Vernuntii.Coroutines.Coroutine op_Implicit(System.Threading.Tasks.Task task) { }
+        public static Vernuntii.Coroutines.Coroutine op_Implicit(System.Threading.Tasks.ValueTask task) { }
+        public static bool operator !=(Vernuntii.Coroutines.Coroutine left, Vernuntii.Coroutines.Coroutine right) { }
+        public static bool operator ==(Vernuntii.Coroutines.Coroutine left, Vernuntii.Coroutines.Coroutine right) { }
+    }
+    [System.Obsolete("Types with embedded references are not supported in this version of your compiler" +
+        ".", true)]
+    [System.Runtime.CompilerServices.CompilerFeatureRequired("RefStructs")]
+    [System.Runtime.CompilerServices.IsByRefLike]
+    public readonly struct CoroutineArgumentReceiver { }
+    public delegate void CoroutineArgumentReceiverDelegate(ref Vernuntii.Coroutines.CoroutineArgumentReceiver argumentReceiver);
+    public struct CoroutineContext
+    {
+        public Vernuntii.Coroutines.CoroutineContextBequesterOrigin BequesterOrigin { get; }
+        [System.ComponentModel.Browsable(false)]
+        public Vernuntii.Coroutines.CoroutineContextServiceMap KeyedServices { get; }
+        [System.ComponentModel.Browsable(false)]
+        public Vernuntii.Coroutines.CoroutineContextServiceMap KeyedServicesToBequest { get; }
+        public void OnCoroutineCompleted() { }
+    }
+    [System.Flags]
+    public enum CoroutineContextBequesterOrigin
+    {
+        RelativeCoroutine = 0,
+        ChildCoroutine = 1,
+        SiblingCoroutine = 2,
+        ContextBequester = 4,
+    }
+    public class CoroutineContextServiceMap : Vernuntii.Collections.AbstractRobinHoodHashMap<Vernuntii.Coroutines.Key, object>
+    {
+        public CoroutineContextServiceMap() { }
+        public CoroutineContextServiceMap(uint length) { }
+    }
+    public struct CoroutineMethodBuilder
+    {
+        public Vernuntii.Coroutines.Coroutine Task { get; }
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion
+            where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion
+            where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public void SetException(System.Exception e) { }
+        public void SetResult() { }
+        public void SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine) { }
+        public void Start<TStateMachine>(ref TStateMachine stateMachine)
+            where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public static Vernuntii.Coroutines.CoroutineMethodBuilder Create() { }
+    }
+    public struct CoroutineMethodBuilder<TResult>
+    {
+        public Vernuntii.Coroutines.Coroutine<TResult> Task { get; }
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion
+            where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion
+            where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public void SetException(System.Exception e) { }
+        public void SetResult(TResult result) { }
+        public void SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine) { }
+        public void Start<TStateMachine>(ref TStateMachine stateMachine)
+            where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine { }
+        public static Vernuntii.Coroutines.CoroutineMethodBuilder<TResult> Create() { }
+    }
+    public sealed class CoroutineScope : System.IDisposable
+    {
+        public CoroutineScope() { }
+        public void Dispose() { }
+        public void OnCoroutineCompleted() { }
+        public int OnCoroutineStarted() { }
+    }
+    public class CoroutineScopeBuilder
+    {
+        public CoroutineScopeBuilder() { }
+        public void AddKeyedService<TServiceKey, TService>(in Vernuntii.Coroutines.Key serviceKey, TService service)
+            where TService :  class { }
+        public Vernuntii.Coroutines.CoroutineScope BuildCoroutineScope() { }
+    }
+    [System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(Vernuntii.Coroutines.CoroutineMethodBuilder<TResult>))]
+    public struct Coroutine<TResult> : System.IEquatable<Vernuntii.Coroutines.Coroutine<TResult>>
+    {
+        public Coroutine(System.Threading.Tasks.Task<TResult> task) { }
+        public Coroutine(TResult result) { }
+        public Coroutine(in System.Threading.Tasks.ValueTask<TResult> task) { }
+        public Coroutine(System.Threading.Tasks.Sources.IValueTaskSource<TResult> source, short token) { }
+        public Coroutine(System.Threading.Tasks.Task<TResult> task, Vernuntii.Coroutines.ISiblingCoroutine siblingCoroutine) { }
+        public Coroutine(TResult result, Vernuntii.Coroutines.ISiblingCoroutine siblingCoroutine) { }
+        public Coroutine(in System.Threading.Tasks.ValueTask<TResult> task, Vernuntii.Coroutines.ISiblingCoroutine siblingCoroutine) { }
+        public Coroutine(System.Threading.Tasks.Sources.IValueTaskSource<TResult> source, short token, Vernuntii.Coroutines.ISiblingCoroutine siblingCoroutine) { }
+        public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) { }
+        public bool Equals(Vernuntii.Coroutines.Coroutine<TResult> other) { }
+        public override bool Equals([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? obj) { }
+        public Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult> GetAsyncIterator() { }
+        public Vernuntii.Coroutines.CompilerServices.CoroutineAwaiter<TResult> GetAwaiter() { }
+        public override int GetHashCode() { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> op_Implicit(System.Threading.Tasks.Task<TResult> task) { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> op_Implicit(System.Threading.Tasks.ValueTask<TResult> task) { }
+        public static bool operator !=(Vernuntii.Coroutines.Coroutine<TResult> left, Vernuntii.Coroutines.Coroutine<TResult> right) { }
+        public static bool operator ==(Vernuntii.Coroutines.Coroutine<TResult> left, Vernuntii.Coroutines.Coroutine<TResult> right) { }
+    }
+    public interface ICallableArgument
+    {
+        void Callback(in Vernuntii.Coroutines.CoroutineContext context);
+    }
+    public interface ISiblingCoroutine { }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public struct Key : System.IEquatable<Vernuntii.Coroutines.Key>
+    {
+        public Key(System.Span<byte> scope, ushort argument) { }
+        public Key(System.Span<byte> service, bool inheritable) { }
+        public Key(string service, bool inheritable = false) { }
+        public Key(byte[] scope, ushort argument, bool inheritable = false) { }
+        public byte SchemaVersion { get; }
+        public bool Equals(Vernuntii.Coroutines.Key other) { }
+        public override bool Equals([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? obj) { }
+        public override int GetHashCode() { }
+        public override string ToString() { }
+        public static bool operator !=(Vernuntii.Coroutines.Key left, Vernuntii.Coroutines.Key right) { }
+        public static bool operator ==(Vernuntii.Coroutines.Key left, Vernuntii.Coroutines.Key right) { }
+    }
+    public class KeyEqualityComparer : System.Collections.Generic.EqualityComparer<Vernuntii.Coroutines.Key>
+    {
+        public static readonly Vernuntii.Coroutines.KeyEqualityComparer Default;
+        public KeyEqualityComparer() { }
+        public override bool Equals(Vernuntii.Coroutines.Key x, Vernuntii.Coroutines.Key y) { }
+        public override int GetHashCode([System.Diagnostics.CodeAnalysis.DisallowNull] Vernuntii.Coroutines.Key obj) { }
+        public static bool Equals(in Vernuntii.Coroutines.Key x, in Vernuntii.Coroutines.Key y) { }
+        public static uint GetHashCode([System.Diagnostics.CodeAnalysis.DisallowNull] in Vernuntii.Coroutines.Key obj) { }
+    }
+    public static class TaskExtensions
+    {
+        public static Vernuntii.Coroutines.Coroutine AsCoroutine(this System.Threading.Tasks.Task task) { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> AsCoroutine<TResult>(this System.Threading.Tasks.Task<TResult> task) { }
+    }
+    public static class ValueTaskExtensions
+    {
+        public static Vernuntii.Coroutines.Coroutine AsCoroutine(in this System.Threading.Tasks.ValueTask task) { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> AsCoroutine<TResult>(in this System.Threading.Tasks.ValueTask<TResult> task) { }
+    }
+    public sealed class Yielders
+    {
+        public static readonly Vernuntii.Coroutines.Yielders @__co;
+        public Yielders() { }
+        public static Vernuntii.Coroutines.Coroutine Call(System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> Call<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
+        public static Vernuntii.Coroutines.Coroutine Call<TClosure>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> Call<TClosure, TResult>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine> Launch(System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine<TResult>> Launch<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine> Launch<TClosure>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine<TResult>> Launch<TClosure, TResult>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine> Spawn(System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine<TResult>> Spawn<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine> Spawn<TClosure>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.Coroutine<TResult>> Spawn<TClosure, TResult>(System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine Throw(System.Exception exception) { }
+        public static Vernuntii.Coroutines.Coroutine WithContext(Vernuntii.Coroutines.CoroutineContext additiveContext, System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> WithContext<TResult>(Vernuntii.Coroutines.CoroutineContext additiveContext, System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
+        public static Vernuntii.Coroutines.Coroutine WithContext<TClosure>(Vernuntii.Coroutines.CoroutineContext additiveContext, System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine<TResult> WithContext<TClosure, TResult>(Vernuntii.Coroutines.CoroutineContext additiveContext, System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure) { }
+        public static Vernuntii.Coroutines.Coroutine Yield() { }
+        public static Vernuntii.Coroutines.Coroutine Yield<T>(T value) { }
+        public class Arguments
+        {
+            public static readonly Vernuntii.Coroutines.Key CallKey;
+            public static readonly Vernuntii.Coroutines.Key LaunchKey;
+            public static readonly Vernuntii.Coroutines.Key SpawnKey;
+            public static readonly Vernuntii.Coroutines.Key ThrowKey;
+            public static readonly Vernuntii.Coroutines.Key WithContextKey;
+            public static readonly Vernuntii.Coroutines.Key YieldKey;
+            public static readonly Vernuntii.Coroutines.Key YieldReturnKey;
+            public Arguments() { }
+            public readonly struct CallArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
+            {
+                public TClosure Closure { get; }
+                public System.Delegate Provider { get; }
+            }
+            public readonly struct CallArgument<TClosure, TResult> : Vernuntii.Coroutines.ICallableArgument
+            {
+                public TClosure Closure { get; }
+                public System.Delegate Provider { get; }
+            }
+            public readonly struct LaunchArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
+            {
+                public TClosure Closure { get; }
+                public System.Delegate Provider { get; }
+            }
+            public readonly struct SpawnArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
+            {
+                public TClosure Closure { get; }
+                public System.Delegate Provider { get; }
+            }
+            public readonly struct WithContextArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument { }
+            public readonly struct WithContextArgument<TClosure, TResult> : Vernuntii.Coroutines.ICallableArgument { }
+            public readonly struct YieldArgument<T> : Vernuntii.Coroutines.ICallableArgument
+            {
+                public T Result { get; }
+            }
+        }
+    }
+}
+namespace Vernuntii.Coroutines.CompilerServices
+{
+    public struct ConfiguredCoroutineAwaitable
+    {
+        public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable.ConfiguredCoroutineAwaiter GetAwaiter() { }
+        public struct ConfiguredCoroutineAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion, System.Runtime.CompilerServices.INotifyCompletion
+        {
+            public bool IsCompleted { get; }
+            public void GetResult() { }
+            public void OnCompleted(System.Action continuation) { }
+            public void UnsafeOnCompleted(System.Action continuation) { }
+        }
+    }
+    public struct ConfiguredCoroutineAwaitable<TResult>
+    {
+        public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable<TResult>.ConfiguredCoroutineAwaiter GetAwaiter() { }
+        public struct ConfiguredCoroutineAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion, System.Runtime.CompilerServices.INotifyCompletion
+        {
+            public bool IsCompleted { get; }
+            public TResult GetResult() { }
+            public void OnCompleted(System.Action continuation) { }
+            public void UnsafeOnCompleted(System.Action continuation) { }
+        }
+    }
+    public readonly struct CoroutineAwaitable
+    {
+        public System.Threading.Tasks.Task AsTask() { }
+        public System.Threading.Tasks.ValueTask AsValueTask() { }
+        public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable ConfigureAwait(bool continueOnCapturedContext) { }
+        public Vernuntii.Coroutines.CompilerServices.CoroutineAwaiter GetAwaiter() { }
+    }
+    public readonly struct CoroutineAwaitable<TResult>
+    {
+        public System.Threading.Tasks.Task<TResult> AsTask() { }
+        public System.Threading.Tasks.ValueTask<TResult> AsValueTask() { }
+        public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) { }
+        public Vernuntii.Coroutines.CompilerServices.CoroutineAwaiter<TResult> GetAwaiter() { }
+    }
+    public struct CoroutineAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion, System.Runtime.CompilerServices.INotifyCompletion
+    {
+        public bool IsCompleted { get; }
+        public void GetResult() { }
+        public void OnCompleted(System.Action continuation) { }
+        public void UnsafeOnCompleted(System.Action continuation) { }
+    }
+    public struct CoroutineAwaiter<TResult> : System.Runtime.CompilerServices.ICriticalNotifyCompletion, System.Runtime.CompilerServices.INotifyCompletion
+    {
+        public bool IsCompleted { get; }
+        public TResult GetResult() { }
+        public void OnCompleted(System.Action continuation) { }
+        public void UnsafeOnCompleted(System.Action continuation) { }
+    }
+}
+namespace Vernuntii.Coroutines.Iterators
+{
+    public static class AsyncIterator
+    {
+        public static Vernuntii.Coroutines.Iterators.IAsyncIterator Create(System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
+        public static Vernuntii.Coroutines.Iterators.IAsyncIterator Create(Vernuntii.Coroutines.Coroutine coroutine) { }
+        public static Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult> Create<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
+        public static Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult> Create<TResult>(Vernuntii.Coroutines.Coroutine<TResult> coroutine) { }
+    }
+    [System.Flags]
+    public enum AsyncIteratorContextServiceOperationState
+    {
+        Uninitialized = 0,
+        AwaiterCompletionNotifierRequired = 1,
+        ArgumentSupplied = 2,
+        AwaiterCompletionNotifierSupplied = 4,
+    }
+    public interface IAsyncIterator
+    {
+        object Current { get; }
+        void GetResult();
+        Vernuntii.Coroutines.Coroutine GetResultAsync();
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        void Return();
+        void Throw(System.Exception e);
+        void Yield<TYieldResult>(TYieldResult result);
+    }
+    public interface IAsyncIterator<TResult>
+    {
+        object Current { get; }
+        TResult GetResult();
+        Vernuntii.Coroutines.Coroutine<TResult> GetResultAsync();
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        void Return(TResult result);
+        void Throw(System.Exception e);
+        void Yield<TYieldResult>(TYieldResult result);
+    }
+    public interface IYieldCompletionSource
+    {
+        void SetException(System.Exception e);
+        void SetResult<TResult>(TResult result);
+    }
+    public static class Yielders
+    {
+        public static Vernuntii.Coroutines.Coroutine<T> Exchange<T>(T value) { }
+        public static class Arguments
+        {
+            public static readonly Vernuntii.Coroutines.Key ExchangeKey;
+        }
+    }
+    public static class YieldersExtensions
+    {
+        public static Vernuntii.Coroutines.Coroutine<T> Exchange<T>(this Vernuntii.Coroutines.Yielders _, T value) { }
+    }
+}

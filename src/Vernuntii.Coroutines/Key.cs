@@ -39,7 +39,7 @@ public struct Key : IEquatable<Key>
     public readonly byte SchemaVersion { get; } = CurrentSchemaVersion;
 
     [FieldOffset(5)]
-    internal readonly byte Flags;
+    internal readonly byte _flags;
 
     [FieldOffset(6)]
     private unsafe fixed byte _scope[ScopeLength];
@@ -76,7 +76,7 @@ public struct Key : IEquatable<Key>
         }
 
 
-        Flags = (byte)((isContextService ? KeyFlags.ContextService : KeyFlags.Service) | (inheritable ? KeyFlags.Inheritable : KeyFlags.None));
+        _flags = (byte)((isContextService ? KeyFlags.ContextService : KeyFlags.Service) | (inheritable ? KeyFlags.Inheritable : KeyFlags.None));
 
         fixed (byte* servicePointer = _service) {
             var serviceSpan = new Span<byte>(servicePointer, ServiceLength);
@@ -131,7 +131,7 @@ public struct Key : IEquatable<Key>
 
     public override unsafe string ToString()
     {
-        var isService = (Flags & (byte)(KeyFlags.Service | KeyFlags.ContextService)) != 0;
+        var isService = (_flags & (byte)(KeyFlags.Service | KeyFlags.ContextService)) != 0;
 
         var sb = new StringBuilder();
         sb.Append("Key{v");
