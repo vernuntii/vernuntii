@@ -16,85 +16,25 @@ partial class AsyncIteratorTests
             holder.Coroutine.CoroutineAction.Should().Be(CoroutineAction.Sibling);
         }
 
-        public class ReturnSynchronously
+        public class ReturnSynchronously : AbstractReturnSynchronously<int, int>
         {
-            private const int ExpectedResult = 2;
-
-            private Coroutine<int> Constant() => Call(() => Coroutine.FromResult(2));
-
-            [Fact]
-            public async Task MoveNext_ReturnsFalse()
-            {
-                var iterator = Constant().GetAsyncIterator();
-                var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
-                canMoveNext.Should().BeFalse();
-            }
-
-            [Fact]
-            public async Task GetResult_Returns()
-            {
-                var iterator = Constant().GetAsyncIterator();
-                var result = iterator.GetResult();
-                result.Should().Be(ExpectedResult);
-            }
-
-            [Fact]
-            public async Task GetResultAsync_Awaits()
-            {
-                var iterator = Constant().GetAsyncIterator();
-                var result = await iterator.GetResultAsync().ConfigureAwait(false);
-                result.Should().Be(ExpectedResult);
-            }
-
-            [Fact]
-            public async Task Throw_Fails()
-            {
-                var iterator = AsyncIterator.Create(Constant);
-                iterator
-                    .Invoking(x => x.Throw(new Exception1()))
-                    .Should()
-                    .ThrowExactly<InvalidOperationException>()
-                    .WithMessage("*not started*already finished*not suspended*");
-            }
+            protected override Coroutine<int> Constant() => Call(() => new Coroutine<int>(ExpectedResult));
+            protected override ValueTask<int> Unwrap(int resultWrapper) => new(resultWrapper);
+            protected override ValueTask<Coroutine<int>> Unwrap(Coroutine<int> coroutine) => new(coroutine);
         }
 
-        public class ReturnAfterDelay
+        public class ReturnAfterDelay : AbstractReturnAfterDelay<int, int>
         {
-            private const int ExpectedResult = 2;
-
-            private Coroutine<int> ConstantAfterDelay() => Call(async () => {
+            protected override Coroutine<int> ConstantAfterDelay() => Call(async () => {
                 await Task.Delay(ContinueAfterTimeInMs).ConfigureAwait(false);
                 return ExpectedResult;
             });
 
-            [Fact]
-            public async Task MoveNext_ReturnsFalse()
-            {
-                var iterator = ConstantAfterDelay().GetAsyncIterator();
-                var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
-                canMoveNext.Should().Be(false);
-            }
+            protected override ValueTask<int> Unwrap(int resultWrapper) => new(resultWrapper);
+            protected override ValueTask<Coroutine<int>> Unwrap(Coroutine<int> x) => ValueTask.FromResult(x);
 
             [Fact]
-            public async Task GetResult_Throws()
-            {
-                var iterator = ConstantAfterDelay().GetAsyncIterator();
-
-                var result = iterator
-                    .Invoking(x => x.GetResult())
-                    .Should()
-                    .Throw<InvalidOperationException>()
-                    .WithMessage("*not finished yet*");
-            }
-
-            [Fact]
-            public async Task GetResultAsync_Awaits()
-            {
-                var iterator = ConstantAfterDelay().GetAsyncIterator();
-                var asyncResult = iterator.GetResultAsync();
-                var result = await asyncResult;
-                result.Should().Be(ExpectedResult);
-            }
+            public override Task GetResult_Throws() => base.GetResult_Throws();
         }
     }
 }

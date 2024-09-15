@@ -4,96 +4,24 @@ partial class AsyncIteratorTests
 {
     public class NonRelative
     {
-        public class ReturnSynchronously
-        {
-            private const int ExpectedResult = 2;
-
-            private Coroutine<int> Constant() => Coroutine.FromResult(ExpectedResult);
-
-            [Fact]
-            public async Task MoveNext_ReturnsFalse()
-            {
-                var iterator = AsyncIterator.Create(Constant);
-                var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
-                canMoveNext.Should().BeFalse();
-            }
-
-            [Fact]
-            public async Task GetResult_Returns()
-            {
-                var iterator = AsyncIterator.Create(Constant);
-                var result = iterator.GetResult();
-                result.Should().Be(ExpectedResult);
-            }
-
-            [Fact]
-            public async Task GetResultAsync_Awaits()
-            {
-                var iterator = AsyncIterator.Create(Constant);
-                var result = await iterator.GetResultAsync();
-                result.Should().Be(ExpectedResult);
-            }
-
-            [Fact]
-            public async Task Throw_Fails()
-            {
-                var iterator = AsyncIterator.Create(Constant);
-                iterator
-                    .Invoking(x => x.Throw(new Exception1()))
-                    .Should()
-                    .ThrowExactly<InvalidOperationException>()
-                    .WithMessage("*not started*already finished*not suspended*");
-            }
+        public class ReturnSynchronously : AbstractReturnSynchronously<int, int> {
+            protected override Coroutine<int> Constant() => Coroutine.FromResult(ExpectedResult);
+            protected override ValueTask<int> Unwrap(int resultWrapper) => new(resultWrapper);
+            protected override ValueTask<Coroutine<int>> Unwrap(Coroutine<int> x) => new(x);
         }
 
-        public class ReturnAfterDelay
+        public class ReturnAfterDelay : AbstractReturnAfterDelay<int, int>
         {
-            private const int ExpectedResult = 2;
-
-            private async Coroutine<int> ConstantAfterDelay()
-            {
+            protected override async Coroutine<int> ConstantAfterDelay() {
                 await Task.Delay(ContinueAfterTimeInMs).ConfigureAwait(false);
                 return ExpectedResult;
             }
 
-            [Fact]
-            public async Task MoveNext_ReturnsFalse()
-            {
-                var iterator = ConstantAfterDelay().GetAsyncIterator();
-                var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
-                canMoveNext.Should().Be(false);
-            }
+            protected override ValueTask<int> Unwrap(int resultWrapper) => new(resultWrapper);
+            protected override ValueTask<Coroutine<int>> Unwrap(Coroutine<int> x) => new(x);
 
             [Fact]
-            public async Task GetResult_Throws()
-            {
-                var iterator = ConstantAfterDelay().GetAsyncIterator();
-
-                var result = iterator
-                    .Invoking(x => x.GetResult())
-                    .Should()
-                    .Throw<InvalidOperationException>()
-                    .WithMessage("*not finished yet*");
-            }
-
-            [Fact]
-            public async Task GetResultAsync_Awaits()
-            {
-                var iterator = ConstantAfterDelay().GetAsyncIterator();
-                var result = await iterator.GetResultAsync();
-                result.Should().Be(ExpectedResult);
-            }
-
-            [Fact]
-            public async Task Throw_Fails()
-            {
-                var iterator = AsyncIterator.Create(ConstantAfterDelay);
-                iterator
-                    .Invoking(x => x.Throw(new Exception1()))
-                    .Should()
-                    .ThrowExactly<InvalidOperationException>()
-                    .WithMessage("*not started*already finished*not suspended*");
-            }
+            public override Task GetResult_Throws() => base.GetResult_Throws();
         }
 
         public class YieldReturnSynchronously
@@ -156,7 +84,7 @@ partial class AsyncIteratorTests
                 const int expectedYieldResult = ExpectedResult + 1;
                 var iterator = YieldConstant().GetAsyncIterator();
                 _ = await iterator.MoveNextAsync().ConfigureAwait(false);
-                iterator.Yield(expectedYieldResult);
+                iterator.YieldReturn(expectedYieldResult);
                 var asyncResult = iterator.GetResultAsync();
                 var result = await asyncResult;
                 result.Should().Be(expectedYieldResult);

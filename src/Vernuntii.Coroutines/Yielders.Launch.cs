@@ -96,7 +96,7 @@ partial class Yielders
                         throw; // Must bubble up
                     }
                 });
-                coroutine.MarkCoroutineAsHandled();
+                coroutine.MarkCoroutineAsActedOn();
                 _completionSource.SetResult(new(in coroutine));
             }
         }
@@ -149,7 +149,7 @@ partial class Yielders
                         throw; // Must bubble up
                     }
                 });
-                coroutine.MarkCoroutineAsHandled();
+                coroutine.MarkCoroutineAsActedOn();
                 _completionSource.SetResult(new(in coroutine));
             }
         }

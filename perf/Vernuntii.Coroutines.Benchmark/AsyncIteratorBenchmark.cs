@@ -23,14 +23,14 @@ namespace Vernuntii.Coroutines.Benchmark
             var results = new List<int>();
 
             while (await generator.MoveNextAsync()) {
-                results.Add(((ExchangeArgument<int>)generator.Current).Result);
+                results.Add(((YieldReturnArgument<int>)generator.Current).Result);
             }
 
             static async Coroutine Generator(int runs)
             {
                 var run = runs;
                 while (run-- > 0) {
-                    await Exchange(run);
+                    await YieldReturn(run);
                     await Task.Yield();
                 }
             }

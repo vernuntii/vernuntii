@@ -105,7 +105,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
             throw Exceptions.NotStartedAlreadyFinishedOrNotSuspended();
         }
         
-        throw new InvalidOperationException("Although the iterator is suspended, the coroutine effect which let to the suspension misbehaved fatally by not supplying an argument");
+        throw new InvalidOperationException("Although the iterator is suspended, the coroutine yielder which let to the suspension misbehaved fatally by not supplying an argument");
     }
 
     public async ValueTask<bool> MoveNextAsync()
@@ -288,7 +288,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
         }
 
         exit:
-        _coroutineHolder.Coroutine.MarkCoroutineAsHandled();
+        _coroutineHolder.Coroutine.MarkCoroutineAsActedOn();
         return _coroutineHolder.Coroutine;
     }
 

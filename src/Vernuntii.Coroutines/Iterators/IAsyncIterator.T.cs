@@ -6,7 +6,7 @@ public interface IAsyncIterator<TResult>
 {
     /// <summary>
     /// The value yielded when the underlying coroutine suspends at a compatible suspension point.
-    /// A non-compatible suspension point is defined as awaiting a task-like object that is not a coroutine effect.
+    /// A non-compatible suspension point is defined as awaiting a task-like object that is not a coroutine yielder.
     /// </summary>
     /// <returns></returns>
     object Current { get; }
@@ -18,7 +18,7 @@ public interface IAsyncIterator<TResult>
     /// <returns></returns>
     ValueTask<bool> MoveNextAsync();
 
-    void Yield<TYieldResult>(TYieldResult result);
+    void YieldReturn<TYieldResult>(TYieldResult result);
 
     void Return(TResult result);
 

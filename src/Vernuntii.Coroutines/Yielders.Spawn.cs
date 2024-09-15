@@ -74,9 +74,9 @@ partial class Yielders
             {
                 Coroutine coroutine;
                 if (_isProviderWithClosure) {
-                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(Provider)(Closure);
+                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(_provider)(_closure);
                 } else {
-                    coroutine = Unsafe.As<Func<CoroutineAwaitable>>(Provider)();
+                    coroutine = Unsafe.As<Func<CoroutineAwaitable>>(_provider)();
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
 
@@ -96,7 +96,7 @@ partial class Yielders
                 childCoroutine._task = intermediateCompletionSource.CreateValueTask();
                 CoroutineMethodBuilderCore.ActOnCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
                 childCoroutineAwaiter.DelegateCoroutineCompletion(intermediateCompletionSource);
-                childCoroutine.MarkCoroutineAsHandled();
+                childCoroutine.MarkCoroutineAsActedOn();
                 _completionSource.SetResult(new (in childCoroutine));
             }
         }
@@ -127,9 +127,9 @@ partial class Yielders
             {
                 Coroutine<TResult> coroutine;
                 if (_isProviderWithClosure) {
-                    coroutine = Unsafe.As<Func<TClosure, Coroutine<TResult>>>(Provider)(Closure);
+                    coroutine = Unsafe.As<Func<TClosure, Coroutine<TResult>>>(_provider)(_closure);
                 } else {
-                    coroutine = Unsafe.As<Func<CoroutineAwaitable<TResult>>>(Provider)();
+                    coroutine = Unsafe.As<Func<CoroutineAwaitable<TResult>>>(_provider)();
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
 
@@ -149,7 +149,7 @@ partial class Yielders
                 childCoroutine._task = intermediateCompletionSource.CreateGenericValueTask();
                 CoroutineMethodBuilderCore.ActOnCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
                 childCoroutineAwaiter.DelegateCoroutineCompletion(intermediateCompletionSource);
-                childCoroutine.MarkCoroutineAsHandled();
+                childCoroutine.MarkCoroutineAsActedOn();
                 _completionSource.SetResult(new (in childCoroutine));
             }
 

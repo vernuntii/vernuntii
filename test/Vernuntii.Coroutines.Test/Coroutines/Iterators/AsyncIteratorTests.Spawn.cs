@@ -18,84 +18,25 @@ partial class AsyncIteratorTests
             holder.Coroutine.CoroutineAction.Should().Be(CoroutineAction.Sibling);
         }
 
-        public class ReturnSynchronously
+        public class ReturnSynchronously : AbstractReturnSynchronously<CoroutineAwaitable<int>, int>
         {
-            private const int ExpectedResult = 2;
-
-            private Coroutine<CoroutineAwaitable<int>> Constant() => Spawn(() => Coroutine.FromResult(2));
-
-            [Fact]
-            public async Task MoveNext_ReturnsFalse()
-            {
-                var iterator = AsyncIterator.Create(Constant());
-                var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
-                canMoveNext.Should().BeFalse();
-            }
-
-            [Fact]
-            public async Task GetResult_Returns()
-            {
-                var iterator = AsyncIterator.Create(Constant());
-                var asyncResult = iterator.GetResult();
-                var result = await asyncResult;
-                result.Should().Be(ExpectedResult);
-            }
-
-            [Fact]
-            public async Task GetResultAsync_Awaits()
-            {
-                var iterator = AsyncIterator.Create(Constant());
-                var asyncResult = await iterator.GetResultAsync().ConfigureAwait(false);
-                var result = await asyncResult;
-                result.Should().Be(ExpectedResult);
-            }
-
-            [Fact]
-            public async Task Throw_Fails()
-            {
-                var iterator = AsyncIterator.Create(Constant);
-                iterator
-                    .Invoking(x => x.Throw(new Exception1()))
-                    .Should()
-                    .ThrowExactly<InvalidOperationException>()
-                    .WithMessage("*not started*already finished*not suspended*");
-            }
+            protected override Coroutine<CoroutineAwaitable<int>> Constant() => Spawn(() => Coroutine.FromResult(ExpectedResult));
+            protected override ValueTask<int> Unwrap(CoroutineAwaitable<int> resultWrapper) => resultWrapper;
+            protected override async ValueTask<Coroutine<int>> Unwrap(Coroutine<CoroutineAwaitable<int>> x) => await x;
         }
 
-        public class ReturnAfterDelay
+        public class ReturnAfterDelay : AbstractReturnAfterDelay<CoroutineAwaitable<int>, int>
         {
-            private const int ExpectedResult = 2;
-
-            private Coroutine<CoroutineAwaitable<int>> ConstantAfterDelay() => Spawn(async () => {
+            protected override Coroutine<CoroutineAwaitable<int>> ConstantAfterDelay() => Spawn(async () => {
                 await Task.Delay(ContinueAfterTimeInMs).ConfigureAwait(false);
                 return ExpectedResult;
             });
 
-            [Fact]
-            public async Task MoveNext_ReturnsFalse()
-            {
-                var iterator = ConstantAfterDelay().GetAsyncIterator();
-                var canMoveNext = await iterator.MoveNextAsync().ConfigureAwait(false);
-                canMoveNext.Should().Be(false);
-            }
+            protected override ValueTask<int> Unwrap(CoroutineAwaitable<int> resultWrapper) => resultWrapper;
+            protected override async ValueTask<Coroutine<int>> Unwrap(Coroutine<CoroutineAwaitable<int>> x) => await x;
 
             [Fact]
-            public async Task GetResult_Returns()
-            {
-                var iterator = ConstantAfterDelay().GetAsyncIterator();
-                var asyncResult = iterator.GetResult();
-                var result = await asyncResult;
-                result.Should().Be(ExpectedResult);
-            }
-
-            [Fact]
-            public async Task GetResultAsync_Awaits()
-            {
-                var iterator = ConstantAfterDelay().GetAsyncIterator();
-                var asyncResult = await iterator.GetResultAsync();
-                var result = await asyncResult;
-                result.Should().Be(ExpectedResult);
-            }
+            public override Task GetResult_Returns() => base.GetResult_Returns();
         }
     }
 }

@@ -5,14 +5,14 @@ file class CoroutineArgumentReceiverAcceptor<T>(T value, ManualResetValueTaskCom
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
-        var argument = new YieldArgument<T>(value, completionSource);
+        var argument = new YieldReturnArgument<T>(value, completionSource);
         argumentReceiver.ReceiveCallableArgument(in YieldReturnKey, in argument, completionSource);
     }
 }
 
 partial class Yielders
 {
-    public static Coroutine Yield<T>(T value)
+    public static Coroutine YieldReturn<T>(T value)
     {
         var completionSource = ManualResetValueTaskCompletionSource<T>.RentFromCache();
         return new Coroutine(completionSource.CreateValueTask(), new CoroutineArgumentReceiverAcceptor<T>(value, completionSource));
@@ -20,14 +20,14 @@ partial class Yielders
 
     partial class Arguments
     {
-        public readonly struct YieldArgument<T> : ICallableArgument
+        public readonly struct YieldReturnArgument<T> : ICallableArgument
         {
             private readonly T _value;
             private readonly ManualResetValueTaskCompletionSource<T> _completionSource;
 
             public readonly T Result => _value;
 
-            internal YieldArgument(
+            internal YieldReturnArgument(
                 T result,
                 ManualResetValueTaskCompletionSource<T> completionSource)
             {

@@ -227,7 +227,7 @@ namespace Vernuntii.Coroutines
         public static Vernuntii.Coroutines.Coroutine WithContext<TClosure>(Vernuntii.Coroutines.CoroutineContext additiveContext, System.Func<TClosure, Vernuntii.Coroutines.Coroutine> provider, TClosure closure) { }
         public static Vernuntii.Coroutines.Coroutine<TResult> WithContext<TClosure, TResult>(Vernuntii.Coroutines.CoroutineContext additiveContext, System.Func<TClosure, Vernuntii.Coroutines.Coroutine<TResult>> provider, TClosure closure) { }
         public static Vernuntii.Coroutines.Coroutine Yield() { }
-        public static Vernuntii.Coroutines.Coroutine Yield<T>(T value) { }
+        public static Vernuntii.Coroutines.Coroutine YieldReturn<T>(T value) { }
         public class Arguments
         {
             public static readonly Vernuntii.Coroutines.Key CallKey;
@@ -260,7 +260,7 @@ namespace Vernuntii.Coroutines
             }
             public readonly struct WithContextArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument { }
             public readonly struct WithContextArgument<TClosure, TResult> : Vernuntii.Coroutines.ICallableArgument { }
-            public readonly struct YieldArgument<T> : Vernuntii.Coroutines.ICallableArgument
+            public readonly struct YieldReturnArgument<T> : Vernuntii.Coroutines.ICallableArgument
             {
                 public T Result { get; }
             }
@@ -347,7 +347,7 @@ namespace Vernuntii.Coroutines.Iterators
         System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
         void Return();
         void Throw(System.Exception e);
-        void Yield<TYieldResult>(TYieldResult result);
+        void YieldReturn<TYieldResult>(TYieldResult result);
     }
     public interface IAsyncIterator<TResult>
     {
@@ -357,7 +357,7 @@ namespace Vernuntii.Coroutines.Iterators
         System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
         void Return(TResult result);
         void Throw(System.Exception e);
-        void Yield<TYieldResult>(TYieldResult result);
+        void YieldReturn<TYieldResult>(TYieldResult result);
     }
     public interface IYieldCompletionSource
     {
