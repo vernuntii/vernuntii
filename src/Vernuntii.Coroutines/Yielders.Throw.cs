@@ -1,11 +1,13 @@
 ﻿namespace Vernuntii.Coroutines;
+
+using System.Runtime.CompilerServices;
 using static Vernuntii.Coroutines.Yielders.Arguments;
 
 file class CoroutineArgumentReceiverAcceptor(Exception exception, ManualResetValueTaskCompletionSource<Nothing> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
-        var argument = new ThrowArgument(exception, completionSource);
+        var argument = new ThrowArgument(exception);
         argumentReceiver.ReceiveCallableArgument(in ThrowKey, in argument, completionSource);
     }
 }
@@ -20,22 +22,16 @@ partial class Yielders
 
     partial class Arguments
     {
-        internal readonly struct ThrowArgument : ICallableArgument
+        [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly struct ThrowArgument(Exception exception) : ICallableArgument
         {
-            private readonly Exception _exception;
-            private readonly ManualResetValueTaskCompletionSource<Nothing> _completionSource;
-
-            public readonly Exception Exception => _exception;
-
-            internal ThrowArgument(
-                Exception exception,
-                ManualResetValueTaskCompletionSource<Nothing> completionSource)
-            {
-                _exception = exception;
-                _completionSource = completionSource;
+            public Exception Exception {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => exception;
             }
 
-            void ICallableArgument.Callback(in CoroutineContext context) => _completionSource.SetException(_exception);
+            void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource) =>
+                Unsafe.As<ManualResetValueTaskCompletionSource<Nothing>>(completionSource).SetException(Exception);
         }
     }
 }

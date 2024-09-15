@@ -168,7 +168,13 @@ namespace Vernuntii.Coroutines
     }
     public interface ICallableArgument
     {
-        void Callback(in Vernuntii.Coroutines.CoroutineContext context);
+        void Callback<TCompletionSource>(in Vernuntii.Coroutines.CoroutineContext context, TCompletionSource completionSource)
+            where TCompletionSource :  class;
+    }
+    public interface ICallableArgument<TCompletionSource> : Vernuntii.Coroutines.ICallableArgument
+        where TCompletionSource :  class
+    {
+        void Callback(in Vernuntii.Coroutines.CoroutineContext context, TCompletionSource completionSource);
     }
     public interface ISiblingCoroutine { }
     [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
@@ -240,28 +246,49 @@ namespace Vernuntii.Coroutines
             public Arguments() { }
             public readonly struct CallArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
             {
+                public CallArgument(System.Delegate provider, TClosure closure, bool isProviderWithClosure) { }
                 public TClosure Closure { get; }
+                public bool IsProviderWithClosure { get; }
                 public System.Delegate Provider { get; }
             }
             public readonly struct CallArgument<TClosure, TResult> : Vernuntii.Coroutines.ICallableArgument
             {
+                public CallArgument(System.Delegate provider, TClosure closure, bool isProviderWithClosure) { }
                 public TClosure Closure { get; }
+                public bool IsProviderWithClosure { get; }
                 public System.Delegate Provider { get; }
             }
             public readonly struct LaunchArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
             {
+                public LaunchArgument(System.Delegate provider, TClosure closure, bool isProviderWithClosure) { }
                 public TClosure Closure { get; }
+                public bool IsProviderWithClosure { get; }
                 public System.Delegate Provider { get; }
             }
             public readonly struct SpawnArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
             {
+                public SpawnArgument(System.Delegate provider, TClosure closure, bool isProviderWithClosure) { }
                 public TClosure Closure { get; }
+                public bool IsProviderWithClosure { get; }
                 public System.Delegate Provider { get; }
             }
-            public readonly struct WithContextArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument { }
-            public readonly struct WithContextArgument<TClosure, TResult> : Vernuntii.Coroutines.ICallableArgument { }
+            public readonly struct WithContextArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
+            {
+                public WithContextArgument(System.Delegate provider, TClosure providerClosure, bool isProviderWithClosure) { }
+                public bool IsProviderWithClosure { get; }
+                public System.Delegate Provider { get; }
+                public TClosure ProviderClosure { get; }
+            }
+            public readonly struct WithContextArgument<TClosure, TResult> : Vernuntii.Coroutines.ICallableArgument
+            {
+                public WithContextArgument(System.Delegate provider, TClosure providerClosure, bool isProviderWithClosure) { }
+                public bool IsProviderWithClosure { get; }
+                public System.Delegate Provider { get; }
+                public TClosure ProviderClosure { get; }
+            }
             public readonly struct YieldReturnArgument<T> : Vernuntii.Coroutines.ICallableArgument
             {
+                public YieldReturnArgument(T result) { }
                 public T Result { get; }
             }
         }
@@ -339,6 +366,7 @@ namespace Vernuntii.Coroutines.Iterators
         ArgumentSupplied = 2,
         AwaiterCompletionNotifierSupplied = 4,
     }
+    public static class CloneableAsyncIterator { }
     public interface IAsyncIterator
     {
         object Current { get; }
@@ -358,6 +386,14 @@ namespace Vernuntii.Coroutines.Iterators
         void Return(TResult result);
         void Throw(System.Exception e);
         void YieldReturn<TYieldResult>(TYieldResult result);
+    }
+    public interface ICloneableAsyncIterator : Vernuntii.Coroutines.Iterators.IAsyncIterator
+    {
+        Vernuntii.Coroutines.Iterators.IAsyncIterator Clone();
+    }
+    public interface ICloneableAsyncIterator<TResult> : Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult>
+    {
+        Vernuntii.Coroutines.Iterators.IAsyncIterator Clone();
     }
     public interface IYieldCompletionSource
     {

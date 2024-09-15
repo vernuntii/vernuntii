@@ -7,7 +7,7 @@ file class CoroutineArgumentReceiverAcceptor<T>(EventChannel<T> eventChannel, Ca
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
-        var argument = new TakeArgument<T>(eventChannel, cancellationToken, completionSource);
+        var argument = new TakeArgument<T>(eventChannel, cancellationToken);
         argumentReceiver.ReceiveCallableArgument(in EmitKey, in argument, completionSource);
     }
 }
@@ -22,27 +22,20 @@ partial class Yielders
 
     partial class Arguments
     {
-        public readonly struct TakeArgument<T> : ICallableArgument
+        public readonly struct TakeArgument<T>(EventChannel<T> eventChannel, CancellationToken cancellationToken) : ICallableArgument
         {
-            private readonly EventChannel<T> _eventChannel;
-            private readonly CancellationToken _cancellationToken;
-            private readonly ManualResetValueTaskCompletionSource<T> _completionSource;
-
-            public EventChannel<T> EventChannel => _eventChannel;
-            public CancellationToken CancellationToken => _cancellationToken;
-
-            internal TakeArgument(
-                EventChannel<T> eventChannel,
-                CancellationToken cancellationToken,
-                ManualResetValueTaskCompletionSource<T> completionSource)
-            {
-                _eventChannel = eventChannel;
-                _cancellationToken = cancellationToken;
-                _completionSource = completionSource;
+            public EventChannel<T> EventChannel {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => eventChannel;
             }
 
-            void ICallableArgument.Callback(in CoroutineContext coroutineContext) =>
-                _eventChannel._channel.Reader.ReadAsync(_cancellationToken).DelegateCompletion(_completionSource);
+            public CancellationToken CancellationToken {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => cancellationToken;
+            }
+
+            void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource) =>
+                EventChannel._channel.Reader.ReadAsync(CancellationToken).DelegateCompletion(Unsafe.As<ManualResetValueTaskCompletionSource<T>>(completionSource));
         }
     }
 }

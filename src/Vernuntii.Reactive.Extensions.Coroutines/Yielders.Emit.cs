@@ -9,7 +9,7 @@ file class CoroutineArgumentReceiverAcceptor<T>(IEventDiscriminator<T> eventDisc
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
-        var argument = new EmitArgument<T>(eventDiscriminator, eventData, completionSource);
+        var argument = new EmitArgument<T>(eventDiscriminator, eventData);
         argumentReceiver.ReceiveCallableArgument(in EmitKey, in argument, completionSource);
     }
 }
@@ -24,29 +24,22 @@ partial class Yielders
 
     partial class Arguments
     {
-        public readonly struct EmitArgument<T> : ICallableArgument
+        public readonly struct EmitArgument<T>(IEventDiscriminator<T> eventDiscriminator, T eventData) : ICallableArgument
         {
-            private readonly IEventDiscriminator<T> _eventDiscriminator;
-            private readonly T _eventData;
-            private readonly ManualResetValueTaskCompletionSource<Nothing> _completionSource;
-
-            public IEventDiscriminator<T> EventDiscriminator => _eventDiscriminator;
-            public T EventData => _eventData;
-
-            internal EmitArgument(
-                IEventDiscriminator<T> eventDiscriminator,
-                T eventData,
-                ManualResetValueTaskCompletionSource<Nothing> completionSource)
-            {
-                _eventDiscriminator = eventDiscriminator;
-                _eventData = eventData;
-                _completionSource = completionSource;
+            public IEventDiscriminator<T> EventDiscriminator {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => eventDiscriminator;
             }
 
-            void ICallableArgument.Callback(in CoroutineContext coroutineContext)
+            public T EventData {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => eventData;
+            }
+
+            void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource)
             {
-                var eventBroker = coroutineContext.GetBequestedEventBroker(ServiceKeys.EventBrokerKey);
-                eventBroker.EmitAsync(EventDiscriminator, EventData).DelegateCompletion(_completionSource);
+                var eventBroker = context.GetBequestedEventBroker(ServiceKeys.EventBrokerKey);
+                eventBroker.EmitAsync(EventDiscriminator, EventData).DelegateCompletion(Unsafe.As<ManualResetValueTaskCompletionSource<Nothing>>(completionSource));
             }
         }
     }

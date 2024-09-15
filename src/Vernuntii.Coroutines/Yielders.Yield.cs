@@ -7,7 +7,7 @@ file class CoroutineArgumentReceiverAcceptor(ManualResetValueTaskCompletionSourc
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
-        var argument = new YieldArgument(completionSource);
+        var argument = new YieldArgument();
         argumentReceiver.ReceiveCallableArgument(in YieldKey, in argument, completionSource);
     }
 }
@@ -22,13 +22,11 @@ partial class Yielders
 
     partial class Arguments
     {
-        internal readonly struct YieldArgument : ICallableArgument
+        [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly struct YieldArgument() : ICallableArgument
         {
-            private readonly ManualResetValueTaskCompletionSource<Nothing> _completionSource;
-
-            internal YieldArgument(ManualResetValueTaskCompletionSource<Nothing> completionSource) => _completionSource = completionSource;
-
-            void ICallableArgument.Callback(in CoroutineContext context) => new YieldAwaitable.YieldAwaiter().UnsafeOnCompleted(_completionSource.SetDefaultResult);
+            void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource) =>
+                new YieldAwaitable.YieldAwaiter().UnsafeOnCompleted(Unsafe.As<ManualResetValueTaskCompletionSource<Nothing>>(completionSource).SetDefaultResult);
         }
     }
 }

@@ -9,7 +9,7 @@ file class CoroutineArgumentReceiverAcceptor<T>(Func<IReadOnlyEventBroker, IObse
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
-        var argument = new ObserveArgument<T>(eventSelector, completionSource);
+        var argument = new ObserveArgument<T>(eventSelector);
         argumentReceiver.ReceiveCallableArgument(in ChannelKey, in argument, completionSource);
     }
 }
@@ -24,27 +24,19 @@ partial class Yielders
 
     partial class Arguments
     {
-        public readonly struct ObserveArgument<T> : ICallableArgument
+        public readonly struct ObserveArgument<T>(Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector) : ICallableArgument
         {
-            private readonly Func<IReadOnlyEventBroker, IObservableEvent<T>> _eventSelector;
-            private readonly ManualResetValueTaskCompletionSource<EventChannel<T>> _completionSource;
-
-            public Func<IReadOnlyEventBroker, IObservableEvent<T>> EventSelector => _eventSelector;
-
-            internal ObserveArgument(
-                Func<IReadOnlyEventBroker, IObservableEvent<T>> eventSelector,
-                ManualResetValueTaskCompletionSource<EventChannel<T>> completionSource)
-            {
-                _eventSelector = eventSelector;
-                _completionSource = completionSource;
+            public Func<IReadOnlyEventBroker, IObservableEvent<T>> EventSelector {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => eventSelector;
             }
 
-            void ICallableArgument.Callback(in CoroutineContext coroutineContext)
+            void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource)
             {
-                var eventBroker = coroutineContext.GetBequestedEventBroker(ServiceKeys.EventBrokerKey);
+                var eventBroker = context.GetBequestedEventBroker(ServiceKeys.EventBrokerKey);
                 var emissions = System.Threading.Channels.Channel.CreateUnbounded<T>();
                 EventSelector(eventBroker).Subscribe((emission, writer) => writer.TryWrite(emission), emissions.Writer);
-                _completionSource.SetResult(new EventChannel<T>(emissions));
+                Unsafe.As<ManualResetValueTaskCompletionSource<EventChannel<T>>>(completionSource).SetResult(new EventChannel<T>(emissions));
             }
         }
     }

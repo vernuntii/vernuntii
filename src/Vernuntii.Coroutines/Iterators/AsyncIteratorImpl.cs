@@ -24,6 +24,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
     private readonly ICoroutineHolder _coroutineHolder;
     private AsyncIteratorContext? _iteratorContext;
     private AsyncIteratorContextServiceOperation _nextOperation;
+    private List<KeyValuePair<Key, object>>? _yieldHistory;
 
     public AsyncIteratorImpl(Func<Coroutine> provider)
     {
@@ -104,7 +105,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
         if (_nextOperation.State == 0) {
             throw Exceptions.NotStartedAlreadyFinishedOrNotSuspended();
         }
-        
+
         throw new InvalidOperationException("Although the iterator is suspended, the coroutine yielder which let to the suspension misbehaved fatally by not supplying an argument");
     }
 

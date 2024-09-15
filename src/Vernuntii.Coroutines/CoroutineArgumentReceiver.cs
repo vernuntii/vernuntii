@@ -20,7 +20,7 @@ public readonly ref struct CoroutineArgumentReceiver
             var iteratorContextService = _context.GetAsyncIteratorContextService();
             iteratorContextService.CurrentOperation.SupplyArgument(argumentKey, argument, completionSource);
         } else {
-            argument.Callback(in _context);
+            argument.Callback(in _context, completionSource);
         }
     }
 }

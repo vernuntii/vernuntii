@@ -7,10 +7,13 @@ public static class AsyncIterator
 {
     internal static readonly Key s_asyncIteratorKey = new(Encoding.ASCII.GetBytes(nameof(AsyncIterator)));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IAsyncIterator Create(Func<Coroutine> provider) => new AsyncIteratorImpl<Nothing>(provider);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IAsyncIterator Create(Coroutine coroutine) => new AsyncIteratorImpl<Nothing>(coroutine);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IAsyncIterator<TResult> Create<TResult>(Func<Coroutine<TResult>> provider) => new AsyncIteratorImpl<TResult>(provider);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -7,7 +7,7 @@ file class CoroutineArgumentReceiverAcceptor<TClosure>(Delegate provider, TClosu
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
-        var argument = new CallArgument<TClosure>(provider, closure, isProviderWithClosure, completionSource);
+        var argument = new CallArgument<TClosure>(provider, closure, isProviderWithClosure);
         argumentReceiver.ReceiveCallableArgument(in CallKey, in argument, completionSource);
     }
 }
@@ -16,7 +16,7 @@ file class CoroutineArgumentReceiverAcceptor<TClosure, TResult>(Delegate provide
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
-        var argument = new CallArgument<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource);
+        var argument = new CallArgument<TClosure, TResult>(provider, closure, isProviderWithClosure);
         argumentReceiver.ReceiveCallableArgument(in CallKey, in argument, completionSource);
     }
 }
@@ -47,85 +47,68 @@ partial class Yielders
 
     partial class Arguments
     {
-        public readonly struct CallArgument<TClosure> : ICallableArgument
+        public readonly struct CallArgument<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure) : ICallableArgument
         {
-            private readonly Delegate _provider;
-            private readonly TClosure _closure;
-            private readonly bool _isProviderWithClosure;
-            private readonly ManualResetCoroutineCompletionSource<Nothing> _completionSource;
-
-            public readonly Delegate Provider => _provider;
-            public readonly TClosure Closure => _closure;
-
-            internal CallArgument(
-                Delegate provider,
-                TClosure closure,
-                bool isProviderWithClosure,
-                ManualResetCoroutineCompletionSource<Nothing> completionSource)
-            {
-                _provider = provider;
-                _closure = closure;
-                _isProviderWithClosure = isProviderWithClosure;
-                _completionSource = completionSource;
+            public Delegate Provider {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => provider;
             }
 
-            readonly void ICallableArgument.Callback(in CoroutineContext context)
+            public TClosure Closure {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => closure;
+            }
+
+            public bool IsProviderWithClosure {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => isProviderWithClosure;
+            }
+
+            readonly void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource)
             {
                 Coroutine coroutine;
-                if (_isProviderWithClosure) {
-                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(_provider)(_closure);
+                if (IsProviderWithClosure) {
+                    coroutine = Unsafe.As<Func<TClosure, Coroutine>>(Provider)(Closure);
                 } else {
-                    coroutine = Unsafe.As<Func<Coroutine>>(_provider)();
+                    coroutine = Unsafe.As<Func<Coroutine>>(Provider)();
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
 
-                ref var contextToBequest = ref _completionSource._coroutineContext;
+                var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<Nothing>>(completionSource);
+
+                ref var contextToBequest = ref typedCompletionSource._coroutineContext;
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                coroutineAwaiter.DelegateCoroutineCompletion(_completionSource);
+                coroutineAwaiter.DelegateCoroutineCompletion(typedCompletionSource);
             }
         }
 
-        public readonly struct CallArgument<TClosure, TResult> : ICallableArgument
+        public readonly struct CallArgument<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure) : ICallableArgument
         {
-            private readonly Delegate _provider;
-            private readonly TClosure _closure;
-            private readonly bool _isProviderWithClosure;
-            private readonly ManualResetCoroutineCompletionSource<TResult> _completionSource;
+            public Delegate Provider { get; } = provider;
+            public TClosure Closure { get; } = closure;
+            public bool IsProviderWithClosure { get; } = isProviderWithClosure;
 
-            public readonly Delegate Provider => _provider;
-            public readonly TClosure Closure => _closure;
-
-            internal CallArgument(
-                Delegate provider,
-                TClosure closure,
-                bool isProviderWithClosure,
-                ManualResetCoroutineCompletionSource<TResult> completionSource)
-            {
-                _provider = provider;
-                _closure = closure;
-                _isProviderWithClosure = isProviderWithClosure;
-                _completionSource = completionSource;
-            }
-
-            readonly void ICallableArgument.Callback(in CoroutineContext context)
+            void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource)
             {
                 Coroutine<TResult> coroutine;
-                if (_isProviderWithClosure) {
-                    coroutine = Unsafe.As<Func<TClosure, Coroutine<TResult>>>(_provider)(_closure);
+                if (IsProviderWithClosure) {
+                    coroutine = Unsafe.As<Func<TClosure, Coroutine<TResult>>>(Provider)(Closure);
                 } else {
-                    coroutine = Unsafe.As<Func<Coroutine<TResult>>>(_provider)();
+                    coroutine = Unsafe.As<Func<Coroutine<TResult>>>(Provider)();
                 }
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
 
-                ref var contextToBequest = ref _completionSource._coroutineContext;
+                var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<TResult>>(completionSource);
+
+                ref var contextToBequest = ref typedCompletionSource._coroutineContext;
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref contextToBequest);
-                coroutineAwaiter.DelegateCoroutineCompletion(_completionSource);
+                coroutineAwaiter.DelegateCoroutineCompletion(typedCompletionSource);
             }
         }
     }
