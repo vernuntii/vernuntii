@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Vernuntii.Coroutines.CompilerServices;
+﻿namespace Vernuntii.Coroutines.CompilerServices;
 
 public readonly struct CoroutineAwaitable
 {

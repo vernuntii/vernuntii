@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
 using Vernuntii.Coroutines.Iterators;
 
@@ -97,6 +96,12 @@ internal class ManualResetValueTaskCompletionSource<TResult> : IValueTaskSource<
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ValueTask CreateValueTask() => new(this, Version);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator ValueTask<TResult>(ManualResetValueTaskCompletionSource<TResult> completionSource) => new(completionSource, completionSource.Version);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator ValueTask(ManualResetValueTaskCompletionSource<TResult> completionSource) => new(completionSource, completionSource.Version);
 
     /// <summary>Completes the box with a result.</summary>
     /// <param name="result">The result.</param>

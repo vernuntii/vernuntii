@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using static Vernuntii.Coroutines.Yielders.Arguments;
+﻿using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
 
@@ -76,11 +75,11 @@ partial class Yielders
 
                 var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<Nothing>>(completionSource);
 
-                ref var contextToBequest = ref typedCompletionSource._coroutineContext;
+                var contextToBequest = default(CoroutineContext);
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
-                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
                 coroutineAwaiter.DelegateCoroutineCompletion(typedCompletionSource);
             }
         }
@@ -103,11 +102,11 @@ partial class Yielders
 
                 var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<TResult>>(completionSource);
 
-                ref var contextToBequest = ref typedCompletionSource._coroutineContext;
+                var contextToBequest = default(CoroutineContext);
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
-                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
                 coroutineAwaiter.DelegateCoroutineCompletion(typedCompletionSource);
             }
         }

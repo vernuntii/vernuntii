@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Vernuntii.Coroutines.CompilerServices;
+﻿using Vernuntii.Coroutines.CompilerServices;
 using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
@@ -79,11 +78,11 @@ partial class Yielders
 
                 var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<CoroutineAwaitable>>(completionSource);
 
-                ref var contextToBequest = ref typedCompletionSource._coroutineContext;
+                var contextToBequest = default(CoroutineContext);
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
-                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
                 context.ResultStateMachine.CallbackWhenForkCompletedUnsafely(ref coroutineAwaiter, () => {
                     try {
                         coroutineAwaiter.GetResult();
@@ -129,11 +128,11 @@ partial class Yielders
 
                 var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>>>(completionSource);
 
-                ref var contextToBequest = ref typedCompletionSource._coroutineContext;
+                var contextToBequest = default(CoroutineContext);
                 contextToBequest.TreatAsNewSibling();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
-                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
                 context.ResultStateMachine.CallbackWhenForkCompletedUnsafely(ref coroutineAwaiter, () => {
                     try {
                         var result = coroutineAwaiter.GetResult();

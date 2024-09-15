@@ -6,11 +6,11 @@ public delegate void CoroutineArgumentReceiverDelegate(ref CoroutineArgumentRece
 
 public readonly ref struct CoroutineArgumentReceiver
 {
-    private readonly ref CoroutineContext _context;
+    internal readonly ref CoroutineContext _context;
 
-    internal CoroutineArgumentReceiver(ref CoroutineContext coroutineContext)
+    internal CoroutineArgumentReceiver(in CoroutineContext coroutineContext)
     {
-        _context = ref coroutineContext;
+        _context = ref Unsafe.AsRef(in coroutineContext);
     }
 
     internal void ReceiveCallableArgument<TArgument>(in Key argumentKey, in TArgument argument, IYieldCompletionSource completionSource)

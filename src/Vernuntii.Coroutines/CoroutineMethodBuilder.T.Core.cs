@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 using System.ComponentModel.Design;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Vernuntii.Coroutines.CompilerServices;
 using Vernuntii.Coroutines.Iterators;
 

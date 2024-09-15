@@ -1,6 +1,5 @@
 ﻿namespace Vernuntii.Coroutines;
 
-using System.Runtime.CompilerServices;
 using static Vernuntii.Coroutines.Yielders.Arguments;
 
 file class CoroutineArgumentReceiverAcceptor(Exception exception, ManualResetValueTaskCompletionSource<Nothing> completionSource) : AbstractCoroutineArgumentReceiverAcceptor

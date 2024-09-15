@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Vernuntii.Coroutines.CompilerServices;
 
 namespace Vernuntii.Coroutines.Iterators;
@@ -22,34 +21,46 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
     }
 
     private readonly ICoroutineHolder _coroutineHolder;
+    private readonly CoroutineContext _additiveContext;
     private AsyncIteratorContext? _iteratorContext;
     private AsyncIteratorContextServiceOperation _nextOperation;
-    private List<KeyValuePair<Key, object>>? _yieldHistory;
 
-    public AsyncIteratorImpl(Func<Coroutine> provider)
+    public AsyncIteratorImpl(Func<Coroutine> provider, in CoroutineContext additiveContext)
     {
         _coroutineHolder = new CoroutineHolder<Func<Coroutine>, Coroutine>(provider, isProvider: true, isGeneric: false);
+        _additiveContext = additiveContext;
     }
 
-    public AsyncIteratorImpl(Func<Coroutine<TReturnResult>> provider)
+    public AsyncIteratorImpl(Func<Coroutine<TReturnResult>> provider, in CoroutineContext additiveContext)
     {
         _coroutineHolder = new CoroutineHolder<Func<Coroutine<TReturnResult>>, Coroutine<TReturnResult>>(provider, isProvider: true, isGeneric: true);
+        _additiveContext = additiveContext;
     }
 
-    public AsyncIteratorImpl(Coroutine coroutine)
+    public AsyncIteratorImpl(Coroutine coroutine, in CoroutineContext additiveContext)
     {
         _coroutineHolder = new CoroutineHolder<Coroutine, Coroutine>(coroutine, isProvider: false, isGeneric: false);
+        _additiveContext = additiveContext;
     }
 
-    public AsyncIteratorImpl(Coroutine<TReturnResult> coroutine)
+    public AsyncIteratorImpl(Coroutine<TReturnResult> coroutine, in CoroutineContext additiveContext)
     {
         _coroutineHolder = new CoroutineHolder<Coroutine<TReturnResult>, Coroutine<TReturnResult>>(coroutine, isProvider: false, isGeneric: true);
+        _additiveContext = additiveContext;
     }
 
     private void OnBequestCoroutineContext(ref CoroutineContext context, in CoroutineContext contextToBequest)
     {
         var iteratorContext = GetIteratorContext(out _);
         context.InheritContext(in contextToBequest);
+
+        // In case of WithContext, we want:
+        //      1. allowing its providing coroutine to inherit context
+        //      2. to iterate that providing coroutine and not WithContext
+        if ((context.BequesterOrigin & CoroutineContextBequesterOrigin.ContextBequester) != 0) {
+            return;
+        }
+
         context._bequestContext = null;
         iteratorContext._iteratorAgnosticCoroutineContext = context; // Copy befor making context async-iterator-aware
         iteratorContext._coroutineStateMachineBox = iteratorContext._iteratorAgnosticCoroutineContext.ResultStateMachine as IAsyncIteratorStateMachineBox<TReturnResult>;
@@ -61,13 +72,11 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
 
     private void BequestCoroutineContext(AsyncIteratorContext iteratorContext, AsyncIteratorContextService contextService, out bool isCoroutineCompleted)
     {
-        var scope = new CoroutineScope();
-        var context = new CoroutineContext();
-        context._keyedServicesToBequest = CoroutineContextServiceMap.CreateRange(1, scope, static (x, y) => x.Emplace(CoroutineScope.s_coroutineScopeKey, y));
-        context._bequesterOrigin = CoroutineContextBequesterOrigin.ContextBequester;
-        context._bequestContext = OnBequestCoroutineContext;
+        var contextToBequest = _additiveContext;
+        contextToBequest._bequesterOrigin = CoroutineContextBequesterOrigin.ContextBequester;
+        contextToBequest._bequestContext = OnBequestCoroutineContext;
         ref var coroutineAwaiter = ref iteratorContext._coroutineAwaiter;
-        CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref context);
+        CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
         isCoroutineCompleted = coroutineAwaiter.IsCompleted;
     }
 
@@ -121,7 +130,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
         if (_nextOperation.State != 0) {
             try {
                 if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
-                    var argumentReceiver = new CoroutineArgumentReceiver(ref iteratorContext._iteratorAgnosticCoroutineContext);
+                    var argumentReceiver = new CoroutineArgumentReceiver(in iteratorContext._iteratorAgnosticCoroutineContext);
                     Debug.Assert(_nextOperation.Argument is not null);
                     Debug.Assert(_nextOperation.ArgumentCompletionSource is not null);
                     argumentReceiver.ReceiveCallableArgument(_nextOperation.ArgumentKey, _nextOperation.Argument, _nextOperation.ArgumentCompletionSource);
@@ -273,7 +282,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
         }
 
         if ((nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
-            var argumentReceiver = new CoroutineArgumentReceiver(ref iteratorContext._iteratorAgnosticCoroutineContext);
+            var argumentReceiver = new CoroutineArgumentReceiver(in iteratorContext._iteratorAgnosticCoroutineContext);
             Debug.Assert(nextOperation.Argument is not null);
             Debug.Assert(nextOperation.ArgumentCompletionSource is not null);
             argumentReceiver.ReceiveCallableArgument(nextOperation.ArgumentKey, nextOperation.Argument, nextOperation.ArgumentCompletionSource);

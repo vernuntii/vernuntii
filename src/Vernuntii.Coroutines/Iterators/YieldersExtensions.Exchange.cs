@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Vernuntii.Coroutines.Iterators;
+﻿namespace Vernuntii.Coroutines.Iterators;
 
 partial class YieldersExtensions
 {

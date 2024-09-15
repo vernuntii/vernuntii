@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Threading.Tasks.Sources;
 using Vernuntii.Coroutines.CompilerServices;
 using Vernuntii.Coroutines.Iterators;
@@ -85,7 +84,7 @@ public partial struct Coroutine<TResult> : IRelativeCoroutine, IEquatable<Corout
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Coroutine<TResult>(ValueTask<TResult> task) => new(task);
 
-    public readonly IAsyncIterator<TResult> GetAsyncIterator() => new AsyncIteratorImpl<TResult>(this);
+    public readonly IAsyncIterator<TResult> GetAsyncIterator(in CoroutineContext additiveContext = default) => new AsyncIteratorImpl<TResult>(this, in additiveContext);
 
     public readonly bool Equals(Coroutine<TResult> other) => CoroutineEqualityComparer.Equals(in this, in other);
 

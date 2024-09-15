@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Vernuntii.Coroutines;
+﻿namespace Vernuntii.Coroutines;
 
 public partial struct CoroutineMethodBuilder<TResult>
 {

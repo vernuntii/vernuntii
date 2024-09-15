@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Vernuntii.Coroutines;
+﻿namespace Vernuntii.Coroutines;
 
 internal static class KeyThrowHelper
 {

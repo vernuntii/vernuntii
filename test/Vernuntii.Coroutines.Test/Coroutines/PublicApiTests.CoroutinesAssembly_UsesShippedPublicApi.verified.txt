@@ -53,7 +53,7 @@ namespace Vernuntii.Coroutines
         public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable ConfigureAwait(bool continueOnCapturedContext) { }
         public bool Equals(Vernuntii.Coroutines.Coroutine other) { }
         public override bool Equals([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? obj) { }
-        public Vernuntii.Coroutines.Iterators.IAsyncIterator GetAsyncIterator() { }
+        public Vernuntii.Coroutines.Iterators.IAsyncIterator GetAsyncIterator(in Vernuntii.Coroutines.CoroutineContext additiveContext = null) { }
         public Vernuntii.Coroutines.CompilerServices.CoroutineAwaiter GetAwaiter() { }
         public override int GetHashCode() { }
         public static Vernuntii.Coroutines.Coroutine FromCanceled(System.Threading.CancellationToken cancellationToken) { }
@@ -84,6 +84,7 @@ namespace Vernuntii.Coroutines
         [System.ComponentModel.Browsable(false)]
         public Vernuntii.Coroutines.CoroutineContextServiceMap KeyedServicesToBequest { get; }
         public void OnCoroutineCompleted() { }
+        public static Vernuntii.Coroutines.Coroutine<Vernuntii.Coroutines.CoroutineContext> Capture() { }
     }
     [System.Flags]
     public enum CoroutineContextBequesterOrigin
@@ -158,7 +159,7 @@ namespace Vernuntii.Coroutines
         public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) { }
         public bool Equals(Vernuntii.Coroutines.Coroutine<TResult> other) { }
         public override bool Equals([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? obj) { }
-        public Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult> GetAsyncIterator() { }
+        public Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult> GetAsyncIterator(in Vernuntii.Coroutines.CoroutineContext additiveContext = null) { }
         public Vernuntii.Coroutines.CompilerServices.CoroutineAwaiter<TResult> GetAwaiter() { }
         public override int GetHashCode() { }
         public static Vernuntii.Coroutines.Coroutine<TResult> op_Implicit(System.Threading.Tasks.Task<TResult> task) { }
@@ -353,10 +354,10 @@ namespace Vernuntii.Coroutines.Iterators
 {
     public static class AsyncIterator
     {
-        public static Vernuntii.Coroutines.Iterators.IAsyncIterator Create(System.Func<Vernuntii.Coroutines.Coroutine> provider) { }
-        public static Vernuntii.Coroutines.Iterators.IAsyncIterator Create(Vernuntii.Coroutines.Coroutine coroutine) { }
-        public static Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult> Create<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
-        public static Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult> Create<TResult>(Vernuntii.Coroutines.Coroutine<TResult> coroutine) { }
+        public static Vernuntii.Coroutines.Iterators.IAsyncIterator Create(System.Func<Vernuntii.Coroutines.Coroutine> provider, in Vernuntii.Coroutines.CoroutineContext additiveContext = null) { }
+        public static Vernuntii.Coroutines.Iterators.IAsyncIterator Create(Vernuntii.Coroutines.Coroutine coroutine, in Vernuntii.Coroutines.CoroutineContext additiveContext = null) { }
+        public static Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult> Create<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider, in Vernuntii.Coroutines.CoroutineContext additiveContext = null) { }
+        public static Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult> Create<TResult>(Vernuntii.Coroutines.Coroutine<TResult> coroutine, in Vernuntii.Coroutines.CoroutineContext additiveContext = null) { }
     }
     [System.Flags]
     public enum AsyncIteratorContextServiceOperationState
@@ -366,7 +367,10 @@ namespace Vernuntii.Coroutines.Iterators
         ArgumentSupplied = 2,
         AwaiterCompletionNotifierSupplied = 4,
     }
-    public static class CloneableAsyncIterator { }
+    public static class CloneableAsyncIterator
+    {
+        public static Vernuntii.Coroutines.Iterators.ICloneableAsyncIterator<TResult> Create<TResult>(System.Func<Vernuntii.Coroutines.Coroutine<TResult>> provider) { }
+    }
     public interface IAsyncIterator
     {
         object Current { get; }

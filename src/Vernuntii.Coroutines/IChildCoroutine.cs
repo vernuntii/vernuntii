@@ -2,5 +2,5 @@
 
 internal interface IChildCoroutine
 {
-    void StartCoroutine(in CoroutineContext context);
+    void ActOnCoroutine(in CoroutineContext context);
 }

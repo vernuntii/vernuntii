@@ -2,5 +2,5 @@
 
 public interface ISiblingCoroutine
 {
-    internal void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver);
+    internal void ActOnCoroutine(ref CoroutineArgumentReceiver argumentReceiver);
 }

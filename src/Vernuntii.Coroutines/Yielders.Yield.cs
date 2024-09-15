@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using static Vernuntii.Coroutines.Yielders.Arguments;
+﻿using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
 

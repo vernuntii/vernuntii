@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using static Vernuntii.Coroutines.Yielders.Arguments;
+﻿using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
 
@@ -27,7 +26,6 @@ partial class Yielders
     internal static Coroutine WithContextInternal<TClosure>(CoroutineContext additiveContext, Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ManualResetCoroutineCompletionSource<Nothing>.RentFromCache();
-        completionSource._coroutineContext = additiveContext;
         return new Coroutine(completionSource.CreateValueTask(), new CoroutineArgumentReceiverAcceptor<TClosure>(provider, closure, isProviderWithClosure, completionSource));
     }
 
@@ -35,7 +33,6 @@ partial class Yielders
     internal static Coroutine<TResult> WithContextInternal<TClosure, TResult>(CoroutineContext additiveContext, Delegate provider, TClosure closure, bool isProviderWithClosure)
     {
         var completionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
-        completionSource._coroutineContext = additiveContext;
         return new Coroutine<TResult>(completionSource.CreateGenericValueTask(), new CoroutineArgumentReceiverAcceptor<TClosure, TResult>(provider, closure, isProviderWithClosure, completionSource));
     }
 
@@ -79,11 +76,11 @@ partial class Yielders
 
                 var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<Nothing>>(completionSource);
 
-                ref var contextToBequest = ref typedCompletionSource._coroutineContext;
+                var contextToBequest = default(CoroutineContext);
                 contextToBequest.TreatAsNewSibling(additionalBequesterOrigin: CoroutineContextBequesterOrigin.ContextBequester);
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
-                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
                 coroutineAwaiter.DelegateCoroutineCompletion(typedCompletionSource);
             }
         }
@@ -117,11 +114,11 @@ partial class Yielders
 
                 var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<TResult>>(completionSource);
 
-                ref var contextToBequest = ref typedCompletionSource._coroutineContext;
+                var contextToBequest = default(CoroutineContext);
                 contextToBequest.TreatAsNewSibling(additionalBequesterOrigin: CoroutineContextBequesterOrigin.ContextBequester);
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
-                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
                 coroutineAwaiter.DelegateCoroutineCompletion(typedCompletionSource);
             }
         }

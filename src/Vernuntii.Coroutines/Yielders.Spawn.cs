@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Vernuntii.Coroutines.CompilerServices;
+﻿using Vernuntii.Coroutines.CompilerServices;
 using static Vernuntii.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Coroutines;
@@ -77,7 +76,7 @@ partial class Yielders
 
                 var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<CoroutineAwaitable>>(completionSource);
 
-                ref var contextToBequest = ref typedCompletionSource._coroutineContext;
+                var contextToBequest = default(CoroutineContext);
                 contextToBequest.TreatAsNewChild();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
@@ -91,7 +90,7 @@ partial class Yielders
 
                 var intermediateCompletionSource = ManualResetCoroutineCompletionSource<Nothing>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateValueTask();
-                CoroutineMethodBuilderCore.ActOnCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref childCoroutineAwaiter, in contextToBequest);
                 childCoroutineAwaiter.DelegateCoroutineCompletion(intermediateCompletionSource);
                 childCoroutine.MarkCoroutineAsActedOn();
                 typedCompletionSource.SetResult(new(in childCoroutine));
@@ -127,7 +126,7 @@ partial class Yielders
 
                 var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>>>(completionSource);
 
-                ref var contextToBequest = ref typedCompletionSource._coroutineContext;
+                var contextToBequest = default(CoroutineContext);
                 contextToBequest.TreatAsNewChild();
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
@@ -141,7 +140,7 @@ partial class Yielders
 
                 var intermediateCompletionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
                 childCoroutine._task = intermediateCompletionSource.CreateGenericValueTask();
-                CoroutineMethodBuilderCore.ActOnCoroutine(ref childCoroutineAwaiter, ref contextToBequest);
+                CoroutineMethodBuilderCore.ActOnCoroutine(ref childCoroutineAwaiter, in contextToBequest);
                 childCoroutineAwaiter.DelegateCoroutineCompletion(intermediateCompletionSource);
                 childCoroutine.MarkCoroutineAsActedOn();
                 typedCompletionSource.SetResult(new(in childCoroutine));

@@ -25,5 +25,10 @@ partial class AsyncIteratorTests
             [Fact]
             public override Task GetResult_Throws() => base.GetResult_Throws();
         }
+
+        public class YieldReturnSynchronously : AbstractYieldReturnSynchronously
+        {
+            protected override Coroutine<int> YieldConstant() => WithContext(default, async () => await Exchange(ExpectedResult));
+        }
     }
 }

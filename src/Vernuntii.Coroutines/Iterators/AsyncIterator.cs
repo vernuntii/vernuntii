@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Text;
 
 namespace Vernuntii.Coroutines.Iterators;
 
@@ -8,16 +7,16 @@ public static class AsyncIterator
     internal static readonly Key s_asyncIteratorKey = new(Encoding.ASCII.GetBytes(nameof(AsyncIterator)));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IAsyncIterator Create(Func<Coroutine> provider) => new AsyncIteratorImpl<Nothing>(provider);
+    public static IAsyncIterator Create(Func<Coroutine> provider, in CoroutineContext additiveContext = default) => new AsyncIteratorImpl<Nothing>(provider, in additiveContext);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IAsyncIterator Create(Coroutine coroutine) => new AsyncIteratorImpl<Nothing>(coroutine);
+    public static IAsyncIterator Create(Coroutine coroutine, in CoroutineContext additiveContext = default) => new AsyncIteratorImpl<Nothing>(coroutine, in additiveContext);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IAsyncIterator<TResult> Create<TResult>(Func<Coroutine<TResult>> provider) => new AsyncIteratorImpl<TResult>(provider);
+    public static IAsyncIterator<TResult> Create<TResult>(Func<Coroutine<TResult>> provider, in CoroutineContext additiveContext = default) => new AsyncIteratorImpl<TResult>(provider, in additiveContext);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IAsyncIterator<TResult> Create<TResult>(Coroutine<TResult> coroutine) => new AsyncIteratorImpl<TResult>(coroutine);
+    public static IAsyncIterator<TResult> Create<TResult>(Coroutine<TResult> coroutine, in CoroutineContext additiveContext = default) => new AsyncIteratorImpl<TResult>(coroutine, in additiveContext);
 }
 
 partial class AsyncIteratorImpl<TReturnResult>

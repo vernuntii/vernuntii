@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Vernuntii.Coroutines;
+﻿namespace Vernuntii.Coroutines;
 
 internal static class CoroutineAwaiterExtensions
 {
@@ -23,7 +21,7 @@ internal static class CoroutineAwaiterExtensions
                 completionSource.SetResult(default);
             } catch (Exception error) {
                 completionSource.SetException(error);
-                throw; // Must bubble up
+                //throw; // Must bubble up
             }
         }
     }
@@ -47,7 +45,7 @@ internal static class CoroutineAwaiterExtensions
                 completionSource.SetResult(result);
             } catch (Exception error) {
                 completionSource.SetException(error);
-                throw; // Must bubble up
+                //throw; // Must bubble up
             }
         }
     }
@@ -71,7 +69,7 @@ internal static class CoroutineAwaiterExtensions
                 completionSource.SetResult(default);
             } catch (Exception error) {
                 completionSource.SetException(error);
-                throw; // Must bubble up
+                //throw; // Must bubble up
             }
         }
     }
@@ -95,7 +93,7 @@ internal static class CoroutineAwaiterExtensions
                 completionSource.SetResult(result);
             } catch (Exception error) {
                 completionSource.SetException(error);
-                throw; // Must bubble up
+                //throw; // Must bubble up
             }
         }
     }

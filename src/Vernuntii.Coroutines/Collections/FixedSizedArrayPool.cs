@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Vernuntii.Coroutines;
 
 namespace Vernuntii.Collections;

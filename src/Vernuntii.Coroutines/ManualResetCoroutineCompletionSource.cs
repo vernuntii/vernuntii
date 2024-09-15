@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
 using Vernuntii.Coroutines.Iterators;
 
@@ -70,8 +69,6 @@ internal class ManualResetCoroutineCompletionSource<TResult> : IValueTaskSource<
         // Clear out the state machine and associated context to avoid keeping arbitrary state referenced by
         // lifted locals, and reset the instance for another await.
         _executionContext = default;
-        _coroutineContext.OnCoroutineCompleted();
-        _coroutineContext = default;
         _valueTaskSource.Reset();
 
         // If the per-thread cache is empty, store this into it..
@@ -90,8 +87,6 @@ internal class ManualResetCoroutineCompletionSource<TResult> : IValueTaskSource<
 
     /// <summary>Captured ExecutionContext with which to invoke MoveNext.</summary>
     internal ExecutionContext? _executionContext;
-
-    internal CoroutineContext _coroutineContext;
 
     /// <summary>Implementation for IValueTaskSource interfaces.</summary>
     protected ManualResetValueTaskSourceCore<TResult> _valueTaskSource;

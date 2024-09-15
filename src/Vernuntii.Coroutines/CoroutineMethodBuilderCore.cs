@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Vernuntii.Coroutines.CompilerServices;
 
 namespace Vernuntii.Coroutines;
@@ -9,7 +8,7 @@ internal static class CoroutineMethodBuilderCore
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void ActOnCoroutine<TCoroutine>(
         ref TCoroutine coroutine,
-        ref CoroutineContext context)
+        in CoroutineContext context)
         where TCoroutine : IRelativeCoroutine
     {
         switch (coroutine.CoroutineAction) {
@@ -18,13 +17,13 @@ internal static class CoroutineMethodBuilderCore
             case CoroutineAction.Sibling:
                 Debug.Assert(coroutine.CoroutineActioner is not null);
                 var siblingCoroutine = Unsafe.As<ISiblingCoroutine>(coroutine.CoroutineActioner);
-                var argumentReceiver = new CoroutineArgumentReceiver(ref context);
-                siblingCoroutine.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
+                var argumentReceiver = new CoroutineArgumentReceiver(in context);
+                siblingCoroutine.ActOnCoroutine(ref argumentReceiver);
                 break;
             case CoroutineAction.Child:
                 Debug.Assert(coroutine.CoroutineActioner is not null);
                 var childCoroutine = Unsafe.As<IChildCoroutine>(coroutine.CoroutineActioner);
-                childCoroutine.StartCoroutine(in context);
+                childCoroutine.ActOnCoroutine(in context);
                 break;
             default:
                 throw new Exception();
@@ -42,13 +41,13 @@ internal static class CoroutineMethodBuilderCore
             case CoroutineAction.Sibling:
                 Debug.Assert(coroutine.CoroutineActioner is not null);
                 var siblingCoroutine = Unsafe.As<ISiblingCoroutine>(coroutine.CoroutineActioner);
-                var argumentReceiver = new CoroutineArgumentReceiver(ref CoroutineContext.s_statelessCoroutineContext);
-                siblingCoroutine.AcceptCoroutineArgumentReceiver(ref argumentReceiver);
+                var argumentReceiver = new CoroutineArgumentReceiver(in CoroutineContext.s_statelessCoroutineContext);
+                siblingCoroutine.ActOnCoroutine(ref argumentReceiver);
                 break;
             case CoroutineAction.Child:
                 Debug.Assert(coroutine.CoroutineActioner is not null);
                 var childCoroutine = Unsafe.As<IChildCoroutine>(coroutine.CoroutineActioner);
-                childCoroutine.StartCoroutine(in CoroutineContext.s_statelessCoroutineContext);
+                childCoroutine.ActOnCoroutine(in CoroutineContext.s_statelessCoroutineContext);
                 break;
             default:
                 throw new Exception();
@@ -58,11 +57,11 @@ internal static class CoroutineMethodBuilderCore
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     internal static void ActOnAwaiterIfCoroutine<TAwaiter>(
         ref TAwaiter awaiter,
-        ref CoroutineContext context)
+        ref CoroutineContext contextToBequest)
     {
         if (null != default(TAwaiter) && awaiter is IRelativeCoroutine) {
             ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, CoroutineAwaiter>(ref awaiter);
-            ActOnCoroutine(ref coroutineAwaiter, ref context);
+            ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
         }
     }
 

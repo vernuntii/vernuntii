@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
 using Vernuntii.Coroutines.Iterators;
 
@@ -35,7 +34,7 @@ partial struct CoroutineMethodBuilder<TResult>
             _coroutineContext._bequesterOrigin = CoroutineContextBequesterOrigin.ChildCoroutine;
         }
 
-        void IChildCoroutine.StartCoroutine(in CoroutineContext contextToBequest)
+        void IChildCoroutine.ActOnCoroutine(in CoroutineContext contextToBequest)
         {
             CoroutineContext.InheritOrBequestCoroutineContext(ref _coroutineContext, in contextToBequest);
             ref var coroutineContext = ref _coroutineContext;

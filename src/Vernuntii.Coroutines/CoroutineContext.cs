@@ -1,15 +1,25 @@
 ﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace Vernuntii.Coroutines;
 
 delegate void BequestContextDelegate(ref CoroutineContext context, in CoroutineContext contextToBequest);
+
+file class CoroutineArgumentReceiverAcceptor(ManualResetValueTaskCompletionSource<CoroutineContext> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+{
+    protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver) => completionSource.SetResult(argumentReceiver._context);
+}
 
 public struct CoroutineContext
 {
     internal static CoroutineContext s_statelessCoroutineContext = default;
 
     private static readonly CoroutineContextServiceMap s_emptyKeyedServices = new();
+
+    public static Coroutine<CoroutineContext> Capture()
+    {
+        var completionSource = ManualResetValueTaskCompletionSource<CoroutineContext>.RentFromCache();
+        return new(completionSource, new CoroutineArgumentReceiverAcceptor(completionSource));
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void InheritOrBequestCoroutineContext(ref CoroutineContext context, in CoroutineContext contextToBequest)
