@@ -7,7 +7,7 @@ partial class AsyncIteratorTests
         public class ReturnSynchronously : AbstractReturnSynchronously<int, int> {
             protected override Coroutine<int> Constant() => Coroutine.FromResult(ExpectedResult);
             protected override ValueTask<int> Unwrap(int resultWrapper) => new(resultWrapper);
-            protected override ValueTask<Coroutine<int>> Unwrap(Coroutine<int> x) => new(x);
+            protected override ValueTask<Coroutine<int>> Unwrap(Coroutine<int> coroutine) => new(coroutine);
         }
 
         public class ReturnAfterDelay : AbstractReturnAfterDelay<int, int>
@@ -79,7 +79,7 @@ partial class AsyncIteratorTests
             }
 
             [Fact]
-            public async Task MoveNextThenYieldReturnThenThenGetResult_Returns()
+            public async Task MoveNextThenYieldReturnThenGetResult_Returns()
             {
                 const int expectedYieldResult = ExpectedResult + 1;
                 var iterator = YieldConstant().GetAsyncIterator();
@@ -91,7 +91,7 @@ partial class AsyncIteratorTests
             }
 
             [Fact]
-            public async Task MoveNextThenMoveNextThenThenGetResult_Returns()
+            public async Task MoveNextThenMoveNextThenGetResult_Returns()
             {
                 var iterator = YieldConstant().GetAsyncIterator();
                 _ = await iterator.MoveNextAsync().ConfigureAwait(false);

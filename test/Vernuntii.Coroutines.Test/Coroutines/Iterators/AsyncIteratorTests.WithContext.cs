@@ -9,7 +9,7 @@ partial class AsyncIteratorTests
         {
             protected override Coroutine<int> Constant() => WithContext(_defaultContext, () => new Coroutine<int>(ExpectedResult));
             protected override ValueTask<int> Unwrap(int resultWrapper) => new(resultWrapper);
-            protected override ValueTask<Coroutine<int>> Unwrap(Coroutine<int> x) => new(x);
+            protected override ValueTask<Coroutine<int>> Unwrap(Coroutine<int> coroutine) => new(coroutine);
         }
 
         public class ReturnAfterDelay : AbstractReturnAfterDelay<int, int>

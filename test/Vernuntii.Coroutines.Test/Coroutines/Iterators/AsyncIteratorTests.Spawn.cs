@@ -22,7 +22,7 @@ partial class AsyncIteratorTests
         {
             protected override Coroutine<CoroutineAwaitable<int>> Constant() => Spawn(() => Coroutine.FromResult(ExpectedResult));
             protected override ValueTask<int> Unwrap(CoroutineAwaitable<int> resultWrapper) => resultWrapper;
-            protected override async ValueTask<Coroutine<int>> Unwrap(Coroutine<CoroutineAwaitable<int>> x) => await x;
+            protected override async ValueTask<Coroutine<int>> Unwrap(Coroutine<CoroutineAwaitable<int>> coroutine) => await coroutine;
         }
 
         public class ReturnAfterDelay : AbstractReturnAfterDelay<CoroutineAwaitable<int>, int>
