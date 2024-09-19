@@ -43,4 +43,6 @@ public interface IAsyncIterator
     /// </summary>
     /// <returns></returns>
     Coroutine GetResultAsync();
+
+    IAsyncIterator Clone();
 }

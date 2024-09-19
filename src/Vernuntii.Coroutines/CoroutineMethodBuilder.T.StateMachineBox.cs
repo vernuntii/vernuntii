@@ -122,7 +122,7 @@ partial struct CoroutineMethodBuilder<TResult>
 
     /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
     internal sealed class CoroutineStateMachineBox<TStateMachine> : CoroutineStateMachineBox, IValueTaskSource<TResult>, IValueTaskSource,
-        ICoroutineStateMachineBox, IThreadPoolWorkItem, ICoroutineResultStateMachineBox, IAsyncIteratorStateMachineBox<TResult>
+        ICoroutineStateMachineBox<TResult>, IThreadPoolWorkItem, ICoroutineResultStateMachineBox, IAsyncIteratorStateMachineBox<TResult>
         where TStateMachine : IAsyncStateMachine
     {
         /// <summary>Delegate used to invoke on an ExecutionContext when passed an instance of this box type.</summary>
@@ -330,6 +330,22 @@ partial struct CoroutineMethodBuilder<TResult>
         void IAsyncIteratorStateMachineBox<TResult>.SetResult(TResult result) => _valueTaskSource._valueTaskSource.SetResult(result);
 
         void IAsyncIteratorStateMachineBox<TResult>.SetException(Exception e) => _valueTaskSource._valueTaskSource.SetException(e);
+
+        ICoroutineStateMachineBox ICoroutineStateMachineBox.CreateNewByCloningUnderlyingStateMachine()
+        {
+            Debug.Assert(StateMachine is not null);
+            var stateMachine = CoroutineStateMachineAccessor<TStateMachine>.CloneStateMachine(StateMachine);
+            ref var builder = ref CoroutineStateMachineAccessor<TStateMachine>.GetCoroutineMethodBuilder(ref stateMachine);
+            return builder.ReplaceStateMachine(ref stateMachine);
+        }
+
+        ICoroutineStateMachineBox<TResult> ICoroutineStateMachineBox<TResult>.CreateNewByCloningUnderlyingStateMachine()
+        {
+            Debug.Assert(StateMachine is not null);
+            var stateMachine = CoroutineStateMachineAccessor<TStateMachine, TResult>.CloneStateMachine(StateMachine);
+            ref var builder = ref CoroutineStateMachineAccessor<TStateMachine, TResult>.GetCoroutineMethodBuilder(ref stateMachine);
+            return builder.ReplaceStateMachine(ref stateMachine);
+        }
     }
 
     internal class CoroutineStateMachineBoxResult : IEquatable<CoroutineStateMachineBoxResult>

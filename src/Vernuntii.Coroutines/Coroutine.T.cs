@@ -84,7 +84,8 @@ public partial struct Coroutine<TResult> : IRelativeCoroutine, IEquatable<Corout
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Coroutine<TResult>(ValueTask<TResult> task) => new(task);
 
-    public readonly IAsyncIterator<TResult> GetAsyncIterator(in CoroutineContext additiveContext = default) => new AsyncIteratorImpl<TResult>(this, in additiveContext);
+    public readonly IAsyncIterator<TResult> GetAsyncIterator(in CoroutineContext additiveContext = default, bool isCloneable = false) =>
+        new AsyncIteratorImpl<TResult>(this, in additiveContext, isCloneable: isCloneable);
 
     public readonly bool Equals(Coroutine<TResult> other) => CoroutineEqualityComparer.Equals(in this, in other);
 

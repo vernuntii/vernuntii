@@ -16,7 +16,7 @@ partial struct CoroutineMethodBuilder<TResult>
     /// <param name="stateMachine">The state machine.</param>
     /// <param name="stateMachineBox">A reference to the field containing the initialized state machine box.</param>
     /// <returns>The "boxed" state machine.</returns>
-    internal static ICoroutineStateMachineBox GetStateMachineBox<TStateMachine>(ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineBox? stateMachineBox)
+    internal static ICoroutineStateMachineBox<TResult> GetStateMachineBox<TStateMachine>(ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineBox? stateMachineBox)
         where TStateMachine : IAsyncStateMachine
     {
         var currentContext = ExecutionContext.Capture();
@@ -77,6 +77,22 @@ partial struct CoroutineMethodBuilder<TResult>
         return typedStateMachineBox;
     }
 
+    /// <summary>Gets the "boxed" state machine object.</summary>
+    /// <typeparam name="TStateMachine">Specifies the type of the async state machine.</typeparam>
+    /// <param name="stateMachine">The state machine.</param>
+    /// <param name="stateMachineBoxToReset">A reference to the field containing the initialized state machine box.</param>
+    /// <returns>The "boxed" state machine.</returns>
+    internal static ICoroutineStateMachineBox<TResult> RenewStateMachineBox<TStateMachine>(ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineBox? stateMachineBoxToReset)
+        where TStateMachine : IAsyncStateMachine
+    {
+        var currentContext = ExecutionContext.Capture();
+        var weaklyTypedMachineBox = CoroutineStateMachineBox<TStateMachine>.RentFromCache();
+        stateMachineBoxToReset = weaklyTypedMachineBox;
+        weaklyTypedMachineBox.StateMachine = stateMachine;
+        weaklyTypedMachineBox._executionContext = currentContext;
+        return weaklyTypedMachineBox;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine, ref CoroutineStateMachineBox stateMachineBox)
         where TAwaiter : INotifyCompletion
@@ -105,11 +121,16 @@ partial struct CoroutineMethodBuilder<TResult>
         where TStateMachine : IAsyncStateMachine
     {
         ref var context = ref stateMachineBox._coroutineContext;
-        CoroutineMethodBuilderCore.ActOnAwaiterIfCoroutine(ref awaiter, ref context);
+        var asyncIteratorContextService = context._isCoroutineAsyncIteratorSupplier ? context.GetAsyncIteratorContextService() : null;
+        var isCoroutineAwaiter = CoroutineMethodBuilderCore.ActOnAwaiterIfCoroutineAwaiter(ref awaiter, ref context, asyncIteratorContextService);
 
         if (context._isCoroutineAsyncIteratorSupplier) {
-            var asyncIteratorContextService = context.GetAsyncIteratorContextService();
+            Debug.Assert(asyncIteratorContextService is not null);
             asyncIteratorContextService.CurrentOperation.SupplyAwaiterCriticalCompletionNotifier(ref awaiter);
+            if (isCoroutineAwaiter && asyncIteratorContextService.IsAsyncIteratorCloneable) {
+                // We must box to assist in the complex process of cloning an async iterator
+                asyncIteratorContextService.CurrentOperation.SupplyCoroutineAwaiter((IRelativeCoroutineAwaiter)awaiter);
+            }
         } else {
             var typedStateMachineBox = GetStateMachineBox(ref stateMachine, ref stateMachineBox);
             try {

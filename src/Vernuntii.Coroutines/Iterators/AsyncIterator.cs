@@ -7,16 +7,20 @@ public static class AsyncIterator
     internal static readonly Key s_asyncIteratorKey = new(Encoding.ASCII.GetBytes(nameof(AsyncIterator)));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IAsyncIterator Create(Func<Coroutine> provider, in CoroutineContext additiveContext = default) => new AsyncIteratorImpl<Nothing>(provider, in additiveContext);
+    public static IAsyncIterator Create(Func<Coroutine> provider, in CoroutineContext additiveContext = default, bool isCloneable = false) =>
+        new AsyncIteratorImpl<Nothing>(provider, in additiveContext, isCloneable: isCloneable);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IAsyncIterator Create(Coroutine coroutine, in CoroutineContext additiveContext = default) => new AsyncIteratorImpl<Nothing>(coroutine, in additiveContext);
+    public static IAsyncIterator Create(Coroutine coroutine, in CoroutineContext additiveContext = default, bool isCloneable = false) =>
+        new AsyncIteratorImpl<Nothing>(coroutine, in additiveContext, isCloneable: isCloneable);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IAsyncIterator<TResult> Create<TResult>(Func<Coroutine<TResult>> provider, in CoroutineContext additiveContext = default) => new AsyncIteratorImpl<TResult>(provider, in additiveContext);
+    public static IAsyncIterator<TResult> Create<TResult>(Func<Coroutine<TResult>> provider, in CoroutineContext additiveContext = default, bool isCloneable = false) =>
+        new AsyncIteratorImpl<TResult>(provider, in additiveContext, isCloneable: isCloneable);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IAsyncIterator<TResult> Create<TResult>(Coroutine<TResult> coroutine, in CoroutineContext additiveContext = default) => new AsyncIteratorImpl<TResult>(coroutine, in additiveContext);
+    public static IAsyncIterator<TResult> Create<TResult>(Coroutine<TResult> coroutine, in CoroutineContext additiveContext = default, bool isCloneable = false) =>
+        new AsyncIteratorImpl<TResult>(coroutine, in additiveContext, isCloneable: isCloneable);
 }
 
 partial class AsyncIteratorImpl<TReturnResult>

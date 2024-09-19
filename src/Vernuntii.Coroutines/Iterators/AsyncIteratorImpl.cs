@@ -5,48 +5,55 @@ namespace Vernuntii.Coroutines.Iterators;
 
 internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturnResult>, IAsyncIterator
 {
+    public bool IsCloneable => _isCloneable;
+
     public Key CurrentKey {
         get {
             EnsureNextOperationIsHavingSuppliedArgument();
-            return _nextOperation.ArgumentKey;
+            return _nextOperation._argumentKey;
         }
     }
 
     public object Current {
         get {
             EnsureNextOperationIsHavingSuppliedArgument();
-            Debug.Assert(_nextOperation.Argument is not null);
-            return _nextOperation.Argument;
+            Debug.Assert(_nextOperation._argument is not null);
+            return _nextOperation._argument;
         }
     }
 
     private readonly ICoroutineHolder _coroutineHolder;
     private readonly CoroutineContext _additiveContext;
+    private readonly bool _isCloneable;
     private AsyncIteratorContext? _iteratorContext;
-    private AsyncIteratorContextServiceOperation _nextOperation;
+    private SuspensionPoint _nextOperation;
 
-    public AsyncIteratorImpl(Func<Coroutine> provider, in CoroutineContext additiveContext)
+    internal AsyncIteratorImpl(Func<Coroutine> provider, in CoroutineContext additiveContext, bool isCloneable)
     {
         _coroutineHolder = new CoroutineHolder<Func<Coroutine>, Coroutine>(provider, isProvider: true, isGeneric: false);
         _additiveContext = additiveContext;
+        _isCloneable = isCloneable;
     }
 
-    public AsyncIteratorImpl(Func<Coroutine<TReturnResult>> provider, in CoroutineContext additiveContext)
+    internal AsyncIteratorImpl(Func<Coroutine<TReturnResult>> provider, in CoroutineContext additiveContext, bool isCloneable)
     {
         _coroutineHolder = new CoroutineHolder<Func<Coroutine<TReturnResult>>, Coroutine<TReturnResult>>(provider, isProvider: true, isGeneric: true);
         _additiveContext = additiveContext;
+        _isCloneable = isCloneable;
     }
 
-    public AsyncIteratorImpl(Coroutine coroutine, in CoroutineContext additiveContext)
+    internal AsyncIteratorImpl(Coroutine coroutine, in CoroutineContext additiveContext, bool isCloneable)
     {
         _coroutineHolder = new CoroutineHolder<Coroutine, Coroutine>(coroutine, isProvider: false, isGeneric: false);
         _additiveContext = additiveContext;
+        _isCloneable = isCloneable;
     }
 
-    public AsyncIteratorImpl(Coroutine<TReturnResult> coroutine, in CoroutineContext additiveContext)
+    internal AsyncIteratorImpl(Coroutine<TReturnResult> coroutine, in CoroutineContext additiveContext, bool isCloneable)
     {
         _coroutineHolder = new CoroutineHolder<Coroutine<TReturnResult>, Coroutine<TReturnResult>>(coroutine, isProvider: false, isGeneric: true);
         _additiveContext = additiveContext;
+        _isCloneable = isCloneable;
     }
 
     private void OnBequestCoroutineContext(ref CoroutineContext context, in CoroutineContext contextToBequest)
@@ -90,7 +97,7 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
             return iteratorContext;
         }
 
-        iteratorContext = new AsyncIteratorContext(new AsyncIteratorContextService(AsyncIteratorContextServiceOperation.AwaiterCompletionNotifierRequired));
+        iteratorContext = new AsyncIteratorContext(new AsyncIteratorContextService(SuspensionPoint.AwaiterCompletionNotifierRequired, isAsyncIteratorCloneable: _isCloneable));
         ref var coroutineAwaiter = ref iteratorContext._coroutineAwaiter;
         coroutineAwaiter = _coroutineHolder.Coroutine.GetAwaiter();
         isCoroutineCompleted = coroutineAwaiter.IsCompleted;
@@ -107,11 +114,11 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
     private void EnsureNextOperationIsHavingSuppliedArgument()
     {
         // hot-path
-        if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
+        if ((_nextOperation._state & SuspensionPointState.ArgumentSupplied) != 0) {
             return;
         }
 
-        if (_nextOperation.State == 0) {
+        if (_nextOperation._state == 0) {
             throw Exceptions.NotStartedAlreadyFinishedOrNotSuspended();
         }
 
@@ -127,15 +134,15 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
             return false;
         }
 
-        if (_nextOperation.State != 0) {
+        if (_nextOperation._state != 0) {
             try {
-                if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
+                if ((_nextOperation._state & SuspensionPointState.ArgumentSupplied) != 0) {
                     var argumentReceiver = new CoroutineArgumentReceiver(in iteratorContext._iteratorAgnosticCoroutineContext);
-                    Debug.Assert(_nextOperation.Argument is not null);
-                    Debug.Assert(_nextOperation.ArgumentCompletionSource is not null);
-                    argumentReceiver.ReceiveCallableArgument(_nextOperation.ArgumentKey, _nextOperation.Argument, _nextOperation.ArgumentCompletionSource);
+                    Debug.Assert(_nextOperation._argument is not null);
+                    Debug.Assert(_nextOperation._argumentCompletionSource is not null);
+                    argumentReceiver.ReceiveCallableArgument(_nextOperation._argumentKey, _nextOperation._argument, _nextOperation._argumentCompletionSource);
                     iteratorContextService.CurrentOperation.RequireAwaiterCompletionNotifier();
-                    await _nextOperation.AwaiterCompletionNotifier;
+                    await _nextOperation._awaiterCompletionNotifier;
                     iteratorContext._coroutineStateMachineBox?.MoveNext();
 
                     if (iteratorContext._coroutineAwaiter.IsCompleted) {
@@ -149,21 +156,21 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
             }
         }
 
-        if ((iteratorContextService.CurrentOperation.State & AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied) == 0) {
+        if ((iteratorContextService.CurrentOperation._state & SuspensionPointState.AwaiterCompletionNotifierSupplied) == 0) {
             if (iteratorContext.HasCoroutineStateMachineBox) {
                 throw new InvalidOperationException("Altough the underlying coroutine is managed by a state machine, the coroutine misbehaved fatally by not supplying the next awaiter completion notifier");
             }
             return false;
         }
 
-        while (iteratorContextService.CurrentOperation.State == AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied) {
+        while (iteratorContextService.CurrentOperation._state == SuspensionPointState.AwaiterCompletionNotifierSupplied) {
             iteratorContextService.CurrentOperation.RequireAwaiterCompletionNotifier();
-            await iteratorContextService.CurrentOperation.AwaiterCompletionNotifier;
+            await iteratorContextService.CurrentOperation._awaiterCompletionNotifier;
             iteratorContext._coroutineStateMachineBox?.MoveNext();
         };
 
-        if ((iteratorContextService.CurrentOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
-            if ((iteratorContextService.CurrentOperation.State & AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied) == 0) {
+        if ((iteratorContextService.CurrentOperation._state & SuspensionPointState.ArgumentSupplied) != 0) {
+            if ((iteratorContextService.CurrentOperation._state & SuspensionPointState.AwaiterCompletionNotifierSupplied) == 0) {
                 throw new InvalidOperationException("Altough the underlying coroutine yielded an argument successfully, the coroutine misbehaved fatally by not supplying the next awaiter completion notifier");
             }
 
@@ -176,14 +183,14 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
 
     public void YieldReturn<TYieldResult>(TYieldResult result)
     {
-        if (_nextOperation.State != 0) {
+        if (_nextOperation._state != 0) {
             try {
                 var iteratorContext = GetIteratorContext(out _);
 
-                if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
+                if ((_nextOperation._state & SuspensionPointState.ArgumentSupplied) != 0) {
                     iteratorContext._iteratorContextService.CurrentOperation.RequireAwaiterCompletionNotifier();
-                    Debug.Assert(_nextOperation.ArgumentCompletionSource is not null);
-                    _nextOperation.ArgumentCompletionSource.SetResult(result);
+                    Debug.Assert(_nextOperation._argumentCompletionSource is not null);
+                    _nextOperation._argumentCompletionSource.SetResult(result);
                     iteratorContext._coroutineStateMachineBox?.MoveNext();
                 }
             } finally {
@@ -196,16 +203,16 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
 
     public void Return(TReturnResult result)
     {
-        if (_nextOperation.State != 0) {
+        if (_nextOperation._state != 0) {
             try {
                 var iteratorContext = GetIteratorContext(out _);
 
-                if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
+                if ((_nextOperation._state & SuspensionPointState.ArgumentSupplied) != 0) {
                     var completionSource = ManualResetValueTaskCompletionSource<TReturnResult>.RentFromCache();
                     iteratorContext._iteratorContextService.CurrentOperation.RequireAwaiterCompletionNotifier();
                     iteratorContext._coroutineStateMachineBox!.SetAsyncIteratorCompletionSource(completionSource);
-                    Debug.Assert(_nextOperation.ArgumentCompletionSource is not null);
-                    _nextOperation.ArgumentCompletionSource.SetException(new CancellationException());
+                    Debug.Assert(_nextOperation._argumentCompletionSource is not null);
+                    _nextOperation._argumentCompletionSource.SetException(new CancellationException());
                     iteratorContext._coroutineStateMachineBox?.MoveNext();
                     if (completionSource.GetStatus(completionSource.Version) == System.Threading.Tasks.Sources.ValueTaskSourceStatus.Faulted) {
                         iteratorContext._coroutineStateMachineBox!.SetResult(result);
@@ -222,14 +229,14 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
 
     public void Throw(Exception e)
     {
-        if (_nextOperation.State != 0) {
+        if (_nextOperation._state != 0) {
             try {
                 var iteratorContext = GetIteratorContext(out _);
 
-                if ((_nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
+                if ((_nextOperation._state & SuspensionPointState.ArgumentSupplied) != 0) {
                     iteratorContext._iteratorContextService.CurrentOperation.RequireAwaiterCompletionNotifier();
-                    Debug.Assert(_nextOperation.ArgumentCompletionSource is not null);
-                    _nextOperation.ArgumentCompletionSource.SetException(e);
+                    Debug.Assert(_nextOperation._argumentCompletionSource is not null);
+                    _nextOperation._argumentCompletionSource.SetException(e);
                     iteratorContext._coroutineStateMachineBox?.MoveNext();
                 }
             } finally {
@@ -262,15 +269,15 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
         var coroutineContextSerivce = iteratorContext._iteratorContextService;
         var nextOperation = _nextOperation;
 
-        if (nextOperation.State == 0) {
+        if (nextOperation._state == 0) {
             var currentOperation = iteratorContext._iteratorContextService.CurrentOperation;
-            var currentOperationState = currentOperation.State;
+            var currentOperationState = currentOperation._state;
 
-            if (currentOperationState == AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierRequired) {
+            if (currentOperationState == SuspensionPointState.AwaiterCompletionNotifierRequired) {
                 goto exit;
             }
 
-            if ((currentOperationState & (AsyncIteratorContextServiceOperationState.ArgumentSupplied | AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied)) != 0) {
+            if ((currentOperationState & (SuspensionPointState.ArgumentSupplied | SuspensionPointState.AwaiterCompletionNotifierSupplied)) != 0) {
                 nextOperation = currentOperation;
                 if (iteratorContext.HasCoroutineStateMachineBox) {
                     iteratorContext._coroutineStateMachineBox.CoroutineContext._isCoroutineAsyncIteratorSupplier = false;
@@ -281,15 +288,15 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
             }
         }
 
-        if ((nextOperation.State & AsyncIteratorContextServiceOperationState.ArgumentSupplied) != 0) {
+        if ((nextOperation._state & SuspensionPointState.ArgumentSupplied) != 0) {
             var argumentReceiver = new CoroutineArgumentReceiver(in iteratorContext._iteratorAgnosticCoroutineContext);
-            Debug.Assert(nextOperation.Argument is not null);
-            Debug.Assert(nextOperation.ArgumentCompletionSource is not null);
-            argumentReceiver.ReceiveCallableArgument(nextOperation.ArgumentKey, nextOperation.Argument, nextOperation.ArgumentCompletionSource);
+            Debug.Assert(nextOperation._argument is not null);
+            Debug.Assert(nextOperation._argumentCompletionSource is not null);
+            argumentReceiver.ReceiveCallableArgument(nextOperation._argumentKey, nextOperation._argument, nextOperation._argumentCompletionSource);
         }
 
-        if ((nextOperation.State & AsyncIteratorContextServiceOperationState.AwaiterCompletionNotifierSupplied) != 0) {
-            var awaiterCompletionNotifierAwaiter = nextOperation.AwaiterCompletionNotifier.ConfigureAwait(false).GetAwaiter();
+        if ((nextOperation._state & SuspensionPointState.AwaiterCompletionNotifierSupplied) != 0) {
+            var awaiterCompletionNotifierAwaiter = nextOperation._awaiterCompletionNotifier.ConfigureAwait(false).GetAwaiter();
             awaiterCompletionNotifierAwaiter.UnsafeOnCompleted(() => {
                 // Allow the completion notifier to be returned to the pool
                 awaiterCompletionNotifierAwaiter.GetResult(); // Should never throw
@@ -302,9 +309,63 @@ internal partial class AsyncIteratorImpl<TReturnResult> : IAsyncIterator<TReturn
         return _coroutineHolder.Coroutine;
     }
 
+    IAsyncIterator IAsyncIterator.Clone()
+    {
+        throw new NotImplementedException();
+    }
+
+    IAsyncIterator IAsyncIterator<TReturnResult>.Clone()
+    {
+        throw new NotImplementedException();
+        if (!_isCloneable) {
+            throw new NotSupportedException();
+        }
+
+        //if (_nextOperation._state != 0) {
+        //    var iteratorContextToClone = GetIteratorContext(out _);
+        //    Debug.Assert(iteratorContextToClone._coroutineStateMachineBox is not null);
+        //    ICoroutineStateMachineBox<TResult> coroutineStateMachineBox = iteratorContextToClone._coroutineStateMachineBox;
+        //    var stateMachineBox = coroutineStateMachineBox.CreateNewByCloningUnderlyingStateMachine();
+        //    stateMachineBox.CoroutineContext = iteratorContextToClone._iteratorAgnosticCoroutineContext;
+        //    var iterator = new AsyncIteratorImpl<TResult>(new Coroutine<TResult>(new(stateMachineBox, stateMachineBox.Version), stateMachineBox), _additiveContext);
+        //    test(iterator, (IAsyncIteratorStateMachineBox<TResult>)stateMachineBox, iteratorContextToClone);
+
+        //    //iteratorContextToClone._iteratorContextService.CurrentOperation.Argument
+
+        //    var relativeCoroutine = new RelativeCoroutine(_nextOperation._coroutineActioner, _nextOperation._coroutineAction);
+        //    CoroutineMethodBuilderCore.ActOnCoroutine(ref relativeCoroutine, in stateMachineBox.CoroutineContext);
+
+
+        //    //stateMachineBox.MoveNext();
+        //    return iterator;
+
+        //    static void test(AsyncIteratorImpl<TResult> iterator, IAsyncIteratorStateMachineBox<TResult> stateMachineBox, AsyncIteratorContext iteratorContextToClone)
+        //    {
+        //        var iteratorContext = new AsyncIteratorContext(new(in AsyncIteratorContextServiceOperation.AwaiterCompletionNotifierRequired)) {
+        //            _iteratorAgnosticCoroutineContext = iteratorContextToClone._iteratorAgnosticCoroutineContext,
+        //            _coroutineStateMachineBox = stateMachineBox,
+        //            _coroutineAwaiter = iterator._coroutineHolder.Coroutine.GetAwaiter()
+        //        };
+
+        //        iterator._iteratorContext = iteratorContext;
+
+        //        var asyncIteratorSpecificCoroutineContext = iteratorContextToClone._iteratorAgnosticCoroutineContext;
+
+        //        asyncIteratorSpecificCoroutineContext._keyedServices = asyncIteratorSpecificCoroutineContext.KeyedServices.Merge(
+        //            CoroutineContextServiceMap.CreateRange(1, iteratorContext._iteratorContextService, static (x, y) => x.Emplace(AsyncIterator.s_asyncIteratorKey, y)),
+        //            forceNewInstance: true);
+        //        asyncIteratorSpecificCoroutineContext._isCoroutineAsyncIteratorSupplier = true;
+        //        stateMachineBox.CoroutineContext = asyncIteratorSpecificCoroutineContext;
+        //    }
+
+        //} else {
+        //    throw Exceptions.NotStartedAlreadyFinishedOrNotSuspended();
+        //}
+    }
+
     private static class Exceptions
     {
-        public static NotImplementedException NextOperationHandlingNotImplemented(AsyncIteratorContextServiceOperation nextOperation) =>
+        public static NotImplementedException NextOperationHandlingNotImplemented(SuspensionPoint nextOperation) =>
             new($"The next operation handling is not implemented: {nextOperation}");
 
         public static InvalidOperationException ExpectedSuppliedAwaiterCompletionNotifier() =>

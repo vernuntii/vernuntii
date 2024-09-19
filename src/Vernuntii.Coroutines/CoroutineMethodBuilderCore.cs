@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Vernuntii.Coroutines.CompilerServices;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
@@ -8,7 +9,8 @@ internal static class CoroutineMethodBuilderCore
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void ActOnCoroutine<TCoroutine>(
         ref TCoroutine coroutine,
-        in CoroutineContext context)
+        in CoroutineContext context,
+        AsyncIteratorContextService? preKnownAsyncIteratorContextService = null)
         where TCoroutine : IRelativeCoroutine
     {
         switch (coroutine.CoroutineAction) {
@@ -17,7 +19,7 @@ internal static class CoroutineMethodBuilderCore
             case CoroutineAction.Sibling:
                 Debug.Assert(coroutine.CoroutineActioner is not null);
                 var siblingCoroutine = Unsafe.As<ISiblingCoroutine>(coroutine.CoroutineActioner);
-                var argumentReceiver = new CoroutineArgumentReceiver(in context);
+                var argumentReceiver = new CoroutineArgumentReceiver(in context, preKnownAsyncIteratorContextService);
                 siblingCoroutine.ActOnCoroutine(ref argumentReceiver);
                 break;
             case CoroutineAction.Child:
@@ -55,14 +57,18 @@ internal static class CoroutineMethodBuilderCore
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    internal static void ActOnAwaiterIfCoroutine<TAwaiter>(
+    internal static bool ActOnAwaiterIfCoroutineAwaiter<TAwaiter>(
         ref TAwaiter awaiter,
-        ref CoroutineContext contextToBequest)
+        ref CoroutineContext contextToBequest,
+        AsyncIteratorContextService? preKnownAsyncIteratorContextService = null)
     {
-        if (null != default(TAwaiter) && awaiter is IRelativeCoroutine) {
+        if (null != default(TAwaiter) && awaiter is IRelativeCoroutineAwaiter) {
             ref var coroutineAwaiter = ref Unsafe.As<TAwaiter, CoroutineAwaiter>(ref awaiter);
-            ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
+            ActOnCoroutine(ref coroutineAwaiter, in contextToBequest, preKnownAsyncIteratorContextService);
+            return true;
         }
+
+        return false;
     }
 
     internal static Coroutine MakeChildCoroutine<TCoroutineAwaiter>(ref TCoroutineAwaiter coroutineAwaiter, ref CoroutineContext contextToBequest)

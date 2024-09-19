@@ -35,5 +35,9 @@ public struct CoroutineMethodBuilder
         where TStateMachine : IAsyncStateMachine =>
         CoroutineMethodBuilder<Nothing>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineBox);
 
+    internal ICoroutineStateMachineBox ReplaceStateMachine<TStateMachine>(ref TStateMachine stateMachine)
+        where TStateMachine : IAsyncStateMachine =>
+        CoroutineMethodBuilder<Nothing>.RenewStateMachineBox(ref stateMachine, ref _stateMachineBox);
+
     public void SetStateMachine(IAsyncStateMachine stateMachine) => throw new NotImplementedException();
 }

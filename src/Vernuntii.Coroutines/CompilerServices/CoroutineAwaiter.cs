@@ -1,10 +1,12 @@
-﻿namespace Vernuntii.Coroutines.CompilerServices;
+﻿using Vernuntii.Coroutines.Iterators;
 
-public struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter, IRelativeCoroutine
+namespace Vernuntii.Coroutines.CompilerServices;
+
+public struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter, IRelativeCoroutineAwaiter
 {
     public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-    private readonly object? _coroutineActioner;
+    private object? _coroutineActioner;
     internal CoroutineAction _coroutineAction;
     private readonly ValueTaskAwaiter _awaiter;
 
@@ -36,5 +38,10 @@ public struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter, I
             CoroutineMethodBuilderCore.ActOnCoroutine(ref this);
         }
         _awaiter.UnsafeOnCompleted(continuation);
+    }
+
+    readonly void IRelativeCoroutineAwaiter.ReplaceStateMachineCoroutineAwaiter<TStateMachine>(ref TStateMachine stateMachine, ref SuspensionPoint suspensionPoint)
+    {
+        ref var coroutineAwaiter = ref CoroutineStateMachineCoroutineAwaiterAccessor<TStateMachine, CoroutineAwaiter>.GetCoroutineAwaiter(ref stateMachine);
     }
 }
