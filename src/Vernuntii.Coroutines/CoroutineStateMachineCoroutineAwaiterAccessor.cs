@@ -14,28 +14,31 @@ internal static class CoroutineStateMachineCoroutineAwaiterAccessor<TStateMachin
     static CoroutineStateMachineCoroutineAwaiterAccessor()
     {
         s_coroutineAwaiterType = typeof(TCoroutineAwaiter);
-        s_coroutineAwaiterFieldInfo = CoroutineStateMachineAccessorCore<TStateMachine>.s_stateMachineFieldInfos.FirstOrDefault();
-        s_getCoroutineAwaiter = CompileGetStateMachineCoroutineAwaiterDelegate();
+        s_coroutineAwaiterFieldInfo = CoroutineStateMachineAccessorCore<TStateMachine>.s_stateMachineFieldInfos.SingleOrDefault(fieldInfo => fieldInfo.FieldType == s_coroutineAwaiterType);
+        if (s_coroutineAwaiterFieldInfo is not null) {
+            s_getCoroutineAwaiter = CompileGetStateMachineCoroutineAwaiterDelegate(s_coroutineAwaiterFieldInfo);
+        }
     }
 
     internal static GetStateMachineCoroutineAwaiterDelegate<TStateMachine, TCoroutineAwaiter> GetCoroutineAwaiter {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => s_getCoroutineAwaiter ?? throw new NotImplementedException($"The state machine of type {typeof(TStateMachine)} does not implement a field of type {typeof(TCoroutineAwaiter)}");
+        get => s_getCoroutineAwaiter ?? throw new NotImplementedException($"The state machine of type {typeof(TStateMachine)} either does not implement a field of type {typeof(TCoroutineAwaiter)} or implements more than one field of this type");
     }
 
-    private static GetStateMachineCoroutineAwaiterDelegate<TStateMachine, TCoroutineAwaiter>? CompileGetStateMachineCoroutineAwaiterDelegate()
+    private static GetStateMachineCoroutineAwaiterDelegate<TStateMachine, TCoroutineAwaiter> CompileGetStateMachineCoroutineAwaiterDelegate(FieldInfo coroutineAwaiterFieldInfo)
     {
-        if (s_coroutineAwaiterFieldInfo is null) {
-            return null;
-        }
+        var stateMachineType = CoroutineStateMachineAccessorCore<TStateMachine>.s_stateMachineType;
         var method = new DynamicMethod(
             nameof(GetCoroutineAwaiter),
-            null,
-            parameterTypes: [CoroutineStateMachineAccessorCore<TStateMachine>.s_stateMachineType.MakeByRefType()],
+            returnType: s_coroutineAwaiterType.MakeByRefType(),
+            parameterTypes: [stateMachineType.MakeByRefType()],
             restrictedSkipVisibility: true);
         var il = method.GetILGenerator();
         il.Emit(OpCodes.Ldarg_0); // Load argument (stateMachine) onto the stack
-        il.Emit(OpCodes.Ldflda, s_coroutineAwaiterFieldInfo); // Load address of the field into the stack
+        if (!stateMachineType.IsValueType) {
+            il.Emit(OpCodes.Ldind_Ref); // Indicate that the argument is a reference type
+        }
+        il.Emit(OpCodes.Ldflda, coroutineAwaiterFieldInfo); // Load address of the field into the stack
         il.Emit(OpCodes.Ret); // Return the address of the field(by reference)
         return method.CreateDelegate<GetStateMachineCoroutineAwaiterDelegate<TStateMachine, TCoroutineAwaiter>>();
     }

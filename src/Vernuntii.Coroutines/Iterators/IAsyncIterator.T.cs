@@ -4,6 +4,8 @@ public interface IAsyncIterator<TResult>
 {
     bool IsCloneable { get; }
 
+    Key CurrentKey { get; }
+
     /// <summary>
     /// The value yielded when the underlying coroutine suspends at a compatible suspension point.
     /// A non-compatible suspension point is defined as awaiting a task-like object that is not a coroutine yielder.
@@ -46,5 +48,5 @@ public interface IAsyncIterator<TResult>
     /// <returns></returns>
     Coroutine<TResult> GetResultAsync();
 
-    IAsyncIterator Clone();
+    IAsyncIterator<TResult> Clone();
 }

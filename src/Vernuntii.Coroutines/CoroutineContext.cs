@@ -42,7 +42,7 @@ public struct CoroutineContext
         return context;
     }
 
-    internal ICoroutineResultStateMachineBox? _resultStateMachine;
+    internal ICoroutineResultStateMachineHolder? _resultStateMachine;
     internal CoroutineContextServiceMap? _keyedServices;
     internal CoroutineContextServiceMap? _keyedServicesToBequest;
     internal CoroutineContextBequesterOrigin _bequesterOrigin;
@@ -52,7 +52,7 @@ public struct CoroutineContext
     internal int _identifier;
 #endif
 
-    internal ICoroutineResultStateMachineBox ResultStateMachine => _resultStateMachine ??= CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox.s_synchronousSuccessSentinel;
+    internal ICoroutineResultStateMachineHolder ResultStateMachine => _resultStateMachine ??= CoroutineStateMachineHolder<Nothing>.s_synchronousSuccessSentinel;
 
     [Browsable(false)]
     [EditorBrowsable(EditorBrowsableState.Never)]
@@ -105,7 +105,7 @@ public struct CoroutineContext
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void SetResultStateMachine(ICoroutineResultStateMachineBox resultStateMachine)
+    internal void SetResultStateMachine(ICoroutineResultStateMachineHolder resultStateMachine)
     {
         _resultStateMachine = resultStateMachine;
     }

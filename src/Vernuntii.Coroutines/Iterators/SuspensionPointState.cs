@@ -3,7 +3,7 @@
 [Flags]
 public enum SuspensionPointState
 {
-    Uninitialized = 0,
+    None = 0,
     AwaiterCompletionNotifierRequired = 1,
     ArgumentSupplied = 2,
     AwaiterCompletionNotifierSupplied = 4,

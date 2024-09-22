@@ -132,7 +132,7 @@ partial class Yielders
 
                 Coroutine<TResult> childCoroutine;
                 if (coroutine._coroutineAction != CoroutineAction.Child) {
-                    childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine<ConfiguredCoroutineAwaitable<TResult>.ConfiguredCoroutineAwaiter, TResult>(ref coroutineAwaiter, ref contextToBequest);
+                    childCoroutine = CoroutineMethodBuilderCore.MakeChildCoroutine<ConfiguredCoroutineAwaiter<TResult>, TResult>(ref coroutineAwaiter, ref contextToBequest);
                 } else {
                     childCoroutine = coroutine;
                 }

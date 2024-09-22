@@ -46,27 +46,30 @@ internal static class CoroutineStateMachineAccessor<TStateMachine> where TStateM
             if (builderFieldInfo is null && field.FieldType == s_methodBuilderType) {
                 builderFieldInfo = field;
             }
-            il.Emit(OpCodes.Ldloc_0);
+            il.Emit(OpCodes.Ldloc, loc1);
             il.Emit(OpCodes.Ldarg_0);
             // Only fields are relevant
             il.Emit(OpCodes.Ldfld, field);
             il.Emit(OpCodes.Stfld, field);
         }
-        il.Emit(OpCodes.Ldloc_0);
+        il.Emit(OpCodes.Ldloc, loc1);
         il.Emit(OpCodes.Ret);
         return method.CreateDelegate<Func<TStateMachine, TStateMachine>>();
     }
 
     private static GetStateMachineMethodBuilderDelegate<TStateMachine> CompileGetMethodBuilderDelegate(FieldInfo builderFieldInfo)
     {
-        var type = typeof(TStateMachine);
+        var stateMachineType = CoroutineStateMachineAccessorCore<TStateMachine>.s_stateMachineType;
         var method = new DynamicMethod(
             nameof(GetCoroutineMethodBuilder),
             returnType: s_methodBuilderType.MakeByRefType(),
-            parameterTypes: [CoroutineStateMachineAccessorCore<TStateMachine>.s_stateMachineType.MakeByRefType()],
+            parameterTypes: [stateMachineType.MakeByRefType()],
             restrictedSkipVisibility: true);
         var il = method.GetILGenerator();
         il.Emit(OpCodes.Ldarg_0); // Load argument (stateMachine) onto the stack
+        if (!stateMachineType.IsValueType) {
+            il.Emit(OpCodes.Ldind_Ref); // Indicate that the argument is a reference type
+        }
         il.Emit(OpCodes.Ldflda, builderFieldInfo); // Load address of the field into the stack
         il.Emit(OpCodes.Ret); // Return the address of the field(by reference)
         return method.CreateDelegate<GetStateMachineMethodBuilderDelegate<TStateMachine>>();

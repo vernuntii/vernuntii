@@ -13,6 +13,11 @@ internal class ManualResetValueTaskCompletionSource<TResult> : IValueTaskSource<
     /// <remarks>Each element is padded to expected cache-line size so as to minimize false sharing.</remarks>
     private static readonly CacheLineSizePaddedReference[] s_perCoreCache = new CacheLineSizePaddedReference[Environment.ProcessorCount];
 
+    /// <summary>Thread-local cache of boxes. This currently only ever stores one.</summary>
+    [ThreadStatic]
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "thread-static")]
+    private static ManualResetValueTaskCompletionSource<TResult>? t_tlsCache;
+
     /// <summary>Gets the slot in <see cref="s_perCoreCache"/> for the current core.</summary>
     private static ref ManualResetValueTaskCompletionSource<TResult>? PerCoreCacheSlot {
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // only two callers are RentFrom/ReturnToCache
@@ -35,10 +40,6 @@ internal class ManualResetValueTaskCompletionSource<TResult> : IValueTaskSource<
             return ref Unsafe.As<object?, ManualResetValueTaskCompletionSource<TResult>?>(ref s_perCoreCache[i].Object);
         }
     }
-
-    /// <summary>Thread-local cache of boxes. This currently only ever stores one.</summary>
-    [ThreadStatic]
-    private static ManualResetValueTaskCompletionSource<TResult>? t_tlsCache;
 
     /// <summary>Gets a box object to use for an operation.  This may be a reused, pooled object, or it may be new.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)] // only one caller

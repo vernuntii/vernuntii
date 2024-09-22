@@ -5,9 +5,9 @@ namespace Vernuntii.Coroutines;
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>
-/// An interface implemented by all <see cref="CoroutineMethodBuilder{T}.CoroutineStateMachineBox{TStateMachine}"/> instances, regardless of generics.
+/// An interface implemented by all <see cref="CoroutineStateMachineHolder{TResult, TStateMachine}"/> instances, regardless of generics.
 /// </summary>
-internal interface ICoroutineStateMachineBox : IValueTaskSource
+internal interface ICoroutineStateMachineHolder
 {
     ref CoroutineContext CoroutineContext { get; }
 
@@ -19,11 +19,8 @@ internal interface ICoroutineStateMachineBox : IValueTaskSource
     /// This will lazily-allocate the delegate as needed.
     /// </summary>
     Action MoveNextAction { get; }
-
-    ICoroutineStateMachineBox CreateNewByCloningUnderlyingStateMachine();
 }
 
-internal interface ICoroutineStateMachineBox<TResult> : ICoroutineStateMachineBox, IValueTaskSource<TResult>
+internal interface ICoroutineStateMachineHolder<TResult> : ICoroutineStateMachineHolder
 {
-    new ICoroutineStateMachineBox<TResult> CreateNewByCloningUnderlyingStateMachine();
 }

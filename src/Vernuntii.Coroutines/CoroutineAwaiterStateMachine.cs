@@ -24,23 +24,23 @@ internal struct CoroutineAwaiterMethodBuilder<TCoroutineAwaiter> : ICoroutineAwa
     public readonly bool IsCompleted => _awaiter.IsCompleted;
 
     public readonly TCoroutineAwaiter _awaiter;
-    public readonly CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>>> _stateMachineBox;
+    public readonly CoroutineStateMachineHolder<Nothing,CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>>> _stateMachineHolder;
 
     public CoroutineAwaiterMethodBuilder(
         in TCoroutineAwaiter awaiter,
-        CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>>> stateMachineBox)
+        CoroutineStateMachineHolder<Nothing,CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>>> stateMachineHolder)
     {
         _awaiter = awaiter;
-        _stateMachineBox = stateMachineBox;
+        _stateMachineHolder = stateMachineHolder;
     }
 
-    public readonly void AwaitUnsafeOnCompleted() => _awaiter.UnsafeOnCompleted(_stateMachineBox.MoveNextAction);
+    public readonly void AwaitUnsafeOnCompleted() => _awaiter.UnsafeOnCompleted(_stateMachineHolder.MoveNextAction);
 
-    public readonly void SetException(Exception e) => _stateMachineBox.SetException(e);
+    public readonly void SetException(Exception e) => _stateMachineHolder.SetException(e);
 
     public readonly void GetResult() => _awaiter.GetResult();
 
-    public readonly void SetResult() => _stateMachineBox.SetResult(default);
+    public readonly void SetResult() => _stateMachineHolder.SetResult(default);
 }
 
 internal struct CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult> : ICoroutineAwaiterMethodBuilder<TResult>
@@ -49,23 +49,23 @@ internal struct CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult> : ICor
     public readonly bool IsCompleted => _awaiter.IsCompleted;
 
     private readonly TCoroutineAwaiter _awaiter;
-    private readonly CoroutineMethodBuilder<TResult>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>, TResult>> _stateMachineBox;
+    private readonly CoroutineStateMachineHolder<TResult,CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>, TResult>> _stateMachineHolder;
 
     public CoroutineAwaiterMethodBuilder(
         in TCoroutineAwaiter awaiter,
-        CoroutineMethodBuilder<TResult>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>, TResult>> stateMachineBox)
+        CoroutineStateMachineHolder<TResult, CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>, TResult>> stateMachineHolder)
     {
         _awaiter = awaiter;
-        _stateMachineBox = stateMachineBox;
+        _stateMachineHolder = stateMachineHolder;
     }
 
-    public readonly void AwaitUnsafeOnCompleted() => _awaiter.UnsafeOnCompleted(_stateMachineBox.MoveNextAction);
+    public readonly void AwaitUnsafeOnCompleted() => _awaiter.UnsafeOnCompleted(_stateMachineHolder.MoveNextAction);
 
-    public readonly void SetException(Exception e) => _stateMachineBox.SetException(e);
+    public readonly void SetException(Exception e) => _stateMachineHolder.SetException(e);
 
     public TResult GetResult() => _awaiter.GetResult();
 
-    public readonly void SetResult(TResult result) => _stateMachineBox.SetResult(result);
+    public readonly void SetResult(TResult result) => _stateMachineHolder.SetResult(result);
 }
 
 internal struct CoroutineAwaiterStateMachine<TBuilder> : IAsyncStateMachine

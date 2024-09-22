@@ -1,11 +1,9 @@
 ﻿namespace Vernuntii.Coroutines.Iterators;
 
-internal class AsyncIteratorContextService(SuspensionPoint initialOperation, bool isAsyncIteratorCloneable)
+internal class AsyncIteratorContextService(in SuspensionPoint initialSuspensionPoint, bool isAsyncIteratorCloneable)
 {
     private readonly bool _isAsyncIteratorCloneable = isAsyncIteratorCloneable;
-    private SuspensionPoint _currentOperation = initialOperation;
-
-    public ref SuspensionPoint CurrentOperation => ref _currentOperation;
+    internal SuspensionPoint _currentSuspensionPoint = initialSuspensionPoint;
 
     public bool IsAsyncIteratorCloneable {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

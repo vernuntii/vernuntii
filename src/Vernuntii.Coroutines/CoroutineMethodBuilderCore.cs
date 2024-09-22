@@ -75,41 +75,41 @@ internal static class CoroutineMethodBuilderCore
         where TCoroutineAwaiter : struct, ICriticalNotifyCompletion, ICoroutineAwaiter
     {
         Debug.Assert(contextToBequest.BequesterOrigin == CoroutineContextBequesterOrigin.ChildCoroutine);
-        var stateMachineBox = CoroutineMethodBuilder<Nothing>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>>>.RentFromCache();
-        var coroutineBuilder = new CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>(in coroutineAwaiter, stateMachineBox);
+        var stateMachineHolder = CoroutineStateMachineHolder<Nothing, CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>>>.RentFromCache();
+        var coroutineBuilder = new CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>(in coroutineAwaiter, stateMachineHolder);
         var stateMachine = new CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter>>(coroutineBuilder) {
             _state = -1
         };
-        stateMachineBox.StateMachine = stateMachine;
+        stateMachineHolder.StateMachine = stateMachine;
 
         // We cannot assign the context directly to the state machine box,
         // because we do not want to implictly bequest the async iterator
-        ref var stateMachineBoxCoroutineContext = ref stateMachineBox._coroutineContext;
-        stateMachineBoxCoroutineContext.InheritContext(in contextToBequest);
+        ref var stateMachineHolderCoroutineContext = ref stateMachineHolder._coroutineContext;
+        stateMachineHolderCoroutineContext.InheritContext(in contextToBequest);
 
-        contextToBequest.SetResultStateMachine(stateMachineBox);
-        stateMachineBox.MoveNext();
-        return new Coroutine(new ValueTask(stateMachineBox, stateMachineBox.Version));
+        contextToBequest.SetResultStateMachine(stateMachineHolder);
+        stateMachineHolder.MoveNext();
+        return new Coroutine(new ValueTask(stateMachineHolder, stateMachineHolder.Version));
     }
 
     internal static Coroutine<TResult> MakeChildCoroutine<TCoroutineAwaiter, TResult>(ref TCoroutineAwaiter coroutineAwaiter, ref CoroutineContext contextToBequest)
         where TCoroutineAwaiter : struct, ICriticalNotifyCompletion, ICoroutineAwaiter<TResult>
     {
         Debug.Assert(contextToBequest.BequesterOrigin == CoroutineContextBequesterOrigin.ChildCoroutine);
-        var stateMachineBox = CoroutineMethodBuilder<TResult>.CoroutineStateMachineBox<CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>, TResult>>.RentFromCache();
-        var coroutineBuilder = new CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>(in coroutineAwaiter, stateMachineBox);
+        var stateMachineHolder = CoroutineStateMachineHolder<TResult, CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>, TResult>>.RentFromCache();
+        var coroutineBuilder = new CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>(in coroutineAwaiter, stateMachineHolder);
         var stateMachine = new CoroutineAwaiterStateMachine<CoroutineAwaiterMethodBuilder<TCoroutineAwaiter, TResult>, TResult>(coroutineBuilder) {
             _state = -1
         };
-        stateMachineBox.StateMachine = stateMachine;
+        stateMachineHolder.StateMachine = stateMachine;
 
         // We cannot assign the context directly to the state machine box,
         // because we do not want to implictly bequest the async iterator
-        ref var stateMachineBoxCoroutineContext = ref stateMachineBox._coroutineContext;
-        stateMachineBoxCoroutineContext.InheritContext(in contextToBequest);
+        ref var stateMachineHolderCoroutineContext = ref stateMachineHolder._coroutineContext;
+        stateMachineHolderCoroutineContext.InheritContext(in contextToBequest);
 
-        contextToBequest.SetResultStateMachine(stateMachineBox);
-        stateMachineBox.MoveNext();
-        return new Coroutine<TResult>(new ValueTask<TResult>(stateMachineBox, stateMachineBox.Version));
+        contextToBequest.SetResultStateMachine(stateMachineHolder);
+        stateMachineHolder.MoveNext();
+        return new Coroutine<TResult>(new ValueTask<TResult>(stateMachineHolder, stateMachineHolder.Version));
     }
 }

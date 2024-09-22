@@ -6,9 +6,9 @@ public struct CoroutineAwaiter<TResult> : ICriticalNotifyCompletion, IRelativeCo
 {
     public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-    private readonly object? _coroutineActioner;
+    private object? _coroutineActioner;
     internal CoroutineAction _coroutineAction;
-    private readonly ValueTaskAwaiter<TResult> _awaiter;
+    private ValueTaskAwaiter<TResult> _awaiter;
 
     readonly object? IRelativeCoroutine.CoroutineActioner => _coroutineActioner;
     readonly CoroutineAction IRelativeCoroutine.CoroutineAction => _coroutineAction;
@@ -40,8 +40,15 @@ public struct CoroutineAwaiter<TResult> : ICriticalNotifyCompletion, IRelativeCo
         _awaiter.UnsafeOnCompleted(continuation);
     }
 
-    readonly void IRelativeCoroutineAwaiter.ReplaceStateMachineCoroutineAwaiter<TStateMachine>(ref TStateMachine stateMachine, ref SuspensionPoint suspensionPoint)
-    {
-        ref var coroutineAwaiter = ref CoroutineStateMachineCoroutineAwaiterAccessor<TStateMachine, CoroutineAwaiter>.GetCoroutineAwaiter(ref stateMachine);
-    }
+    readonly void IRelativeCoroutineAwaiter.RenewStateMachineCoroutineAwaiter<TStateMachine>(
+        IAsyncIteratorStateMachineHolder theirStateMachineHolder,
+        in SuspensionPoint ourSuspensionPoint,
+        ref SuspensionPoint theirSuspensionPoint) =>
+        CoroutineAwaiterCore.RenewStateMachineCoroutineAwaiter<TStateMachine, CoroutineAwaiter<TResult>, ValueTaskAwaiter<TResult>, ValueTaskAccessor<TResult>, TResult>(
+            theirStateMachineHolder,
+            in ourSuspensionPoint,
+            ref theirSuspensionPoint,
+            GetAwaiter);
+
+    private static ref ValueTaskAwaiter<TResult> GetAwaiter(ref CoroutineAwaiter<TResult> coroutineAwaiter) => ref coroutineAwaiter._awaiter;
 }

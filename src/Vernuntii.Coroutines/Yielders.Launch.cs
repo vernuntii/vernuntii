@@ -83,7 +83,7 @@ partial class Yielders
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
-                context.ResultStateMachine.CallbackWhenForkCompletedUnsafely(ref coroutineAwaiter, () => {
+                context.ResultStateMachine.CallbackWhenForkNotifiedCritically(ref coroutineAwaiter, () => {
                     try {
                         coroutineAwaiter.GetResult();
                         intermediateCompletionSource.SetResult(default);
@@ -133,7 +133,7 @@ partial class Yielders
                 CoroutineContext.InheritOrBequestCoroutineContext(ref contextToBequest, in context);
 
                 CoroutineMethodBuilderCore.ActOnCoroutine(ref coroutineAwaiter, in contextToBequest);
-                context.ResultStateMachine.CallbackWhenForkCompletedUnsafely(ref coroutineAwaiter, () => {
+                context.ResultStateMachine.CallbackWhenForkNotifiedCritically(ref coroutineAwaiter, () => {
                     try {
                         var result = coroutineAwaiter.GetResult();
                         intermediateCompletionSource.SetResult(result);

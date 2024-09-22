@@ -3,7 +3,7 @@
 internal struct SuspensionPoint
 {
     public static readonly SuspensionPoint AwaiterCompletionNotifierRequired = new() { _state = SuspensionPointState.AwaiterCompletionNotifierRequired };
-    public static readonly SuspensionPoint Unitialized = default;
+    public static readonly SuspensionPoint None = new();
 
     internal SuspensionPointState _state;
     internal ICallableArgument? _argument;
@@ -52,12 +52,11 @@ internal struct SuspensionPoint
 
     internal void SupplyCoroutineAwaiter(IRelativeCoroutineAwaiter coroutineAwaiter)
     {
-        ThrowIfNotRequiringAwaiterCompletionNotifier(in this);
-        _state = SuspensionPointState.AwaiterCompletionNotifierSupplied | (_state & ~SuspensionPointState.AwaiterCompletionNotifierRequired);
+        _state = SuspensionPointState.CoroutineAwaiterSupplied | _state;
         _coroutineAwaiter = coroutineAwaiter;
     }
 
     internal void RequireAwaiterCompletionNotifier() => this = AwaiterCompletionNotifierRequired;
 
-    internal void Uninitialize() => this = Unitialized;
+    internal void Uninitialize() => this = None;
 }

@@ -2,21 +2,21 @@
 
 namespace Vernuntii.Coroutines.Iterators;
 
-partial class AsyncIteratorImpl<TReturnResult>
+partial class AsyncIteratorImpl<TResult>
 {
     internal static readonly Key s_asyncIteratorKey = new Key(Encoding.ASCII.GetBytes(nameof(AsyncIterator)));
 
-    object IAsyncIterator<TReturnResult>.Current => Current;
+    object IAsyncIterator<TResult>.Current => Current;
 
-    ValueTask<bool> IAsyncIterator<TReturnResult>.MoveNextAsync() => MoveNextAsync();
+    ValueTask<bool> IAsyncIterator<TResult>.MoveNextAsync() => MoveNextAsync();
 
-    void IAsyncIterator<TReturnResult>.YieldReturn<TYieldResult>(TYieldResult result) => YieldReturn(result);
+    void IAsyncIterator<TResult>.YieldReturn<TYieldResult>(TYieldResult result) => YieldReturn(result);
 
-    void IAsyncIterator<TReturnResult>.Return(TReturnResult result) => Return(result);
+    void IAsyncIterator<TResult>.Return(TResult result) => Return(result);
 
-    void IAsyncIterator<TReturnResult>.Throw(Exception e) => Throw(e);
+    void IAsyncIterator<TResult>.Throw(Exception e) => Throw(e);
 
-    TReturnResult IAsyncIterator<TReturnResult>.GetResult() => GetResult();
+    TResult IAsyncIterator<TResult>.GetResult() => GetResult();
 
-    Coroutine<TReturnResult> IAsyncIterator<TReturnResult>.GetResultAsync() => GetResultAsync();
+    Coroutine<TResult> IAsyncIterator<TResult>.GetResultAsync() => GetResultAsync();
 }

@@ -1,19 +1,20 @@
-﻿using Vernuntii.Coroutines.Iterators;
+﻿using System.Diagnostics;
+using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines.CompilerServices;
 
-public struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter, IRelativeCoroutineAwaiter
+public struct ConfiguredCoroutineAwaiter : ICriticalNotifyCompletion, IRelativeCoroutineAwaiter, ICoroutineAwaiter
 {
     public readonly bool IsCompleted => _awaiter.IsCompleted;
 
-    private object? _coroutineActioner;
+    internal readonly object? _coroutineActioner;
     internal CoroutineAction _coroutineAction;
-    private ValueTaskAwaiter _awaiter;
+    internal ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter _awaiter;
 
     readonly object? IRelativeCoroutine.CoroutineActioner => _coroutineActioner;
     readonly CoroutineAction IRelativeCoroutine.CoroutineAction => _coroutineAction;
 
-    internal CoroutineAwaiter(in ValueTaskAwaiter awaiter, object? coroutineActioner, CoroutineAction coroutineAction)
+    internal ConfiguredCoroutineAwaiter(in ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter awaiter, object? coroutineActioner, CoroutineAction coroutineAction)
     {
         _awaiter = awaiter;
         _coroutineActioner = coroutineActioner;
@@ -22,7 +23,7 @@ public struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter, I
 
     void IRelativeCoroutine.MarkCoroutineAsActedOn() => _coroutineAction = CoroutineAction.None;
 
-    public readonly void GetResult() => _awaiter.GetResult();
+    public void GetResult() => _awaiter.GetResult();
 
     public void OnCompleted(Action continuation)
     {
@@ -44,11 +45,11 @@ public struct CoroutineAwaiter : ICriticalNotifyCompletion, ICoroutineAwaiter, I
         IAsyncIteratorStateMachineHolder theirStateMachineHolder,
         in SuspensionPoint ourSuspensionPoint,
         ref SuspensionPoint theirSuspensionPoint) =>
-        CoroutineAwaiterCore.RenewStateMachineCoroutineAwaiter<TStateMachine, CoroutineAwaiter, ValueTaskAwaiter, ValueTaskAccessor, Nothing>(
+        CoroutineAwaiterCore.RenewStateMachineCoroutineAwaiter<TStateMachine, ConfiguredCoroutineAwaiter, ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter, ValueTaskAccessor, Nothing>(
             theirStateMachineHolder,
             in ourSuspensionPoint,
             ref theirSuspensionPoint,
             GetAwaiter);
 
-    private static ref ValueTaskAwaiter GetAwaiter(ref CoroutineAwaiter coroutineAwaiter) => ref coroutineAwaiter._awaiter;
+    private static ref ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter GetAwaiter(ref ConfiguredCoroutineAwaiter coroutineAwaiter) => ref coroutineAwaiter._awaiter;
 }

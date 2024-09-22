@@ -22,7 +22,7 @@ partial class Yielders
     partial class Arguments
     {
         [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal readonly struct ExchangeArgument<T>(T result) : ICallableArgument
+        public readonly struct ExchangeArgument<T>(T result) : ICallableArgument
         {
             public T Result {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -299,25 +299,25 @@ namespace Vernuntii.Coroutines.CompilerServices
 {
     public struct ConfiguredCoroutineAwaitable
     {
-        public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable.ConfiguredCoroutineAwaiter GetAwaiter() { }
-        public struct ConfiguredCoroutineAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion, System.Runtime.CompilerServices.INotifyCompletion
-        {
-            public bool IsCompleted { get; }
-            public void GetResult() { }
-            public void OnCompleted(System.Action continuation) { }
-            public void UnsafeOnCompleted(System.Action continuation) { }
-        }
+        public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaiter GetAwaiter() { }
     }
     public struct ConfiguredCoroutineAwaitable<TResult>
     {
-        public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaitable<TResult>.ConfiguredCoroutineAwaiter GetAwaiter() { }
-        public struct ConfiguredCoroutineAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion, System.Runtime.CompilerServices.INotifyCompletion
-        {
-            public bool IsCompleted { get; }
-            public TResult GetResult() { }
-            public void OnCompleted(System.Action continuation) { }
-            public void UnsafeOnCompleted(System.Action continuation) { }
-        }
+        public Vernuntii.Coroutines.CompilerServices.ConfiguredCoroutineAwaiter<TResult> GetAwaiter() { }
+    }
+    public struct ConfiguredCoroutineAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion, System.Runtime.CompilerServices.INotifyCompletion
+    {
+        public bool IsCompleted { get; }
+        public void GetResult() { }
+        public void OnCompleted(System.Action continuation) { }
+        public void UnsafeOnCompleted(System.Action continuation) { }
+    }
+    public struct ConfiguredCoroutineAwaiter<TResult> : System.Runtime.CompilerServices.ICriticalNotifyCompletion, System.Runtime.CompilerServices.INotifyCompletion
+    {
+        public bool IsCompleted { get; }
+        public TResult GetResult() { }
+        public void OnCompleted(System.Action continuation) { }
+        public void UnsafeOnCompleted(System.Action continuation) { }
     }
     public readonly struct CoroutineAwaitable
     {
@@ -362,6 +362,8 @@ namespace Vernuntii.Coroutines.Iterators
     public interface IAsyncIterator
     {
         object Current { get; }
+        Vernuntii.Coroutines.Key CurrentKey { get; }
+        bool IsCloneable { get; }
         Vernuntii.Coroutines.Iterators.IAsyncIterator Clone();
         void GetResult();
         Vernuntii.Coroutines.Coroutine GetResultAsync();
@@ -373,8 +375,9 @@ namespace Vernuntii.Coroutines.Iterators
     public interface IAsyncIterator<TResult>
     {
         object Current { get; }
+        Vernuntii.Coroutines.Key CurrentKey { get; }
         bool IsCloneable { get; }
-        Vernuntii.Coroutines.Iterators.IAsyncIterator Clone();
+        Vernuntii.Coroutines.Iterators.IAsyncIterator<TResult> Clone();
         TResult GetResult();
         Vernuntii.Coroutines.Coroutine<TResult> GetResultAsync();
         System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
@@ -390,7 +393,7 @@ namespace Vernuntii.Coroutines.Iterators
     [System.Flags]
     public enum SuspensionPointState
     {
-        Uninitialized = 0,
+        None = 0,
         AwaiterCompletionNotifierRequired = 1,
         ArgumentSupplied = 2,
         AwaiterCompletionNotifierSupplied = 4,
@@ -402,6 +405,11 @@ namespace Vernuntii.Coroutines.Iterators
         public static class Arguments
         {
             public static readonly Vernuntii.Coroutines.Key ExchangeKey;
+            public readonly struct ExchangeArgument<T> : Vernuntii.Coroutines.ICallableArgument
+            {
+                public ExchangeArgument(T result) { }
+                public T Result { get; }
+            }
         }
     }
     public static class YieldersExtensions

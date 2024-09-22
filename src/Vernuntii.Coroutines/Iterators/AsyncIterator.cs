@@ -23,7 +23,7 @@ public static class AsyncIterator
         new AsyncIteratorImpl<TResult>(coroutine, in additiveContext, isCloneable: isCloneable);
 }
 
-partial class AsyncIteratorImpl<TReturnResult>
+partial class AsyncIteratorImpl<TResult>
 {
     object IAsyncIterator.Current => Current;
 
@@ -40,6 +40,6 @@ partial class AsyncIteratorImpl<TReturnResult>
     Coroutine IAsyncIterator.GetResultAsync()
     {
         var coroutine = GetResultAsync();
-        return Unsafe.As<Coroutine<TReturnResult>, Coroutine>(ref coroutine);
+        return Unsafe.As<Coroutine<TResult>, Coroutine>(ref coroutine);
     }
 }
