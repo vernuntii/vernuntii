@@ -58,5 +58,5 @@ internal struct SuspensionPoint
 
     internal void RequireAwaiterCompletionNotifier() => this = AwaiterCompletionNotifierRequired;
 
-    internal void Uninitialize() => this = None;
+    internal void ResetToNone() => this = None;
 }

@@ -37,9 +37,9 @@ public partial struct CoroutineMethodBuilder<TResult>
         where TStateMachine : IAsyncStateMachine =>
         AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine, ref _stateMachineHolder);
 
-    internal IAsyncIteratorStateMachineHolder<TResult> ReplaceAsyncIteratorUnderlyingStateMachine<TStateMachine>(ref TStateMachine stateMachine)
+    internal IAsyncIteratorStateMachineHolder<TResult> ReplaceCoroutineUnderlyingStateMachine<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine =>
-        RenewAsyncIteratorStateMachineHolder(ref stateMachine, ref _stateMachineHolder);
+        RenewCoroutineStateMachineHolder(ref stateMachine, ref _stateMachineHolder);
 
     public void SetStateMachine(IAsyncStateMachine stateMachine) => throw new NotImplementedException();
 }

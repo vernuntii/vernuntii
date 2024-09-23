@@ -10,6 +10,7 @@
     <LangVersion>preview</LangVersion>
     <DotnetScripTargetFramework>net7.0</DotnetScripTargetFramework>
     <DotnetScriptVersion>1.5.0</DotnetScriptVersion>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>

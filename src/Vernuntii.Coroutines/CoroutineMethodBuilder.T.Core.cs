@@ -82,7 +82,7 @@ partial struct CoroutineMethodBuilder<TResult>
     /// <param name="stateMachine">The state machine.</param>
     /// <param name="stateMachineHolderToRenew">A reference to the field containing the initialized state machine box.</param>
     /// <returns>The "boxed" state machine.</returns>
-    internal static IAsyncIteratorStateMachineHolder<TResult> RenewAsyncIteratorStateMachineHolder<TStateMachine>(ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineHolder<TResult>? stateMachineHolderToRenew)
+    internal static IAsyncIteratorStateMachineHolder<TResult> RenewCoroutineStateMachineHolder<TStateMachine>(ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineHolder<TResult>? stateMachineHolderToRenew)
         where TStateMachine : IAsyncStateMachine
     {
         var currentContext = ExecutionContext.Capture();
