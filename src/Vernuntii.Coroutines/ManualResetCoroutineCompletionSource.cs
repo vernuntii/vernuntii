@@ -61,6 +61,13 @@ internal class ManualResetCoroutineCompletionSource<TResult> : IValueTaskSource<
         return box;
     }
 
+    ICoroutineCompletionSource ICoroutineCompletionSource.CreateNew(out short token)
+    {
+        var completionSource = RentFromCache();
+        token = completionSource.Version;
+        return completionSource;
+    }
+
     /// <summary>Returns this instance to the cache.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)] // only two callers
     private void ReturnToCache()

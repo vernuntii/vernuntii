@@ -2,6 +2,13 @@
 
 public interface ICoroutineCompletionSource
 {
-    internal void SetResult<TResult>(TResult result) => throw new NotImplementedException();
-    internal void SetException(Exception e) => throw new NotImplementedException();
+    void SetResult<TResult>(TResult result);
+    void SetException(Exception e);
+
+    /// <summary>
+    /// Creates a new and indepdenent instance of derived type.
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    ICoroutineCompletionSource CreateNew(out short token);
 }
