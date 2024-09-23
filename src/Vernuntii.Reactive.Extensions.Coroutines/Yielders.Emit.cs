@@ -5,7 +5,7 @@ using static Vernuntii.Reactive.Extensions.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Reactive.Extensions.Coroutines;
 
-file class CoroutineArgumentReceiverAcceptor<T>(IEventDiscriminator<T> eventDiscriminator, T eventData, ManualResetValueTaskCompletionSource<Nothing> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+file class CoroutineArgumentReceiverAcceptor<T>(IEventDiscriminator<T> eventDiscriminator, T eventData, ManualResetCoroutineCompletionSource<Nothing> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
@@ -18,13 +18,13 @@ partial class Yielders
 {
     public static Coroutine Emit<T>(IEventDiscriminator<T> eventDiscriminator, T eventData)
     {
-        var completionSource = ManualResetValueTaskCompletionSource<Nothing>.RentFromCache();
+        var completionSource = ManualResetCoroutineCompletionSource<Nothing>.RentFromCache();
         return new Coroutine(completionSource.CreateValueTask(), new CoroutineArgumentReceiverAcceptor<T>(eventDiscriminator, eventData, completionSource));
     }
 
     partial class Arguments
     {
-        public readonly struct EmitArgument<T>(IEventDiscriminator<T> eventDiscriminator, T eventData) : ICallableArgument
+        public readonly struct EmitArgument<T>(IEventDiscriminator<T> eventDiscriminator, T eventData) : ICallableArgument<ManualResetCoroutineCompletionSource<Nothing>>
         {
             public IEventDiscriminator<T> EventDiscriminator {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -36,10 +36,10 @@ partial class Yielders
                 get => eventData;
             }
 
-            void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource)
+            void ICallableArgument<ManualResetCoroutineCompletionSource<Nothing>>.Callback(in CoroutineContext context, ManualResetCoroutineCompletionSource<Nothing> completionSource)
             {
                 var eventBroker = context.GetBequestedEventBroker(ServiceKeys.EventBrokerKey);
-                eventBroker.EmitAsync(EventDiscriminator, EventData).DelegateCompletion(Unsafe.As<ManualResetValueTaskCompletionSource<Nothing>>(completionSource));
+                eventBroker.EmitAsync(EventDiscriminator, EventData).DelegateCompletion(completionSource);
             }
         }
     }

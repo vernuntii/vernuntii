@@ -1,12 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks.Sources;
-using Vernuntii.Coroutines.Iterators;
 
 namespace Vernuntii.Coroutines;
 
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-internal class ManualResetCoroutineCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, IValueTaskCompletionSource<TResult>, IYieldCompletionSource
+internal class ManualResetCoroutineCompletionSource<TResult> : IValueTaskSource<TResult>, IValueTaskSource, IValueTaskCompletionSource<TResult>, ICoroutineCompletionSource
 {
     /// <summary>Per-core cache of boxes, with one box per core.</summary>
     /// <remarks>Each element is padded to expected cache-line size so as to minimize false sharing.</remarks>
@@ -97,11 +96,18 @@ internal class ManualResetCoroutineCompletionSource<TResult> : IValueTaskSource<
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ValueTask CreateValueTask() => new(this, Version);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator ValueTask<TResult>(ManualResetCoroutineCompletionSource<TResult> completionSource) => new(completionSource, completionSource.Version);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator ValueTask(ManualResetCoroutineCompletionSource<TResult> completionSource) => new(completionSource, completionSource.Version);
+
+
     /// <summary>Completes the box with a result.</summary>
     /// <param name="result">The result.</param>
     public void SetResult(TResult result) => _valueTaskSource.SetResult(result);
 
-    void IYieldCompletionSource.SetResult<TCoroutineResult>(TCoroutineResult result)
+    void ICoroutineCompletionSource.SetResult<TCoroutineResult>(TCoroutineResult result)
     {
         if (result is null) {
             SetResult(default!);

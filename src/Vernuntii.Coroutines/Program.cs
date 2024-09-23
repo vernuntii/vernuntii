@@ -1,6 +1,8 @@
 ﻿using Vernuntii.Coroutines.Iterators;
 using static Vernuntii.Coroutines.Iterators.Yielders;
 
+((IBase)new Base()).Call();
+Environment.Exit(2);
 
 try {
     const int OurResult = 1;
@@ -15,3 +17,19 @@ try {
 } catch (Exception error) {
     Console.WriteLine(error); ;
 }
+
+interface IBase
+{
+    internal void Call()
+    {
+        Console.WriteLine("Base");
+    }
+}
+
+interface IDerived : IBase {
+    void IBase.Call() {
+        Console.WriteLine("Derived");
+    }
+}
+
+class Base : IDerived;

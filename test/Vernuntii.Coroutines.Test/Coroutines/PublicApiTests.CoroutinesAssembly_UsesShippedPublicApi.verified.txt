@@ -74,7 +74,12 @@ namespace Vernuntii.Coroutines
         ".", true)]
     [System.Runtime.CompilerServices.CompilerFeatureRequired("RefStructs")]
     [System.Runtime.CompilerServices.IsByRefLike]
-    public readonly struct CoroutineArgumentReceiver { }
+    public readonly struct CoroutineArgumentReceiver
+    {
+        public void ReceiveCallableArgument<TArgument, TCompletionSource>(in Vernuntii.Coroutines.Key argumentKey, in TArgument argument, TCompletionSource completionSource)
+            where TArgument : Vernuntii.Coroutines.ICallableArgument<TCompletionSource>
+            where TCompletionSource :  class, Vernuntii.Coroutines.ICoroutineCompletionSource { }
+    }
     public delegate void CoroutineArgumentReceiverDelegate(ref Vernuntii.Coroutines.CoroutineArgumentReceiver argumentReceiver);
     public struct CoroutineContext
     {
@@ -167,16 +172,13 @@ namespace Vernuntii.Coroutines
         public static bool operator !=(Vernuntii.Coroutines.Coroutine<TResult> left, Vernuntii.Coroutines.Coroutine<TResult> right) { }
         public static bool operator ==(Vernuntii.Coroutines.Coroutine<TResult> left, Vernuntii.Coroutines.Coroutine<TResult> right) { }
     }
-    public interface ICallableArgument
-    {
-        void Callback<TCompletionSource>(in Vernuntii.Coroutines.CoroutineContext context, TCompletionSource completionSource)
-            where TCompletionSource :  class;
-    }
-    public interface ICallableArgument<TCompletionSource> : Vernuntii.Coroutines.ICallableArgument
-        where TCompletionSource :  class
+    public interface ICallableArgument { }
+    public interface ICallableArgument<in TCompletionSource> : Vernuntii.Coroutines.ICallableArgument
+        where in TCompletionSource :  class, Vernuntii.Coroutines.ICoroutineCompletionSource
     {
         void Callback(in Vernuntii.Coroutines.CoroutineContext context, TCompletionSource completionSource);
     }
+    public interface ICoroutineCompletionSource { }
     public interface ISiblingCoroutine { }
     [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
     public struct Key : System.IEquatable<Vernuntii.Coroutines.Key>
@@ -245,49 +247,49 @@ namespace Vernuntii.Coroutines
             public static readonly Vernuntii.Coroutines.Key YieldKey;
             public static readonly Vernuntii.Coroutines.Key YieldReturnKey;
             public Arguments() { }
-            public readonly struct CallArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
+            public readonly struct CallArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument, Vernuntii.Coroutines.ICallableArgument<Vernuntii.Coroutines.ManualResetCoroutineCompletionSource<Vernuntii.Coroutines.Nothing>>
             {
                 public CallArgument(System.Delegate provider, TClosure closure, bool isProviderWithClosure) { }
                 public TClosure Closure { get; }
                 public bool IsProviderWithClosure { get; }
                 public System.Delegate Provider { get; }
             }
-            public readonly struct CallArgument<TClosure, TResult> : Vernuntii.Coroutines.ICallableArgument
+            public readonly struct CallArgument<TClosure, TResult> : Vernuntii.Coroutines.ICallableArgument, Vernuntii.Coroutines.ICallableArgument<Vernuntii.Coroutines.ManualResetCoroutineCompletionSource<TResult>>
             {
                 public CallArgument(System.Delegate provider, TClosure closure, bool isProviderWithClosure) { }
                 public TClosure Closure { get; }
                 public bool IsProviderWithClosure { get; }
                 public System.Delegate Provider { get; }
             }
-            public readonly struct LaunchArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
+            public readonly struct LaunchArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument, Vernuntii.Coroutines.ICallableArgument<Vernuntii.Coroutines.ManualResetCoroutineCompletionSource<Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable>>
             {
                 public LaunchArgument(System.Delegate provider, TClosure closure, bool isProviderWithClosure) { }
                 public TClosure Closure { get; }
                 public bool IsProviderWithClosure { get; }
                 public System.Delegate Provider { get; }
             }
-            public readonly struct SpawnArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
+            public readonly struct SpawnArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument, Vernuntii.Coroutines.ICallableArgument<Vernuntii.Coroutines.ManualResetCoroutineCompletionSource<Vernuntii.Coroutines.CompilerServices.CoroutineAwaitable>>
             {
                 public SpawnArgument(System.Delegate provider, TClosure closure, bool isProviderWithClosure) { }
                 public TClosure Closure { get; }
                 public bool IsProviderWithClosure { get; }
                 public System.Delegate Provider { get; }
             }
-            public readonly struct WithContextArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument
+            public readonly struct WithContextArgument<TClosure> : Vernuntii.Coroutines.ICallableArgument, Vernuntii.Coroutines.ICallableArgument<Vernuntii.Coroutines.ManualResetCoroutineCompletionSource<Vernuntii.Coroutines.Nothing>>
             {
                 public WithContextArgument(System.Delegate provider, TClosure providerClosure, bool isProviderWithClosure) { }
                 public bool IsProviderWithClosure { get; }
                 public System.Delegate Provider { get; }
                 public TClosure ProviderClosure { get; }
             }
-            public readonly struct WithContextArgument<TClosure, TResult> : Vernuntii.Coroutines.ICallableArgument
+            public readonly struct WithContextArgument<TClosure, TResult> : Vernuntii.Coroutines.ICallableArgument, Vernuntii.Coroutines.ICallableArgument<Vernuntii.Coroutines.ManualResetCoroutineCompletionSource<TResult>>
             {
                 public WithContextArgument(System.Delegate provider, TClosure providerClosure, bool isProviderWithClosure) { }
                 public bool IsProviderWithClosure { get; }
                 public System.Delegate Provider { get; }
                 public TClosure ProviderClosure { get; }
             }
-            public readonly struct YieldReturnArgument<T> : Vernuntii.Coroutines.ICallableArgument
+            public readonly struct YieldReturnArgument<T> : Vernuntii.Coroutines.ICallableArgument, Vernuntii.Coroutines.ICallableArgument<Vernuntii.Coroutines.ManualResetCoroutineCompletionSource<T>>
             {
                 public YieldReturnArgument(T result) { }
                 public T Result { get; }
@@ -385,11 +387,6 @@ namespace Vernuntii.Coroutines.Iterators
         void Throw(System.Exception e);
         void YieldReturn<TYieldResult>(TYieldResult result);
     }
-    public interface IYieldCompletionSource
-    {
-        void SetException(System.Exception e);
-        void SetResult<TResult>(TResult result);
-    }
     [System.Flags]
     public enum SuspensionPointState
     {
@@ -405,7 +402,7 @@ namespace Vernuntii.Coroutines.Iterators
         public static class Arguments
         {
             public static readonly Vernuntii.Coroutines.Key ExchangeKey;
-            public readonly struct ExchangeArgument<T> : Vernuntii.Coroutines.ICallableArgument
+            public readonly struct ExchangeArgument<T> : Vernuntii.Coroutines.ICallableArgument, Vernuntii.Coroutines.ICallableArgument<Vernuntii.Coroutines.ManualResetCoroutineCompletionSource<T>>
             {
                 public ExchangeArgument(T result) { }
                 public T Result { get; }

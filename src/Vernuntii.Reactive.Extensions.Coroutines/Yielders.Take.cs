@@ -3,7 +3,7 @@ using static Vernuntii.Reactive.Extensions.Coroutines.Yielders.Arguments;
 
 namespace Vernuntii.Reactive.Extensions.Coroutines;
 
-file class CoroutineArgumentReceiverAcceptor<T>(EventChannel<T> eventChannel, CancellationToken cancellationToken, ManualResetValueTaskCompletionSource<T> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+file class CoroutineArgumentReceiverAcceptor<T>(EventChannel<T> eventChannel, CancellationToken cancellationToken, ManualResetCoroutineCompletionSource<T> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver)
     {
@@ -16,13 +16,13 @@ partial class Yielders
 {
     public static Coroutine<T> Take<T>(EventChannel<T> eventChannel, CancellationToken cancellationToken = default)
     {
-        var completionSource = ManualResetValueTaskCompletionSource<T>.RentFromCache();
+        var completionSource = ManualResetCoroutineCompletionSource<T>.RentFromCache();
         return new Coroutine<T>(completionSource.CreateGenericValueTask(), new CoroutineArgumentReceiverAcceptor<T>(eventChannel, cancellationToken, completionSource));
     }
 
     partial class Arguments
     {
-        public readonly struct TakeArgument<T>(EventChannel<T> eventChannel, CancellationToken cancellationToken) : ICallableArgument
+        public readonly struct TakeArgument<T>(EventChannel<T> eventChannel, CancellationToken cancellationToken) : ICallableArgument<ManualResetCoroutineCompletionSource<T>>
         {
             public EventChannel<T> EventChannel {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -34,8 +34,8 @@ partial class Yielders
                 get => cancellationToken;
             }
 
-            void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource) =>
-                EventChannel._channel.Reader.ReadAsync(CancellationToken).DelegateCompletion(Unsafe.As<ManualResetValueTaskCompletionSource<T>>(completionSource));
+            void ICallableArgument<ManualResetCoroutineCompletionSource<T>>.Callback(in CoroutineContext context, ManualResetCoroutineCompletionSource<T> completionSource) =>
+                EventChannel._channel.Reader.ReadAsync(CancellationToken).DelegateCompletion(completionSource);
         }
     }
 }

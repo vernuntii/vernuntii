@@ -140,7 +140,7 @@ internal partial class AsyncIteratorImpl<TResult> : IAsyncIterator<TResult>, IAs
                     var argumentReceiver = new CoroutineArgumentReceiver(in iteratorContext._iteratorAgnosticCoroutineContext);
                     Debug.Assert(_nextOperation._argument is not null);
                     Debug.Assert(_nextOperation._argumentCompletionSource is not null);
-                    argumentReceiver.ReceiveCallableArgument(_nextOperation._argumentKey, _nextOperation._argument, _nextOperation._argumentCompletionSource);
+                    _nextOperation._argument.Callback(in argumentReceiver, in _nextOperation._argumentKey, _nextOperation._argumentCompletionSource);
                     iteratorContextService._currentSuspensionPoint.RequireAwaiterCompletionNotifier();
                     await _nextOperation._awaiterCompletionNotifier;
                     iteratorContext._coroutineStateMachineHolder?.MoveNext();
@@ -208,7 +208,7 @@ internal partial class AsyncIteratorImpl<TResult> : IAsyncIterator<TResult>, IAs
                 var iteratorContext = GetIteratorContext(out _);
 
                 if ((_nextOperation._state & SuspensionPointState.ArgumentSupplied) != 0) {
-                    var completionSource = ManualResetValueTaskCompletionSource<TResult>.RentFromCache();
+                    var completionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
                     iteratorContext._iteratorContextService._currentSuspensionPoint.RequireAwaiterCompletionNotifier();
                     iteratorContext._coroutineStateMachineHolder!.SetAsyncIteratorCompletionSource(completionSource);
                     Debug.Assert(_nextOperation._argumentCompletionSource is not null);
@@ -292,7 +292,7 @@ internal partial class AsyncIteratorImpl<TResult> : IAsyncIterator<TResult>, IAs
             var argumentReceiver = new CoroutineArgumentReceiver(in iteratorContext._iteratorAgnosticCoroutineContext);
             Debug.Assert(nextOperation._argument is not null);
             Debug.Assert(nextOperation._argumentCompletionSource is not null);
-            argumentReceiver.ReceiveCallableArgument(nextOperation._argumentKey, nextOperation._argument, nextOperation._argumentCompletionSource);
+            nextOperation._argument.Callback(in argumentReceiver, nextOperation._argumentKey, nextOperation._argumentCompletionSource);
         }
 
         if ((nextOperation._state & SuspensionPointState.AwaiterCompletionNotifierSupplied) != 0) {

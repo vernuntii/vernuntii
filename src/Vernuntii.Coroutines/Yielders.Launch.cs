@@ -47,7 +47,7 @@ partial class Yielders
 
     partial class Arguments
     {
-        public readonly struct LaunchArgument<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure) : ICallableArgument
+        public readonly struct LaunchArgument<TClosure>(Delegate provider, TClosure closure, bool isProviderWithClosure) : ICallableArgument<ManualResetCoroutineCompletionSource<CoroutineAwaitable>>
         {
             public Delegate Provider {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -64,7 +64,7 @@ partial class Yielders
                 get => isProviderWithClosure;
             }
 
-            void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource)
+            void ICallableArgument<ManualResetCoroutineCompletionSource<CoroutineAwaitable>>.Callback(in CoroutineContext context, ManualResetCoroutineCompletionSource<CoroutineAwaitable> completionSource)
             {
                 Coroutine coroutine;
                 if (IsProviderWithClosure) {
@@ -75,8 +75,6 @@ partial class Yielders
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
                 var intermediateCompletionSource = ManualResetCoroutineCompletionSource<object?>.RentFromCache();
                 coroutine._task = intermediateCompletionSource.CreateValueTask();
-
-                var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<CoroutineAwaitable>>(completionSource);
 
                 var contextToBequest = default(CoroutineContext);
                 contextToBequest.TreatAsNewSibling();
@@ -93,11 +91,11 @@ partial class Yielders
                     }
                 });
                 coroutine.MarkCoroutineAsActedOn();
-                typedCompletionSource.SetResult(new(in coroutine));
+                completionSource.SetResult(new(in coroutine));
             }
         }
 
-        internal readonly struct LaunchArgument<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure) : ICallableArgument
+        internal readonly struct LaunchArgument<TClosure, TResult>(Delegate provider, TClosure closure, bool isProviderWithClosure) : ICallableArgument<ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>>>
         {
             public Delegate Provider {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -114,7 +112,7 @@ partial class Yielders
                 get => isProviderWithClosure;
             }
 
-            void ICallableArgument.Callback<TCompletionSource>(in CoroutineContext context, TCompletionSource completionSource)
+            void ICallableArgument<ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>>>.Callback(in CoroutineContext context, ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>> completionSource)
             {
                 Coroutine<TResult> coroutine;
                 if (IsProviderWithClosure) {
@@ -125,8 +123,6 @@ partial class Yielders
                 var coroutineAwaiter = coroutine.ConfigureAwait(false).GetAwaiter();
                 var intermediateCompletionSource = ManualResetCoroutineCompletionSource<TResult>.RentFromCache();
                 coroutine._task = intermediateCompletionSource.CreateGenericValueTask();
-
-                var typedCompletionSource = Unsafe.As<ManualResetCoroutineCompletionSource<CoroutineAwaitable<TResult>>>(completionSource);
 
                 var contextToBequest = default(CoroutineContext);
                 contextToBequest.TreatAsNewSibling();
@@ -143,7 +139,7 @@ partial class Yielders
                     }
                 });
                 coroutine.MarkCoroutineAsActedOn();
-                typedCompletionSource.SetResult(new(in coroutine));
+                completionSource.SetResult(new(in coroutine));
             }
         }
     }

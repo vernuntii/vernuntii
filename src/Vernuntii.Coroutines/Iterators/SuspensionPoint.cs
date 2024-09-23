@@ -8,7 +8,7 @@ internal struct SuspensionPoint
     internal SuspensionPointState _state;
     internal ICallableArgument? _argument;
     internal Key _argumentKey;
-    internal IYieldCompletionSource? _argumentCompletionSource;
+    internal ICoroutineCompletionSource? _argumentCompletionSource;
     internal ValueTask _awaiterCompletionNotifier;
     internal IRelativeCoroutineAwaiter _coroutineAwaiter;
 
@@ -20,7 +20,7 @@ internal struct SuspensionPoint
         }
     }
 
-    internal void SupplyArgument(Key argumentKey, ICallableArgument argument, IYieldCompletionSource argumentCompletionSource)
+    internal void SupplyArgument(Key argumentKey, ICallableArgument argument, ICoroutineCompletionSource argumentCompletionSource)
     {
         ThrowIfNotRequiringAwaiterCompletionNotifier(in this);
         _state = SuspensionPointState.ArgumentSupplied | (_state & SuspensionPointState.AwaiterCompletionNotifierRequired);
@@ -30,11 +30,11 @@ internal struct SuspensionPoint
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void BeginSupplyingAwaiterCompletionNotifier(out ManualResetValueTaskCompletionSource<Nothing> externTaskCompletionNotifierSource)
+    private void BeginSupplyingAwaiterCompletionNotifier(out ManualResetCoroutineCompletionSource<Nothing> externTaskCompletionNotifierSource)
     {
         ThrowIfNotRequiringAwaiterCompletionNotifier(in this);
         _state = SuspensionPointState.AwaiterCompletionNotifierSupplied | (_state & ~SuspensionPointState.AwaiterCompletionNotifierRequired);
-        externTaskCompletionNotifierSource = ManualResetValueTaskCompletionSource<Nothing>.RentFromCache();
+        externTaskCompletionNotifierSource = ManualResetCoroutineCompletionSource<Nothing>.RentFromCache();
         _awaiterCompletionNotifier = externTaskCompletionNotifierSource.CreateValueTask();
     }
 

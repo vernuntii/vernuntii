@@ -4,7 +4,7 @@ namespace Vernuntii.Coroutines;
 
 delegate void BequestContextDelegate(ref CoroutineContext context, in CoroutineContext contextToBequest);
 
-file class CoroutineArgumentReceiverAcceptor(ManualResetValueTaskCompletionSource<CoroutineContext> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
+file class CoroutineArgumentReceiverAcceptor(ManualResetCoroutineCompletionSource<CoroutineContext> completionSource) : AbstractCoroutineArgumentReceiverAcceptor
 {
     protected override void AcceptCoroutineArgumentReceiver(ref CoroutineArgumentReceiver argumentReceiver) => completionSource.SetResult(argumentReceiver._context);
 }
@@ -17,7 +17,7 @@ public struct CoroutineContext
 
     public static Coroutine<CoroutineContext> Capture()
     {
-        var completionSource = ManualResetValueTaskCompletionSource<CoroutineContext>.RentFromCache();
+        var completionSource = ManualResetCoroutineCompletionSource<CoroutineContext>.RentFromCache();
         return new(completionSource, new CoroutineArgumentReceiverAcceptor(completionSource));
     }
 

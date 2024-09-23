@@ -15,8 +15,9 @@ public readonly ref struct CoroutineArgumentReceiver
         _preKnownAsyncIteratorContextService = preKnownAsyncIteratorContextService;
     }
 
-    internal void ReceiveCallableArgument<TArgument>(in Key argumentKey, in TArgument argument, IYieldCompletionSource completionSource)
-        where TArgument : ICallableArgument
+    public void ReceiveCallableArgument<TArgument, TCompletionSource>(in Key argumentKey, in TArgument argument, TCompletionSource completionSource)
+        where TArgument : ICallableArgument<TCompletionSource>
+        where TCompletionSource : class, ICoroutineCompletionSource
     {
         if (_context._isCoroutineAsyncIteratorSupplier) {
             var iteratorContextService = _preKnownAsyncIteratorContextService ?? _context.GetAsyncIteratorContextService();
