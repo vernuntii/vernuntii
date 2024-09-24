@@ -18,7 +18,7 @@ internal class FieldAccessor<T, TField>
         _fieldOwnerType = fieldOwnerType;
         _fieldType = fieldType;
         _fieldInfo = fieldInfo;
-        if (RuntimeFeature.IsDynamicCodeSupported) {
+        if (GlobalRuntimeFeature.IsDynamicCodeSupported) {
             _getValueReferenceDelegate = CompileGetValueDelegate(_fieldInfo);
         }
     }

@@ -7,7 +7,7 @@ namespace Vernuntii.Coroutines;
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
-internal sealed class CoroutineStateMachineHolder<TResult, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] TStateMachine> : CoroutineStateMachineHolder<TResult>, IValueTaskSource<TResult>, IValueTaskSource,
+internal sealed class CoroutineStateMachineHolder<TResult, [DAM(StateMachineMemberTypes)] TStateMachine> : CoroutineStateMachineHolder<TResult>, IValueTaskSource<TResult>, IValueTaskSource,
     ICoroutineStateMachineHolder<TResult>, IThreadPoolWorkItem, ICoroutineResultStateMachineHolder, IAsyncIteratorStateMachineHolder<TResult>
     where TStateMachine : IAsyncStateMachine
 {
@@ -223,11 +223,21 @@ internal sealed class CoroutineStateMachineHolder<TResult, [DynamicallyAccessedM
         ref SuspensionPoint theirSuspensionPoint)
     {
         Debug.Assert(StateMachine is not null);
-        var theirStateMachine = CoroutineStateMachineAccessor<TStateMachine>.CloneStateMachine(StateMachine);
-        ref var theirBuilder = ref CoroutineStateMachineAccessor<TStateMachine>.CoroutineMethodBuilderAccessor.GetValueReference(ref theirStateMachine);
-        var theirStateMachineHolder = theirBuilder.ReplaceCoroutineUnderlyingStateMachine(ref theirStateMachine);
-        ourSuspensionPoint._coroutineAwaiter.RenewStateMachineCoroutineAwaiter<TStateMachine>(theirStateMachineHolder, in ourSuspensionPoint, ref theirSuspensionPoint);
-        return theirBuilder.ReplaceCoroutineUnderlyingStateMachine(ref theirStateMachine);
+        var theirStateMachine = CoroutineStateMachineAccessor<TStateMachine>.CloneStateMachine(in StateMachine);
+        if (GlobalRuntimeFeature.IsDynamicCodeSupported) {
+            ref var theirBuilder = ref CoroutineStateMachineAccessor<TStateMachine>.CoroutineMethodBuilderAccessor.GetValueReference(ref theirStateMachine);
+            var theirStateMachineHolder = theirBuilder.ReplaceCoroutineUnderlyingStateMachine(ref theirStateMachine);
+            ourSuspensionPoint._coroutineAwaiter.RenewStateMachineCoroutineAwaiter<TStateMachine>(theirStateMachineHolder, in ourSuspensionPoint, ref theirSuspensionPoint);
+            return theirStateMachineHolder;
+        } else {
+            var stateMachineRef = __makeref(theirStateMachine);
+            var theirBuilderBox = CoroutineStateMachineAccessor<TStateMachine>.CoroutineMethodBuilderAccessor.GetValue(stateMachineRef);
+            ref var theirBuilder = ref Unsafe.Unbox<CoroutineMethodBuilder>(theirBuilderBox);
+            var theirStateMachineHolder = theirBuilder.ReplaceCoroutineUnderlyingStateMachine(ref theirStateMachine);
+            ourSuspensionPoint._coroutineAwaiter.RenewStateMachineCoroutineAwaiter<TStateMachine>(theirStateMachineHolder, in ourSuspensionPoint, ref theirSuspensionPoint);
+            CoroutineStateMachineAccessor<TStateMachine, TResult>.CoroutineMethodBuilderAccessor.SetValue(stateMachineRef, theirBuilderBox);
+            return theirStateMachineHolder;
+        }
     }
 
     IAsyncIteratorStateMachineHolder<TResult> IAsyncIteratorStateMachineHolder<TResult>.CreateNewByCloningUnderlyingStateMachine(
@@ -236,9 +246,19 @@ internal sealed class CoroutineStateMachineHolder<TResult, [DynamicallyAccessedM
     {
         Debug.Assert(StateMachine is not null);
         var theirStateMachine = CoroutineStateMachineAccessor<TStateMachine, TResult>.CloneStateMachine(in StateMachine);
-        ref var theirBuilder = ref CoroutineStateMachineAccessor<TStateMachine, TResult>.CoroutineMethodBuilderAccessor.GetValueReference(ref theirStateMachine);
-        var theirStateMachineHolder = theirBuilder.ReplaceCoroutineUnderlyingStateMachine(ref theirStateMachine);
-        ourSuspensionPoint._coroutineAwaiter.RenewStateMachineCoroutineAwaiter<TStateMachine>(theirStateMachineHolder, in ourSuspensionPoint, ref theirSuspensionPoint);
-        return theirStateMachineHolder;
+        if (GlobalRuntimeFeature.IsDynamicCodeSupported) {
+            ref var theirBuilder = ref CoroutineStateMachineAccessor<TStateMachine, TResult>.CoroutineMethodBuilderAccessor.GetValueReference(ref theirStateMachine);
+            var theirStateMachineHolder = theirBuilder.ReplaceCoroutineUnderlyingStateMachine(ref theirStateMachine);
+            ourSuspensionPoint._coroutineAwaiter.RenewStateMachineCoroutineAwaiter<TStateMachine>(theirStateMachineHolder, in ourSuspensionPoint, ref theirSuspensionPoint);
+            return theirStateMachineHolder;
+        } else {
+            var stateMachineRef = __makeref(theirStateMachine);
+            var theirBuilderBox = CoroutineStateMachineAccessor<TStateMachine, TResult>.CoroutineMethodBuilderAccessor.GetValue(stateMachineRef);
+            ref var theirBuilder = ref Unsafe.Unbox<CoroutineMethodBuilder<TResult>>(theirBuilderBox);
+            var theirStateMachineHolder = theirBuilder.ReplaceCoroutineUnderlyingStateMachine(ref theirStateMachine);
+            ourSuspensionPoint._coroutineAwaiter.RenewStateMachineCoroutineAwaiter<TStateMachine>(theirStateMachineHolder, in ourSuspensionPoint, ref theirSuspensionPoint);
+            CoroutineStateMachineAccessor<TStateMachine, TResult>.CoroutineMethodBuilderAccessor.SetValue(stateMachineRef, theirBuilderBox);
+            return theirStateMachineHolder;
+        }
     }
 }

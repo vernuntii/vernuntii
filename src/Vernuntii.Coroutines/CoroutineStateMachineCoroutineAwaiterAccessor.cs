@@ -3,7 +3,7 @@ using Vernuntii.Coroutines.Reflection;
 
 namespace Vernuntii.Coroutines;
 
-internal static class CoroutineStateMachineCoroutineAwaiterAccessor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] TStateMachine, TCoroutineAwaiter>
+internal static class CoroutineStateMachineCoroutineAwaiterAccessor<[DAM(StateMachineMemberTypes)] TStateMachine, TCoroutineAwaiter>
     where TStateMachine : IAsyncStateMachine
 {
     private static readonly Type s_coroutineAwaiterType;

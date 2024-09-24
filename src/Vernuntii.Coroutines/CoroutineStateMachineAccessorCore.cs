@@ -3,7 +3,7 @@ using System.Reflection.Emit;
 
 namespace Vernuntii.Coroutines;
 
-internal static class CoroutineStateMachineAccessorCore<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] TStateMachine> 
+internal static class CoroutineStateMachineAccessorCore<[DAM(StateMachineMemberTypes)] TStateMachine> 
     where TStateMachine : IAsyncStateMachine
 {
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]

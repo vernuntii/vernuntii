@@ -7,7 +7,7 @@ internal delegate TStateMachine CloneCoroutineStateMachineDelegate<TStateMachine
 internal delegate ref CoroutineMethodBuilder GetStateMachineMethodBuilderByRefDelegate<TStateMachine>(ref TStateMachine stateMachine);
 internal delegate CoroutineMethodBuilder GetStateMachineMethodBuilderDelegate<TStateMachine>(in TStateMachine stateMachine);
 
-internal static class CoroutineStateMachineAccessor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] TStateMachine>
+internal static class CoroutineStateMachineAccessor<[DAM(StateMachineMemberTypes)] TStateMachine>
     where TStateMachine : IAsyncStateMachine
 {
     private static readonly Type s_methodBuilderType = typeof(CoroutineMethodBuilder);
@@ -17,7 +17,7 @@ internal static class CoroutineStateMachineAccessor<[DynamicallyAccessedMembers(
 
     static CoroutineStateMachineAccessor()
     {
-        if (RuntimeFeature.IsDynamicCodeSupported) {
+        if (GlobalRuntimeFeature.IsDynamicCodeSupported) {
             s_cloneStateMachineDelegate = CoroutineStateMachineAccessorCore<TStateMachine>.CompileCloneStateMachineDelegate(ref s_methodBuilderFieldInfo, s_methodBuilderType);
         } else {
             s_cloneStateMachineDelegate = CoroutineStateMachineAccessorCore<TStateMachine>.CloneStateMachineInCompiledRuntime;

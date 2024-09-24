@@ -16,7 +16,7 @@ partial struct CoroutineMethodBuilder<TResult>
     /// <param name="stateMachine">The state machine.</param>
     /// <param name="stateMachineHolder">A reference to the field containing the initialized state machine box.</param>
     /// <returns>The "boxed" state machine.</returns>
-    internal static ICoroutineStateMachineHolder<TResult> GetStateMachineHolder<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] TStateMachine>(
+    internal static ICoroutineStateMachineHolder<TResult> GetStateMachineHolder<[DAM(StateMachineMemberTypes)] TStateMachine>(
         ref TStateMachine stateMachine,
         [NotNull] ref CoroutineStateMachineHolder<TResult>? stateMachineHolder)
         where TStateMachine : IAsyncStateMachine
@@ -84,7 +84,9 @@ partial struct CoroutineMethodBuilder<TResult>
     /// <param name="stateMachine">The state machine.</param>
     /// <param name="stateMachineHolderToRenew">A reference to the field containing the initialized state machine box.</param>
     /// <returns>The "boxed" state machine.</returns>
-    internal static IAsyncIteratorStateMachineHolder<TResult> RenewCoroutineStateMachineHolder<TStateMachine>(ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineHolder<TResult>? stateMachineHolderToRenew)
+    internal static IAsyncIteratorStateMachineHolder<TResult> RenewCoroutineStateMachineHolder<[DAM(StateMachineMemberTypes)] TStateMachine>(
+        ref TStateMachine stateMachine,
+        [NotNull] ref CoroutineStateMachineHolder<TResult>? stateMachineHolderToRenew)
         where TStateMachine : IAsyncStateMachine
     {
         var currentContext = ExecutionContext.Capture();
