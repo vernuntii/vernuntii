@@ -7,7 +7,7 @@ namespace Vernuntii.Coroutines;
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 /// <summary>Provides a strongly-typed box object based on the specific state machine type in use.</summary>
-internal sealed class CoroutineStateMachineHolder<TResult, TStateMachine> : CoroutineStateMachineHolder<TResult>, IValueTaskSource<TResult>, IValueTaskSource,
+internal sealed class CoroutineStateMachineHolder<TResult, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] TStateMachine> : CoroutineStateMachineHolder<TResult>, IValueTaskSource<TResult>, IValueTaskSource,
     ICoroutineStateMachineHolder<TResult>, IThreadPoolWorkItem, ICoroutineResultStateMachineHolder, IAsyncIteratorStateMachineHolder<TResult>
     where TStateMachine : IAsyncStateMachine
 {
@@ -43,6 +43,7 @@ internal sealed class CoroutineStateMachineHolder<TResult, TStateMachine> : Coro
 
     /// <summary>Thread-local cache of boxes. This currently only ever stores one.</summary>
     [ThreadStatic]
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "thread-static")]
     private static CoroutineStateMachineHolder<TResult, TStateMachine>? t_tlsCache;
 
     /// <summary>Gets a box object to use for an operation.  This may be a reused, pooled object, or it may be new.</summary>
@@ -223,7 +224,7 @@ internal sealed class CoroutineStateMachineHolder<TResult, TStateMachine> : Coro
     {
         Debug.Assert(StateMachine is not null);
         var theirStateMachine = CoroutineStateMachineAccessor<TStateMachine>.CloneStateMachine(StateMachine);
-        ref var theirBuilder = ref CoroutineStateMachineAccessor<TStateMachine>.GetCoroutineMethodBuilder(ref theirStateMachine);
+        ref var theirBuilder = ref CoroutineStateMachineAccessor<TStateMachine>.CoroutineMethodBuilderAccessor.GetValueReference(ref theirStateMachine);
         var theirStateMachineHolder = theirBuilder.ReplaceCoroutineUnderlyingStateMachine(ref theirStateMachine);
         ourSuspensionPoint._coroutineAwaiter.RenewStateMachineCoroutineAwaiter<TStateMachine>(theirStateMachineHolder, in ourSuspensionPoint, ref theirSuspensionPoint);
         return theirBuilder.ReplaceCoroutineUnderlyingStateMachine(ref theirStateMachine);
@@ -235,7 +236,7 @@ internal sealed class CoroutineStateMachineHolder<TResult, TStateMachine> : Coro
     {
         Debug.Assert(StateMachine is not null);
         var theirStateMachine = CoroutineStateMachineAccessor<TStateMachine, TResult>.CloneStateMachine(in StateMachine);
-        ref var theirBuilder = ref CoroutineStateMachineAccessor<TStateMachine, TResult>.GetCoroutineMethodBuilder(ref theirStateMachine);
+        ref var theirBuilder = ref CoroutineStateMachineAccessor<TStateMachine, TResult>.CoroutineMethodBuilderAccessor.GetValueReference(ref theirStateMachine);
         var theirStateMachineHolder = theirBuilder.ReplaceCoroutineUnderlyingStateMachine(ref theirStateMachine);
         ourSuspensionPoint._coroutineAwaiter.RenewStateMachineCoroutineAwaiter<TStateMachine>(theirStateMachineHolder, in ourSuspensionPoint, ref theirSuspensionPoint);
         return theirStateMachineHolder;

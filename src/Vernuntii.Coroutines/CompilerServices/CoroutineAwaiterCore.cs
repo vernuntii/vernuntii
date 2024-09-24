@@ -18,7 +18,7 @@ internal class CoroutineAwaiterCore
     {
         var stateMachineHolder = Unsafe.As<CoroutineStateMachineHolder<TResult, TStateMachine>>(theirStateMachineHolder);
         Debug.Assert(stateMachineHolder.StateMachine is not null);
-        ref var coroutineAwaiter = ref CoroutineStateMachineCoroutineAwaiterAccessor<TStateMachine, TCoroutineAwaiter>.GetCoroutineAwaiter(ref stateMachineHolder.StateMachine);
+        ref var coroutineAwaiter = ref CoroutineStateMachineCoroutineAwaiterAccessor<TStateMachine, TCoroutineAwaiter>.CoroutineAwaiterAccessor.GetValueReference(ref stateMachineHolder.StateMachine);
 
         switch (coroutineAwaiter.CoroutineAction) {
             case CoroutineAction.Sibling:

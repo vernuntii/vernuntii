@@ -178,7 +178,12 @@ namespace Vernuntii.Coroutines
     {
         void Callback(in Vernuntii.Coroutines.CoroutineContext context, TCompletionSource completionSource);
     }
-    public interface ICoroutineCompletionSource { }
+    public interface ICoroutineCompletionSource
+    {
+        Vernuntii.Coroutines.ICoroutineCompletionSource CreateNew(out short token);
+        void SetException(System.Exception e);
+        void SetResult<TResult>(TResult result);
+    }
     public interface ISiblingCoroutine { }
     [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
     public struct Key : System.IEquatable<Vernuntii.Coroutines.Key>

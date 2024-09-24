@@ -1,79 +1,48 @@
 ﻿using System.Reflection;
-using System.Reflection.Emit;
+using Vernuntii.Coroutines.Reflection;
 
 namespace Vernuntii.Coroutines;
 
-internal delegate ref CoroutineMethodBuilder GetStateMachineMethodBuilderDelegate<TStateMachine>(ref TStateMachine stateMachine);
+internal delegate TStateMachine CloneCoroutineStateMachineDelegate<TStateMachine>(in TStateMachine stateMachine);
+internal delegate ref CoroutineMethodBuilder GetStateMachineMethodBuilderByRefDelegate<TStateMachine>(ref TStateMachine stateMachine);
+internal delegate CoroutineMethodBuilder GetStateMachineMethodBuilderDelegate<TStateMachine>(in TStateMachine stateMachine);
 
-internal static class CoroutineStateMachineAccessor<TStateMachine> where TStateMachine : IAsyncStateMachine
+internal static class CoroutineStateMachineAccessor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] TStateMachine>
+    where TStateMachine : IAsyncStateMachine
 {
     private static readonly Type s_methodBuilderType = typeof(CoroutineMethodBuilder);
     private static readonly FieldInfo? s_methodBuilderFieldInfo;
-    private static readonly Func<TStateMachine, TStateMachine> s_cloneStateMachineDelegate;
-    private static readonly GetStateMachineMethodBuilderDelegate<TStateMachine>? s_getCoroutineMethodBuilder;
+    private static readonly CloneCoroutineStateMachineDelegate<TStateMachine> s_cloneStateMachineDelegate;
+    private static readonly FieldAccessor<TStateMachine, CoroutineMethodBuilder>? s_coroutineMethodBuilderAccessor;
 
     static CoroutineStateMachineAccessor()
     {
-        s_cloneStateMachineDelegate = CompileCloneStateMachineDelegate(ref s_methodBuilderFieldInfo);
+        if (RuntimeFeature.IsDynamicCodeSupported) {
+            s_cloneStateMachineDelegate = CoroutineStateMachineAccessorCore<TStateMachine>.CompileCloneStateMachineDelegate(ref s_methodBuilderFieldInfo, s_methodBuilderType);
+        } else {
+            s_cloneStateMachineDelegate = CoroutineStateMachineAccessorCore<TStateMachine>.CloneStateMachineInCompiledRuntime;
+            s_methodBuilderFieldInfo = CoroutineStateMachineAccessorCore<TStateMachine>.GetFirstFieldByType(s_methodBuilderType);
+        }
+
         if (s_methodBuilderFieldInfo is not null) {
-            s_getCoroutineMethodBuilder = CompileGetMethodBuilderDelegate(s_methodBuilderFieldInfo);
+            s_coroutineMethodBuilderAccessor = new FieldAccessor<TStateMachine, CoroutineMethodBuilder>(
+                CoroutineStateMachineAccessorCore<TStateMachine>.s_stateMachineType,
+                s_methodBuilderType,
+                s_methodBuilderFieldInfo);
         }
     }
 
-    public static ref CoroutineMethodBuilder GetCoroutineMethodBuilder(ref TStateMachine stateMachine)
-    {
-        if (s_getCoroutineMethodBuilder is null) {
-            throw new InvalidOperationException();
-        }
-
-        return ref s_getCoroutineMethodBuilder.Invoke(ref stateMachine);
+    public static CloneCoroutineStateMachineDelegate<TStateMachine> CloneStateMachine {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => s_cloneStateMachineDelegate;
     }
 
-    private static Func<TStateMachine, TStateMachine> CompileCloneStateMachineDelegate(ref FieldInfo? builderFieldInfo)
-    {
-        var stateMachineType = CoroutineStateMachineAccessorCore<TStateMachine>.s_stateMachineType;
-        var method = new DynamicMethod(
-            nameof(CloneStateMachine),
-            returnType: stateMachineType,
-            parameterTypes: [stateMachineType],
-            restrictedSkipVisibility: true);
-        var il = method.GetILGenerator();
-        var loc1 = il.DeclareLocal(stateMachineType);
-        var defaultConstructor = stateMachineType.GetConstructor([]);
-        il.Emit(OpCodes.Newobj, defaultConstructor!);
-        il.Emit(OpCodes.Stloc, loc1);
-        foreach (var field in CoroutineStateMachineAccessorCore<TStateMachine>.s_stateMachineFieldInfos) {
-            if (builderFieldInfo is null && field.FieldType == s_methodBuilderType) {
-                builderFieldInfo = field;
-            }
-            il.Emit(OpCodes.Ldloc, loc1);
-            il.Emit(OpCodes.Ldarg_0);
-            // Only fields are relevant
-            il.Emit(OpCodes.Ldfld, field);
-            il.Emit(OpCodes.Stfld, field);
-        }
-        il.Emit(OpCodes.Ldloc, loc1);
-        il.Emit(OpCodes.Ret);
-        return method.CreateDelegate<Func<TStateMachine, TStateMachine>>();
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if state machine does not have method builder.</exception>
+    public static FieldAccessor<TStateMachine, CoroutineMethodBuilder> CoroutineMethodBuilderAccessor {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => s_coroutineMethodBuilderAccessor ?? throw FieldAccessor<TStateMachine, CoroutineMethodBuilder>.Exceptions.FieldArityIsNotOne();
     }
-
-    private static GetStateMachineMethodBuilderDelegate<TStateMachine> CompileGetMethodBuilderDelegate(FieldInfo builderFieldInfo)
-    {
-        var stateMachineType = CoroutineStateMachineAccessorCore<TStateMachine>.s_stateMachineType;
-        var method = new DynamicMethod(
-            nameof(GetCoroutineMethodBuilder),
-            returnType: s_methodBuilderType.MakeByRefType(),
-            parameterTypes: [stateMachineType.MakeByRefType()],
-            restrictedSkipVisibility: true);
-        var il = method.GetILGenerator();
-        il.Emit(OpCodes.Ldarg_0); // Load argument (stateMachine) onto the stack
-        if (!stateMachineType.IsValueType) {
-            il.Emit(OpCodes.Ldind_Ref); // Indicate that the argument is a reference type
-        }
-        il.Emit(OpCodes.Ldflda, builderFieldInfo); // Load address of the field into the stack
-        il.Emit(OpCodes.Ret); // Return the address of the field(by reference)
-        return method.CreateDelegate<GetStateMachineMethodBuilderDelegate<TStateMachine>>();
-    }
-
-    public static TStateMachine CloneStateMachine(TStateMachine stateMachine) => s_cloneStateMachineDelegate(stateMachine);
 }

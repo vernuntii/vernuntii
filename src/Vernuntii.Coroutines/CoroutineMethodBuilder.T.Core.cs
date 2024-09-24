@@ -16,7 +16,9 @@ partial struct CoroutineMethodBuilder<TResult>
     /// <param name="stateMachine">The state machine.</param>
     /// <param name="stateMachineHolder">A reference to the field containing the initialized state machine box.</param>
     /// <returns>The "boxed" state machine.</returns>
-    internal static ICoroutineStateMachineHolder<TResult> GetStateMachineHolder<TStateMachine>(ref TStateMachine stateMachine, [NotNull] ref CoroutineStateMachineHolder<TResult>? stateMachineHolder)
+    internal static ICoroutineStateMachineHolder<TResult> GetStateMachineHolder<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] TStateMachine>(
+        ref TStateMachine stateMachine,
+        [NotNull] ref CoroutineStateMachineHolder<TResult>? stateMachineHolder)
         where TStateMachine : IAsyncStateMachine
     {
         var currentContext = ExecutionContext.Capture();
